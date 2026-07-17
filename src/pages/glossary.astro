@@ -17,17 +17,29 @@ const linkify = (def) => def.replace(/<em>([^<]+)<\/em>/g, (m, inner) => {
 >
   <section class="prose">
     <p class="eyebrow">Glossary</p>
-    <h1>Every term, in plain English</h1>
+    <h1>Every term, in <span class="accent">plain English</span></h1>
     <p class="lead">No jargon left unexplained. Each term is one or two sentences, with a note on why it matters when you’re holding your own Bitcoin.</p>
-    <input id="filter" class="filter" type="search" placeholder="Filter terms…" aria-label="Filter glossary terms" autocomplete="off" />
   </section>
 
   <section>
-    <dl class="terms" id="terms">
+    <div class="gloss-toolbar">
+      <input id="filter" class="filter" type="search" placeholder="Filter terms…" aria-label="Filter glossary terms" autocomplete="off" />
+      <div class="viewtoggle" role="tablist" aria-label="View">
+        <button id="view-list" class="vt active" data-view="list" role="tab" aria-selected="true" type="button">List</button>
+        <button id="view-tiles" class="vt" data-view="tiles" role="tab" aria-selected="false" type="button">Tiles</button>
+      </div>
+    </div>
+
+    <dl class="terms mode-list" id="terms">
       {glossary.map((t) => (
         <div class="term" id={slug(t.term)} data-term={t.term.toLowerCase()}>
-          <dt>{t.term}</dt>
-          <dd set:html={linkify(t.def)}></dd>
+          <dt>
+            <button class="term-head" type="button" aria-expanded="false">
+              <span class="term-name">{t.term}</span>
+              <span class="chev" aria-hidden="true">▾</span>
+            </button>
+          </dt>
+          <dd class="term-body" set:html={linkify(t.def)}></dd>
         </div>
       ))}
     </dl>
@@ -37,13 +49,68 @@ const linkify = (def) => def.replace(/<em>([^<]+)<\/em>/g, (m, inner) => {
 
 <script is:inline>
   (function () {
+    var wrap = document.getElementById('terms');
+    if (!wrap) return;
+    var terms = Array.prototype.slice.call(wrap.querySelectorAll('.term'));
     var input = document.getElementById('filter');
-    var terms = Array.prototype.slice.call(document.querySelectorAll('#terms .term'));
     var none = document.getElementById('noresult');
-    if (!input) return;
-    input.addEventListener('input', function () {
-      var q = input.value.trim().toLowerCase();
-      var shown = 0;
+    var btnList = document.getElementById('view-list');
+    var btnTiles = document.getElementById('view-tiles');
+
+    function view() { return wrap.classList.contains('mode-tiles') ? 'tiles' : 'list'; }
+    function setView(v, persist) {
+      var list = v !== 'tiles';
+      wrap.classList.toggle('mode-list', list);
+      wrap.classList.toggle('mode-tiles', !list);
+      btnList.classList.toggle('active', list);
+      btnTiles.classList.toggle('active', !list);
+      btnList.setAttribute('aria-selected', String(list));
+      btnTiles.setAttribute('aria-selected', String(!list));
+      if (persist) { try { localStorage.setItem('bkg-glossary-view', v); } catch (e) {} }
+    }
+    function setOpen(el, open) {
+      el.classList.toggle('open', open);
+      var b = el.querySelector('.term-head');
+      if (b) b.setAttribute('aria-expanded', String(open));
+    }
+    function focusTerm(el, scroll) {
+      if (view() === 'tiles') setView('list', true);
+      terms.forEach(function (t) { setOpen(t, false); t.classList.remove('hl'); });
+      setOpen(el, true);
+      el.classList.add('hl');
+      if (scroll) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setTimeout(function () { el.classList.remove('hl'); }, 2200);
+    }
+
+    // accordion toggle (list mode only)
+    terms.forEach(function (t) {
+      var head = t.querySelector('.term-head');
+      head.addEventListener('click', function () {
+        if (view() === 'tiles') return;
+        setOpen(t, !t.classList.contains('open'));
+      });
+    });
+
+    // view switch
+    btnList.addEventListener('click', function () { setView('list', true); });
+    btnTiles.addEventListener('click', function () { setView('tiles', true); });
+
+    // cross-reference clicks stay on the page: open the target term
+    wrap.addEventListener('click', function (e) {
+      var a = e.target.closest ? e.target.closest('a.xref') : null;
+      if (!a) return;
+      var href = a.getAttribute('href') || '';
+      if (href.charAt(0) !== '#') return;
+      var el = document.getElementById(href.slice(1));
+      if (!el) return;
+      e.preventDefault();
+      focusTerm(el, true);
+      try { history.replaceState(null, '', href); } catch (er) {}
+    });
+
+    // filter (works in both views)
+    if (input) input.addEventListener('input', function () {
+      var q = input.value.trim().toLowerCase(), shown = 0;
       terms.forEach(function (el) {
         var hit = !q || el.getAttribute('data-term').indexOf(q) !== -1 || el.textContent.toLowerCase().indexOf(q) !== -1;
         el.hidden = !hit;
@@ -51,20 +118,64 @@ const linkify = (def) => def.replace(/<em>([^<]+)<\/em>/g, (m, inner) => {
       });
       none.hidden = shown !== 0;
     });
+
+    // initial view: saved preference, default list
+    var saved; try { saved = localStorage.getItem('bkg-glossary-view'); } catch (e) {}
+    setView(saved === 'tiles' ? 'tiles' : 'list', false);
+
+    // deep link: /glossary#term opens just that one, collapsed elsewhere
+    function handleHash() {
+      var h = (location.hash || '').slice(1);
+      if (!h) return;
+      var el = document.getElementById(h);
+      if (el && el.classList.contains('term')) { setView('list', false); focusTerm(el, true); }
+    }
+    handleHash();
+    window.addEventListener('hashchange', handleHash);
   })();
 </script>
 
 <style>
-  .filter { width: 100%; max-width: 22rem; margin-top: 1.4rem; padding: 0.65rem 0.9rem; font: inherit;
+  .gloss-toolbar { display: flex; flex-wrap: wrap; gap: 0.8rem; align-items: center; justify-content: space-between; margin-top: 1.4rem; }
+  .filter { flex: 1 1 16rem; max-width: 24rem; padding: 0.65rem 0.9rem; font: inherit;
     color: var(--text); background: var(--surface); border: 1px solid var(--line); border-radius: 0.6rem; }
   .filter:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
-  .terms { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; margin: 1.6rem 0 0; }
-  @media (max-width: 720px) { .terms { grid-template-columns: 1fr; } }
-  .term { background: var(--surface); border: 1px solid var(--line); border-radius: 0.7rem; padding: 1rem 1.15rem; scroll-margin-top: 4.5rem; }
-  .term dt { font-weight: 700; letter-spacing: -0.01em; margin-bottom: 0.25rem; }
-  .term dd { margin: 0; color: var(--muted); font-size: 0.93rem; line-height: 1.5; }
-  .term dd :global(em) { color: var(--accent); font-style: normal; }
-  .term dd :global(.xref) { text-decoration: none; }
-  .term dd :global(.xref:hover em) { text-decoration: underline; }
+  .viewtoggle { display: inline-flex; border: 1px solid var(--line); border-radius: 0.6rem; overflow: hidden; flex: 0 0 auto; }
+  .vt { background: var(--surface); border: 0; color: var(--muted); font-family: var(--mono); font-size: 0.8rem;
+    letter-spacing: 0.04em; padding: 0.5rem 0.95rem; cursor: pointer; }
+  .vt + .vt { border-left: 1px solid var(--line); }
+  .vt.active { background: var(--accent); color: var(--accent-ink); font-weight: 700; }
+
+  .terms { margin: 1.5rem 0 0; padding: 0; }
+  .terms.mode-list { display: flex; flex-direction: column; gap: 0.5rem; }
+  .terms.mode-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; }
+  @media (max-width: 720px) { .terms.mode-tiles { grid-template-columns: 1fr; } }
+
+  .term { background: var(--surface); border: 1px solid var(--line); border-radius: 0.7rem; scroll-margin-top: 5rem;
+    transition: border-color .15s ease, box-shadow .15s ease; }
+  .term dt { margin: 0; }
+  .term-head { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    background: none; border: 0; color: var(--text); font: inherit; font-weight: 700; letter-spacing: -0.01em;
+    text-align: left; padding: 0.85rem 1.15rem; cursor: pointer; border-radius: 0.7rem; }
+  .term-head:hover .term-name { color: var(--accent); }
+  .term-head:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .chev { color: var(--muted); transition: transform .16s ease; flex: 0 0 auto; font-size: 0.85rem; }
+  .term.open .chev { transform: rotate(180deg); }
+  .term-body { margin: 0; color: var(--muted); font-size: 0.93rem; line-height: 1.55; padding: 0 1.15rem 1rem; }
+  .term-body :global(em) { color: var(--accent); font-style: normal; }
+  .term-body :global(.xref) { text-decoration: none; }
+  .term-body :global(.xref:hover em) { text-decoration: underline; }
+
+  /* list mode: collapse bodies */
+  .mode-list .term-body { display: none; }
+  .mode-list .term.open .term-body { display: block; }
+
+  /* tiles mode: bodies always visible, static heads */
+  .mode-tiles .term-head { cursor: default; padding-bottom: 0.35rem; }
+  .mode-tiles .term-head:hover .term-name { color: var(--text); }
+  .mode-tiles .chev { display: none; }
+  .mode-tiles .term-body { display: block; padding-top: 0; }
+
+  .term.hl { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
   .noresult { color: var(--muted); margin-top: 1.4rem; }
 </style>

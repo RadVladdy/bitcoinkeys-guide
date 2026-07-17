@@ -2,6 +2,15 @@
 import '../styles/global.css';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
+import { glossary } from '../data/glossary.js';
+
+// Compact plain-text lookup for the site-wide hover-preview cards on glossary links.
+const gslug = (t) => t.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const glossaryPreview = glossary.map((t) => ({
+  s: gslug(t.term),
+  t: t.term,
+  d: t.def.replace(/<[^>]*>/g, ''),
+}));
 
 export interface Props {
   title: string;
@@ -67,6 +76,81 @@ const verifiedLabel = verified
 
 <Footer />
 
+<script id="bkg-glossary-data" type="application/json" set:html={JSON.stringify(glossaryPreview)}></script>
+<script is:inline>
+  /* Site-wide glossary hover previews. Mouse users get a preview card on hover;
+     click always navigates (so touch just taps through). */
+  (function () {
+    try {
+      if (!window.matchMedia || !matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+    } catch (e) { return; }
+    var node = document.getElementById('bkg-glossary-data');
+    if (!node) return;
+    var map = {};
+    try { JSON.parse(node.textContent).forEach(function (x) { map[x.s] = x; }); } catch (e) { return; }
+
+    var tip = null, hideTimer = null, showTimer = null;
+    function ensureTip() {
+      if (tip) return tip;
+      tip = document.createElement('div');
+      tip.className = 'gloss-tip';
+      tip.setAttribute('role', 'tooltip');
+      tip.addEventListener('mouseenter', function () { clearTimeout(hideTimer); });
+      tip.addEventListener('mouseleave', scheduleHide);
+      document.body.appendChild(tip);
+      return tip;
+    }
+    function slugOf(href) {
+      var i = href.indexOf('/glossary#');
+      return i < 0 ? null : href.slice(i + 10);
+    }
+    function place(a) {
+      var t = tip, r = a.getBoundingClientRect();
+      t.style.visibility = 'hidden'; t.style.display = 'block';
+      var tw = t.offsetWidth, th = t.offsetHeight;
+      var vw = document.documentElement.clientWidth;
+      var left = window.scrollX + r.left;
+      if (left + tw > window.scrollX + vw - 12) left = window.scrollX + vw - tw - 12;
+      if (left < window.scrollX + 8) left = window.scrollX + 8;
+      var top = window.scrollY + r.bottom + 8;
+      if (r.bottom + th + 14 > window.innerHeight && r.top - th - 8 > 0) top = window.scrollY + r.top - th - 8;
+      t.style.top = top + 'px'; t.style.left = left + 'px'; t.style.visibility = 'visible';
+    }
+    function show(a, item) {
+      var t = ensureTip();
+      t.innerHTML = '';
+      var h = document.createElement('div'); h.className = 'gt-term'; h.textContent = item.t;
+      var d = document.createElement('div'); d.className = 'gt-def'; d.textContent = item.d;
+      t.appendChild(h); t.appendChild(d);
+      place(a);
+    }
+    function scheduleHide() { hideTimer = setTimeout(function () { if (tip) tip.style.display = 'none'; }, 130); }
+    document.addEventListener('mouseover', function (e) {
+      var a = e.target.closest ? e.target.closest('a[href*="/glossary#"]') : null;
+      if (!a) return;
+      var s = slugOf(a.getAttribute('href') || '');
+      var item = s && map[s];
+      if (!item) return;
+      clearTimeout(hideTimer); clearTimeout(showTimer);
+      showTimer = setTimeout(function () { show(a, item); }, 90);
+    });
+    document.addEventListener('mouseout', function (e) {
+      var a = e.target.closest ? e.target.closest('a[href*="/glossary#"]') : null;
+      if (!a) return;
+      clearTimeout(showTimer); scheduleHide();
+    });
+  })();
+</script>
+
 <style>
   main { padding-top: 2.4rem; padding-bottom: 3.5rem; min-height: 60vh; }
+
+  :global(.gloss-tip) {
+    position: absolute; z-index: 60; max-width: 20rem; display: none;
+    background: var(--surface-2); border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    border-radius: 0.6rem; padding: 0.7rem 0.85rem; box-shadow: var(--shadow);
+    font-size: 0.86rem; line-height: 1.45; pointer-events: auto;
+  }
+  :global(.gloss-tip .gt-term) { font-weight: 700; color: var(--text); margin-bottom: 0.2rem; }
+  :global(.gloss-tip .gt-def) { color: var(--muted); }
 </style>
