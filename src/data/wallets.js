@@ -5,6 +5,9 @@
 // 2026-07-17: Foundation retired the $199 Passport (now "Passport Core," discontinued); replaced with the
 //   $349 Passport Prime — a multi-function security platform. Badges re-derived from foundation.xyz + Keylabs
 //   audit + independent reviews (WalletInsights, The Bitcoin Hole): btcOnly/airgap now 'partial', reproducible 'no'.
+// 2026-07-17: Trezor Safe line expanded to three cards — Safe 3 ($79, buttons/mono), Safe 5 ($129, touchscreen),
+//   Safe 7 ($249, Oct-2025 flagship: dual secure element incl. the auditable TROPIC01 chip, Bluetooth).
+//   Prices/specs from trezor.io/compare + independent reviews. Now 9 devices total.
 // Rule of the guide: there is no "best" device, only fit-to-purpose.
 
 export const walletsVerified = '2026-07-17';
@@ -54,8 +57,29 @@ export const wallets = [
     },
   },
   {
+    name: 'Trezor Safe 3',
+    ladderReach: { s: 'strong', p: 'ok', m: 'ok', note: 'Two-button entry makes a passphrase a chore; multisig is only adequate. A fine hold-and-forget starter.' },
+    vendor: 'SatoshiLabs',
+    price: '$79',
+    priceNum: 79,
+    airgap: 'no',       // USB, functionally cold
+    btcOnly: 'partial', // multi-coin device
+    openSource: 'yes',
+    multisig: 'partial',
+    secureElement: 'yes', // EAL6+
+    reproducible: 'yes',
+    recoverability: 'partial',
+    useCases: ['first', 'budget'],
+    bestFor: 'The budget Trezor — two physical buttons and a small monochrome screen, but the same EAL6+ secure element, open-source firmware and optional Shamir backup as its pricier siblings. A solid hold-and-forget first wallet.',
+    watch: 'Buttons and a tiny mono screen make passphrase entry and reading long addresses more of a chore than the touchscreen models. Multi-coin, and multisig is adequate rather than best-in-class.',
+    notes: {
+      reproducible: 'Open-source with documented reproducible builds (verifiable after stripping the vendor signature).',
+      recoverability: 'Offers a SLIP-39 (Shamir) backup that only restores in SLIP-39-aware wallets (Sparrow, Electrum, a few others). A plain BIP-39 seed is also an option if you prefer maximum portability.',
+    },
+  },
+  {
     name: 'Trezor Safe 5',
-    ladderReach: { s: 'strong', p: 'strong', m: 'ok', note: 'Single-sig and passphrase are easy; multisig is only adequate (and it’s multi-coin).' },
+    ladderReach: { s: 'strong', p: 'strong', m: 'ok', note: 'Single-sig and passphrase are easy on the touchscreen; multisig is only adequate (and it’s multi-coin).' },
     vendor: 'SatoshiLabs',
     price: '$129',
     priceNum: 129,
@@ -67,11 +91,32 @@ export const wallets = [
     reproducible: 'yes',
     recoverability: 'partial',
     useCases: ['first', 'passphrase'],
-    bestFor: 'The only mainstream device with native SLIP-39; colour touchscreen makes passphrase entry easy; mainstream UX.',
-    watch: 'Multi-coin device. Multisig is adequate rather than best-in-class.',
+    bestFor: 'The middle Trezor: a colour touchscreen makes passphrase entry and address-checking easy, with mainstream UX and native SLIP-39. The sweet spot if you want a touchscreen without paying for the flagship.',
+    watch: 'Multi-coin, and multisig is adequate rather than best-in-class. USB-only (the Safe 7 adds Bluetooth and an auditable chip).',
     notes: {
       reproducible: 'Open-source with documented reproducible builds (verifiable after stripping the vendor signature).',
       recoverability: 'Defaults to a SLIP-39 (Shamir) backup, which only restores in SLIP-39-aware wallets (Sparrow, Electrum, a handful of others) — not every wallet. A plain BIP-39 seed is still an option if you prefer maximum portability.',
+    },
+  },
+  {
+    name: 'Trezor Safe 7',
+    ladderReach: { s: 'strong', p: 'strong', m: 'ok', note: 'The big touchscreen makes single-sig and passphrase easy; multisig is only adequate (and it’s multi-coin).' },
+    vendor: 'SatoshiLabs',
+    price: '$249',
+    priceNum: 249,
+    airgap: 'no',       // USB + Bluetooth — not air-gapped
+    btcOnly: 'partial', // multi-coin device
+    openSource: 'yes',
+    multisig: 'partial',
+    secureElement: 'yes', // dual SE, incl. the auditable TROPIC01
+    reproducible: 'yes',
+    recoverability: 'partial',
+    useCases: ['first', 'passphrase'],
+    bestFor: 'The flagship — a big 2.5″ touchscreen, wireless (Bluetooth, even with an iPhone), and the headline feature: the first *auditable* secure-element chip (TROPIC01), paired with a second certified chip. For anyone who wants a vault chip open to outside inspection rather than a closed black box.',
+    watch: 'The priciest Trezor at $249, and Bluetooth adds a wireless interface a USB-only or air-gapped device doesn’t have (every send still needs on-device approval). Multi-coin, and multisig is adequate rather than best-in-class.',
+    notes: {
+      reproducible: 'Open-source with documented reproducible builds — and its new TROPIC01 secure element is itself auditable (the chip’s design is open to outside experts), a first for hardware wallets.',
+      recoverability: 'Offers a SLIP-39 (Shamir) backup that only restores in SLIP-39-aware wallets; a plain BIP-39 seed is also an option if you prefer maximum portability.',
     },
   },
   {
