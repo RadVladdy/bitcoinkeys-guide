@@ -7,7 +7,9 @@
 //   audit + independent reviews (WalletInsights, The Bitcoin Hole): btcOnly/airgap now 'partial', reproducible 'no'.
 // 2026-07-17: Trezor Safe line expanded to three cards — Safe 3 ($79, buttons/mono), Safe 5 ($129, touchscreen),
 //   Safe 7 ($249, Oct-2025 flagship: dual secure element incl. the auditable TROPIC01 chip, Bluetooth).
-//   Prices/specs from trezor.io/compare + independent reviews. Now 9 devices total.
+//   Prices/specs from trezor.io/compare + independent reviews.
+// 2026-07-17: added Coldcard Mk5 ($170, pocket keypad Coldcard, dual SE, MicroSD air-gap) and split Blockstream
+//   Jade into Jade Core ($79, no camera → airgap 'no') + Jade Plus ($149, metal + camera + battery). Now 11 devices.
 // Rule of the guide: there is no "best" device, only fit-to-purpose.
 
 export const walletsVerified = '2026-07-17';
@@ -32,6 +34,27 @@ export const wallets = [
     watch: 'The premium price of the group. Firmware is source-available (independently reproducible) rather than OSI-licensed open-source — a philosophical caveat for open-source purists, not a functional one.',
     notes: {
       reproducible: 'Firmware is reproducibly buildable — you can rebuild it from source and confirm the binary matches (independently verified on WalletScrutiny).',
+      recoverability: 'Standard BIP-39 seed — restore your funds in Sparrow, Electrum, Bitcoin Core, or any competent wallet.',
+    },
+  },
+  {
+    name: 'Coldcard Mk5',
+    ladderReach: { s: 'strong', p: 'ok', m: 'strong', note: 'Full ladder; the numeric keypad makes passphrase entry more of a chore than the Q, but single-sig and multisig sign well.' },
+    vendor: 'Coinkite',
+    price: '$170',
+    priceNum: 170,
+    airgap: 'yes',      // MicroSD air-gap; also USB-C / NFC
+    btcOnly: 'yes',
+    openSource: 'partial', // source-available (non-OSI)
+    multisig: 'yes',
+    secureElement: 'yes',  // dual secure elements
+    reproducible: 'yes',
+    recoverability: 'yes',
+    useCases: ['multisig', 'budget'],
+    bestFor: 'The pocket-sized, lower-cost Coldcard — the same dual secure element, air-gapped MicroSD signing, and Bitcoin-only open-source firmware as the Q, in a credit-card form factor. An excellent affordable multisig signer or travel key; USB-C + NFC for tap-to-sign.',
+    watch: 'A numeric keypad (not a full keyboard) makes typing a passphrase more of a chore than the Q, and there’s no built-in QR scanner (it air-gaps via MicroSD). Firmware is source-available rather than OSI open-source — verifiable, but a licensing caveat for purists.',
+    notes: {
+      reproducible: 'Firmware is reproducibly buildable — rebuild from source and confirm the binary matches. Dual secure elements.',
       recoverability: 'Standard BIP-39 seed — restore your funds in Sparrow, Electrum, Bitcoin Core, or any competent wallet.',
     },
   },
@@ -141,12 +164,12 @@ export const wallets = [
     },
   },
   {
-    name: 'Blockstream Jade',
-    ladderReach: { s: 'strong', p: 'ok', m: 'ok', note: 'Covers the ladder cheaply; the buttons make passphrase and multisig fiddlier. Great to start.' },
+    name: 'Blockstream Jade Core',
+    ladderReach: { s: 'strong', p: 'ok', m: 'ok', note: 'Covers the ladder cheaply; the joystick makes passphrase and multisig fiddlier. Great to start.' },
     vendor: 'Blockstream',
     price: '$79',
     priceNum: 79,
-    airgap: 'partial',  // QR camera + USB/Bluetooth
+    airgap: 'no',       // no on-device camera — connects by USB or Bluetooth
     btcOnly: 'yes',
     openSource: 'yes',
     multisig: 'partial',
@@ -154,8 +177,29 @@ export const wallets = [
     reproducible: 'yes',
     recoverability: 'yes',
     useCases: ['first', 'budget'],
-    bestFor: 'Genuinely good on a budget; solid multisig; Unchained integration.',
-    watch: 'No dedicated secure element (uses a "blind oracle" model). Some multisig quirks. (A premium metal-body "Jade Plus," ~$149, is also sold.)',
+    bestFor: 'Genuinely good on a budget — the $79 entry Blockstream device (plug-and-play, plastic body). Solid single-sig, workable multisig, and Unchained integration.',
+    watch: 'No dedicated secure element (a "blind oracle" model), and no on-device camera — so it connects by USB or Bluetooth rather than air-gapped QR (the Jade Plus adds a camera + battery for that). Some multisig quirks.',
+    notes: {
+      reproducible: 'Open-source with documented reproducible builds.',
+      recoverability: 'Standard BIP-39 seed — interoperable both ways with Coldcard, Trezor, Ledger and others.',
+    },
+  },
+  {
+    name: 'Blockstream Jade Plus',
+    ladderReach: { s: 'strong', p: 'ok', m: 'ok', note: 'Covers the ladder; the joystick makes passphrase and multisig fiddlier, but the camera + battery make it a nicer air-gap unit than the Core.' },
+    vendor: 'Blockstream',
+    price: '$149',
+    priceNum: 149,
+    airgap: 'partial',  // on-device camera for QR air-gap, but also USB/Bluetooth
+    btcOnly: 'yes',
+    openSource: 'yes',
+    multisig: 'partial',
+    secureElement: 'no',
+    reproducible: 'yes',
+    recoverability: 'yes',
+    useCases: ['first', 'multisig'],
+    bestFor: 'The premium Jade — a metal body (six colours), a built-in camera for air-gapped QR signing, and a rechargeable battery, with the same open-source “blind oracle” security as the Core. A nicer-feeling, air-gap-capable device without a big price jump.',
+    watch: 'Like the Core, it uses a "blind oracle" model rather than a dedicated secure element (Blockstream argues there’s nothing physical to steal from it). Bluetooth is present alongside the camera. Some multisig quirks.',
     notes: {
       reproducible: 'Open-source with documented reproducible builds.',
       recoverability: 'Standard BIP-39 seed — interoperable both ways with Coldcard, Trezor, Ledger and others.',
