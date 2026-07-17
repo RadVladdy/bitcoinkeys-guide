@@ -1,17 +1,19 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { ladder } from '../../data/ladder.js';
+import { ladder, shamirNote } from '../../data/ladder.js';
 
 export function getStaticPaths() {
-  // rung 1 (single-sig) has its own bespoke page; render the rest from data
-  return ladder
-    .filter((r) => r.slug !== 'single-sig')
-    .map((r) => ({ params: { slug: r.slug }, props: { r } }));
+  // rung 1 (single-sig) has its own bespoke page; render rungs 2-4 + the
+  // optional Shamir note from data
+  const rungs = ladder.filter((r) => r.slug !== 'single-sig');
+  return [...rungs, shamirNote].map((r) => ({ params: { slug: r.slug }, props: { r } }));
 }
 
 const { r } = Astro.props;
-const prev = ladder.find((x) => x.step === r.step - 1);
-const next = ladder.find((x) => x.step === r.step + 1);
+const prev = r.optional ? null : ladder.find((x) => x.step === r.step - 1);
+const next = r.optional ? null : ladder.find((x) => x.step === r.step + 1);
+const eyebrow = r.optional ? 'Optional · Advanced backup' : `Rung ${r.step} · ${r.short}`;
+const crumbLabel = r.optional ? 'Optional backup' : `Rung ${r.step}`;
 const accentize = (title, phrase) => {
   if (!phrase) return title;
   const i = title.indexOf(phrase);
@@ -20,14 +22,14 @@ const accentize = (title, phrase) => {
 };
 ---
 <Base
-  title={`Rung ${r.step} — ${r.name} · BitcoinKeys.guide`}
+  title={`${r.optional ? '' : `Rung ${r.step} — `}${r.name} · BitcoinKeys.guide`}
   description={r.tagline}
   verified="2026-07-15"
 >
-  <nav class="crumb"><a href="/ladder">The ladder</a> <span aria-hidden="true">/</span> <span>Rung {r.step}</span></nav>
+  <nav class="crumb"><a href="/ladder">The ladder</a> <span aria-hidden="true">/</span> <span>{crumbLabel}</span></nav>
 
   <section class="prose">
-    <p class="eyebrow">Rung {r.step} · {r.short}</p>
+    <p class="eyebrow">{eyebrow}</p>
     <h1 set:html={accentize(r.name, r.accent)}></h1>
     <p class="lead">{r.tagline}</p>
 
@@ -59,6 +61,13 @@ const accentize = (title, phrase) => {
       <div class:list={['callout', r.keyNote.tone === 'safe' ? 'safe' : '']}>
         <span class="label">{r.keyNote.label}</span>
         <p set:html={r.keyNote.body}></p>
+      </div>
+    )}
+
+    {r.also && (
+      <div class="callout">
+        <span class="label">{r.also.label}</span>
+        <p set:html={r.also.body}></p>
       </div>
     )}
 

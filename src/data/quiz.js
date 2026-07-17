@@ -147,7 +147,7 @@ function primaryRec(a) {
     const selfRun = tech === 'technical' && stakes === 'lifechanging';
     if (selfRun) {
       return {
-        tier: 'Tier 3 — advanced', rungSlug: 'diy-multisig', rungLabel: 'Do-it-yourself multisig (2-of-3)',
+        tier: 'Tier 3 — advanced', rungSlug: 'multisig', rungLabel: 'Do-it-yourself multisig (2-of-3)',
         headline: 'Self-run multisig (2-of-3)',
         why: 'At life-changing stakes and with the skills to run it, multisig removes the single point of failure: two of three keys sign, so no one lost, stolen, or coerced key can move your coins — and losing any one key isn’t fatal. Use devices from two different vendors so one vendor’s bug can’t sink all your keys.',
         wallets: [DEV.bitbox, DEV.coldcard],
@@ -252,15 +252,15 @@ function secondaryRec(a, primary) {
   }
   if (slug === 'collaborative') {
     if (a.tech === 'technical') {
-      return S('diy-multisig', 'Do-it-yourself multisig', 'Run your own multisig',
+      return S('multisig', 'Do-it-yourself multisig', 'Run your own multisig',
         'If you’d rather no company hold any key, self-run 2-of-3 (or 3-of-5) multisig gives you the same safety with full independence — at the cost of doing all the setup and backups yourself.');
     }
     return S('collaborative', 'Insured / larger multisig', 'Add insurance or more signers',
       'For very large holdings, an insured vault (AnchorWatch, backed by Lloyd’s of London) or a 3-of-5 spread across more locations adds another layer. See the services below.');
   }
-  if (slug === 'diy-multisig') {
-    return S('3-of-5', '3-of-5 multisig', 'Spread the risk wider (3-of-5)',
-      'At the very top end, a 3-of-5 spread across separate locations tolerates more lost or compromised keys before anything is at risk — more resilience, more to manage.');
+  if (slug === 'multisig') {
+    return S('multisig', '3-of-5 variant', 'Spread the risk wider (3-of-5)',
+      'At the very top end, a 3-of-5 spread across separate locations tolerates more lost or compromised keys before anything is at risk — more resilience, more to manage. It’s the same technology as your 2-of-3, just more keys.');
   }
   // learning → the graduation target
   return S('single-sig', 'Single-signature cold storage', 'Graduate to cold storage',

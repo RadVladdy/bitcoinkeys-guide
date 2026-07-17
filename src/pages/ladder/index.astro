@@ -5,7 +5,7 @@ import { bip85 } from '../../data/ladder.js';
 ---
 <Base
   title="The self-custody configuration ladder · BitcoinKeys.guide"
-  description="Every serious Bitcoin self-custody setup fits on one ladder of rising complexity — from single-sig to 3-of-5 multisig. Find the lowest rung that covers you, and stop there."
+  description="Every serious Bitcoin self-custody setup fits on one ladder of rising complexity — from single-signature to collaborative multisig. Find the lowest rung that covers you, and stop there."
   verified="2026-07-15"
 >
   <section class="prose">
@@ -25,11 +25,16 @@ import { bip85 } from '../../data/ladder.js';
   <section class="prose">
     <h2>Reading the ladder</h2>
     <ul>
-      <li><strong>Most newcomers</strong> belong on rung 1 (single-sig) and should stay there through their first year.</li>
-      <li><strong>Most substantial holders</strong> settle at rung 4 or 5 (DIY or collaborative 2-of-3 multisig).</li>
-      <li><strong>Rung 6 (3-of-5)</strong> is right for a small minority — large holdings or genuine multi-party needs.</li>
+      <li><strong>Most newcomers</strong> belong on rung 1 (single-signature) and should stay there through their first year.</li>
+      <li><strong>Most substantial holders</strong> settle at rung 3 or 4 (self-run or collaborative multisig).</li>
+      <li><strong>Bigger multisig (3-of-5)</strong> is right for a small minority — large holdings or genuine multi-party needs. It’s the same technology as 2-of-3, so it lives on the <a href="/ladder/multisig">multisig rung</a> rather than as a separate step.</li>
       <li>Jumping straight to the top introduces complexity you’re not yet equipped to manage. That complexity is a bigger risk than the ones it’s meant to solve.</li>
     </ul>
+
+    <div class="callout">
+      <span class="label">Optional · Advanced backup</span>
+      <p><strong>Shamir backup</strong> (SLIP-39) is a way to split a single seed’s backup into shares — any few rebuild it, no one share reveals anything. It’s a <em>backup method</em>, not a signing configuration, so it sits beside the ladder rather than on it. <a href="/ladder/shamir">How Shamir backup works →</a></p>
+    </div>
 
     <div class="callout warn">
       <span class="label">{bip85.name}</span>
@@ -117,13 +122,6 @@ import { bip85 } from '../../data/ladder.js';
           <a class="btn-primary" href="/ladder/single-sig">Read the rung-1 walkthrough →</a>
           <a class="btn-ghost" href="/start">I’m totally new — start here</a>
         </div></div>`;
-    }
-    if (verdict === 'top') {
-      return `<div class="wa-vcard top">
-        <p class="wa-vk mono">You’re at the top</p>
-        <h3>More keys isn’t the next step — a plan is.</h3>
-        <p>${c.whenToClimb}</p>
-        <div class="wa-links"><a class="btn-ghost" href="/ladder/3-of-5">Re-read rung 6 →</a></div></div>`;
     }
     if (verdict === 'stay') {
       return `<div class="wa-vcard stay">

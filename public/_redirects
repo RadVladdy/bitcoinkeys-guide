@@ -6,3 +6,7 @@
 # keys@ is the canonical brand address (= NIP-05); tips@ kept as a transition alias.
 /.well-known/lnurlp/keys  https://ln.bitcoinkeys.guide/.well-known/lnurlp/keys  302
 /.well-known/lnurlp/tips  https://ln.bitcoinkeys.guide/.well-known/lnurlp/tips  302
+
+# Ladder restructure 2026-07-17: DIY 2-of-3 renamed to "multisig"; 3-of-5 folded in.
+/ladder/diy-multisig  /ladder/multisig  301
+/ladder/3-of-5        /ladder/multisig  301
