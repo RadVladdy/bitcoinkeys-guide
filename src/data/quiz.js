@@ -76,7 +76,7 @@ export const collaborativeVendors = [
 // funnel. "No best device, only fit-to-purpose." Prices render from wallets.js.
 const DEV = {
   jade:     { name: 'Blockstream Jade',    why: 'genuinely good on a budget, simple, Bitcoin-only, air-gapped' },
-  passport: { name: 'Foundation Passport', why: 'polished, strict QR air-gap, Bitcoin-only, fully open-source' },
+  passport: { name: 'Foundation Passport Prime', why: 'a polished, US-assembled, independently audited security platform — a big touchscreen with a keyboard for easy passphrase entry, and Bitcoin multisig up to 15 keys (it also stores 2FA codes, passkeys and files, so it’s more device than a pure Bitcoin signer, at $349)' },
   bitbox:   { name: 'BitBox02 (BTC-only)', why: 'Swiss, minimalist, fully open-source — an excellent multisig component' },
   coldcard: { name: 'Coldcard Q',          why: 'the physical keyboard and clear menus make it the friendliest to operate — and it’s buy-once: the same device covers single-sig, a passphrase, and multisig, so you never re-buy as you climb (Bitcoin-only; premium price)' },
   trezor:   { name: 'Trezor Safe 5',       why: 'colour touchscreen and mainstream UX — easy passphrase entry' },
@@ -107,12 +107,12 @@ function singleSigDevices(a) {
     };
   }
   if (budgetTight) {
-    return { devices: [DEV.jade, DEV.passport], note: 'Both are strong value for a first single-sig wallet — the Jade especially if you’re keeping costs down for a smaller amount.' };
+    return { devices: [DEV.jade, DEV.bitbox], note: 'Both are strong value for a first single-sig wallet — the Jade especially if you’re keeping costs down; the BitBox02 is a Swiss, Bitcoin-only step up that also makes a great multisig key later.' };
   }
   // Bigger stakes, budget not the deciding factor → lead with a buy-once device
   // that also carries you up the ladder (passphrase, multisig) without new hardware.
   if (a.tech === 'technical') {
-    return { devices: [DEV.coldcard, DEV.passport], note: 'Both are buy-once — the same hardware climbs from single-sig to a passphrase or full multisig, no re-buying. The Coldcard Q’s keyboard makes it the easiest to operate at every rung; Passport is fully open-source with a strict QR air-gap.' };
+    return { devices: [DEV.coldcard, DEV.passport], note: 'Both are buy-once — the same hardware climbs from single-sig to a passphrase or full multisig, no re-buying. The Coldcard Q’s keyboard makes it the easiest to operate at every rung and stays a lean Bitcoin-only signer; the Passport Prime is a pricier, audited platform with a big touchscreen (it does more than Bitcoin, too).' };
   }
   return { devices: [DEV.coldcard, DEV.jade], note: 'The Coldcard Q is the friendliest to operate (a real keyboard, simple menus) and buy-once — it climbs to a passphrase or multisig later without new hardware, which is worth the premium if you expect to grow. The Jade is the budget alternative: spend less now, re-buy only if you ever climb.' };
 }

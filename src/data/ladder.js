@@ -95,7 +95,7 @@ export const ladder = [
     keyNote: {
       tone: 'safe',
       label: 'Use keys from three different manufacturers',
-      body: 'If all three keys sit on devices from the same brand, one firmware bug or supply-chain problem could compromise all three at once — defeating the whole point. Mixing brands (say Coldcard + BitBox02 + Foundation Passport) means a single-vendor failure costs you at most one key. It’s the cheapest meaningful upgrade to any multisig.',
+      body: 'If all three keys sit on devices from the same brand, one firmware bug or supply-chain problem could compromise all three at once — defeating the whole point. Mixing brands (say Coldcard + BitBox02 + Foundation Passport Prime) means a single-vendor failure costs you at most one key. It’s the cheapest meaningful upgrade to any multisig.',
     },
     also: {
       label: 'Beyond 2-of-3: the 3-of-5 variant',

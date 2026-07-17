@@ -2,9 +2,12 @@
 // Source: Bitcoin KB "Hardware wallets overview" + live vendor pages.
 // Prices/specs verified 2026-07-15 against each vendor's own site — RE-VERIFY before recommending a purchase.
 // Trust badges (reproducible build + recoverability) verified 2026-07-16 against vendor repos/docs + WalletScrutiny.
+// 2026-07-17: Foundation retired the $199 Passport (now "Passport Core," discontinued); replaced with the
+//   $349 Passport Prime — a multi-function security platform. Badges re-derived from foundation.xyz + Keylabs
+//   audit + independent reviews (WalletInsights, The Bitcoin Hole): btcOnly/airgap now 'partial', reproducible 'no'.
 // Rule of the guide: there is no "best" device, only fit-to-purpose.
 
-export const walletsVerified = '2026-07-15';
+export const walletsVerified = '2026-07-17';
 
 // rating scale used in the compare table + chooser badges: 'yes' | 'partial' | 'no'
 export const wallets = [
@@ -30,24 +33,24 @@ export const wallets = [
     },
   },
   {
-    name: 'Foundation Passport',
-    ladderReach: { s: 'strong', p: 'ok', m: 'strong', note: 'Full ladder; the keypad makes passphrase entry the one chore.' },
+    name: 'Foundation Passport Prime',
+    ladderReach: { s: 'strong', p: 'strong', m: 'strong', note: 'Full ladder; a built-in keyboard makes passphrase entry easy, and it signs multisig up to 15 keys.' },
     vendor: 'Foundation Devices',
-    price: '$199',
-    priceNum: 199,
-    airgap: 'yes',      // strict QR-only
-    btcOnly: 'yes',
+    price: '$349',
+    priceNum: 349,
+    airgap: 'partial',  // QR / microSD air-gap capable, but also has Bluetooth + NFC
+    btcOnly: 'partial', // first-party wallet is Bitcoin-only; the platform can run altcoin apps
     openSource: 'yes',
     multisig: 'yes',
     secureElement: 'yes',
-    reproducible: 'yes',
+    reproducible: 'no',  // reproducible builds not available yet (2026)
     recoverability: 'yes',
-    useCases: ['first', 'multisig'],
-    bestFor: 'Strict air-gap by design (QR only); pleasant UX; rechargeable battery.',
-    watch: 'QR-only signing is a little more workflow friction for routine spending. (A larger "Passport Prime," ~$299+, is a separate, more advanced device.)',
+    useCases: ['passphrase', 'multisig'],
+    bestFor: 'A polished, US-assembled “security platform” — a big colour touchscreen with a keyboard, an independent audit (Keylabs), a strong default backup (2-of-3 Shamir across tap-to-read NFC keycards), and Bitcoin multisig up to 15 keys.',
+    watch: 'It’s more device — and more money ($349) — than a first Bitcoin wallet needs: it also stores 2FA codes, passkeys and files and can run altcoin apps, so it isn’t the minimal Bitcoin-only signer this guide leans toward. It adds Bluetooth + NFC (so it’s not strictly air-gapped), and its firmware isn’t reproducibly buildable yet. Foundation retired the simpler $199 Passport, so this is now their only device.',
     notes: {
-      reproducible: 'Fully open-source with documented reproducible builds — the firmware is verifiable, not just trusted.',
-      recoverability: 'Standard BIP-39 seed — restorable in any BIP-39 wallet if Foundation ever disappeared.',
+      reproducible: 'Open-source (GPLv3) and independently audited by Keylabs (the wallet.fail team), but reproducible builds aren’t available yet — you can read the source, but can’t yet rebuild it and confirm the shipped firmware matches.',
+      recoverability: 'Standard BIP-39 seed (12 or 24 words) export/import is supported, so you’re never locked in — though the default backup is a 2-of-3 Shamir (SLIP-39) split across three tap-to-read NFC keycards.',
     },
   },
   {
