@@ -15,8 +15,8 @@ export const ladder = [
   {
     slug: 'single-sig',
     step: 1,
-    name: 'Single-signature wallet',
-    accent: 'Single-signature',
+    name: 'Single-signature',
+    accent: 'Single',
     short: 'Single-sig',
     tagline: 'One key, one seed, one backup — kept on a hardware device you control. The simplest self-custody that isn’t negligent.',
     forWho: 'Most newcomers · modest stack relative to net worth',
@@ -28,7 +28,7 @@ export const ladder = [
   {
     slug: 'passphrase',
     step: 2,
-    name: 'Single-sig + BIP-39 passphrase',
+    name: 'Single-signature + passphrase',
     accent: 'passphrase',
     short: '+ Passphrase',
     tagline: 'Add a secret “25th word.” The seed alone opens a decoy; seed + passphrase opens the real wallet.',
@@ -61,9 +61,9 @@ export const ladder = [
   {
     slug: 'multisig',
     step: 3,
-    name: 'Multisignature',
-    accent: 'Multisignature',
-    short: 'Multisig',
+    name: 'Multi-signature',
+    accent: 'Multi',
+    short: 'Multi-sig',
     tagline: 'Several keys, and it takes more than one to sign — commonly 2-of-3. No single key, lost or stolen, can move or lose your coins.',
     forWho: 'Substantial, hands-on holders willing to learn the tooling',
     cost: '$300–$800 (three devices)',
@@ -104,7 +104,7 @@ export const ladder = [
   {
     slug: 'collaborative',
     step: 4,
-    name: 'Collaborative multisig',
+    name: 'Collaborative multi-signature',
     accent: 'Collaborative',
     short: 'Collaborative',
     tagline: 'You hold two keys; a service holds the third — for signing help and inheritance, not custody.',

@@ -20,6 +20,7 @@ import { bip85 } from '../../data/ladder.js';
   </section>
 
   <section>
+    <p class="config-head"><span class="config-eyebrow">Wallet configuration</span><span class="config-sub">how your keys are arranged — the ladder proper</span></p>
     <Ladder />
   </section>
 
@@ -27,8 +28,8 @@ import { bip85 } from '../../data/ladder.js';
     <h2>Reading the ladder</h2>
     <ul>
       <li><strong>Most newcomers</strong> belong on rung 1 (single-signature) and should stay there through their first year.</li>
-      <li><strong>Most substantial holders</strong> settle at rung 3 or 4 (self-run or collaborative multisig).</li>
-      <li><strong>Bigger multisig (3-of-5)</strong> is right for a small minority — large holdings or genuine multi-party needs. It’s the same technology as 2-of-3, so it lives on the <a href="/ladder/multisig">multisig rung</a> rather than as a separate step.</li>
+      <li><strong>Most substantial holders</strong> settle at rung 3 or 4 (self-run or collaborative multi-signature).</li>
+      <li><strong>Bigger multi-signature (3-of-5)</strong> is right for a small minority — large holdings or genuine multi-party needs. It’s the same technology as 2-of-3, so it lives on the <a href="/ladder/multisig">multi-signature rung</a> rather than as a separate step.</li>
       <li>Jumping straight to the top introduces complexity you’re not yet equipped to manage. That complexity is a bigger risk than the ones it’s meant to solve.</li>
     </ul>
 
@@ -229,6 +230,9 @@ import { bip85 } from '../../data/ladder.js';
 
 <style>
   section { margin-bottom: 0.5rem; }
+  .config-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0.5rem 0.8rem; margin: 0 0 0.9rem; }
+  .config-eyebrow { font-family: var(--mono); font-size: 0.74rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); font-weight: 600; }
+  .config-sub { color: var(--faint); font-size: 0.86rem; }
   .cta-row { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.4rem; }
   .whereami { margin-top: 2.2rem; }
   .wa-lead { color: var(--muted); max-width: 46rem; }
