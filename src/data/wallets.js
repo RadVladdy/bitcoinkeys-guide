@@ -21,8 +21,8 @@ export const wallets = [
     reproducible: 'yes',
     recoverability: 'yes',
     useCases: ['passphrase', 'multisig'],
-    bestFor: 'Easy passphrase entry — the full QWERTY keyboard makes typing a strong passphrase painless (no on-screen fiddling); strong multisig + BIP-85. Deep features, but everyday use stays straightforward.',
-    watch: 'More menus than a minimalist device — though that depth doesn’t make routine use harder. Firmware is source-available, not OSI-licensed.',
+    bestFor: 'The friendliest to operate — a real keyboard and clear menus make passphrases and multisig the easiest to drive of any device here. Buy-once: one device covers single-sig, a passphrase, and multisig, so climbing the ladder never means new hardware.',
+    watch: 'The premium price of the group. Firmware is source-available (independently reproducible) rather than OSI-licensed open-source — a philosophical caveat for open-source purists, not a functional one.',
     notes: {
       reproducible: 'Firmware is reproducibly buildable — you can rebuild it from source and confirm the binary matches (independently verified on WalletScrutiny).',
       recoverability: 'Standard BIP-39 seed — restore your funds in Sparrow, Electrum, Bitcoin Core, or any competent wallet.',

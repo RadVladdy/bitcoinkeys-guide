@@ -78,7 +78,7 @@ const DEV = {
   jade:     { name: 'Blockstream Jade',    why: 'genuinely good on a budget, simple, Bitcoin-only, air-gapped' },
   passport: { name: 'Foundation Passport', why: 'polished, strict QR air-gap, Bitcoin-only, fully open-source' },
   bitbox:   { name: 'BitBox02 (BTC-only)', why: 'Swiss, minimalist, fully open-source — an excellent multisig component' },
-  coldcard: { name: 'Coldcard Q',          why: 'a full keyboard and deep feature set — but day-to-day use stays simple; strong for passphrases and multisig' },
+  coldcard: { name: 'Coldcard Q',          why: 'the physical keyboard and clear menus make it the friendliest to operate — and it’s buy-once: the same device covers single-sig, a passphrase, and multisig, so you never re-buy as you climb (Bitcoin-only; premium price)' },
   trezor:   { name: 'Trezor Safe 5',       why: 'colour touchscreen and mainstream UX — easy passphrase entry' },
   bitkey:   { name: 'Bitkey',              why: 'phone-integrated and beginner-friendly — a 2-of-3 with recovery built in, so there’s no single seed to lose (a great first setup, especially if you live on your phone)',
     // Bitkey's onboarding is app-guided and unique — no manual seed to write down;
@@ -98,14 +98,23 @@ const DEV = {
 // built in) leads for entry-level holders; more capable devices lead for the
 // technical (capability ≠ harder to use).
 function singleSigDevices(a) {
-  if (a.tech === 'technical') return { devices: [DEV.passport, DEV.bitbox], note: null };
-  if (a.tech === 'simple' && (a.stakes === 'learning' || a.stakes === 'meaningful')) {
+  const budgetTight = a.stakes === 'learning' || a.stakes === 'meaningful';
+  // Small amount / budget-conscious → economics leads; a cheap device is the right call.
+  if (a.tech === 'simple' && budgetTight) {
     return {
       devices: [DEV.bitkey, DEV.jade],
-      note: 'Bitkey is a phone-based 2-of-3 with recovery built in (a light collaborative setup) — an especially easy on-ramp; the Jade is a classic single-sig hardware wallet. Both are solid first setups.',
+      note: 'Bitkey is a phone-based 2-of-3 with recovery built in (a light collaborative setup) — an especially easy on-ramp; the Jade is a classic single-sig hardware wallet and great value. Both are solid, low-cost first setups.',
     };
   }
-  return { devices: [DEV.jade, DEV.passport], note: null };
+  if (budgetTight) {
+    return { devices: [DEV.jade, DEV.passport], note: 'Both are strong value for a first single-sig wallet — the Jade especially if you’re keeping costs down for a smaller amount.' };
+  }
+  // Bigger stakes, budget not the deciding factor → lead with a buy-once device
+  // that also carries you up the ladder (passphrase, multisig) without new hardware.
+  if (a.tech === 'technical') {
+    return { devices: [DEV.coldcard, DEV.passport], note: 'Both are buy-once — the same hardware climbs from single-sig to a passphrase or full multisig, no re-buying. The Coldcard Q’s keyboard makes it the easiest to operate at every rung; Passport is fully open-source with a strict QR air-gap.' };
+  }
+  return { devices: [DEV.coldcard, DEV.jade], note: 'The Coldcard Q is the friendliest to operate (a real keyboard, simple menus) and buy-once — it climbs to a passphrase or multisig later without new hardware, which is worth the premium if you expect to grow. The Jade is the budget alternative: spend less now, re-buy only if you ever climb.' };
 }
 
 const STEP = {
@@ -150,8 +159,8 @@ function primaryRec(a) {
         tier: 'Tier 3 — advanced', rungSlug: 'multisig', rungLabel: 'Do-it-yourself multisig (2-of-3)',
         headline: 'Self-run multisig (2-of-3)',
         why: 'At life-changing stakes and with the skills to run it, multisig removes the single point of failure: two of three keys sign, so no one lost, stolen, or coerced key can move your coins — and losing any one key isn’t fatal. Use devices from two different vendors so one vendor’s bug can’t sink all your keys.',
-        wallets: [DEV.bitbox, DEV.coldcard],
-        walletNote: 'Use two DIFFERENT vendors (like these) so one vendor’s bug can’t sink all your keys.',
+        wallets: [DEV.coldcard, DEV.bitbox],
+        walletNote: 'Use two DIFFERENT vendors (like these) so one vendor’s bug can’t sink all your keys. The Coldcard Q’s keyboard and clear menus make driving a multisig signing session the least fiddly — and if you already started single-sig on one, you don’t need new hardware to get here.',
         checklist: [
           { text: 'Read the multisig walkthrough end-to-end before buying anything', howto: 'choose-a-wallet' },
           { text: 'Buy 2–3 devices from TWO different vendors (directly from each)', howto: 'choose-a-wallet' },
