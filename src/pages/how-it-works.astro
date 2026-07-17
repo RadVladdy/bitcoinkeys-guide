@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import Diagram from '../components/Diagram.astro';
 ---
 <Base
   title="How your Bitcoin actually works — keys, words, and signatures · BitcoinKeys.guide"
@@ -36,6 +37,8 @@ import Base from '../layouts/Base.astro';
       anyone who loses them loses everything.
     </p>
 
+    <Diagram name="seed-to-words" caption="Your key is a huge random number. The words are the same key, written so a human can copy it." />
+
     <h2>3 · A “wallet” is a configuration of keys</h2>
     <p>
       Here’s the part that trips people up: a “wallet” isn’t a physical object, and it isn’t the app on your
@@ -46,6 +49,8 @@ import Base from '../layouts/Base.astro';
       wallet is the <em>arrangement</em> of keys itself. That distinction is exactly what
       <a href="/ladder">the ladder</a> is about.
     </p>
+
+    <Diagram name="multisig" caption="One way to arrange keys — 2-of-3 multisig: three keys exist, any two together approve a spend, so no single key is a point of failure." />
 
     <h2>4 · Public keys and private keys</h2>
     <p>
@@ -66,6 +71,8 @@ import Base from '../layouts/Base.astro';
       approved by the right private key — <strong>without ever seeing it.</strong>
     </p>
 
+    <Diagram name="keys-mailbox" caption="Public key = the mail slot anyone can drop coins into (your address). Private key = the only thing that opens the box." />
+
     <h2>5 · Signing — proving it’s you without showing the key</h2>
     <p>
       So how do you spend without revealing your key? You <strong>sign</strong>. When you approve a payment,
@@ -79,6 +86,8 @@ import Base from '../layouts/Base.astro';
       the key does its work <em>inside</em> the device and never comes out. You’re not sending your key
       anywhere — you’re sending <em>proof</em>.
     </p>
+
+    <Diagram name="signing" caption="You never send your key. The device signs inside itself and sends out a signature — proof anyone can check, but no one can reverse into the key." />
 
     <div class="callout safe">
       <span class="label">The whole thing in one sentence</span>

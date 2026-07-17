@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
+import Diagram from '../../components/Diagram.astro';
 import { howtos } from '../../data/howtos.js';
 
 export function getStaticPaths() {
@@ -34,6 +35,8 @@ const accentize = (title, phrase) => {
   </section>
 
   <section class="prose">
+    {h.diagram && <Diagram name={h.diagram} />}
+
     {h.sections.map((s) => (
       <>
         <h2>{s.h}</h2>

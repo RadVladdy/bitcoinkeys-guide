@@ -119,6 +119,7 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
     <div class="cards">
       {wallets.map((w) => (
         <article class="wcard">
+          {w.image && <img class="dev-img" src={w.image} alt={`${w.name}`} loading="lazy" />}
           <header>
             <h3>{w.name}</h3>
             <span class="price mono num">{w.price}</span>
@@ -334,6 +335,7 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
   .cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 1.4rem; }
   @media (max-width: 720px) { .cards { grid-template-columns: 1fr; } }
   .wcard { border: 1px solid var(--line); border-radius: var(--radius); padding: 1.2rem 1.3rem; background: var(--surface); }
+  .wcard .dev-img { display: block; width: auto; max-width: 100%; height: 130px; object-fit: contain; margin: 0 auto 0.9rem; }
   .wcard header { display: flex; align-items: baseline; justify-content: space-between; gap: 0.6rem; margin-bottom: 0.6rem; }
   .wcard h3 { margin: 0; font-size: 1.05rem; }
   .wcard .price { color: var(--accent); font-size: 0.9rem; }

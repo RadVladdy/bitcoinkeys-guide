@@ -1,0 +1,142 @@
+---
+// Reusable, theme-aware concept diagrams (inline SVG — no image assets).
+// Usage: <Diagram name="multisig" />. Colors come from the site CSS vars, so
+// each one works in light + dark automatically.
+export interface Props { name: string; caption?: string; }
+const { name, caption } = Astro.props;
+---
+<figure class="diagram" data-diagram={name}>
+  {name === 'keys-mailbox' && (
+    <svg viewBox="0 0 460 230" role="img" aria-label="Public and private keys, like a mailbox">
+      <rect x="150" y="70" width="160" height="120" rx="10" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="2.5"/>
+      <rect x="175" y="70" width="110" height="16" rx="3" fill="var(--bg)" stroke="var(--accent)" stroke-width="1.5"/>
+      <circle cx="230" cy="140" r="16" fill="none" stroke="var(--accent)" stroke-width="2"/>
+      <rect x="227" y="140" width="6" height="16" fill="var(--accent)"/>
+      <path d="M40 78 L142 78" stroke="var(--text)" stroke-width="2"/>
+      <path d="M148 78 l-9 -6 l0 12 z" fill="var(--text)"/>
+      <text x="40" y="60" fill="var(--muted)" font-family="var(--mono)" font-size="12">Anyone can drop coins in</text>
+      <text x="40" y="100" fill="var(--faint)" font-family="var(--mono)" font-size="11">your public address →</text>
+      <path d="M420 150 L318 150" stroke="var(--accent)" stroke-width="2"/>
+      <circle cx="405" cy="150" r="10" fill="none" stroke="var(--accent)" stroke-width="2"/><rect x="403" y="150" width="4" height="12" fill="var(--accent)"/>
+      <text x="300" y="215" text-anchor="middle" fill="var(--muted)" font-family="var(--mono)" font-size="12">Only your private key opens it</text>
+    </svg>
+  )}
+
+  {name === 'signing' && (
+    <svg viewBox="0 0 480 210" role="img" aria-label="Signing keeps the private key inside the device">
+      <text x="12" y="95" fill="var(--muted)" font-family="var(--mono)" font-size="12">Payment</text>
+      <text x="12" y="112" fill="var(--muted)" font-family="var(--mono)" font-size="12">to approve</text>
+      <path d="M95 100 L165 100" stroke="var(--text)" stroke-width="2"/><path d="M171 100 l-9 -6 l0 12 z" fill="var(--text)"/>
+      <rect x="175" y="45" width="130" height="120" rx="12" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="2.5"/>
+      <text x="240" y="70" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="9">HARDWARE DEVICE</text>
+      <circle cx="240" cy="112" r="20" fill="none" stroke="var(--accent)" stroke-width="2"/>
+      <text x="240" y="118" text-anchor="middle" font-size="18">🔑</text>
+      <text x="240" y="152" text-anchor="middle" fill="var(--muted)" font-family="var(--mono)" font-size="8">key never leaves</text>
+      <path d="M305 100 L375 100" stroke="var(--safe)" stroke-width="2"/><path d="M381 100 l-9 -6 l0 12 z" fill="var(--safe)"/>
+      <text x="392" y="95" fill="var(--safe)" font-family="var(--mono)" font-size="12">Signature</text>
+      <text x="392" y="112" fill="var(--faint)" font-family="var(--mono)" font-size="11">= proof</text>
+      <text x="240" y="198" text-anchor="middle" fill="var(--muted)" font-size="12.5">Anyone can verify it — no one can extract the key from it.</text>
+    </svg>
+  )}
+
+  {name === 'seed-to-words' && (
+    <svg viewBox="0 0 480 180" role="img" aria-label="A key is a huge number, turned into readable words">
+      <rect x="14" y="45" width="150" height="90" rx="10" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
+      <text x="89" y="35" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="10">YOUR KEY (a number)</text>
+      <text x="89" y="85" text-anchor="middle" fill="var(--muted)" font-family="var(--mono)" font-size="11">1101001011…</text>
+      <text x="89" y="105" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="9">enormous + random</text>
+      <path d="M172 90 L212 90" stroke="var(--accent)" stroke-width="2"/><path d="M218 90 l-9 -6 l0 12 z" fill="var(--accent)"/>
+      <rect x="226" y="35" width="240" height="110" rx="10" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+      <text x="346" y="30" text-anchor="middle" fill="var(--accent)" font-family="var(--mono)" font-size="10">SAME KEY, AS 12–24 WORDS</text>
+      <g fill="var(--text)" font-family="var(--mono)" font-size="11">
+        <text x="240" y="62">1 army</text><text x="322" y="62">2 velvet</text><text x="404" y="62">3 ocean</text>
+        <text x="240" y="88">4 pupil</text><text x="322" y="88">5 canyon</text><text x="404" y="88">6 ripple</text>
+        <text x="240" y="114">7 spark</text><text x="322" y="114">8 modest</text><text x="404" y="114">9 …</text>
+      </g>
+      <text x="346" y="138" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="9">write these down — they ARE your Bitcoin</text>
+    </svg>
+  )}
+
+  {name === 'multisig' && (
+    <svg viewBox="0 0 460 300" role="img" aria-label="Two of three multisig">
+      <circle cx="70" cy="55" r="30" fill="none" stroke="var(--accent)" stroke-width="2"/>
+      <text x="70" y="63" text-anchor="middle" font-size="24">🔑</text>
+      <text x="70" y="108" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="12">Your key</text>
+      <circle cx="230" cy="55" r="30" fill="none" stroke="var(--accent)" stroke-width="2"/>
+      <text x="230" y="63" text-anchor="middle" font-size="24">🔑</text>
+      <text x="230" y="108" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="12">Bank box</text>
+      <circle cx="390" cy="55" r="30" fill="none" stroke="var(--line)" stroke-width="2" stroke-dasharray="4 4"/>
+      <text x="390" y="63" text-anchor="middle" font-size="24" opacity=".4">🔑</text>
+      <text x="390" y="108" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="12">Family</text>
+      <path d="M70 118 L70 150 Q70 165 120 165 L210 165" fill="none" stroke="var(--accent)" stroke-width="2"/>
+      <path d="M230 118 L230 165" fill="none" stroke="var(--accent)" stroke-width="2"/>
+      <path d="M390 118 L390 150 Q390 165 340 165 L250 165" fill="none" stroke="var(--line)" stroke-width="2" stroke-dasharray="4 4"/>
+      <rect x="150" y="150" width="160" height="34" rx="17" fill="var(--accent-soft)" stroke="var(--accent)"/>
+      <text x="230" y="172" text-anchor="middle" fill="var(--accent)" font-family="var(--mono)" font-size="12" font-weight="700">ANY 2 OF 3 SIGN</text>
+      <path d="M230 184 L230 218" stroke="var(--text)" stroke-width="2"/><path d="M230 224 l-6 -9 l12 0 z" fill="var(--text)"/>
+      <rect x="130" y="230" width="200" height="44" rx="10" fill="none" stroke="var(--safe)" stroke-width="2"/>
+      <text x="230" y="257" text-anchor="middle" fill="var(--safe)" font-size="14" font-weight="700">✓ Payment approved</text>
+    </svg>
+  )}
+
+  {name === 'passphrase' && (
+    <svg viewBox="0 0 470 210" role="img" aria-label="A passphrase opens a hidden real wallet">
+      <rect x="14" y="80" width="120" height="52" rx="8" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
+      <text x="74" y="70" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="10">SEED WORDS</text>
+      <text x="74" y="112" text-anchor="middle" fill="var(--muted)" font-family="var(--mono)" font-size="11">the 12–24 words</text>
+      <path d="M142 90 L188 90" stroke="var(--muted)" stroke-width="2"/><path d="M194 90 l-9 -6 l0 12 z" fill="var(--muted)"/>
+      <rect x="202" y="62" width="120" height="56" rx="8" fill="none" stroke="var(--muted)" stroke-width="1.5"/>
+      <text x="262" y="86" text-anchor="middle" fill="var(--muted)" font-size="12">Decoy wallet</text>
+      <text x="262" y="104" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="10">small · looks real</text>
+      <path d="M142 118 Q170 150 200 150" fill="none" stroke="var(--accent)" stroke-width="2"/>
+      <text x="150" y="182" fill="var(--accent)" font-family="var(--mono)" font-size="11">+ passphrase</text>
+      <path d="M264 150 L330 150" stroke="var(--accent)" stroke-width="2"/><path d="M336 150 l-9 -6 l0 12 z" fill="var(--accent)"/>
+      <rect x="344" y="120" width="118" height="60" rx="8" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
+      <text x="403" y="146" text-anchor="middle" fill="var(--accent)" font-size="12" font-weight="700">Real wallet</text>
+      <text x="403" y="164" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="10">hidden · your savings</text>
+    </svg>
+  )}
+
+  {name === 'shamir' && (
+    <svg viewBox="0 0 470 200" role="img" aria-label="Shamir splits one seed into shares">
+      <rect x="185" y="14" width="100" height="44" rx="8" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="2"/>
+      <text x="235" y="41" text-anchor="middle" fill="var(--accent)" font-family="var(--mono)" font-size="12">one seed</text>
+      <g stroke="var(--muted)" stroke-width="1.5" fill="none">
+        <path d="M235 58 L60 110"/><path d="M235 58 L147 110"/><path d="M235 58 L235 110"/><path d="M235 58 L323 110"/><path d="M235 58 L410 110"/>
+      </g>
+      <g font-family="var(--mono)" font-size="11">
+        <rect x="30" y="112" width="60" height="46" rx="6" fill="none" stroke="var(--accent)" stroke-width="1.5"/><text x="60" y="140" text-anchor="middle" fill="var(--text)">share 1</text>
+        <rect x="117" y="112" width="60" height="46" rx="6" fill="none" stroke="var(--accent)" stroke-width="1.5"/><text x="147" y="140" text-anchor="middle" fill="var(--text)">share 2</text>
+        <rect x="205" y="112" width="60" height="46" rx="6" fill="none" stroke="var(--accent)" stroke-width="1.5"/><text x="235" y="140" text-anchor="middle" fill="var(--text)">share 3</text>
+        <rect x="293" y="112" width="60" height="46" rx="6" fill="none" stroke="var(--line)" stroke-width="1.5" stroke-dasharray="4 4"/><text x="323" y="140" text-anchor="middle" fill="var(--faint)">share 4</text>
+        <rect x="380" y="112" width="60" height="46" rx="6" fill="none" stroke="var(--line)" stroke-width="1.5" stroke-dasharray="4 4"/><text x="410" y="140" text-anchor="middle" fill="var(--faint)">share 5</text>
+      </g>
+      <text x="235" y="184" text-anchor="middle" fill="var(--muted)" font-size="12.5">Any 3 of 5 rebuild the seed — two or fewer reveal nothing.</text>
+    </svg>
+  )}
+
+  {name === 'hot-cold' && (
+    <svg viewBox="0 0 470 170" role="img" aria-label="Hot versus cold storage spectrum">
+      <defs><linearGradient id="hc" x1="0" x2="1"><stop offset="0" stop-color="var(--danger)"/><stop offset="1" stop-color="var(--safe)"/></linearGradient></defs>
+      <rect x="30" y="70" width="410" height="10" rx="5" fill="url(#hc)" opacity="0.55"/>
+      <circle cx="70" cy="75" r="20" fill="var(--surface-2)" stroke="var(--danger)" stroke-width="2"/><text x="70" y="81" text-anchor="middle" font-size="16">📶</text>
+      <text x="70" y="38" text-anchor="middle" fill="var(--danger)" font-family="var(--mono)" font-size="12" font-weight="700">HOT</text>
+      <text x="70" y="118" text-anchor="middle" fill="var(--muted)" font-family="var(--mono)" font-size="10">online</text>
+      <text x="70" y="133" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="9">spending money</text>
+      <circle cx="400" cy="75" r="20" fill="var(--surface-2)" stroke="var(--safe)" stroke-width="2"/><text x="400" y="81" text-anchor="middle" font-size="15">🔒</text>
+      <text x="400" y="38" text-anchor="middle" fill="var(--safe)" font-family="var(--mono)" font-size="12" font-weight="700">COLD</text>
+      <text x="400" y="118" text-anchor="middle" fill="var(--muted)" font-family="var(--mono)" font-size="10">offline</text>
+      <text x="400" y="133" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="9">savings</text>
+      <text x="235" y="158" text-anchor="middle" fill="var(--muted)" font-size="12">A little hot for spending; the bulk cold, offline, out of reach.</text>
+    </svg>
+  )}
+
+  {caption && <figcaption>{caption}</figcaption>}
+</figure>
+
+<style>
+  .diagram { margin: 1.6rem 0; border: 1px solid var(--line); border-radius: var(--radius);
+    background: var(--surface); padding: 1.4rem 1.3rem 1.1rem; }
+  .diagram svg { display: block; width: 100%; height: auto; max-width: 30rem; margin: 0 auto; }
+  .diagram figcaption { margin-top: 0.9rem; text-align: center; color: var(--muted); font-size: 0.88rem; line-height: 1.45; }
+</style>

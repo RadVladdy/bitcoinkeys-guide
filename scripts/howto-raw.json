@@ -37,7 +37,8 @@
       "Set up your hardware wallet on a clean, trusted computer, and never type your recovery words into any computer.",
       "As your stack grows, add a separate savings setup so routine spending never touches your long-term Bitcoin."
     ],
-    "accent": "Hot vs cold"
+    "accent": "Hot vs cold",
+    "diagram": "hot-cold"
   },
   {
     "slug": "choose-a-wallet",

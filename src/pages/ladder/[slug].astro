@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
+import Diagram from '../../components/Diagram.astro';
 import { ladder, shamirNote } from '../../data/ladder.js';
 
 export function getStaticPaths() {
@@ -41,6 +42,8 @@ const accentize = (title, phrase) => {
   </section>
 
   <section class="prose">
+    {r.diagram && <Diagram name={r.diagram} />}
+
     <h2>What this is</h2>
     <p set:html={r.whatItIs}></p>
 
