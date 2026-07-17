@@ -22,7 +22,7 @@ const accentize = (title, phrase) => {
 };
 ---
 <Base
-  title={`${r.optional ? '' : `Rung ${r.step} — `}${r.name} · BitcoinKeys.guide`}
+  title={`${r.optional ? '' : `Rung ${r.step} — `}${r.pageName ?? r.name} · BitcoinKeys.guide`}
   description={r.tagline}
   verified="2026-07-15"
 >
@@ -30,7 +30,7 @@ const accentize = (title, phrase) => {
 
   <section class="prose">
     <p class="eyebrow">{eyebrow}</p>
-    <h1 set:html={accentize(r.name, r.accent)}></h1>
+    <h1 set:html={accentize(r.pageName ?? r.name, r.accent)}></h1>
     <p class="lead">{r.tagline}</p>
 
     <dl class="facts">

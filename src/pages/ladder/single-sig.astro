@@ -19,7 +19,7 @@ const buildSteps = [
 ];
 ---
 <Base
-  title="Rung 1 — Single-signature · BitcoinKeys.guide"
+  title="Rung 1 — Single-signature wallet · BitcoinKeys.guide"
   description="The simplest real self-custody: one hardware wallet, one seed, one tested backup. What it protects, what it doesn't, who it's for, and how to set it up."
   verified="2026-07-15"
 >
@@ -27,7 +27,7 @@ const buildSteps = [
 
   <section class="prose">
     <p class="eyebrow">Rung {r.step} · {r.short}</p>
-    <h1 set:html={accentize(r.name, r.accent)}></h1>
+    <h1 set:html={accentize(r.pageName ?? r.name, r.accent)}></h1>
     <p class="lead">{r.tagline}</p>
 
     <dl class="facts">
