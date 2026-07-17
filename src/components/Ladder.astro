@@ -1,0 +1,55 @@
+---
+import { ladder } from '../data/ladder.js';
+export interface Props { active?: string; linked?: boolean; }
+const { active, linked = true } = Astro.props;
+---
+<ol class="ladder" aria-label="The self-custody configuration ladder">
+  {ladder.map((r) => {
+    const Tag = linked && r.built ? 'a' : 'div';
+    return (
+      <li class:list={['rung', { active: active === r.slug, ready: r.built, soon: !r.built }]} style={`--i:${r.step - 1}`}>
+        <Tag {...(linked && r.built ? { href: `/ladder/${r.slug}` } : {})} class="rung-inner">
+          <span class="step num">{r.step}</span>
+          <span class="body">
+            <span class="name">{r.name}</span>
+            <span class="tagline">{r.tagline}</span>
+          </span>
+          <span class="meta">
+            {!r.built && <span class="badge">soon</span>}
+            <span class="for">{r.forWho}</span>
+          </span>
+        </Tag>
+      </li>
+    );
+  })}
+</ol>
+
+<style>
+  .ladder { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+  .rung { }
+  .rung-inner {
+    display: grid; grid-template-columns: 2.4rem 1fr auto; align-items: center; gap: 1rem;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 0.7rem;
+    padding: 0.9rem 1.1rem; text-decoration: none; color: var(--text); position: relative;
+    transition: border-color .14s ease, transform .14s ease;
+  }
+  a.rung-inner:hover { border-color: var(--accent); transform: translateX(3px); }
+  .rung.active .rung-inner { border-color: var(--accent); background: var(--accent-soft); }
+  .rung.soon .rung-inner { opacity: 0.82; }
+  .step { font-family: var(--mono); font-weight: 700; color: var(--accent); font-size: 1.05rem; text-align: center; }
+  .body { display: flex; flex-direction: column; gap: 0.15rem; min-width: 0; }
+  .name { font-weight: 650; letter-spacing: -0.01em; }
+  .tagline { font-size: 0.86rem; color: var(--muted); line-height: 1.4; }
+  .meta { display: flex; flex-direction: column; align-items: flex-end; gap: 0.35rem; flex: 0 0 auto; }
+  .for { font-size: 0.78rem; color: var(--faint); text-align: right; max-width: 12rem; }
+  .badge { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--faint); border: 1px solid var(--line); border-radius: 999px; padding: 0.1rem 0.45rem; white-space: nowrap; }
+  /* stagger the rungs so it reads as an ascending ladder on wider screens */
+  @media (min-width: 720px) {
+    .rung { margin-right: calc((5 - var(--i)) * 1.5rem); }
+  }
+  @media (max-width: 719px) {
+    .rung-inner { grid-template-columns: 2rem 1fr auto; }
+    .for { display: none; }
+  }
+</style>

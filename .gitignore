@@ -1,0 +1,18 @@
+# build output
+dist/
+# deps
+node_modules/
+# astro
+.astro/
+# wrangler
+.wrangler/
+# claude
+.claude/
+# os
+.DS_Store
+
+# playwright
+.playwright-mcp/
+*.png
+# ...but site assets in public/ must be tracked
+!public/**/*.png

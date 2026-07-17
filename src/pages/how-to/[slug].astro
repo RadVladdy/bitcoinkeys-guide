@@ -1,0 +1,79 @@
+---
+import Base from '../../layouts/Base.astro';
+import { howtos } from '../../data/howtos.js';
+
+export function getStaticPaths() {
+  return howtos.map((h, i) => ({
+    params: { slug: h.slug },
+    props: { h, prev: howtos[i - 1] ?? null, next: howtos[i + 1] ?? null },
+  }));
+}
+
+const { h, prev, next } = Astro.props;
+const toneClass = { warn: 'warn', safe: 'safe', danger: 'danger' };
+---
+<Base
+  title={`${h.title} · BitcoinKeys.guide`}
+  description={h.lead}
+  verified={h.verified ?? '2026-07-15'}
+>
+  <nav class="crumb"><a href="/how-to">How-to</a> <span aria-hidden="true">/</span> <span>{h.short ?? h.slug}</span></nav>
+
+  <section class="prose">
+    <p class="eyebrow">How-to</p>
+    <h1>{h.title}</h1>
+    <p class="lead">{h.lead}</p>
+    {h.intro && <p set:html={h.intro}></p>}
+  </section>
+
+  <section class="prose">
+    {h.sections.map((s) => (
+      <>
+        <h2>{s.h}</h2>
+        <div set:html={s.body}></div>
+      </>
+    ))}
+
+    {h.keyCallout && (
+      <div class:list={['callout', toneClass[h.keyCallout.tone] ?? '']}>
+        <span class="label">{h.keyCallout.label}</span>
+        <p set:html={h.keyCallout.body}></p>
+      </div>
+    )}
+  </section>
+
+  {h.checklist && h.checklist.length > 0 && (
+    <section>
+      <div class="checklist">
+        <span class="cl-title">The short checklist</span>
+        <ul>
+          {h.checklist.map((item) => <li set:html={item}></li>)}
+        </ul>
+      </div>
+    </section>
+  )}
+
+  <nav class="ht-nav">
+    {prev && <a href={`/how-to/${prev.slug}`}>← {prev.title}</a>}
+    {next && <a class="fwd" href={`/how-to/${next.slug}`}>{next.title} →</a>}
+  </nav>
+</Base>
+
+<style>
+  .crumb { font-family: var(--mono); font-size: 0.8rem; color: var(--muted); margin-bottom: 1.2rem; display: flex; gap: 0.5rem; }
+  .crumb a { color: var(--muted); text-decoration: none; }
+  .crumb a:hover { color: var(--accent); }
+  .prose :global(ul), .prose :global(ol) { padding-left: 1.3rem; }
+  .prose :global(li) { margin: 0.4rem 0; }
+  .prose :global(li::marker) { color: var(--accent); }
+
+  .checklist { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 1.3rem 1.5rem; }
+  .cl-title { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); display: block; margin-bottom: 0.7rem; }
+  .checklist ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
+  .checklist li { position: relative; padding-left: 1.9rem; color: var(--text); }
+  .checklist li::before { content: "✓"; position: absolute; left: 0; top: 0; color: var(--safe); font-weight: 700; font-family: var(--mono); }
+
+  .ht-nav { display: flex; justify-content: space-between; gap: 1rem; margin-top: 2.4rem; padding-top: 1.4rem; border-top: 1px solid var(--line-soft); flex-wrap: wrap; }
+  .ht-nav a { font-size: 0.92rem; font-weight: 600; text-decoration: none; max-width: 45%; }
+  .ht-nav .fwd { margin-left: auto; text-align: right; }
+</style>

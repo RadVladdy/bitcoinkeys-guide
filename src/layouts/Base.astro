@@ -1,0 +1,72 @@
+---
+import '../styles/global.css';
+import Nav from '../components/Nav.astro';
+import Footer from '../components/Footer.astro';
+
+export interface Props {
+  title: string;
+  description: string;
+  /** ISO date this page's guidance was last checked against reality. */
+  verified?: string;
+  /** hide the site chrome (used by the home hero if ever needed) */
+  ogTitle?: string;
+  /** per-page social share image (site-relative or absolute); defaults to the brand card */
+  ogImage?: string;
+}
+
+const { title, description, verified, ogTitle, ogImage } = Astro.props;
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const ogImageUrl = new URL(ogImage ?? '/og-default.png', Astro.site).href;
+const verifiedLabel = verified
+  ? new Date(verified + 'T00:00:00Z').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })
+  : null;
+---
+<!-- theme is set before paint to avoid a flash -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{title}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonical} />
+<meta name="theme-color" content="#0e0d0b" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="BitcoinKeys.guide" />
+<meta property="og:title" content={ogTitle ?? title} />
+<meta property="og:description" content={description} />
+<meta property="og:url" content={canonical} />
+<meta property="og:image" content={ogImageUrl} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="BitcoinKeys.guide — hold your own Bitcoin keys" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={ogTitle ?? title} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={ogImageUrl} />
+<link rel="icon" type="image/x-icon" href="/favicon.ico" />
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png" />
+<link rel="apple-touch-icon" sizes="180x180" href="/favicon-180.png" />
+<script is:inline>
+  (function () {
+    try {
+      var t = localStorage.getItem('bkg-theme');
+      if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t);
+    } catch (e) {}
+  })();
+</script>
+
+<Nav />
+
+<main class="wrap">
+  <slot />
+  {verifiedLabel && (
+    <p class="verified" style="margin-top:3rem;">
+      <span class="tick">✓</span> Last verified: {verifiedLabel}
+    </p>
+  )}
+</main>
+
+<Footer />
+
+<style>
+  main { padding-top: 2.4rem; padding-bottom: 3.5rem; min-height: 60vh; }
+</style>

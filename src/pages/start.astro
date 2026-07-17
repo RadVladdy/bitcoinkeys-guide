@@ -1,0 +1,72 @@
+---
+import Base from '../layouts/Base.astro';
+
+const steps = [
+  { n: 1, title: 'Understand the one trade-off', body: 'Every custody choice trades off <strong>losing access yourself</strong> against <strong>someone else getting access</strong>. Almost every safeguard against one makes the other worse. You don’t need zero risk — you need risks you can name.', href: null, hrefLabel: null },
+  { n: 2, title: 'Name what you’re actually defending against', body: 'You can’t pick a setup until you know your top worries. The honest map of <a href="/risks">how people actually lose Bitcoin</a> lays them all out — for most new holders it’s the exchange failing and simple mistakes, not a targeted attacker. That points you straight to the simplest setup.', href: '/risks', hrefLabel: 'See how people lose Bitcoin' },
+  { n: 3, title: 'Learn hot vs cold', body: 'A <em>hot</em> wallet is connected to the internet (convenient, for small amounts). A <em>cold</em> wallet keeps keys offline (for savings). The core move of self-custody is getting your savings cold.', href: '/how-to/hot-vs-cold', hrefLabel: 'Read: hot vs cold storage' },
+  { n: 4, title: 'Choose your first hardware wallet', body: 'A hardware wallet is a small device whose only job is to hold your keys offline. For a first device you want simple and trustworthy, not the most features. We compare seven honestly.', href: '/how-to/choose-a-wallet', hrefLabel: 'Read: how to choose a wallet' },
+  { n: 5, title: 'Understand what you’re backing up', body: 'The device isn’t the wallet — your <strong><a href="/glossary#seed-phrase">seed phrase</a></strong> (the 12 or 24 words it shows you) is. Two simple rules cover it: anyone who sees the words can take your Bitcoin, so keep them private; and if you lose them with no backup, they’re gone, so make a backup. It sounds scary, but it really comes down to “write it down and keep it safe” — do that and you’ve done the hard part.', href: null, hrefLabel: null },
+  { n: 6, title: 'Back it up properly', body: 'Write the seed down, then get it onto metal so fire and water can’t destroy it. Never photograph it, never type it into a computer or phone.', href: '/how-to/back-up-your-seed', hrefLabel: 'Read: back up your seed' },
+  { n: 7, title: 'Test before you fund', body: 'Before moving real money, wipe the device and restore it from your backup with a tiny amount. A backup you haven’t tested is a hope, not a backup.', href: '/how-to/recovery-rehearsal', hrefLabel: 'Read: test your backup' },
+  { n: 8, title: 'Learn what to watch for', body: 'Most losses aren’t clever hacks — they’re phishing, fake support, and address-swapping malware. A little awareness stops the majority of real-world attacks.', href: '/how-to/opsec-basics', hrefLabel: 'Read: stay safe day to day' },
+];
+---
+<Base
+  title="Start here — your first self-custody setup · BitcoinKeys.guide"
+  description="Brand new to self-custody? This is the calm, step-by-step path from Bitcoin-on-an-exchange to your own tested cold storage."
+  verified="2026-07-15"
+>
+  <section class="prose">
+    <p class="eyebrow">Start here</p>
+    <h1>From exchange to your own keys, one step at a time</h1>
+    <p class="lead">If you just bought Bitcoin and want to hold it yourself, you’re in the right place. This is the whole path, in plain English — no jargon dumped on you, no setup you don’t understand.</p>
+    <div class="callout safe">
+      <span class="label">Where this gets you</span>
+      <p>By the end you’ll have your Bitcoin on a <strong>single hardware wallet you control</strong>, with a tested backup — the setup most newcomers should have, and shouldn’t rush past. That’s <a href="/ladder/single-sig">rung one of the ladder</a>.</p>
+    </div>
+  </section>
+
+  <section>
+    <ol class="path" aria-label="Getting started, step by step">
+      {steps.map((s) => (
+        <li class="path-step">
+          <span class="marker num">{s.n}</span>
+          <div class="step-body">
+            <h3>{s.title}</h3>
+            <p set:html={s.body}></p>
+            {s.href && <a href={s.href} class="step-link">{s.hrefLabel} →</a>}
+          </div>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <section class="prose">
+    <div class="callout">
+      <span class="label">The one thing to remember</span>
+      <p>Don’t reach for a complicated setup to feel safe. The simplest setup you fully understand and have tested beats an impressive one you don’t. When your holdings grow enough to justify more, the <a href="/ladder">ladder</a> shows you exactly when — and how — to climb.</p>
+    </div>
+    <div class="cta-row">
+      <a href="/ladder/single-sig" class="btn btn-primary">Build your first setup <span class="arw">→</span></a>
+      <a href="/wallets" class="btn btn-ghost">Pick a device first</a>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .path { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0; }
+  .path-step { display: grid; grid-template-columns: 2.6rem 1fr; gap: 1.1rem; padding-bottom: 1.8rem; position: relative; }
+  .path-step:not(:last-child)::before {
+    content: ""; position: absolute; left: 1.3rem; top: 2.6rem; bottom: 0; width: 2px;
+    background: var(--line); transform: translateX(-50%);
+  }
+  .marker { width: 2.6rem; height: 2.6rem; border-radius: 50%; display: grid; place-items: center;
+    background: var(--surface); border: 1px solid var(--accent); color: var(--accent); font-weight: 700;
+    font-size: 1.05rem; position: relative; z-index: 1; }
+  .step-body { padding-top: 0.15rem; max-width: var(--measure); }
+  .step-body h3 { margin: 0.2rem 0 0.35rem; }
+  .step-body p { margin: 0 0 0.5rem; color: var(--text); }
+  .step-link { font-size: 0.9rem; font-weight: 600; }
+  .cta-row { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.6rem; }
+</style>

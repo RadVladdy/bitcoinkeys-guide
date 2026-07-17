@@ -1,0 +1,118 @@
+---
+/**
+ * TipJar — the site's Lightning tip jar.
+ * Self-custodial: pays straight into our own sovereign LND node (via LNbits,
+ * fronted at ln.bitcoinkeys.guide by a Cloudflare Tunnel — no third party holds the sats).
+ * The QR encodes the LNURL-pay code (resolves directly to the node, widest wallet support);
+ * the copyable address is the human-friendly Lightning Address.
+ */
+export interface Props {
+  /** show the longer intro paragraph (used on the dedicated /tip page) */
+  full?: boolean;
+}
+const { full = false } = Astro.props;
+const ADDRESS = 'keys@bitcoinkeys.guide';
+---
+<section class="tipjar" aria-labelledby="tip-h">
+  <div class="tip-copy">
+    <p class="mono kicker">⚡ Lightning tip jar</p>
+    <h2 id="tip-h">Found this useful? Zap a few sats.</h2>
+    {full ? (
+      <p class="lede">
+        This guide sells nothing and takes no affiliate money — that independence is the whole point.
+        If it helped you take custody of your own coins, an optional Lightning tip keeps it going.
+        It pays into <span class="accent-text">our own self-custodial node</span> — no middleman holds the sats,
+        which is exactly what this whole site is about.
+      </p>
+    ) : (
+      <p class="lede">
+        No ads, no affiliates, nothing to sell. If the guide helped, an optional tip pays straight into
+        <span class="accent-text"> our own self-custodial node</span> — the practice we preach.
+      </p>
+    )}
+
+    <div class="addr-row">
+      <code class="addr" id="tip-addr">{ADDRESS}</code>
+      <button class="copy-btn" id="tip-copy" data-addr={ADDRESS} type="button" aria-label="Copy Lightning address">
+        Copy
+      </button>
+    </div>
+    <p class="hint mono">Paste into any Lightning wallet, or scan the code →</p>
+  </div>
+
+  <figure class="qr-wrap">
+    <img src="/keys-qr.svg" width="180" height="180" alt={`Lightning QR code for ${ADDRESS}`} class="qr" />
+    <figcaption class="mono">Scan to tip</figcaption>
+  </figure>
+</section>
+
+<script>
+  const btn = document.getElementById('tip-copy');
+  btn?.addEventListener('click', async () => {
+    const addr = btn.getAttribute('data-addr') || '';
+    try {
+      await navigator.clipboard.writeText(addr);
+      const prev = btn.textContent;
+      btn.textContent = 'Copied ✓';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = prev; btn.classList.remove('copied'); }, 1600);
+    } catch {
+      // clipboard blocked — select the text so the user can copy manually
+      const el = document.getElementById('tip-addr');
+      if (el) {
+        const r = document.createRange();
+        r.selectNodeContents(el);
+        const sel = window.getSelection();
+        sel?.removeAllRanges();
+        sel?.addRange(r);
+      }
+    }
+  });
+</script>
+
+<style>
+  .tipjar {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2rem;
+    align-items: center;
+    background: var(--surface-2);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 1.8rem 1.8rem;
+    box-shadow: var(--shadow);
+  }
+  .kicker { color: var(--accent); font-size: 0.8rem; letter-spacing: 0.04em; margin: 0 0 0.4rem; }
+  .tip-copy h2 { font-size: 1.35rem; margin: 0 0 0.6rem; line-height: 1.2; }
+  .lede { color: var(--muted); margin: 0 0 1.1rem; max-width: 48ch; }
+
+  .addr-row { display: flex; align-items: stretch; gap: 0.5rem; flex-wrap: wrap; }
+  .addr {
+    font-family: var(--mono); font-size: 0.98rem;
+    background: var(--raise); border: 1px solid var(--line);
+    padding: 0.55rem 0.8rem; border-radius: 0.55rem; color: var(--text);
+    user-select: all;
+  }
+  .copy-btn {
+    font-family: var(--sans); font-weight: 600; font-size: 0.9rem; cursor: pointer;
+    background: var(--accent); color: var(--accent-ink); border: none;
+    padding: 0.55rem 1.1rem; border-radius: 0.55rem; transition: opacity 0.15s, background 0.15s;
+  }
+  .copy-btn:hover { opacity: 0.9; }
+  .copy-btn.copied { background: var(--safe); }
+  .hint { color: var(--faint); font-size: 0.8rem; margin: 0.7rem 0 0; }
+
+  .qr-wrap { margin: 0; text-align: center; }
+  .qr {
+    display: block; width: 180px; height: 180px;
+    background: #fff; padding: 12px; border-radius: 0.6rem;
+    border: 1px solid var(--line);
+  }
+  .qr-wrap figcaption { color: var(--faint); font-size: 0.76rem; margin-top: 0.5rem; }
+
+  @media (max-width: 640px) {
+    .tipjar { grid-template-columns: 1fr; justify-items: start; }
+    .qr-wrap { justify-self: center; }
+    .hint { display: none; }
+  }
+</style>

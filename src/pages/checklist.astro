@@ -1,0 +1,147 @@
+---
+import Base from '../layouts/Base.astro';
+import { checklistGroups, checklistCount } from '../data/checklist.js';
+
+const groups = checklistGroups;
+const total = checklistCount;
+---
+<Base
+  title="The self-custody checklist · BitcoinKeys.guide"
+  description="A plain-English Bitcoin self-custody checklist: what to do first, what to do next, and what to review every year. Tick items off and save your progress — device-neutral, nothing to sell you."
+  verified="2026-07-15"
+>
+  <section class="prose">
+    <p class="eyebrow">Checklist</p>
+    <h1>The self-custody checklist</h1>
+    <p class="lead">Everything that matters, in the order that matters — do-first, do-next, and review-yearly. Tick items as you go; when you're ready, save your progress to your own plan.</p>
+    <p class="sub">Each item links to the full how-to. This is the map; the guides are the detail. Nothing is saved until you press <strong>Save my progress</strong> — your data stays in your browser.</p>
+  </section>
+
+  {groups.map((g) => (
+    <section>
+      <div class="grouphead">
+        <span class="gtag">{g.tag}</span>
+        <h2>{g.title}</h2>
+        <p class="sub">{g.intro}</p>
+      </div>
+      <ul class="clist">
+        {g.items.map((it) => (
+          <li class="citem" data-id={it.id}>
+            <button class="box" type="button" role="checkbox" aria-checked="false" aria-label={it.t}>
+              <svg class="tick" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+            </button>
+            <div class="ctext">
+              <span class="ct-title">{it.t}</span>
+              <span class="ct-desc">{it.d}</span>
+              {it.href && <a href={it.href} class="ct-link">Full how-to →</a>}
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))}
+
+  <section>
+    <div class="savebar" id="savebar">
+      <div class="sb-count"><span id="sb-n">0</span> of {total} done</div>
+      <div class="sb-actions">
+        <button class="btn-save" id="sb-save" type="button">Save my progress</button>
+        <a class="sb-link" href="/my-plan">My plan →</a>
+      </div>
+    </div>
+    <p class="sb-status mono" id="sb-status" hidden></p>
+  </section>
+
+  <section class="prose">
+    <div class="callout safe">
+      <span class="label">The whole thing in one breath</span>
+      <p>Get it off the exchange onto a device you control · back the seed up on metal in two places · <strong>test the backup before you trust it</strong> · don’t talk about your Bitcoin · and leave a plan your family can follow. Do those five and you’re ahead of almost everyone.</p>
+    </div>
+  </section>
+</Base>
+
+<script>
+  import { loadLocal, saveChecklistSlice } from '../data/plan.js';
+
+  const checked = {};
+  const items = Array.from(document.querySelectorAll('.citem'));
+  const elN = document.getElementById('sb-n');
+  const elStatus = document.getElementById('sb-status');
+  const elSave = document.getElementById('sb-save');
+
+  function count() { return Object.keys(checked).length; }
+  function refresh() { if (elN) elN.textContent = String(count()); }
+
+  function apply(li, on) {
+    const id = li.getAttribute('data-id');
+    const box = li.querySelector('.box');
+    if (on) { checked[id] = true; } else { delete checked[id]; }
+    li.classList.toggle('done', !!on);
+    if (box) box.setAttribute('aria-checked', on ? 'true' : 'false');
+  }
+
+  // Restore ticks from a saved plan (reading the user's own saved data).
+  const plan = loadLocal();
+  const saved = (plan && plan.checklist) || {};
+  items.forEach((li) => { if (saved[li.getAttribute('data-id')]) apply(li, true); });
+  refresh();
+
+  items.forEach((li) => {
+    const box = li.querySelector('.box');
+    if (!box) return;
+    box.addEventListener('click', () => {
+      apply(li, !li.classList.contains('done'));
+      refresh();
+      if (elStatus && !elStatus.hidden) elStatus.hidden = true;
+    });
+  });
+
+  if (elSave) {
+    elSave.addEventListener('click', () => {
+      saveChecklistSlice(checked);
+      if (elStatus) {
+        elStatus.hidden = false;
+        elStatus.textContent = count()
+          ? `✓ Saved — ${count()} of ${items.length} items, kept in this browser. View or download it on your plan.`
+          : `✓ Saved — checklist cleared in your plan.`;
+      }
+    });
+  }
+</script>
+
+<style>
+  .grouphead { margin-bottom: 1.2rem; }
+  .gtag { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--accent-ink); background: var(--accent); border-radius: 999px; padding: 0.25rem 0.7rem; }
+  .grouphead h2 { margin-top: 0.9rem; margin-bottom: 0.3rem; }
+  .grouphead .sub { margin: 0; max-width: 60ch; }
+
+  .clist { list-style: none; margin: 1.2rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.7rem; }
+  .citem { display: grid; grid-template-columns: 1.6rem 1fr; gap: 0.9rem; align-items: start;
+    background: var(--surface); border: 1px solid var(--line); border-radius: 0.7rem; padding: 1rem 1.2rem; transition: border-color 0.15s, background 0.15s; }
+  .citem.done { border-color: color-mix(in srgb, var(--safe) 45%, var(--line)); background: color-mix(in srgb, var(--safe) 7%, var(--surface)); }
+  .box { width: 1.5rem; height: 1.5rem; border: 2px solid var(--accent); border-radius: 6px; margin-top: 0.1rem;
+    background: var(--raise); cursor: pointer; display: inline-grid; place-items: center; color: var(--accent-ink); padding: 0; transition: background 0.15s; }
+  .box:hover { background: var(--accent-soft); }
+  .box .tick { opacity: 0; }
+  .citem.done .box { background: var(--safe); border-color: var(--safe); color: var(--accent-ink); }
+  .citem.done .box .tick { opacity: 1; }
+  .box:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .ctext { display: flex; flex-direction: column; gap: 0.2rem; }
+  .ct-title { font-weight: 650; letter-spacing: -0.01em; }
+  .citem.done .ct-title { text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--safe) 60%, transparent); color: var(--muted); }
+  .ct-desc { color: var(--muted); font-size: 0.93rem; }
+  .ct-link { font-size: 0.84rem; font-weight: 600; margin-top: 0.2rem; }
+
+  .savebar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+    border: 1px solid var(--accent-dim); border-radius: 0.7rem; background: var(--surface-2); padding: 0.9rem 1.2rem; margin-top: 0.6rem; }
+  .sb-count { font-family: var(--mono); font-size: 0.85rem; color: var(--muted); }
+  .sb-count #sb-n { color: var(--accent); font-weight: 700; }
+  .sb-actions { display: flex; align-items: center; gap: 0.9rem; }
+  .btn-save { background: var(--accent); color: var(--accent-ink); border: none; font-family: var(--sans); font-weight: 600; font-size: 0.9rem;
+    cursor: pointer; padding: 0.6rem 1.1rem; border-radius: 0.55rem; }
+  .btn-save:hover { opacity: 0.9; }
+  .sb-link { color: var(--muted); text-decoration: none; font-size: 0.88rem; }
+  .sb-link:hover { color: var(--accent); }
+  .sb-status { color: var(--safe); font-size: 0.82rem; margin: 0.7rem 0 0; }
+</style>

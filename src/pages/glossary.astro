@@ -1,0 +1,70 @@
+---
+import Base from '../layouts/Base.astro';
+import { glossary } from '../data/glossary.js';
+const slug = (t) => t.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const termSlugs = new Map(glossary.map((t) => [t.term.toLowerCase(), slug(t.term)]));
+// make <em>cross-references</em> clickable when they name another glossary term
+const linkify = (def) => def.replace(/<em>([^<]+)<\/em>/g, (m, inner) => {
+  const key = inner.trim().toLowerCase();
+  const s = termSlugs.get(key) || termSlugs.get(key.replace(/s$/, '')) || termSlugs.get(key.replace(/es$/, ''));
+  return s ? `<a class="xref" href="#${s}">${m}</a>` : m;
+});
+---
+<Base
+  title="Plain-English Bitcoin glossary · BitcoinKeys.guide"
+  description="Every self-custody term you'll meet in this guide, explained in one or two plain-English sentences — seed phrase, cold storage, multisig, PSBT, and more."
+  verified="2026-07-15"
+>
+  <section class="prose">
+    <p class="eyebrow">Glossary</p>
+    <h1>Every term, in plain English</h1>
+    <p class="lead">No jargon left unexplained. Each term is one or two sentences, with a note on why it matters when you’re holding your own Bitcoin.</p>
+    <input id="filter" class="filter" type="search" placeholder="Filter terms…" aria-label="Filter glossary terms" autocomplete="off" />
+  </section>
+
+  <section>
+    <dl class="terms" id="terms">
+      {glossary.map((t) => (
+        <div class="term" id={slug(t.term)} data-term={t.term.toLowerCase()}>
+          <dt>{t.term}</dt>
+          <dd set:html={linkify(t.def)}></dd>
+        </div>
+      ))}
+    </dl>
+    <p class="noresult" id="noresult" hidden>No terms match that.</p>
+  </section>
+</Base>
+
+<script is:inline>
+  (function () {
+    var input = document.getElementById('filter');
+    var terms = Array.prototype.slice.call(document.querySelectorAll('#terms .term'));
+    var none = document.getElementById('noresult');
+    if (!input) return;
+    input.addEventListener('input', function () {
+      var q = input.value.trim().toLowerCase();
+      var shown = 0;
+      terms.forEach(function (el) {
+        var hit = !q || el.getAttribute('data-term').indexOf(q) !== -1 || el.textContent.toLowerCase().indexOf(q) !== -1;
+        el.hidden = !hit;
+        if (hit) shown++;
+      });
+      none.hidden = shown !== 0;
+    });
+  })();
+</script>
+
+<style>
+  .filter { width: 100%; max-width: 22rem; margin-top: 1.4rem; padding: 0.65rem 0.9rem; font: inherit;
+    color: var(--text); background: var(--surface); border: 1px solid var(--line); border-radius: 0.6rem; }
+  .filter:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .terms { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; margin: 1.6rem 0 0; }
+  @media (max-width: 720px) { .terms { grid-template-columns: 1fr; } }
+  .term { background: var(--surface); border: 1px solid var(--line); border-radius: 0.7rem; padding: 1rem 1.15rem; scroll-margin-top: 4.5rem; }
+  .term dt { font-weight: 700; letter-spacing: -0.01em; margin-bottom: 0.25rem; }
+  .term dd { margin: 0; color: var(--muted); font-size: 0.93rem; line-height: 1.5; }
+  .term dd :global(em) { color: var(--accent); font-style: normal; }
+  .term dd :global(.xref) { text-decoration: none; }
+  .term dd :global(.xref:hover em) { text-decoration: underline; }
+  .noresult { color: var(--muted); margin-top: 1.4rem; }
+</style>

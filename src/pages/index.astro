@@ -1,0 +1,120 @@
+---
+import Base from '../layouts/Base.astro';
+import Ladder from '../components/Ladder.astro';
+import { howtos } from '../data/howtos.js';
+---
+<Base
+  title="BitcoinKeys.guide — hold your own Bitcoin, and understand every step"
+  description="An independent, Bitcoin-only, plain-English guide to self-custody: choose a wallet, back up your keys, move to cold storage, and upgrade safely. We hold no keys and sell no device."
+  ogTitle="BitcoinKeys.guide — hold your own Bitcoin"
+>
+  <section class="hero prose">
+    <p class="eyebrow">Independent · Bitcoin-only · nothing to sell you</p>
+    <h1>Hold your own Bitcoin —<br><span class="accent">and understand every step.</span></h1>
+    <p class="lead">Your Bitcoin isn’t really yours until you hold the <a href="/glossary#private-key">keys</a> — the secret that actually controls the coins. This is the plain-English guide to doing that safely, from your first wallet to storage solid enough to pass on to your family.</p>
+    <div class="cta-row">
+      <a href="/quiz" class="btn btn-primary">Find your setup <span class="arw">→</span></a>
+      <a href="/start" class="btn btn-ghost">Start from zero</a>
+    </div>
+  </section>
+
+  <section class="quiz-band">
+    <div class="qb-inner">
+      <div>
+        <p class="qb-kicker mono">The 2-minute setup finder</p>
+        <h2 class="qb-h">Not sure where you belong? Answer four questions.</h2>
+        <p class="qb-sub">Get one clear recommendation — a setup, a starter device, and a checklist — matched to what you're actually protecting against. <strong>We never ask how much Bitcoin you hold</strong>, and it all runs in your browser.</p>
+      </div>
+      <a href="/quiz" class="btn btn-primary qb-cta">Take the quiz <span class="arw">→</span></a>
+    </div>
+  </section>
+
+  <section class="pledge-band">
+    <div class="pledge-grid">
+      <div>
+        <span class="k mono">no device to sell</span>
+        <p>We don’t make or sell hardware, so we can compare every wallet honestly.</p>
+      </div>
+      <div>
+        <span class="k mono">no keys held</span>
+        <p>We never touch your coins or your keys. This is a guide, not a service.</p>
+      </div>
+      <div>
+        <span class="k mono">Bitcoin only</span>
+        <p>No altcoins, no “yield,” no distractions. Just holding Bitcoin well.</p>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>The one idea the whole guide is built on</h2>
+    <div class="prose">
+      <div class="callout">
+        <span class="label">The rule</span>
+        <p>The best self-custody setup is <strong>the simplest one that adequately covers your threat model</strong> — the risks you can actually name. Not the most impressive, not the one a vendor recommends. The simplest one that defends against what can really go wrong, that your future self can recover, that your family can inherit, and that you have <em>actually tested</em>.</p>
+      </div>
+      <p class="sub">Not sure what those risks even are? Start with the honest map: <a href="/risks">how people actually lose Bitcoin →</a></p>
+      <p class="sub">More security isn’t better. Complexity is the single biggest cause of lost Bitcoin. Most people belong on the lower rungs and should stay there until a real reason pushes them up.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>The ladder</h2>
+    <p class="sub prose" style="margin-bottom:1.4rem;">Every setup fits on one ladder of rising complexity. <strong>Almost everyone belongs on the first rung or two</strong> — the names get technical as you climb, but you only move up if a real risk pushes you there. Find the lowest rung that covers you, then stop.</p>
+    <Ladder />
+    <p class="sub" style="margin-top:1.2rem; font-size:0.9rem;">More rungs open as the guide fills out. <a href="/ladder">Read the full ladder →</a></p>
+  </section>
+
+  <section>
+    <h2>Two doors in</h2>
+    <div class="grid cols-2">
+      <a href="/start" class="card">
+        <h3>I’m brand new to this →</h3>
+        <p class="sub">Just bought Bitcoin on an exchange and want to hold it yourself for the first time. Start with the reassuring, step-by-step path.</p>
+      </a>
+      <a href="/ladder" class="card">
+        <h3>I already self-custody →</h3>
+        <p class="sub">You have a working setup and your stack has grown. Re-check where you belong on the ladder and whether to move up.</p>
+      </a>
+    </div>
+  </section>
+
+  <section>
+    <h2>The skills, in plain English</h2>
+    <p class="sub prose" style="margin-bottom:1.4rem;">Whatever setup you land on, these are the hands-on skills of holding your own Bitcoin. Each is a short, jargon-free how-to.</p>
+    <div class="grid cols-2">
+      {howtos.map((h) => (
+        <a href={`/how-to/${h.slug}`} class="card">
+          <h3>{h.title.split('—')[0].trim()} →</h3>
+          <p class="sub">{h.lead}</p>
+        </a>
+      ))}
+    </div>
+  </section>
+
+  <section class="prose">
+    <h2>Why trust this one?</h2>
+    <p>Almost every self-custody guide is written by someone with something to sell — a hardware brand, a custody service, an exchange, an affiliate link. That doesn’t make them wrong, but it bends the advice. We hold no keys and sell no device, so the only thing we’re steering you toward is the setup that actually fits you.</p>
+    <p>Every page carries the date it was last checked against reality, and the whole thing is built in the open. <a href="/about">More about how this works →</a></p>
+  </section>
+</Base>
+
+<style>
+  .hero { padding: 1.5rem 0 2.4rem; }
+  .hero h1 { margin-bottom: 1rem; }
+  .cta-row { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.8rem; }
+
+  .quiz-band { margin: 0 0 2.5rem; border: 1px solid var(--accent); border-radius: var(--radius); background: var(--accent-soft); padding: 1.6rem 1.8rem; }
+  .qb-inner { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap; }
+  .qb-kicker { color: var(--accent); font-size: 0.74rem; letter-spacing: 0.08em; margin: 0 0 0.4rem; }
+  .qb-h { font-size: 1.3rem; margin: 0 0 0.5rem; line-height: 1.2; }
+  .qb-sub { margin: 0; color: var(--muted); font-size: 0.95rem; max-width: 54ch; }
+  .qb-cta { white-space: nowrap; }
+  @media (max-width: 640px) { .qb-inner { flex-direction: column; align-items: flex-start; } }
+
+  .pledge-band { margin: 1rem 0 2.5rem; border-top: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); padding: 1.8rem 0; }
+  .pledge-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.6rem; }
+  .pledge-grid .k { font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); display: block; margin-bottom: 0.4rem; }
+  .pledge-grid p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+  @media (max-width: 720px) { .pledge-grid { grid-template-columns: 1fr; gap: 1.1rem; } }
+</style>

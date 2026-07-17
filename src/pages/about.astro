@@ -1,0 +1,61 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base
+  title="About — how this guide works · BitcoinKeys.guide"
+  description="BitcoinKeys.guide is an independent, Bitcoin-only self-custody guide. We hold no keys, sell no device, and take no affiliate money. Here's how it works and why you can trust it."
+  verified="2026-07-15"
+>
+  <section class="prose">
+    <p class="eyebrow">About</p>
+    <h1>An honest guide, because we have nothing to sell</h1>
+    <p class="lead">Almost every self-custody guide is written by someone with a product in the frame — a hardware brand, a custody service, an exchange, an affiliate payout. This one isn’t.</p>
+  </section>
+
+  <section class="prose">
+    <h2>The pledge</h2>
+    <div class="pledges">
+      <div class="pl">
+        <span class="k mono">No device to sell</span>
+        <p>We don’t make or sell hardware wallets, and we take no affiliate commission on any device. So when the guide says one wallet fits you better than another, there’s no money bending the answer.</p>
+      </div>
+      <div class="pl">
+        <span class="k mono">No keys held</span>
+        <p>We never touch your coins, your seed, or your keys. This is a guide, full stop — not a wallet, not a custody service, not an app that holds anything. The whole point is that <em>you</em> hold your Bitcoin.</p>
+      </div>
+      <div class="pl">
+        <span class="k mono">Bitcoin only</span>
+        <p>No altcoins, no “stablecoin yield,” no DeFi. Those aren’t self-custody — they’re distractions that get people hurt. We stay on one thing: holding Bitcoin well.</p>
+      </div>
+      <div class="pl">
+        <span class="k mono">Dated and in the open</span>
+        <p>Hardware, firmware, and best practices drift. Every page shows the date its guidance was last checked against reality, so you always know how fresh it is — no undated screenshots from three years ago.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="prose">
+    <h2>How we think about advice</h2>
+    <p>One principle runs through everything here: <strong>the best setup is the simplest one that adequately covers your threat model</strong> — not the most impressive, and not the one that sells the most gear. Most people are safest on the lower rungs of the <a href="/ladder">ladder</a> and should stay there until a real reason moves them up. We’ll tell you when <em>not</em> to add complexity as often as when to.</p>
+    <p>We’re confidently pro-self-custody. Holding your own keys is a skill worth learning, and the risks are manageable once you can name them. But this is your money and your responsibility — nothing here is financial or legal advice, and you should never act on a step you don’t understand. When something is safety-critical, we say so loudly.</p>
+
+    <h2>Who’s behind it</h2>
+    <p>BitcoinKeys.guide is a <strong>RadVladdy</strong> project — part of a small family of independent, pseudonymous Bitcoin sites. Pseudonymity here is a feature, not evasion: writing about key security shouldn’t require the author to paint a target on their own back, and the advice stands on whether it’s correct, not on a name.</p>
+
+    <h2>Where the material comes from</h2>
+    <p>The guidance is distilled from the strongest practitioner sources in the field — Jameson Lopp’s two decades of security work, Blockchain Commons’ Smart Custody framework, and the published operational guidance from Unchained, Casa, Nunchuk, and others — then re-checked and written in plain English. Where those sources disagree, we say so rather than pretending there’s one answer.</p>
+
+    <div class="callout">
+      <span class="label">Still being built</span>
+      <p>This is an early, growing version. The single-sig rung and the wallet comparison are live; the rest of the ladder, the privacy and inheritance sections, and a guided “which setup do I need?” tool are on the way. <a href="/start">Start here</a> if you’re new.</p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .pledges { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.4rem 0; }
+  @media (max-width: 700px) { .pledges { grid-template-columns: 1fr; } }
+  .pl { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 0.6rem; padding: 1.1rem 1.2rem; background: var(--surface); }
+  .pl .k { display: block; color: var(--accent); font-size: 0.74rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.45rem; }
+  .pl p { margin: 0; font-size: 0.95rem; color: var(--muted); }
+</style>

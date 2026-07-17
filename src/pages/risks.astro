@@ -1,0 +1,220 @@
+---
+import Base from '../layouts/Base.astro';
+
+// The five ways Bitcoin is lost. Each is plain-English, with the real
+// mechanisms, and links to the page in this guide that defends against it.
+const buckets = [
+  {
+    n: 1,
+    title: 'You lose access to it yourself',
+    gist: 'The single most common way. No thief involved — the coins are still there on the blockchain, but you can no longer prove they’re yours. This is where most lost Bitcoin has gone.',
+    ways: [
+      { h: 'You never made a backup — or made only one.', d: 'Your recovery words live in one place, and that place is fragile. A house fire, a flood, a hard drive that dies, ink that fades, or a “safe spot” that gets thrown out during a move or a renovation — and the money is gone with it.' },
+      { h: '“I’ll just remember it.”', d: 'People memorise a passphrase or invent a clever secret scheme instead of writing it down. Years later the memory has drifted, and nothing they try unlocks the wallet. A secret you can’t reproduce under stress is not a backup.' },
+      { h: 'You never tested the backup.', d: 'A word gets mis-copied when writing it down. You don’t find out until the day you actually need it — and by then it’s too late. A backup you haven’t restored from is a hope, not a backup.' },
+      { h: 'You die without leaving a plan.', d: 'Your family finds a metal plate or a hardware wallet and has no idea what it is or how to use it — so they bin it. The most common version: a hidden passphrase nobody knew about, so heirs restore the words, see an empty wallet, and assume there was nothing there.' },
+    ],
+    defense: 'Back up your words on metal, keep two copies in two places, test the restore before you fund it, and leave a plan your family can follow.',
+    links: [
+      { label: 'Back up your seed', href: '/how-to/back-up-your-seed' },
+      { label: 'Test your recovery', href: '/how-to/recovery-rehearsal' },
+      { label: 'Plan for inheritance', href: '/how-to/inheritance' },
+    ],
+  },
+  {
+    n: 2,
+    title: 'Someone takes it remotely',
+    gist: 'A stranger, over the internet, who never touches you or your home. The good news: this almost always requires you to be tricked into helping — so a few simple habits shut most of it down.',
+    ways: [
+      { h: 'Phishing and fake “support.”', d: 'By far the number-one real-world attack. You get an urgent email or text — “suspicious activity,” “verify your account” — that looks exactly like your exchange or wallet company. It sends you to a fake site that steals your words. The rule that beats it: no real company ever contacts you asking for your recovery words. Ever.' },
+      { h: 'Address-swapping malware.', d: 'A virus on your computer silently swaps the payment address you copied for the attacker’s, so your Bitcoin flies off to a stranger. The defence is simple: always check the address on the hardware wallet’s own little screen — that screen can’t be faked by your computer.' },
+      { h: 'Fake wallet apps.', d: 'A phoney app pretending to be a real wallet, sitting in an app store, waiting for you to type your recovery words in to “restore” — and then it steals them. Only ever download wallet software from the maker’s official website.' },
+      { h: 'The seed you typed or photographed.', d: 'The moment your recovery words touch an internet-connected device — a photo that auto-uploads to the cloud, words typed into a phone — they can leak, sometimes years later when that cloud account is breached. Keep the words off anything digital, full stop.' },
+    ],
+    defense: 'Never type or photograph your recovery words. Verify every address on the device screen. Assume any “support” message that wants your words is a scam.',
+    links: [
+      { label: 'Everyday safety habits', href: '/how-to/opsec-basics' },
+      { label: 'Send Bitcoin safely', href: '/how-to/send-bitcoin-safely' },
+      { label: 'Hot vs cold storage', href: '/how-to/hot-vs-cold' },
+    ],
+  },
+  {
+    n: 3,
+    title: 'Someone takes it physically',
+    gist: 'A person in the real world — a burglar, or someone who threatens you in person. Rare, but rising fast, and it works differently than people expect: attackers don’t break the math, they go around it.',
+    ways: [
+      { h: 'A found backup.', d: 'A burglar doesn’t need to “hack” anything if they find your recovery words in a drawer, or your hardware wallet and its passphrase sitting on the same shelf.' },
+      { h: 'The “$5 wrench.”', d: 'The blunt truth: cryptography can’t protect you from someone willing to threaten you until you hand it over. If they know you hold Bitcoin and can reach you, the strong encryption doesn’t matter.' },
+      { h: 'Being picked as a target.', d: 'These attacks are almost never random. It usually starts with a data leak — an exchange gets breached and your name and home address end up on a list — which gets cross-referenced with anything you’ve posted publicly about holding Bitcoin. That’s the pipeline: leak → list → your door.' },
+    ],
+    defense: 'The best physical protection is not being known as a holder — don’t broadcast that you own Bitcoin. Then keep backups out of obvious places, and split things up so no single location holds enough to spend.',
+    links: [
+      { label: 'Physical security', href: '/how-to/physical-security' },
+      { label: 'Don’t talk about your Bitcoin', href: '/how-to/opsec-basics' },
+    ],
+  },
+  {
+    n: 4,
+    title: 'You trusted someone else to hold it',
+    gist: 'You left your Bitcoin on an exchange or with a company, and that company failed, froze your account, or was hacked. If you don’t hold the keys, you don’t really hold the coins — you hold an IOU.',
+    ways: [
+      { h: 'The company goes bankrupt or runs off with it.', d: 'This is not hypothetical — it’s Bitcoin’s most repeated disaster. Mt. Gox lost about 850,000 coins in 2014. FTX vaporised roughly $8 billion of customer money in 2022. The list of collapsed exchanges is long, and it keeps getting longer.' },
+      { h: 'Your account gets frozen.', d: 'Even a healthy exchange can lock your withdrawals — during a hack, a legal order, or a “review” — and there’s nothing you can do but wait, sometimes forever.' },
+    ],
+    defense: 'Move your Bitcoin off the exchange and into your own custody after you buy. That single step is what this whole guide is about.',
+    links: [
+      { label: 'When the exchange blows up', href: '/how-to/custodial-risk' },
+      { label: 'Start here — off the exchange', href: '/start' },
+      { label: 'The core principles', href: '/principles' },
+    ],
+  },
+  {
+    n: 5,
+    title: 'You make a simple send mistake',
+    gist: 'A fumble during a transaction. Bitcoin payments can’t be reversed once they go through, so a slip here is permanent — but a couple of habits make it very hard to get wrong.',
+    ways: [
+      { h: 'You send to the wrong address.', d: 'Good news: modern Bitcoin addresses (the ones starting with “bc1”) have a built-in error check that catches almost any typo before it can send. The real risk is malware swapping the address — which is why you verify it on the hardware wallet’s screen — and not doing a test run first.' },
+      { h: 'You send more than you meant to.', d: 'Rushing, tired, or being pressured is when the expensive mistakes happen. There’s no undo button. For anything substantial, slow down — a wallet operation done in a panic is where people lose the most.' },
+      { h: 'You send it over the “wrong network.”', d: 'Some exchanges and apps let you send “Bitcoin” out as a look-alike copy on another blockchain, or ask you to pick a “network” before you withdraw. Choose the wrong one and your coins land somewhere your normal wallet can’t see. The fix is simple: only ever send real, native Bitcoin, and at any network menu choose “Bitcoin.”' },
+    ],
+    defense: 'Verify the address on the device screen, send a tiny test amount first, confirm it arrives, then send the rest — and never do it in a hurry. When withdrawing, make sure you’re sending real Bitcoin on the Bitcoin network.',
+    links: [
+      { label: 'Send Bitcoin safely', href: '/how-to/send-bitcoin-safely' },
+      { label: 'Avoid the “wrong network”', href: '/how-to/wrong-network' },
+    ],
+  },
+];
+---
+<Base
+  title="How people actually lose Bitcoin · BitcoinKeys.guide"
+  description="The plain-English map of how Bitcoin is really lost — mostly mistakes, not hackers. Learn the five ways it happens so you can see each one coming, with the exact page in this guide that defends against each."
+  verified="2026-07-17"
+>
+  <section class="prose">
+    <p class="eyebrow">The threat map</p>
+    <h1>How people actually lose Bitcoin</h1>
+    <p class="lead">
+      Before you decide how to protect your Bitcoin, it helps to know what you’re protecting it
+      <em>from</em>. Here’s the honest surprise: most Bitcoin that’s been lost was never stolen by a
+      hacker. It was forgotten, misplaced, or fumbled by its own owner.
+    </p>
+    <p>
+      You may have heard that a big chunk of all Bitcoin — estimates run from 11% to 25% — is already
+      lost for good. That sounds alarming, so here’s the context that matters most:
+      <strong>almost all of it was lost in Bitcoin’s earliest years</strong>, when coins were worth
+      pennies and the people holding them had no idea they’d ever be worth anything. They reformatted
+      hard drives, threw out old laptops, and forgot throwaway passwords — because at the time there was
+      nothing to protect. It’s a one-time artifact of the early days, <em>not</em> a one-in-six chance
+      hanging over you now. The single biggest thing separating you from those early losers is simple:
+      <strong>you already know what you’re holding.</strong>
+    </p>
+    <p>
+      And here’s the genuinely reassuring part: almost none of that loss — then or now — was theft. The
+      cryptography is rock-solid; the failures are human, and <strong>avoidable</strong> — a lost backup,
+      a forgotten secret, a scam, a company that blew up. Even today, well over <strong>80% of what gets
+      called “Bitcoin theft” is really a scam or a simple mistake</strong>. Learn the handful of ways it
+      happens and you sidestep almost all of it.
+    </p>
+    <p>
+      So don’t read the list below as a list of things that are <em>likely</em> to happen to you — read
+      it as the short, knowable set of things to design around. Once you can see them coming, the rest of
+      this guide makes a lot more sense.
+    </p>
+  </section>
+
+  <section class="prose">
+    <div class="callout">
+      <span class="label">One idea that ties it all together</span>
+      <p>
+        There are really only two ways to lose Bitcoin: <strong>you can’t get to it</strong> (you lost
+        the keys), or <strong>someone else can</strong> (someone got the keys). The tricky part —
+        and the reason there’s no single “just do this” answer — is that
+        <strong>almost every defence against one of those makes the other worse.</strong>
+      </p>
+      <p style="margin-bottom:0">
+        Add a secret passphrase to stop a thief, and you’ve added a new way to lock <em>yourself</em>
+        out. Spread your backup across three cities to survive a fire, and you’ve made it harder for
+        <em>you</em> to put it back together. That trade-off is why this guide is built as a
+        <a href="/ladder">ladder</a> — you climb only as far as your real risks require, and no further.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <ol class="risks">
+      {buckets.map((b) => (
+        <li class="risk">
+          <div class="risk-head">
+            <span class="rn num">{String(b.n).padStart(2, '0')}</span>
+            <div>
+              <h2>{b.title}</h2>
+              <p class="gist">{b.gist}</p>
+            </div>
+          </div>
+          <ul class="ways">
+            {b.ways.map((w) => (
+              <li><strong>{w.h}</strong> {w.d}</li>
+            ))}
+          </ul>
+          <div class="defense">
+            <span class="dlabel">How this guide defends it</span>
+            <p>{b.defense}</p>
+            <div class="dlinks">
+              {b.links.map((l) => (
+                <a href={l.href}>{l.label} →</a>
+              ))}
+            </div>
+          </div>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <section class="prose">
+    <div class="callout safe">
+      <span class="label">The one habit that helps against almost everything</span>
+      <p style="margin-bottom:0">
+        Most defences trade one risk for another — but <strong>testing your recovery</strong> is the
+        rare win-win. Wipe your wallet and restore it from your written words with a tiny amount, before
+        you trust it with savings. You catch a broken backup while it’s still harmless, and you’ll never
+        have to improvise a recovery in a panic. <a href="/how-to/recovery-rehearsal">Here’s how →</a>
+      </p>
+    </div>
+  </section>
+
+  <section class="prose next">
+    <h2>Now — which of these do <em>you</em> most need to defend?</h2>
+    <p>
+      You don’t need to defend against all five equally. The right setup is the simplest one that
+      covers <em>your</em> real risks. Answer a few questions and we’ll point you to it.
+    </p>
+    <p class="cta-row">
+      <a class="btn" href="/quiz">Find your setup →</a>
+      <a class="btn ghost" href="/start">New to all this? Start here</a>
+    </p>
+  </section>
+</Base>
+
+<style>
+  .risks { list-style: none; margin: 1.6rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 1.1rem; }
+  .risk { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.4rem 1.5rem; }
+  .risk-head { display: grid; grid-template-columns: 3rem 1fr; gap: 1.1rem; align-items: start; }
+  .rn { font-family: var(--mono); font-size: 1.5rem; font-weight: 800; color: var(--accent); line-height: 1; }
+  .risk h2 { margin: 0.1rem 0 0.4rem; font-size: 1.2rem; }
+  .gist { margin: 0; color: var(--muted); }
+  .ways { margin: 1.1rem 0 0; padding: 0 0 0 0; list-style: none; display: flex; flex-direction: column; gap: 0.7rem; }
+  .ways li { color: var(--text); font-size: 0.96rem; line-height: 1.55; padding-left: 1.1rem; position: relative; }
+  .ways li::before { content: ""; position: absolute; left: 0; top: 0.62em; width: 0.4rem; height: 0.4rem; border-radius: 50%; background: var(--accent); }
+  .ways strong { color: var(--text); }
+  .defense { margin-top: 1.2rem; border-top: 1px solid var(--line-soft); padding-top: 1rem; }
+  .dlabel { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+  .defense p { margin: 0.4rem 0 0.7rem; color: var(--muted); font-size: 0.95rem; }
+  .dlinks { display: flex; flex-wrap: wrap; gap: 0.3rem 1.1rem; }
+  .dlinks a { font-family: var(--mono); font-size: 0.85rem; color: var(--text); text-decoration: none; }
+  .dlinks a:hover { color: var(--accent); }
+  .next h2 { margin-top: 0.5rem; }
+  .cta-row { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1rem; }
+  .btn { display: inline-flex; align-items: center; background: var(--accent); color: var(--accent-ink); font-weight: 700;
+    font-family: var(--mono); font-size: 0.95rem; padding: 0.7rem 1.1rem; border-radius: 0.6rem; text-decoration: none; }
+  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+</style>

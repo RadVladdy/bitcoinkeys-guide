@@ -1,0 +1,8 @@
+# Lightning Address resolution for the apex domain.
+# A wallet paying keys@bitcoinkeys.guide (or the legacy tips@) fetches
+# /.well-known/lnurlp/<name> here; we 302 it to the LNbits node
+# (served via Cloudflare Tunnel at ln.bitcoinkeys.guide).
+# See: Bitcoinkeys-guide _Decisions 2026-07-15 (Lightning tip jar).
+# keys@ is the canonical brand address (= NIP-05); tips@ kept as a transition alias.
+/.well-known/lnurlp/keys  https://ln.bitcoinkeys.guide/.well-known/lnurlp/keys  302
+/.well-known/lnurlp/tips  https://ln.bitcoinkeys.guide/.well-known/lnurlp/tips  302

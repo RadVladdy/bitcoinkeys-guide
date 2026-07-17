@@ -1,0 +1,328 @@
+---
+import Base from '../layouts/Base.astro';
+import { wallets, compareCriteria, walletsVerified, badgeDefs, chooserFilters, useCaseChips, budgetBuckets } from '../data/wallets.js';
+
+const ratingMark = { yes: '✓', partial: '~', no: '✗' };
+const ratingClass = { yes: 'r-yes', partial: 'r-partial', no: 'r-no' };
+const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
+---
+<Base
+  title="Compare Bitcoin hardware wallets · BitcoinKeys.guide"
+  description="An honest, independent comparison of the 2026 Bitcoin hardware wallets — Coldcard, Passport, Trezor, BitBox, Jade, Bitkey, Ledger. Filter by what matters to you. No affiliate links, no house brand. There is no best device, only fit-to-purpose."
+  verified={walletsVerified}
+>
+  <section class="prose">
+    <p class="eyebrow">Choose a device</p>
+    <h1>Bitcoin hardware wallets, compared honestly</h1>
+    <p class="lead">There is no “best” hardware wallet — only the one that fits how you’ll actually use it. Because we sell no device and take no affiliate money, this page can say so plainly.</p>
+    <div class="callout">
+      <span class="label">The right mental model</span>
+      <p>The device is <strong>not</strong> your wallet — your <a href="/glossary#seed-phrase">seed phrase</a> is. (That’s the list of 12–24 words the device shows you at setup; written down, those words <em>are</em> your Bitcoin.) The hardware wallet is just a safe little screen for approving payments. Lose or break it and you restore from your written words onto a new one. So don’t agonise over the device; get the backup right.</p>
+    </div>
+  </section>
+
+  <!-- ── Interactive chooser ──────────────────────────────────────────── -->
+  <section id="chooser" class="chooser">
+    <div class="prose">
+      <p class="eyebrow">Find your device</p>
+      <h2>Narrow it down</h2>
+      <p class="ch-lead">Flip on what matters to you. Every badge is a <strong>fact</strong> about the device, not a ranking — so the list only ever shrinks to what genuinely fits.</p>
+      <details class="ch-defs">
+        <summary>New to these words? Tap here for plain-English meanings</summary>
+        <dl>
+          {badgeDefs.map((b) => (
+            <div class="def-row"><dt>{b.label}</dt><dd>{b.tip}</dd></div>
+          ))}
+        </dl>
+      </details>
+    </div>
+
+    <div class="ch-controls">
+      <fieldset class="ch-group">
+        <legend>Must have</legend>
+        <div class="ch-toggles">
+          {chooserFilters.map((f) => (
+            <button class="ch-toggle" type="button" data-filter={f.key} aria-pressed="false">{f.label}</button>
+          ))}
+        </div>
+      </fieldset>
+
+      <fieldset class="ch-group">
+        <legend>Best for <span class="ch-hint mono">(pick any)</span></legend>
+        <div class="ch-toggles">
+          {useCaseChips.map((c) => (
+            <button class="ch-chip" type="button" data-chip={c.key} aria-pressed="false">{c.label}</button>
+          ))}
+        </div>
+      </fieldset>
+
+      <fieldset class="ch-group">
+        <legend>Budget</legend>
+        <div class="ch-toggles">
+          {budgetBuckets.map((b, i) => (
+            <button class="ch-budget" type="button" data-budget={b.key} aria-pressed={i === 0 ? 'true' : 'false'}>{b.label}</button>
+          ))}
+        </div>
+      </fieldset>
+    </div>
+
+    <div class="ch-meta">
+      <span class="ch-count mono" id="ch-count"></span>
+      <button class="ch-reset" id="ch-reset" type="button" hidden>Reset filters</button>
+    </div>
+
+    <div class="ch-results" id="ch-results" aria-live="polite"></div>
+
+    <noscript>
+      <p class="ch-ns">The filter tool needs JavaScript. The full comparison table below works without it.</p>
+    </noscript>
+  </section>
+
+  <!-- ── Full comparison table ────────────────────────────────────────── -->
+  <section>
+    <h2 class="prose">The full comparison</h2>
+    <div class="scroll compare">
+      <table>
+        <thead>
+          <tr>
+            <th>Device</th>
+            {compareCriteria.map((c) => <th class="ctr">{c.label}</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {wallets.map((w) => (
+            <tr>
+              <td class="dev"><span class="dname">{w.name}</span><span class="vendor mono">{w.vendor}</span></td>
+              {compareCriteria.map((c) => (
+                <td class="ctr">
+                  {c.type === 'text'
+                    ? <span class="num">{w[c.key]}</span>
+                    : <span class:list={['mark', ratingClass[w[c.key]]]} title={ratingTitle[w[c.key]]}>{ratingMark[w[c.key]]}</span>}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="legend mono"><span class="r-yes">✓</span> yes · <span class="r-partial">~</span> partial / caveats · <span class="r-no">✗</span> no — <span class="sub">column meanings are in the “plain-English meanings” box above</span></p>
+  </section>
+
+  <section>
+    <h2 class="prose">The devices, in one honest line each</h2>
+    <div class="cards">
+      {wallets.map((w) => (
+        <article class="wcard">
+          <header>
+            <h3>{w.name}</h3>
+            <span class="price mono num">{w.price}</span>
+          </header>
+          <p class="best"><strong>Good fit:</strong> {w.bestFor}</p>
+          <p class="watch"><strong>Watch out:</strong> {w.watch}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="prose">
+    <div class="callout safe">
+      <span class="label">Advanced: if you’re running multisig, buy different brands</span>
+      <p><em><a href="/glossary#multisig">Multisig</a> means several keys exist and more than one has to approve any spend — an advanced setup most people don’t need.</em> If you do run one, use devices from <strong>different manufacturers</strong>, so one firmware bug or supply-chain problem can never compromise more than one key. It’s the cheapest meaningful upgrade to a multisig setup.</p>
+    </div>
+    <h2>Quick picks</h2>
+    <ul>
+      <li><strong>First device, keep it simple:</strong> BitBox02 (BTC-only) or Trezor Safe 5 for mainstream UX; Blockstream Jade if budget is tight.</li>
+      <li><strong>Strict air-gap by design:</strong> Foundation Passport or Coldcard Q.</li>
+      <li><strong>Passphrase-heavy power user:</strong> Coldcard Q (full keyboard).</li>
+      <li><strong>Non-technical, phone-first:</strong> Bitkey.</li>
+      <li><strong>Already own a Ledger?</strong> Read the <a href="/ladder">caveats</a> on closed firmware and the 2023 Recover controversy before you rely on it.</li>
+    </ul>
+    <p class="sub">Buy direct from the manufacturer, verify the tamper-evident seal, and generate a fresh seed yourself — never use a pre-loaded one.</p>
+  </section>
+</Base>
+
+<script>
+  import { wallets, badgeDefs, budgetBuckets } from '../data/wallets.js';
+
+  const state = { filters: new Set(), chips: new Set(), budget: 'any' };
+
+  const elResults = document.getElementById('ch-results');
+  const elCount = document.getElementById('ch-count');
+  const elReset = document.getElementById('ch-reset');
+
+  function esc(s) { const d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
+
+  const budgetMax = (key) => (budgetBuckets.find((b) => b.key === key) || { max: Infinity }).max;
+
+  function matches(w) {
+    // Must-have filters: AND. A device passes unless its rating is 'no'.
+    for (const key of state.filters) { if (w[key] === 'no') return false; }
+    // Use-case chips: OR within the facet.
+    if (state.chips.size) {
+      const has = (w.useCases || []).some((u) => state.chips.has(u));
+      if (!has) return false;
+    }
+    // Budget: entry price at or under the chosen ceiling.
+    if (w.priceNum > budgetMax(state.budget)) return false;
+    return true;
+  }
+
+  function badgeHtml(w) {
+    return badgeDefs.map((b) => {
+      const rating = w[b.key];                       // 'yes' | 'partial' | 'no'
+      const cls = rating === 'yes' ? 'y' : rating === 'partial' ? 'p' : 'n';
+      const mark = rating === 'yes' ? '✓' : rating === 'partial' ? '~' : '✗';
+      const tip = (w.notes && w.notes[b.key]) || b.tip;
+      return `<span class="ch-badge ${cls}" title="${esc(tip)}"><span class="ch-bm">${mark}</span> ${esc(b.label)}</span>`;
+    }).join('');
+  }
+
+  function cardHtml(w) {
+    return `<article class="ch-card">
+      <header class="ch-card-head">
+        <div><h3>${esc(w.name)}</h3><span class="ch-vendor mono">${esc(w.vendor)}</span></div>
+        <span class="ch-price mono">${esc(w.price)}</span>
+      </header>
+      <p class="ch-best">${esc(w.bestFor)}</p>
+      <div class="ch-badges">${badgeHtml(w)}</div>
+      <p class="ch-watch"><strong>Watch:</strong> ${esc(w.watch)}</p>
+    </article>`;
+  }
+
+  function render() {
+    const hits = wallets.filter(matches);
+    const anyActive = state.filters.size || state.chips.size || state.budget !== 'any';
+    elReset.hidden = !anyActive;
+
+    if (!hits.length) {
+      elCount.textContent = `0 of ${wallets.length} devices match`;
+      elResults.innerHTML = `<div class="ch-empty">
+        <p><strong>No device matches every must-have.</strong></p>
+        <p>Loosen a filter — in self-custody the best device is the one you’ll actually use, not the one that ticks every box. A “partial” badge still counts as a pass here; only a hard “no” removes a device.</p>
+      </div>`;
+      return;
+    }
+    elCount.textContent = anyActive
+      ? `${hits.length} of ${wallets.length} devices match`
+      : `All ${wallets.length} devices — filter to narrow`;
+    elResults.innerHTML = hits.map(cardHtml).join('');
+  }
+
+  // Must-have toggles + use-case chips: multi-select toggle.
+  document.querySelectorAll('.ch-toggle, .ch-chip').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const set = btn.classList.contains('ch-toggle') ? state.filters : state.chips;
+      const key = btn.getAttribute('data-filter') || btn.getAttribute('data-chip');
+      const on = btn.getAttribute('aria-pressed') === 'true';
+      btn.setAttribute('aria-pressed', String(!on));
+      if (on) set.delete(key); else set.add(key);
+      render();
+    });
+  });
+
+  // Budget: single-select.
+  const budgetBtns = document.querySelectorAll('.ch-budget');
+  budgetBtns.forEach((btn) => {
+    btn.addEventListener('click', () => {
+      state.budget = btn.getAttribute('data-budget');
+      budgetBtns.forEach((b) => b.setAttribute('aria-pressed', String(b === btn)));
+      render();
+    });
+  });
+
+  elReset.addEventListener('click', () => {
+    state.filters.clear();
+    state.chips.clear();
+    state.budget = 'any';
+    document.querySelectorAll('.ch-toggle, .ch-chip').forEach((b) => b.setAttribute('aria-pressed', 'false'));
+    budgetBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.getAttribute('data-budget') === 'any')));
+    render();
+  });
+
+  render();
+</script>
+
+<style>
+  /* ── Chooser: static controls (present at build, scoped styling is fine) ── */
+  .chooser { margin-top: 2.4rem; }
+  .ch-lead { color: var(--muted); max-width: 46rem; }
+  .ch-defs { margin: 0.9rem 0 0; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 0.4rem 1rem; }
+  .ch-defs summary { cursor: pointer; font-size: 0.9rem; font-weight: 600; padding: 0.5rem 0; color: var(--accent); }
+  .ch-defs dl { margin: 0.4rem 0 0.8rem; display: flex; flex-direction: column; gap: 0.7rem; }
+  .ch-defs .def-row dt { font-weight: 700; font-size: 0.92rem; color: var(--text); }
+  .ch-defs .def-row dd { margin: 0.15rem 0 0; color: var(--muted); font-size: 0.9rem; line-height: 1.5; }
+  .ch-controls { display: grid; gap: 1rem; margin: 1.4rem 0 0; }
+  .ch-group { border: 1px solid var(--line); border-radius: var(--radius); padding: 0.9rem 1.1rem 1.1rem; margin: 0; }
+  .ch-group legend { font-size: 0.74rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--faint); padding: 0 0.4rem; }
+  .ch-hint { text-transform: none; letter-spacing: 0; color: var(--faint); font-size: 0.72rem; }
+  .ch-toggles { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  .ch-toggle, .ch-chip, .ch-budget {
+    font-family: var(--sans); font-size: 0.88rem; color: var(--text); cursor: pointer;
+    background: var(--raise); border: 1px solid var(--line); border-radius: 2rem;
+    padding: 0.45rem 0.95rem; transition: border-color 0.15s, background 0.15s, color 0.15s;
+  }
+  .ch-toggle:hover, .ch-chip:hover, .ch-budget:hover { border-color: var(--accent); }
+  .ch-toggle[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+  .ch-chip[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  .ch-budget[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+
+  .ch-meta { display: flex; align-items: center; justify-content: space-between; gap: 1rem; margin: 1.2rem 0 0.4rem; }
+  .ch-count { color: var(--muted); font-size: 0.82rem; }
+  .ch-reset { background: none; border: none; color: var(--muted); font-size: 0.85rem; cursor: pointer; padding: 0; text-decoration: underline; }
+  .ch-reset:hover { color: var(--accent); }
+  .ch-ns { color: var(--muted); }
+</style>
+
+<!-- Result cards are injected by client JS, so they never receive Astro's scoped
+     attribute — these must be global, namespaced under #ch-results to not leak. -->
+<style is:global>
+  #ch-results { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 0.6rem; }
+  @media (max-width: 720px) { #ch-results { grid-template-columns: 1fr; } }
+  #ch-results .ch-card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface-2); padding: 1.1rem 1.2rem; box-shadow: var(--shadow); }
+  #ch-results .ch-card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.6rem; margin-bottom: 0.5rem; }
+  #ch-results .ch-card-head h3 { margin: 0; font-size: 1.05rem; }
+  #ch-results .ch-vendor { display: block; font-size: 0.72rem; color: var(--faint); margin-top: 0.1rem; }
+  #ch-results .ch-price { color: var(--accent); font-size: 0.9rem; white-space: nowrap; }
+  #ch-results .ch-best { margin: 0 0 0.8rem; font-size: 0.9rem; color: var(--muted); }
+  #ch-results .ch-badges { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.8rem; }
+  #ch-results .ch-badge { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.74rem; font-family: var(--mono);
+    border: 1px solid var(--line); border-radius: 0.4rem; padding: 0.2rem 0.5rem; cursor: help; }
+  #ch-results .ch-badge .ch-bm { font-weight: 700; }
+  #ch-results .ch-badge.y { color: var(--safe); border-color: color-mix(in srgb, var(--safe) 40%, var(--line)); background: var(--safe-dim); }
+  #ch-results .ch-badge.p { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 40%, var(--line)); background: var(--warn-dim); }
+  #ch-results .ch-badge.n { color: var(--faint); border-color: var(--line); background: transparent; text-decoration: line-through; text-decoration-color: var(--danger); }
+  #ch-results .ch-watch { margin: 0; font-size: 0.82rem; color: var(--faint); }
+  #ch-results .ch-watch strong { color: var(--warn); }
+  #ch-results .ch-empty { grid-column: 1 / -1; border: 1px dashed var(--line); border-radius: var(--radius); padding: 1.6rem; text-align: center; }
+  #ch-results .ch-empty p { margin: 0 0 0.6rem; color: var(--muted); }
+  #ch-results .ch-empty p:last-child { margin-bottom: 0; }
+  #ch-results .ch-empty strong { color: var(--text); }
+</style>
+
+<style>
+  .compare table { min-width: 44rem; }
+  .ctr { text-align: center; }
+  .dev { min-width: 11rem; }
+  .dname { display: block; font-weight: 650; }
+  .vendor { display: block; font-size: 0.72rem; color: var(--faint); margin-top: 0.1rem; }
+  .mark { display: inline-grid; place-items: center; width: 1.7rem; height: 1.7rem; border-radius: 50%; font-weight: 700; font-family: var(--mono); }
+  .r-yes { color: var(--safe); }
+  .mark.r-yes { background: var(--safe-dim); }
+  .r-partial { color: var(--warn); }
+  .mark.r-partial { background: var(--warn-dim); }
+  .r-no { color: var(--danger); }
+  .mark.r-no { background: var(--danger-dim); }
+  .legend { font-size: 0.8rem; margin-top: 0.9rem; display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center; }
+  .legend .r-yes, .legend .r-partial, .legend .r-no { font-weight: 700; }
+
+  .cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 1.4rem; }
+  @media (max-width: 720px) { .cards { grid-template-columns: 1fr; } }
+  .wcard { border: 1px solid var(--line); border-radius: var(--radius); padding: 1.2rem 1.3rem; background: var(--surface); }
+  .wcard header { display: flex; align-items: baseline; justify-content: space-between; gap: 0.6rem; margin-bottom: 0.6rem; }
+  .wcard h3 { margin: 0; font-size: 1.05rem; }
+  .wcard .price { color: var(--accent); font-size: 0.9rem; }
+  .wcard p { margin: 0 0 0.5rem; font-size: 0.92rem; color: var(--muted); }
+  .wcard .best strong { color: var(--safe); }
+  .wcard .watch strong { color: var(--warn); }
+  .wcard p:last-child { margin-bottom: 0; }
+</style>

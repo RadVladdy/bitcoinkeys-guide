@@ -1,0 +1,29 @@
+---
+import Base from '../layouts/Base.astro';
+import TipJar from '../components/TipJar.astro';
+---
+<Base
+  title="Tip the guide — Lightning tip jar · BitcoinKeys.guide"
+  description="BitcoinKeys.guide is independent and takes no affiliate money. If it helped you take self-custody, an optional Lightning tip pays straight into our own self-custodial node."
+  verified="2026-07-16"
+>
+  <section class="prose">
+    <p class="eyebrow">Support</p>
+    <h1>Tip the guide over Lightning</h1>
+    <p class="lead">Keeping this independent — no ads, no affiliate hardware money, nothing to sell — is what lets it give you a straight answer. If it earned it, a tip in <a href="/glossary#sats">sats</a> (the tiny units of Bitcoin), sent over the Lightning network, is welcome — and entirely optional.</p>
+  </section>
+
+  <TipJar full={true} />
+
+  <section class="prose" style="margin-top:2.4rem;">
+    <h2>Why a tip and not ads?</h2>
+    <p>Almost every self-custody guide is bankrolled by a hardware brand, a custody service, or affiliate payouts — and it quietly bends the advice. We took the opposite bet: earn trust by having <strong>nothing to sell</strong>, and let readers who found it valuable chip in directly. A Lightning tip is on-brand in the most literal way — it’s self-custody in action.</p>
+    <h2>Where the sats go</h2>
+    <p>Straight into <strong>our own sovereign Lightning node</strong> — Bitcoin Core, our own channels, no custodian holding the balance. That’s the same setup this guide teaches you to run. No third party sits between your tip and us.</p>
+    <p class="note mono">New to Lightning? Any modern wallet — Phoenix, Zeus, Wallet of Satoshi, Blink, Alby — can scan the code or send to the address above.</p>
+  </section>
+</Base>
+
+<style>
+  .note { color: var(--faint); font-size: 0.85rem; margin-top: 1rem; }
+</style>

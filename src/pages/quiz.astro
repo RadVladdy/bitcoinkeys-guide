@@ -1,0 +1,346 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base
+  title="Find your setup — the self-custody quiz · BitcoinKeys.guide"
+  description="Four plain questions → one clear self-custody setup that fits you: a named tier, a starter hardware wallet, and an ordered checklist. Runs entirely in your browser — we never ask how much Bitcoin you hold."
+  verified="2026-07-16"
+>
+  <section class="prose">
+    <p class="eyebrow">Find your setup</p>
+    <h1>Which self-custody setup fits you?</h1>
+    <p class="lead">Four plain questions, then one clear recommendation — a setup, a starter device, and a checklist. No accounts, no jargon, no "best device" hand-waving.</p>
+    <p class="risks-hint">New to this? It helps to first skim <a href="/risks">how people actually lose Bitcoin</a> — the questions below are really asking which of those risks matters most to you.</p>
+
+    <div class="privacy-note">
+      <span class="pn-label mono">🔒 Notice what we don't ask</span>
+      <p>We never ask <strong>how much Bitcoin you hold</strong> — no website should, and telling one is bad practice. This quiz asks about the <em>consequences</em>, not amounts. It runs <strong>entirely in your browser</strong>: nothing is sent, stored, logged, or put in the web address. Close the tab and it's gone — unless you deliberately <a href="/my-plan">save your plan</a>, which is a separate choice and still never leaves your device.</p>
+    </div>
+  </section>
+
+  <div id="quiz" class="quiz" aria-live="polite">
+    <div class="quiz-progress mono" id="q-progress"></div>
+    <div id="q-card"></div>
+    <div id="q-result" hidden></div>
+    <noscript><p class="ns">This quiz needs JavaScript. You can walk the same path by hand starting at the <a href="/start">Start here</a> page and the <a href="/ladder">configuration ladder</a>.</p></noscript>
+  </div>
+</Base>
+
+<script>
+  import { questions, recommend } from '../data/quiz.js';
+  import { wallets } from '../data/wallets.js';
+  import { saveQuizSlice } from '../data/plan.js';
+
+  const answers = {};
+  let idx = 0;
+
+  const elProgress = document.getElementById('q-progress');
+  const elCard = document.getElementById('q-card');
+  const elResult = document.getElementById('q-result');
+
+  function esc(s) { const d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
+
+  function renderProgress() {
+    const total = questions.length;
+    let dots = '';
+    for (let i = 0; i < total; i++) {
+      const cls = i < idx ? 'done' : i === idx ? 'now' : '';
+      dots += `<span class="dot ${cls}"></span>`;
+    }
+    elProgress.innerHTML = idx < total
+      ? `<span class="dots">${dots}</span> Question ${idx + 1} of ${total}`
+      : `<span class="dots">${dots}</span> Your setup`;
+  }
+
+  function renderQuestion() {
+    const q = questions[idx];
+    renderProgress();
+    elResult.hidden = true;
+    elCard.hidden = false;
+    if (q.type === 'rank') renderRank(q);
+    else renderSingle(q);
+  }
+
+  function shell(q, inner) {
+    return `<div class="q-card"><h2 class="q-title">${esc(q.q)}</h2>${q.help ? `<p class="q-help">${esc(q.help)}</p>` : ''}${inner}</div>`;
+  }
+
+  function renderSingle(q) {
+    const opts = q.options.map((o) => `<button class="q-opt" data-value="${esc(o.value)}"><span>${esc(o.label)}</span></button>`).join('');
+    elCard.innerHTML = shell(q, `<div class="q-opts">${opts}</div>${idx > 0 ? `<button class="q-back" id="q-back">← Back</button>` : ''}`);
+    elCard.querySelectorAll('.q-opt').forEach((b) => {
+      b.addEventListener('click', () => {
+        answers[q.id] = b.getAttribute('data-value');
+        idx++;
+        if (idx >= questions.length) renderResult(); else renderQuestion();
+        elCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      });
+    });
+    wireBack(q, false);
+  }
+
+  function renderRank(q) {
+    const ranked = Array.isArray(answers[q.id]) ? answers[q.id].slice() : [];
+    const draw = () => {
+      const opts = q.options.map((o) => {
+        const pos = ranked.indexOf(o.value);
+        const badge = pos >= 0 ? `<span class="rank-badge">${pos + 1}</span>` : `<span class="rank-badge empty"></span>`;
+        return `<button class="q-opt ${pos >= 0 ? 'ranked' : ''}" data-value="${esc(o.value)}">${badge}<span>${esc(o.label)}</span></button>`;
+      }).join('');
+      elCard.innerHTML = shell(q, `
+        <div class="q-opts rank">${opts}</div>
+        <div class="rank-actions">
+          ${idx > 0 ? `<button class="q-back" id="q-back">← Back</button>` : `<span></span>`}
+          <span class="rank-right">
+            ${ranked.length ? `<button class="q-reset" id="q-reset">Clear</button>` : ``}
+            <button class="btn-primary q-continue" id="q-continue" ${ranked.length ? '' : 'disabled'}>Continue →</button>
+          </span>
+        </div>`);
+      elCard.querySelectorAll('.q-opt').forEach((b) => {
+        b.addEventListener('click', () => {
+          const v = b.getAttribute('data-value');
+          const i = ranked.indexOf(v);
+          if (i >= 0) ranked.splice(i, 1); else ranked.push(v);
+          draw();
+        });
+      });
+      const cont = document.getElementById('q-continue');
+      cont.addEventListener('click', () => {
+        if (!ranked.length) return;
+        answers[q.id] = ranked.slice();
+        idx++;
+        if (idx >= questions.length) renderResult(); else renderQuestion();
+        elCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      });
+      const reset = document.getElementById('q-reset');
+      if (reset) reset.addEventListener('click', () => { ranked.length = 0; draw(); });
+      wireBack(q, true, ranked);
+    };
+    draw();
+  }
+
+  function wireBack(q, isRank, ranked) {
+    const back = document.getElementById('q-back');
+    if (!back) return;
+    back.addEventListener('click', () => {
+      if (isRank) answers[q.id] = ranked.slice();
+      idx--;
+      renderQuestion();
+    });
+  }
+
+  function walletCard(rec, adaptive, sel) {
+    if (rec.wallets && rec.wallets.length) {
+      const items = rec.wallets.map((d, i) => {
+        const w = wallets.find((x) => x.name === d.name);
+        const price = w ? ` <span class="r-price">${esc(w.price)}</span>` : '';
+        const body = `<strong>${esc(d.name)}</strong>${price} — ${esc(d.why)}`;
+        return adaptive
+          ? `<button class="r-dev ${i === sel ? 'sel' : ''}" data-idx="${i}">${body}</button>`
+          : `<li>${body}</li>`;
+      }).join('');
+      const container = adaptive ? `<div class="r-devs adaptive">${items}</div>` : `<ul class="r-devs">${items}</ul>`;
+      const label = adaptive ? 'Two devices that fit — tap the one you’ll use; the steps adapt' : 'Two devices that fit — either works, pick by feel';
+      return `<div class="r-wallet">
+        <span class="r-k mono">${label}</span>
+        ${container}
+        ${rec.walletNote ? `<p class="r-devnote">${esc(rec.walletNote)}</p>` : ''}
+        <a class="r-compare" href="/wallets">Compare all 7 devices →</a>
+      </div>`;
+    }
+    // category-only (learning / collaborative — walletNote may hold intentional HTML)
+    return rec.walletNote ? `<div class="r-wallet"><span class="r-k mono">Where to start</span><p>${rec.walletNote}</p></div>` : '';
+  }
+
+  function checklistHtml(rec, dev) {
+    const list = (dev && dev.checklist) || rec.checklist;
+    const steps = list.map((s) => `<li>${esc(s.text)}${s.howto ? ` <a class="r-how" href="/how-to/${esc(s.howto)}">how →</a>` : ''}</li>`).join('');
+    const label = (dev && dev.checklist) ? `Your checklist — for ${esc(dev.name)}` : 'Your checklist';
+    return `<span class="r-k mono">${label}</span><ol>${steps}</ol>`;
+  }
+
+  function vendorsBlock(vendors) {
+    if (!vendors || !vendors.length) return '';
+    const rows = vendors.map((v) => `<li>
+      <div class="v-head"><a href="${esc(v.url)}" target="_blank" rel="noopener noreferrer">${esc(v.name)} ↗</a> <span class="v-meta mono">${esc(v.kyc)} · ${esc(v.price)}</span></div>
+      <div class="v-model mono">${esc(v.model)}</div>
+      <p>${esc(v.note)}</p>
+      ${v.hw ? `<div class="v-hw"><span class="mono">Hardware:</span> ${esc(v.hw)}</div>` : ''}
+    </li>`).join('');
+    return `<div class="r-vendors">
+      <span class="r-k mono">Bitcoin-only collaborative-custody services</span>
+      <p class="v-intro"><strong>What this means:</strong> "collaborative custody" is where a company holds one backup key for you, so losing one of your own keys can't lock you out — a "2-of-3" means any two of the three keys together can recover your coins. ("KYC" is the ID check some services require.) This is a neutral list — <strong>not affiliate links, not ranked "best."</strong> We include only Bitcoin-only services; compare their models and pick the fit. <em>(Casa is left off — it now supports other coins too.)</em></p>
+      <ul class="v-list">${rows}</ul>
+    </div>`;
+  }
+
+  function renderResult() {
+    renderProgress();
+    elCard.hidden = true;
+    elResult.hidden = false;
+    const { primary, secondary } = recommend(answers);
+    const devs = primary.wallets || [];
+    const adaptive = devs.some((d) => d.checklist);   // e.g. Bitkey has its own flow
+    let sel = 0;
+    const primaryHasVendors = primary.vendors && primary.vendors.length;
+    elResult.innerHTML = `
+      <div class="r-card">
+        <p class="r-tier mono">1st choice · ${esc(primary.tier)}</p>
+        <h2 class="r-headline">Your setup: ${esc(primary.headline)}</h2>
+        <p class="r-why">${primary.why}</p>
+        ${primary.holdback ? `<div class="r-holdback"><span class="r-k mono">Why not more?</span><p>${primary.holdback}</p></div>` : ''}
+        ${walletCard(primary, adaptive, sel)}
+        <div class="r-checklist" id="r-checklist">${checklistHtml(primary, adaptive ? devs[sel] : null)}</div>
+        ${primaryHasVendors ? vendorsBlock(primary.vendors) : ''}
+      </div>
+      ${secondary ? `<div class="r-card secondary">
+        <p class="r-tier mono muted">2nd choice · where you'd go next</p>
+        <h2 class="r-headline sm">${esc(secondary.headline)}</h2>
+        <p class="r-why">${esc(secondary.when)}</p>
+        ${(!primaryHasVendors && secondary.vendors) ? vendorsBlock(secondary.vendors) : ''}
+        <a class="r-how2" href="/ladder/${esc(secondary.rungSlug)}">Read the ${esc(secondary.rungLabel)} walkthrough →</a>
+      </div>` : ''}
+      <div class="r-save" id="r-save">
+        <button class="btn-save" id="q-save">＋ Save this setup to my plan</button>
+        <span class="r-save-note">Optional. Kept only in your browser until you choose to — <a href="/my-plan">your data, not ours</a>.</span>
+      </div>
+      <div class="r-links">
+        <a class="btn-primary" href="/ladder/${esc(primary.rungSlug)}">Read the full ${esc(primary.rungLabel)} walkthrough →</a>
+        <button class="btn-ghost" id="q-restart">Start over</button>
+      </div>
+      <p class="r-foot mono">This is guidance, not financial or legal advice — never act on a step you don't understand. When in doubt, choose the simpler setup.</p>`;
+    const saveBand = document.getElementById('r-save');
+    const saveBtn = document.getElementById('q-save');
+    saveBtn.addEventListener('click', () => {
+      saveQuizSlice({
+        answers,
+        primaryTier: primary.tier,
+        primaryLabel: primary.headline,
+        device: (adaptive && devs[sel]) ? devs[sel].name : (devs[0] && devs[0].name) || null,
+      });
+      saveBand.innerHTML = `<span class="r-saved">✓ Saved to your plan.</span> <a class="r-saved-link" href="/my-plan">View or download it →</a>`;
+    });
+    if (adaptive) {
+      const slot = document.getElementById('r-checklist');
+      elResult.querySelectorAll('.r-dev').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          sel = parseInt(btn.getAttribute('data-idx'), 10);
+          elResult.querySelectorAll('.r-dev').forEach((b, i) => b.classList.toggle('sel', i === sel));
+          slot.innerHTML = checklistHtml(primary, devs[sel]);
+        });
+      });
+    }
+    document.getElementById('q-restart').addEventListener('click', () => {
+      for (const k in answers) delete answers[k];
+      idx = 0;
+      renderQuestion();
+      document.getElementById('quiz').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+
+  renderQuestion();
+</script>
+
+<style>
+  /* Static intro elements (present at build) — scoped styling is fine. */
+  .privacy-note { border: 1px solid var(--safe); border-radius: var(--radius); background: var(--safe-dim);
+    padding: 1rem 1.2rem; margin: 1.6rem 0 0; }
+  .privacy-note .pn-label { display: block; color: var(--safe); font-size: 0.76rem; letter-spacing: 0.06em; margin-bottom: 0.4rem; }
+  .privacy-note p { margin: 0; font-size: 0.92rem; color: var(--muted); }
+  .ns { color: var(--muted); }
+</style>
+
+<!-- The quiz card/options/result are injected by client JS, so they never receive
+     Astro's scoped attribute — these must be global. Namespaced under #quiz to not leak. -->
+<style is:global>
+  #quiz { margin-top: 2rem; max-width: 44rem; }
+  #quiz .quiz-progress { color: var(--faint); font-size: 0.8rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.6rem; }
+  #quiz .dots { display: inline-flex; gap: 0.35rem; }
+  #quiz .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line); display: inline-block; }
+  #quiz .dot.done { background: var(--safe); }
+  #quiz .dot.now { background: var(--accent); }
+
+  #quiz .q-card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface-2); padding: 1.6rem; box-shadow: var(--shadow); }
+  #quiz .q-title { font-size: 1.3rem; margin: 0 0 0.5rem; line-height: 1.25; }
+  #quiz .q-help { color: var(--muted); font-size: 0.9rem; margin: 0 0 1.2rem; }
+  #quiz .q-opts { display: grid; gap: 0.6rem; }
+  #quiz .q-opt { text-align: left; width: 100%; font-family: var(--sans); font-size: 1rem; color: var(--text); cursor: pointer;
+    background: var(--raise); border: 1px solid var(--line); border-radius: 0.6rem; padding: 0.9rem 1.1rem; transition: border-color 0.15s, background 0.15s; }
+  #quiz .q-opt:hover { border-color: var(--accent); background: var(--accent-soft); }
+  #quiz .q-back { margin-top: 1.2rem; background: none; border: none; color: var(--muted); font-size: 0.9rem; cursor: pointer; padding: 0; }
+  #quiz .q-back:hover { color: var(--accent); }
+
+  #quiz .r-card { border: 1px solid var(--accent); border-radius: var(--radius); background: var(--surface-2); padding: 1.8rem; box-shadow: var(--shadow); }
+  #quiz .r-tier { color: var(--accent); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; margin: 0 0 0.4rem; }
+  #quiz .r-headline { font-size: 1.5rem; margin: 0 0 0.8rem; line-height: 1.2; }
+  #quiz .r-why { color: var(--text); margin: 0 0 1.2rem; }
+  #quiz .r-k { display: block; color: var(--faint); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.4rem; }
+  #quiz .r-holdback { border-left: 3px solid var(--warn); background: var(--warn-dim); border-radius: 0.5rem; padding: 0.9rem 1.1rem; margin: 0 0 1.2rem; }
+  #quiz .r-holdback p { margin: 0; font-size: 0.92rem; color: var(--muted); }
+  #quiz .r-wallet { border-top: 1px solid var(--line-soft); padding-top: 1.1rem; margin-bottom: 1.1rem; }
+  #quiz .r-wallet p { margin: 0 0 0.5rem; }
+  #quiz .r-devs { list-style: none; margin: 0 0 0.6rem; padding: 0; display: grid; gap: 0.5rem; }
+  #quiz .r-devs li { color: var(--text); font-size: 0.95rem; padding-left: 0.9rem; position: relative; }
+  #quiz .r-devs li::before { content: "•"; color: var(--accent); position: absolute; left: 0; }
+  #quiz .r-devs.adaptive { display: grid; gap: 0.6rem; }
+  #quiz .r-dev { text-align: left; width: 100%; font-family: var(--sans); font-size: 0.95rem; color: var(--text); cursor: pointer;
+    background: var(--raise); border: 1px solid var(--line); border-radius: 0.6rem; padding: 0.8rem 1rem; transition: border-color 0.15s, background 0.15s; }
+  #quiz .r-dev:hover { border-color: var(--accent); }
+  #quiz .r-dev.sel { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+  #quiz .r-devnote { color: var(--muted); font-size: 0.86rem; margin: 0 0 0.5rem; }
+  #quiz .r-price { color: var(--accent); font-family: var(--mono); font-size: 0.9rem; }
+  #quiz .r-compare { color: var(--muted); font-size: 0.88rem; text-decoration: none; }
+  #quiz .r-compare:hover { color: var(--accent); }
+  #quiz .r-checklist { border-top: 1px solid var(--line-soft); padding-top: 1.1rem; }
+  #quiz .r-checklist ol { margin: 0; padding-left: 1.3rem; display: grid; gap: 0.55rem; }
+  #quiz .r-checklist li { color: var(--text); font-size: 0.95rem; }
+  #quiz .r-how { color: var(--accent); text-decoration: none; font-size: 0.8rem; font-family: var(--mono); white-space: nowrap; }
+  #quiz .r-how:hover { text-decoration: underline; }
+  #quiz .r-save { border-top: 1px solid var(--line-soft); margin-top: 1.4rem; padding-top: 1.2rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 0.9rem; }
+  #quiz .btn-save { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-dim); font-family: var(--sans); font-weight: 600; font-size: 0.9rem;
+    cursor: pointer; padding: 0.6rem 1rem; border-radius: 0.55rem; }
+  #quiz .btn-save:hover { border-color: var(--accent); }
+  #quiz .r-save-note { color: var(--faint); font-size: 0.8rem; }
+  #quiz .r-save-note a, #quiz .r-saved-link { color: var(--accent); text-decoration: none; }
+  #quiz .r-save-note a:hover, #quiz .r-saved-link:hover { text-decoration: underline; }
+  #quiz .r-saved { color: var(--safe); font-weight: 600; font-size: 0.92rem; }
+  #quiz .r-links { display: flex; flex-wrap: wrap; gap: 0.8rem; align-items: center; margin: 1.5rem 0 0; }
+  #quiz .btn-primary { background: var(--accent); color: var(--accent-ink); font-weight: 600; font-size: 0.95rem; text-decoration: none; padding: 0.7rem 1.2rem; border-radius: 0.55rem; display: inline-block; }
+  #quiz .btn-primary:hover { opacity: 0.9; }
+  #quiz .btn-ghost { background: none; border: 1px solid var(--line); color: var(--muted); font-family: var(--sans); font-size: 0.9rem; cursor: pointer; padding: 0.7rem 1.1rem; border-radius: 0.55rem; }
+  #quiz .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+  #quiz .r-foot { color: var(--faint); font-size: 0.78rem; margin: 1.3rem 0 0; }
+
+  /* ranking question */
+  #quiz .q-opts.rank .q-opt { display: flex; align-items: center; gap: 0.7rem; }
+  #quiz .q-opt.ranked { border-color: var(--accent); background: var(--accent-soft); }
+  #quiz .rank-badge { flex: 0 0 auto; width: 1.5rem; height: 1.5rem; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 0.8rem; font-weight: 600; background: var(--accent); color: var(--accent-ink); }
+  #quiz .rank-badge.empty { background: transparent; border: 1px dashed var(--line); color: transparent; }
+  #quiz .rank-actions { display: flex; align-items: center; justify-content: space-between; margin-top: 1.2rem; gap: 1rem; }
+  #quiz .rank-right { display: inline-flex; align-items: center; gap: 0.8rem; }
+  #quiz .q-reset { background: none; border: none; color: var(--muted); font-size: 0.85rem; cursor: pointer; padding: 0; }
+  #quiz .q-reset:hover { color: var(--accent); }
+  #quiz .q-continue[disabled] { opacity: 0.4; cursor: not-allowed; }
+
+  /* secondary (2nd choice) card */
+  #quiz .r-card.secondary { border-color: var(--line); background: var(--surface); margin-top: 1rem; }
+  #quiz .r-tier.muted { color: var(--muted); }
+  #quiz .r-headline.sm { font-size: 1.2rem; }
+  #quiz .r-how2 { display: inline-block; margin-top: 0.6rem; color: var(--accent); text-decoration: none; font-size: 0.9rem; }
+  #quiz .r-how2:hover { text-decoration: underline; }
+
+  /* collaborative-custody vendor list */
+  #quiz .r-vendors { border-top: 1px solid var(--line-soft); padding-top: 1.1rem; margin-top: 1.1rem; }
+  #quiz .v-intro { color: var(--muted); font-size: 0.88rem; margin: 0 0 0.9rem; }
+  #quiz .v-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.9rem; }
+  #quiz .v-list li { border: 1px solid var(--line); border-radius: 0.6rem; padding: 0.9rem 1.1rem; background: var(--raise); }
+  #quiz .v-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; }
+  #quiz .v-head a { color: var(--text); font-weight: 600; text-decoration: none; }
+  #quiz .v-head a:hover { color: var(--accent); }
+  #quiz .v-meta { color: var(--faint); font-size: 0.76rem; }
+  #quiz .v-model { color: var(--accent); font-size: 0.78rem; margin: 0.25rem 0 0.4rem; }
+  #quiz .v-list p { margin: 0 0 0.3rem; color: var(--muted); font-size: 0.9rem; }
+  #quiz .v-hw { font-size: 0.82rem; color: var(--faint); }
+  #quiz .v-hw .mono { font-family: var(--mono); color: var(--muted); }
+</style>

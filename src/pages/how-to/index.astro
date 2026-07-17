@@ -1,0 +1,54 @@
+---
+import Base from '../../layouts/Base.astro';
+import { howtos } from '../../data/howtos.js';
+---
+<Base
+  title="How-to guides · BitcoinKeys.guide"
+  description="Plain-English how-to guides for holding your own Bitcoin: hot vs cold storage, choosing a hardware wallet, backing up your seed, testing your backup, and staying safe day to day."
+  verified="2026-07-15"
+>
+  <section class="prose">
+    <p class="eyebrow">How-to</p>
+    <h1>The how-to guides</h1>
+    <p class="lead">The practical skills of holding your own Bitcoin, each in plain English. Read them in order if you’re new, or jump to what you need.</p>
+  </section>
+
+  <section>
+    <ol class="ht-list">
+      {howtos.map((h, i) => (
+        <li>
+          <a href={`/how-to/${h.slug}`} class="ht-card">
+            <span class="idx num">{String(i + 1).padStart(2, '0')}</span>
+            <span class="ht-body">
+              <span class="ht-title">{h.title}</span>
+              <span class="ht-lead">{h.lead}</span>
+            </span>
+            <span class="arw" aria-hidden="true">→</span>
+          </a>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <section class="prose">
+    <div class="callout">
+      <span class="label">Not sure where to start?</span>
+      <p>If you’ve never done this before, begin with the <a href="/start">Start here</a> path — it walks the whole journey and points to each how-to at the right moment. To see which <em>setup</em> fits you, read <a href="/ladder">the ladder</a>.</p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .ht-list { list-style: none; margin: 1.4rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.7rem; }
+  .ht-card { display: grid; grid-template-columns: 2.4rem 1fr auto; align-items: center; gap: 1rem;
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 1.1rem 1.3rem; text-decoration: none; color: var(--text);
+    transition: border-color .14s ease, transform .14s ease; }
+  .ht-card:hover { border-color: var(--accent); transform: translateX(3px); }
+  .idx { font-family: var(--mono); color: var(--accent); font-weight: 700; }
+  .ht-body { display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
+  .ht-title { font-weight: 650; letter-spacing: -0.01em; }
+  .ht-lead { font-size: 0.88rem; color: var(--muted); line-height: 1.45; }
+  .ht-card .arw { color: var(--accent); font-weight: 700; }
+  @media (max-width: 620px) { .ht-card { grid-template-columns: 1.8rem 1fr; } .ht-card .arw { display: none; } }
+</style>
