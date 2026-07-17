@@ -12,6 +12,12 @@ export function getStaticPaths() {
 const { r } = Astro.props;
 const prev = ladder.find((x) => x.step === r.step - 1);
 const next = ladder.find((x) => x.step === r.step + 1);
+const accentize = (title, phrase) => {
+  if (!phrase) return title;
+  const i = title.indexOf(phrase);
+  if (i < 0) return title;
+  return title.slice(0, i) + `<span class="accent">${phrase}</span>` + title.slice(i + phrase.length);
+};
 ---
 <Base
   title={`Rung ${r.step} — ${r.name} · BitcoinKeys.guide`}
@@ -22,7 +28,7 @@ const next = ladder.find((x) => x.step === r.step + 1);
 
   <section class="prose">
     <p class="eyebrow">Rung {r.step} · {r.short}</p>
-    <h1>{r.name}</h1>
+    <h1 set:html={accentize(r.name, r.accent)}></h1>
     <p class="lead">{r.tagline}</p>
 
     <dl class="facts">

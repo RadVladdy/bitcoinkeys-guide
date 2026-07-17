@@ -40,7 +40,8 @@
       "Keep <strong>Lightning</strong> and ordinary <strong>on-chain</strong> sends separate: use the exact invoice or address the receiver gave you.",
       "For savings going to cold storage, you want plain <strong>on-chain</strong> Bitcoin — the “bc1” kind.",
       "<strong>Send a small test first,</strong> confirm it lands in your own wallet, then send the rest."
-    ]
+    ],
+    "accent": "never do it"
   },
   {
     "slug": "custodial-risk",
@@ -48,8 +49,7 @@
     "verified": "2026-07-17",
     "title": "When the exchange blows up — custodial failure, and how to stay clear of it",
     "lead": "“Not your keys, not your coins” isn’t a slogan — it’s the hard-won lesson from every exchange that has ever collapsed with people’s money inside. Here’s what “custodial failure” actually means, why it keeps happening, and the one simple habit that takes you out of the blast radius.",
-    "intro": "When you buy Bitcoin on an exchange and leave it there, it feels like the money is in your account. But under the surface, <strong>the company holds the actual Bitcoin</strong> and you hold a number on their screen — a promise that they’ll give it to you when you ask. As long as the company is healthy and honest, that promise is good. When it isn’t, the promise is all you have.<br><br>A quick word: <strong>custodial</strong> means someone else holds your Bitcoin for you (an exchange, an app, a “we’ll keep it safe” service). <strong>Self-custody</strong> means you hold it yourself, with your own keys. This guide is about moving from the first to the second — and this page is the <em>why</em>."
-    ,
+    "intro": "When you buy Bitcoin on an exchange and leave it there, it feels like the money is in your account. But under the surface, <strong>the company holds the actual Bitcoin</strong> and you hold a number on their screen — a promise that they’ll give it to you when you ask. As long as the company is healthy and honest, that promise is good. When it isn’t, the promise is all you have.<br><br>A quick word: <strong>custodial</strong> means someone else holds your Bitcoin for you (an exchange, an app, a “we’ll keep it safe” service). <strong>Self-custody</strong> means you hold it yourself, with your own keys. This guide is about moving from the first to the second — and this page is the <em>why</em>.",
     "sections": [
       {
         "h": "What “custodial” really means: you own an IOU, not Bitcoin",
@@ -88,6 +88,7 @@
       "Ignore <strong>“earn interest / yield”</strong> offers — that means lending them your coins and standing first in line to lose them.",
       "Treat <strong>“proof of reserves”</strong> as partial reassurance, not a guarantee — it rarely shows what a company owes.",
       "Prefer a reputable <strong>Bitcoin-only exchange</strong> for buying, and <strong>test a small withdrawal</strong> early so you know the exit works."
-    ]
+    ],
+    "accent": "exchange"
   }
 ]

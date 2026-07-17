@@ -38,7 +38,8 @@ export const howtos = [
       "Don't treat your phone wallet as safe just because you're careful with your phone — an online device is always exposed.",
       "Set up your hardware wallet on a clean, trusted computer, and never type your recovery words into any computer.",
       "As your stack grows, add a separate savings setup so routine spending never touches your long-term Bitcoin."
-    ]
+    ],
+    "accent": "Hot vs cold"
   },
   {
     "slug": "choose-a-wallet",
@@ -81,7 +82,8 @@ export const howtos = [
       "Test before you trust: send a small amount, wipe, and restore from your backup to confirm the words work.",
       "For multisig, use devices from different brands so no single maker's flaw can compromise more than one key.",
       "Compare real options in the /wallets table, and confirm current price and features on the maker's site before buying."
-    ]
+    ],
+    "accent": "hardware wallet"
   },
   {
     "slug": "back-up-your-seed",
@@ -125,7 +127,8 @@ export const howtos = [
       "If you use a passphrase, back it up separately, in a different place from the seed.",
       "Do a wipe-and-restore test before funding the wallet — prove you can rebuild it from the backup alone.",
       "Write down where each backup lives for your heirs, and re-check everything about once a year."
-    ]
+    ],
+    "accent": "seed phrase"
   },
   {
     "slug": "recovery-rehearsal",
@@ -164,7 +167,8 @@ export const howtos = [
       "Fix any failure fully and re-test before you fund the wallet — never defer it.",
       "Repeat a full wipe-and-restore at least every year or two, and after any device update or setup change.",
       "Between full rehearsals, use the wallet's sign-message feature as a quick check that your keys are still accessible."
-    ]
+    ],
+    "accent": "before you trust it"
   },
   {
     "slug": "send-bitcoin-safely",
@@ -207,7 +211,8 @@ export const howtos = [
       "Expect \"change\" to come back to one of your own addresses; a large amount to an unfamiliar address is usually your own change.",
       "Only download wallet software from the vendor's official website, and never type your seed phrase into any website or send flow.",
       "For larger holdings, consider air-gapped signing by QR code or SD card, so your keys never touch an online device."
-    ]
+    ],
+    "accent": "without losing it"
   },
   {
     "slug": "wrong-network",
@@ -250,7 +255,8 @@ export const howtos = [
       "Keep <strong>Lightning</strong> and ordinary <strong>on-chain</strong> sends separate: use the exact invoice or address the receiver gave you.",
       "For savings going to cold storage, you want plain <strong>on-chain</strong> Bitcoin — the “bc1” kind.",
       "<strong>Send a small test first,</strong> confirm it lands in your own wallet, then send the rest."
-    ]
+    ],
+    "accent": "never do it"
   },
   {
     "slug": "custodial-risk",
@@ -297,7 +303,8 @@ export const howtos = [
       "Ignore <strong>“earn interest / yield”</strong> offers — that means lending them your coins and standing first in line to lose them.",
       "Treat <strong>“proof of reserves”</strong> as partial reassurance, not a guarantee — it rarely shows what a company owes.",
       "Prefer a reputable <strong>Bitcoin-only exchange</strong> for buying, and <strong>test a small withdrawal</strong> early so you know the exit works."
-    ]
+    ],
+    "accent": "exchange"
   },
   {
     "slug": "opsec-basics",
@@ -345,7 +352,8 @@ export const howtos = [
       "Keep your Bitcoin off your public identity: no balance screenshots, no branded gear, no specific amounts shared.",
       "Only operate your wallet when calm and unhurried; a rushed payment can't be undone.",
       "Write your recovery details on paper or metal in plain language, and test the backup once before you rely on it."
-    ]
+    ],
+    "accent": "day to day"
   },
   {
     "slug": "physical-security",
@@ -388,7 +396,8 @@ export const howtos = [
       "Spread backups and keys across a few genuinely separate places, so no single location holds enough to move everything.",
       "Leave your hardware wallet at home unless you truly need to carry it.",
       "Match your effort to what you hold — for most people this is a small risk handled by simple habits."
-    ]
+    ],
+    "accent": "physical world"
   },
   {
     "slug": "privacy",
@@ -433,7 +442,8 @@ export const howtos = [
       "Use Lightning for everyday small spending to keep those payments off the public ledger — but fund it from private coins, not exposed ones.",
       "Treat stronger tools like CoinJoin as an optional, informed choice: understand the exchange and legal caveats, and check what is currently available before relying on any single service.",
       "Never post your balance, addresses, or transaction screenshots on social media — that hands trackers the one link they most want."
-    ]
+    ],
+    "accent": "privacy"
   },
   {
     "slug": "inheritance",
@@ -477,7 +487,8 @@ export const howtos = [
       "I've done a full rehearsal: a trusted person found the pieces and moved a test amount using only the Kit, and I fixed every gap they hit.",
       "The Kit is stored with my estate papers, wrapped in a will or revocable living trust, with a trustee and a backup trustee named — reviewed with an attorney.",
       "I dated the plan when last tested and set a reminder to re-test it after major life changes or every few years."
-    ]
+    ],
+    "accent": "survives you"
   },
   {
     "slug": "run-a-node",
@@ -520,6 +531,7 @@ export const howtos = [
       "Expect the first sync (the initial block download) to take one to three days and a lot of disk space; start it and let it run.",
       "Actually connect your wallet to your node (for example, in Sparrow) — otherwise the node does nothing for you.",
       "Set up your wallet as watch-only using your xpub so it can see your balance while your spending keys stay offline, then confirm the block numbers match."
-    ]
+    ],
+    "accent": "your own node"
   }
 ];

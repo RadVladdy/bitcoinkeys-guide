@@ -11,6 +11,13 @@ export function getStaticPaths() {
 
 const { h, prev, next } = Astro.props;
 const toneClass = { warn: 'warn', safe: 'safe', danger: 'danger' };
+// accent a keyword/phrase in the title (orange), leaving the rest plain
+const accentize = (title, phrase) => {
+  if (!phrase) return title;
+  const i = title.indexOf(phrase);
+  if (i < 0) return title;
+  return title.slice(0, i) + `<span class="accent">${phrase}</span>` + title.slice(i + phrase.length);
+};
 ---
 <Base
   title={`${h.title} · BitcoinKeys.guide`}
@@ -21,9 +28,9 @@ const toneClass = { warn: 'warn', safe: 'safe', danger: 'danger' };
 
   <section class="prose">
     <p class="eyebrow">How-to</p>
-    <h1>{h.title}</h1>
+    <h1 set:html={accentize(h.title, h.accent)}></h1>
     <p class="lead">{h.lead}</p>
-    {h.intro && <p set:html={h.intro}></p>}
+    {h.intro && <><hr class="lead-sep" /><p set:html={h.intro}></p></>}
   </section>
 
   <section class="prose">
@@ -60,6 +67,7 @@ const toneClass = { warn: 'warn', safe: 'safe', danger: 'danger' };
 </Base>
 
 <style>
+  .lead-sep { border: 0; border-top: 1px solid var(--line-soft); max-width: 46ch; margin: 1.4rem 0 1.5rem; }
   .crumb { font-family: var(--mono); font-size: 0.8rem; color: var(--muted); margin-bottom: 1.2rem; display: flex; gap: 0.5rem; }
   .crumb a { color: var(--muted); text-decoration: none; }
   .crumb a:hover { color: var(--accent); }

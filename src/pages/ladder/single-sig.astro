@@ -2,6 +2,12 @@
 import Base from '../../layouts/Base.astro';
 import { getRung } from '../../data/ladder.js';
 const r = getRung('single-sig');
+const accentize = (title, phrase) => {
+  if (!phrase) return title;
+  const i = title.indexOf(phrase);
+  if (i < 0) return title;
+  return title.slice(0, i) + `<span class="accent">${phrase}</span>` + title.slice(i + phrase.length);
+};
 
 const buildSteps = [
   { t: 'Buy a hardware wallet direct from the maker', d: 'Order from the manufacturer or an authorised reseller — never a marketplace listing that could be tampered with, and ideally not shipped to your main home. Check the tamper-evident packaging when it arrives.' },
@@ -21,7 +27,7 @@ const buildSteps = [
 
   <section class="prose">
     <p class="eyebrow">Rung {r.step} · {r.short}</p>
-    <h1>{r.name}</h1>
+    <h1 set:html={accentize(r.name, r.accent)}></h1>
     <p class="lead">{r.tagline}</p>
 
     <dl class="facts">
