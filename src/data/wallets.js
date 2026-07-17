@@ -21,7 +21,7 @@ export const wallets = [
     reproducible: 'yes',
     recoverability: 'yes',
     useCases: ['passphrase', 'multisig'],
-    bestFor: 'Passphrase-heavy workflows (full QWERTY keyboard); strong multisig + BIP-85. Deep features, but everyday use stays straightforward.',
+    bestFor: 'Easy passphrase entry — the full QWERTY keyboard makes typing a strong passphrase painless (no on-screen fiddling); strong multisig + BIP-85. Deep features, but everyday use stays straightforward.',
     watch: 'More menus than a minimalist device — though that depth doesn’t make routine use harder. Firmware is source-available, not OSI-licensed.',
     notes: {
       reproducible: 'Firmware is reproducibly buildable — you can rebuild it from source and confirm the binary matches (independently verified on WalletScrutiny).',
@@ -61,7 +61,7 @@ export const wallets = [
     reproducible: 'yes',
     recoverability: 'partial',
     useCases: ['first', 'passphrase'],
-    bestFor: 'The only mainstream device with native SLIP-39; colour touchscreen; mainstream UX.',
+    bestFor: 'The only mainstream device with native SLIP-39; colour touchscreen makes passphrase entry easy; mainstream UX.',
     watch: 'Multi-coin device. Multisig is adequate rather than best-in-class.',
     notes: {
       reproducible: 'Open-source with documented reproducible builds (verifiable after stripping the vendor signature).',
@@ -186,7 +186,7 @@ export const chooserFilters = [
 export const useCaseChips = [
   { key: 'first',      label: 'A good first device' },
   { key: 'phone',      label: 'Phone-first / non-technical' },
-  { key: 'passphrase', label: 'Passphrase-heavy' },
+  { key: 'passphrase', label: 'Easy passphrase entry' },
   { key: 'multisig',   label: 'Multisig component' },
   { key: 'budget',     label: 'Tight budget' },
 ];

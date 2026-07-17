@@ -191,8 +191,8 @@ function primaryRec(a) {
       tier: 'Tier 1–2', rungSlug: 'passphrase', rungLabel: 'Single-sig + a passphrase (the "25th word")',
       headline: 'Single-sig cold storage + a passphrase',
       why: `Because your worry is ${worry === 'targeted' ? 'being targeted or coerced' : 'someone getting hold of your seed'}, a passphrase earns its keep: the seed alone opens only a small decoy wallet, while the seed PLUS your passphrase opens the real one. A backup someone finds — or a seed pulled off a compromised device — can’t spend your coins.`,
-      wallets: powerDevice ? [DEV.coldcard, DEV.passport] : [DEV.passport, DEV.trezor],
-      walletNote: 'A keyboard or touchscreen makes typing a strong passphrase every time far less painful.',
+      wallets: powerDevice ? [DEV.coldcard, DEV.trezor] : [DEV.trezor, DEV.coldcard],
+      walletNote: 'Both of these make a passphrase easy to live with — the Coldcard Q has a full keyboard, the Trezor Safe 5 a touchscreen. You type a strong passphrase painlessly, with no on-screen fiddling and nothing typed into a computer.',
       checklist: [
         STEP.buy, STEP.offline, STEP.metal,
         { text: 'Choose a strong passphrase — long and unguessable; it can’t be reset or recovered', howto: 'opsec-basics' },
