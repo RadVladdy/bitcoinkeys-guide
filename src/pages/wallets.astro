@@ -110,6 +110,12 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
 
   <section>
     <h2 class="prose">The devices, in one honest line each</h2>
+    <p class="reach-legend prose">
+      <strong>Ladder reach</strong> — how far up <a href="/ladder">the ladder</a> a device carries you before you’d buy new hardware:
+      <span class="pip strong">handles it well</span>
+      <span class="pip ok">works, but fiddly</span>
+      <span class="pip na">n/a — its own model</span>
+    </p>
     <div class="cards">
       {wallets.map((w) => (
         <article class="wcard">
@@ -119,6 +125,16 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
           </header>
           <p class="best"><strong>Good fit:</strong> {w.bestFor}</p>
           <p class="watch"><strong>Watch out:</strong> {w.watch}</p>
+          {w.ladderReach && (
+            <div class="reach">
+              <span class="reach-pips">
+                <span class:list={['pip', w.ladderReach.s]}>Single-sig</span>
+                <span class:list={['pip', w.ladderReach.p]}>Passphrase</span>
+                <span class:list={['pip', w.ladderReach.m]}>Multisig</span>
+              </span>
+              <span class="reach-note">{w.ladderReach.note}</span>
+            </div>
+          )}
         </article>
       ))}
     </div>
@@ -324,5 +340,15 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
   .wcard p { margin: 0 0 0.5rem; font-size: 0.92rem; color: var(--muted); }
   .wcard .best strong { color: var(--safe); }
   .wcard .watch strong { color: var(--warn); }
-  .wcard p:last-child { margin-bottom: 0; }
+
+  .reach-legend { font-size: 0.85rem; color: var(--muted); display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0.4rem 0 0; }
+  .reach { margin-top: 0.85rem; padding-top: 0.75rem; border-top: 1px solid var(--line-soft); }
+  .reach-pips { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.5rem; }
+  .pip { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.02em; padding: 0.18rem 0.55rem; border-radius: 999px; border: 1px solid var(--line); white-space: nowrap; }
+  .reach-legend .pip { font-size: 0.65rem; }
+  .pip.strong { background: var(--accent-soft); border-color: var(--accent-dim); color: var(--accent); }
+  .pip.ok { background: var(--warn-dim); border-color: transparent; color: var(--warn); }
+  .pip.weak { color: var(--faint); }
+  .pip.na { color: var(--faint); border-style: dashed; }
+  .reach-note { display: block; font-size: 0.84rem; color: var(--muted); line-height: 1.45; margin: 0; }
 </style>

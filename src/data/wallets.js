@@ -10,6 +10,7 @@ export const walletsVerified = '2026-07-15';
 export const wallets = [
   {
     name: 'Coldcard Q',
+    ladderReach: { s: 'strong', p: 'strong', m: 'strong', note: 'Full ladder, all first-class — buy-once, no new hardware as you climb.' },
     vendor: 'Coinkite',
     price: '$249',
     priceNum: 249,
@@ -30,6 +31,7 @@ export const wallets = [
   },
   {
     name: 'Foundation Passport',
+    ladderReach: { s: 'strong', p: 'ok', m: 'strong', note: 'Full ladder; the keypad makes passphrase entry the one chore.' },
     vendor: 'Foundation Devices',
     price: '$199',
     priceNum: 199,
@@ -50,6 +52,7 @@ export const wallets = [
   },
   {
     name: 'Trezor Safe 5',
+    ladderReach: { s: 'strong', p: 'strong', m: 'ok', note: 'Single-sig and passphrase are easy; multisig is only adequate (and it’s multi-coin).' },
     vendor: 'SatoshiLabs',
     price: '$129',
     priceNum: 129,
@@ -70,6 +73,7 @@ export const wallets = [
   },
   {
     name: 'BitBox02 (BTC-only)',
+    ladderReach: { s: 'strong', p: 'ok', m: 'strong', note: 'An excellent multisig component; passphrase on the touch-slider is the fiddly part.' },
     vendor: 'Shift Crypto',
     price: '$137',
     priceNum: 137,
@@ -90,6 +94,7 @@ export const wallets = [
   },
   {
     name: 'Blockstream Jade',
+    ladderReach: { s: 'strong', p: 'ok', m: 'ok', note: 'Covers the ladder cheaply; the buttons make passphrase and multisig fiddlier. Great to start.' },
     vendor: 'Blockstream',
     price: '$79',
     priceNum: 79,
@@ -110,6 +115,7 @@ export const wallets = [
   },
   {
     name: 'Bitkey',
+    ladderReach: { s: 'na', p: 'na', m: 'na', note: 'Its own built-in 2-of-3 — a great first setup, but a DIY passphrase or multisig means different hardware.' },
     vendor: 'Block, Inc.',
     price: '$250',
     priceNum: 250,
@@ -130,6 +136,7 @@ export const wallets = [
   },
   {
     name: 'Ledger Nano family',
+    ladderReach: { s: 'ok', p: 'ok', m: 'ok', note: 'Covers the ladder, but closed firmware and the 2023 Recover episode are the real caveats.' },
     vendor: 'Ledger',
     price: '$79–$399',
     priceNum: 79,
