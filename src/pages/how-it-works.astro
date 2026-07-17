@@ -1,0 +1,113 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base
+  title="How your Bitcoin actually works — keys, words, and signatures · BitcoinKeys.guide"
+  description="An optional, plain-English look under the hood: why your Bitcoin is really a key, what the seed words are, what a 'wallet' actually is, and how signing proves you hold the key without ever revealing it."
+  verified="2026-07-17"
+>
+  <section class="prose">
+    <p class="eyebrow">The big picture · optional</p>
+    <h1>How your Bitcoin <span class="accent">actually works</span></h1>
+    <p class="lead">
+      You don’t need any of this to hold Bitcoin safely — the how-to guides work whether or not you read it.
+      But if you’re the kind of person who likes to know what’s <em>really</em> going on under the hood — what
+      the words are, what a “key” is, how “signing” works — here it is, in plain English.
+    </p>
+    <hr class="lead-sep" />
+
+    <h2>1 · Your Bitcoin is really a key</h2>
+    <p>
+      Your coins don’t sit inside your wallet the way cash sits in a leather one. Every bitcoin lives on a
+      shared public ledger — the blockchain — that everyone in the world can see. What makes a coin
+      <em>yours</em> is that you, and only you, hold the secret <strong>key</strong> that can move it.
+      Hold the key, hold the coins. Lose the key, lose the coins. There’s no bank to call to reset it,
+      because there’s no bank — there’s just the key.
+    </p>
+
+    <h2>2 · The seed words <em>are</em> that key</h2>
+    <p>
+      A key is really just an enormous, utterly random number — hopeless to copy down by hand without a
+      mistake. So your wallet turns it into something human: a list of
+      <strong>12 or 24 ordinary words</strong> (the standard is called
+      <a href="/glossary#bip-39">BIP-39</a>). Those words <em>are</em> your key, in a form you can write on
+      paper or stamp into metal. That’s why this whole guide is obsessed with backing them up safely: the
+      <a href="/glossary#seed-phrase">seed words</a> are the money. Anyone who reads them can take everything;
+      anyone who loses them loses everything.
+    </p>
+
+    <h2>3 · A “wallet” is a configuration of keys</h2>
+    <p>
+      Here’s the part that trips people up: a “wallet” isn’t a physical object, and it isn’t the app on your
+      phone. It’s a <strong>configuration of keys</strong> — how many keys exist, and how many of them it
+      takes to approve a spend. One key on its own is <em>single-sig</em>. Add a secret word and it’s a
+      <em>passphrase</em> wallet. Spread it across several keys where a few must agree, and it’s
+      <em>multisig</em>. The little hardware device is just a safe <strong>place to keep a key</strong> — the
+      wallet is the <em>arrangement</em> of keys itself. That distinction is exactly what
+      <a href="/ladder">the ladder</a> is about.
+    </p>
+
+    <h2>4 · Public keys and private keys</h2>
+    <p>
+      Every key actually comes as a matched pair, and the easiest way to picture them is a mailbox:
+    </p>
+    <ul>
+      <li>
+        The <strong>public key</strong> — your <a href="/glossary#address">address</a> — is the mail slot.
+        You can hand it to anyone and they can drop Bitcoin in. Sharing it can’t hurt you.
+      </li>
+      <li>
+        The <strong>private key</strong> is the only key that opens the box and takes anything out. It never
+        leaves your device. You share the address freely; you guard the private key with your life.
+      </li>
+    </ul>
+    <p>
+      The clever bit: the two are mathematically linked, so the whole network can confirm a payment was
+      approved by the right private key — <strong>without ever seeing it.</strong>
+    </p>
+
+    <h2>5 · Signing — proving it’s you without showing the key</h2>
+    <p>
+      So how do you spend without revealing your key? You <strong>sign</strong>. When you approve a payment,
+      your device uses the private key to produce a one-of-a-kind <strong>signature</strong> for that exact
+      transaction — like a wax seal that only your ring can stamp. Anyone can look at the signature and
+      confirm it could only have come from your key, but no one can work <em>backwards</em> from it to the key
+      itself.
+    </p>
+    <p>
+      That’s why a hardware wallet can sign a payment on a computer riddled with malware and still be safe:
+      the key does its work <em>inside</em> the device and never comes out. You’re not sending your key
+      anywhere — you’re sending <em>proof</em>.
+    </p>
+
+    <div class="callout safe">
+      <span class="label">The whole thing in one sentence</span>
+      <p style="margin:0">
+        Your bitcoin is a <strong>key</strong>; the <strong>words</strong> are a backup of that key; a
+        <strong>wallet</strong> is how your keys are arranged; and <strong>signing</strong> proves you hold
+        the key without ever revealing it. Everything else in this guide is just how to keep that key safe.
+      </p>
+    </div>
+  </section>
+
+  <section class="prose next">
+    <h2>Where to go from here</h2>
+    <p class="cta-row">
+      <a class="btn" href="/ladder">See the wallet configurations →</a>
+      <a class="btn ghost" href="/how-to/back-up-your-seed">Protect your seed words →</a>
+      <a class="btn ghost" href="/glossary">Every term, defined →</a>
+    </p>
+  </section>
+</Base>
+
+<style>
+  .lead-sep { border: 0; border-top: 1px solid var(--line-soft); max-width: 46ch; margin: 1.4rem 0 1.6rem; }
+  .prose :global(ul) { padding-left: 1.3rem; }
+  .prose :global(li) { margin: 0.5rem 0; }
+  .next h2 { margin-top: 2.4rem; }
+  .cta-row { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1rem; }
+  .btn { display: inline-flex; align-items: center; background: var(--accent); color: var(--accent-ink); font-weight: 700;
+    font-family: var(--mono); font-size: 0.92rem; padding: 0.7rem 1.05rem; border-radius: 0.6rem; text-decoration: none; }
+  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+  .btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+</style>
