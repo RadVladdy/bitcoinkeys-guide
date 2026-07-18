@@ -8,11 +8,15 @@
 // 2026-07-17: Trezor Safe line expanded to three cards — Safe 3 ($79, buttons/mono), Safe 5 ($129, touchscreen),
 //   Safe 7 ($249, Oct-2025 flagship: dual secure element incl. the auditable TROPIC01 chip, Bluetooth).
 //   Prices/specs from trezor.io/compare + independent reviews.
-// 2026-07-17: added Coldcard Mk5 ($170, pocket keypad Coldcard, dual SE, MicroSD air-gap) and split Blockstream
-//   Jade into Jade Core ($79, no camera → airgap 'no') + Jade Plus ($149, metal + camera + battery). Now 11 devices.
+// 2026-07-17: added Coldcard Mk5 ($170, pocket keypad Coldcard, dual SE, MicroSD air-gap) and covered Blockstream
+//   Jade. Now 11 devices.
+// 2026-07-18: prices re-verified against vendor stores (the owner). Blockstream lineup corrected — the $79 entry is the
+//   original "Blockstream Jade" (button + screen, no camera → airgap 'no'), NOT the "Jade Core" (that's the $99
+//   touchscreen, also no camera; not carried here). Jade Plus is $169 (was $149). Bitkey $250 and Passport Prime
+//   $349 (Arctic Copper "America 250" limited edition) both confirmed.
 // Rule of the guide: there is no "best" device, only fit-to-purpose.
 
-export const walletsVerified = '2026-07-17';
+export const walletsVerified = '2026-07-18';
 
 // rating scale used in the compare table + chooser badges: 'yes' | 'partial' | 'no'
 export const wallets = [
@@ -152,7 +156,7 @@ export const wallets = [
     name: 'BitBox02 (BTC-only)',
     image: '/devices/bitbox02.webp',
     ladderReach: { s: 'strong', p: 'ok', m: 'strong', note: 'An excellent multisig component; passphrase on the touch-slider is the fiddly part.' },
-    vendor: 'Shift Crypto',
+    vendor: 'BitBox',
     price: '$137',
     priceNum: 137,
     airgap: 'no',       // USB, functionally cold
@@ -171,7 +175,7 @@ export const wallets = [
     },
   },
   {
-    name: 'Blockstream Jade Core',
+    name: 'Blockstream Jade',
     image: '/devices/jade-core.webp',
     ladderReach: { s: 'strong', p: 'ok', m: 'ok', note: 'Covers the ladder cheaply; the joystick makes passphrase and multisig fiddlier. Great to start.' },
     vendor: 'Blockstream',
@@ -185,7 +189,7 @@ export const wallets = [
     reproducible: 'yes',
     recoverability: 'yes',
     useCases: ['first', 'budget'],
-    bestFor: 'Genuinely good on a budget — the $79 entry Blockstream device (plug-and-play, plastic body). Solid single-sig, workable multisig, and Unchained integration.',
+    bestFor: 'Genuinely good on a budget — the original $79 Blockstream device (plug-and-play, plastic body, one button + screen). Solid single-sig, workable multisig, and Unchained integration.',
     watch: 'No dedicated secure element (a "blind oracle" model), and no on-device camera — so it connects by USB or Bluetooth rather than air-gapped QR (the Jade Plus adds a camera + battery for that). Some multisig quirks.',
     notes: {
       reproducible: 'Open-source with documented reproducible builds.',
@@ -195,10 +199,10 @@ export const wallets = [
   {
     name: 'Blockstream Jade Plus',
     image: '/devices/jade-plus.webp',
-    ladderReach: { s: 'strong', p: 'ok', m: 'ok', note: 'Covers the ladder; the joystick makes passphrase and multisig fiddlier, but the camera + battery make it a nicer air-gap unit than the Core.' },
+    ladderReach: { s: 'strong', p: 'ok', m: 'ok', note: 'Covers the ladder; the joystick makes passphrase and multisig fiddlier, but the camera + battery make it a nicer air-gap unit than the standard Jade.' },
     vendor: 'Blockstream',
-    price: '$149',
-    priceNum: 149,
+    price: '$169',
+    priceNum: 169,
     airgap: 'partial',  // on-device camera for QR air-gap, but also USB/Bluetooth
     btcOnly: 'yes',
     openSource: 'yes',
@@ -207,7 +211,7 @@ export const wallets = [
     reproducible: 'yes',
     recoverability: 'yes',
     useCases: ['first', 'multisig'],
-    bestFor: 'The premium Jade — a metal body (six colours), a built-in camera for air-gapped QR signing, and a rechargeable battery, with the same open-source “blind oracle” security as the Core. A nicer-feeling, air-gap-capable device without a big price jump.',
+    bestFor: 'The premium Jade — a metal body (six colours), a built-in camera for air-gapped QR signing, and a rechargeable battery, with the same open-source “blind oracle” security as the standard Jade. A nicer-feeling, air-gap-capable device without a big price jump.',
     watch: 'Like the Core, it uses a "blind oracle" model rather than a dedicated secure element (Blockstream argues there’s nothing physical to steal from it). Bluetooth is present alongside the camera. Some multisig quirks.',
     notes: {
       reproducible: 'Open-source with documented reproducible builds.',
