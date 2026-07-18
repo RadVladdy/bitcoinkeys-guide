@@ -7,18 +7,29 @@ const { name, caption } = Astro.props;
 ---
 <figure class="diagram" data-diagram={name}>
   {name === 'keys-mailbox' && (
-    <svg viewBox="0 0 460 230" role="img" aria-label="Public and private keys, like a mailbox">
-      <rect x="150" y="70" width="160" height="120" rx="10" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="2.5"/>
-      <rect x="175" y="70" width="110" height="16" rx="3" fill="var(--bg)" stroke="var(--accent)" stroke-width="1.5"/>
-      <circle cx="230" cy="140" r="16" fill="none" stroke="var(--accent)" stroke-width="2"/>
-      <rect x="227" y="140" width="6" height="16" fill="var(--accent)"/>
-      <path d="M40 78 L142 78" stroke="var(--text)" stroke-width="2"/>
-      <path d="M148 78 l-9 -6 l0 12 z" fill="var(--text)"/>
-      <text x="40" y="60" fill="var(--muted)" font-family="var(--mono)" font-size="12">Anyone can drop coins in</text>
-      <text x="40" y="100" fill="var(--faint)" font-family="var(--mono)" font-size="11">your public address →</text>
-      <path d="M420 150 L318 150" stroke="var(--accent)" stroke-width="2"/>
-      <circle cx="405" cy="150" r="10" fill="none" stroke="var(--accent)" stroke-width="2"/><rect x="403" y="150" width="4" height="12" fill="var(--accent)"/>
-      <text x="300" y="215" text-anchor="middle" fill="var(--muted)" font-family="var(--mono)" font-size="12">Only your private key opens it</text>
+    <svg viewBox="0 0 460 240" role="img" aria-label="Public key is a mail slot anyone can use; only the private key opens the box">
+      <!-- the lockbox -->
+      <rect x="140" y="74" width="150" height="138" rx="12" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="2.5"/>
+      <!-- mail slot = public address -->
+      <rect x="160" y="66" width="110" height="15" rx="4" fill="var(--bg)" stroke="var(--accent)" stroke-width="2"/>
+      <text x="215" y="104" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="10">↑ your public address</text>
+      <!-- keyhole -->
+      <circle cx="215" cy="140" r="12" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
+      <path d="M210 148 L220 148 L217 166 L213 166 Z" fill="var(--accent)"/>
+      <!-- anyone can drop coins in -->
+      <text x="215" y="28" text-anchor="middle" fill="var(--muted)" font-family="var(--mono)" font-size="12">Anyone can drop coins in</text>
+      <path d="M215 36 L215 58" stroke="var(--text)" stroke-width="2"/><path d="M215 63 l-6 -9 l12 0 z" fill="var(--text)"/>
+      <!-- private key reaching into the lock -->
+      <text x="392" y="108" text-anchor="middle" fill="var(--muted)" font-family="var(--mono)" font-size="12">your private key</text>
+      <path d="M318 140 L230 140" stroke="var(--accent)" stroke-width="2" stroke-dasharray="4 3" fill="none"/>
+      <g fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="404" cy="140" r="14"/>
+        <circle cx="404" cy="140" r="5" fill="var(--surface)" stroke="none"/>
+        <path d="M390 140 L322 140"/>
+        <path d="M334 140 L334 151"/>
+        <path d="M324 140 L324 149"/>
+      </g>
+      <text x="366" y="190" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="10.5">only this opens it</text>
     </svg>
   )}
 
@@ -58,24 +69,25 @@ const { name, caption } = Astro.props;
   )}
 
   {name === 'multisig' && (
-    <svg viewBox="0 0 460 300" role="img" aria-label="Two of three multisig">
+    <svg viewBox="0 0 460 300" role="img" aria-label="Two of three multisig — any two keys approve a spend">
       <circle cx="70" cy="55" r="30" fill="none" stroke="var(--accent)" stroke-width="2"/>
-      <text x="70" y="63" text-anchor="middle" font-size="24">🔑</text>
-      <text x="70" y="108" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="12">Your key</text>
+      <text x="70" y="64" text-anchor="middle" font-size="24">🔑</text>
+      <text x="70" y="108" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="12">Key 1</text>
       <circle cx="230" cy="55" r="30" fill="none" stroke="var(--accent)" stroke-width="2"/>
-      <text x="230" y="63" text-anchor="middle" font-size="24">🔑</text>
-      <text x="230" y="108" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="12">Bank box</text>
+      <text x="230" y="64" text-anchor="middle" font-size="24">🔑</text>
+      <text x="230" y="108" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="12">Key 2</text>
       <circle cx="390" cy="55" r="30" fill="none" stroke="var(--line)" stroke-width="2" stroke-dasharray="4 4"/>
-      <text x="390" y="63" text-anchor="middle" font-size="24" opacity=".4">🔑</text>
-      <text x="390" y="108" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="12">Family</text>
-      <path d="M70 118 L70 150 Q70 165 120 165 L210 165" fill="none" stroke="var(--accent)" stroke-width="2"/>
-      <path d="M230 118 L230 165" fill="none" stroke="var(--accent)" stroke-width="2"/>
-      <path d="M390 118 L390 150 Q390 165 340 165 L250 165" fill="none" stroke="var(--line)" stroke-width="2" stroke-dasharray="4 4"/>
-      <rect x="150" y="150" width="160" height="34" rx="17" fill="var(--accent-soft)" stroke="var(--accent)"/>
-      <text x="230" y="172" text-anchor="middle" fill="var(--accent)" font-family="var(--mono)" font-size="12" font-weight="700">ANY 2 OF 3 SIGN</text>
-      <path d="M230 184 L230 218" stroke="var(--text)" stroke-width="2"/><path d="M230 224 l-6 -9 l12 0 z" fill="var(--text)"/>
-      <rect x="130" y="230" width="200" height="44" rx="10" fill="none" stroke="var(--safe)" stroke-width="2"/>
-      <text x="230" y="257" text-anchor="middle" fill="var(--safe)" font-size="14" font-weight="700">✓ Payment approved</text>
+      <text x="390" y="64" text-anchor="middle" font-size="24" opacity=".4">🔑</text>
+      <text x="390" y="108" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="12">Key 3</text>
+      <!-- side keys plug into the left/right sides of the pill; middle key into the top -->
+      <path d="M70 120 C70 180 92 180 150 180" fill="none" stroke="var(--accent)" stroke-width="2"/>
+      <path d="M230 120 L230 162" fill="none" stroke="var(--accent)" stroke-width="2"/>
+      <path d="M390 120 C390 180 368 180 310 180" fill="none" stroke="var(--line)" stroke-width="2" stroke-dasharray="4 4"/>
+      <rect x="150" y="162" width="160" height="36" rx="18" fill="var(--accent-soft)" stroke="var(--accent)"/>
+      <text x="230" y="185" text-anchor="middle" fill="var(--accent)" font-family="var(--mono)" font-size="12" font-weight="700">ANY 2 OF 3 SIGN</text>
+      <path d="M230 198 L230 226" stroke="var(--text)" stroke-width="2"/><path d="M230 232 l-6 -9 l12 0 z" fill="var(--text)"/>
+      <rect x="130" y="240" width="200" height="44" rx="10" fill="none" stroke="var(--safe)" stroke-width="2"/>
+      <text x="230" y="267" text-anchor="middle" fill="var(--safe)" font-size="14" font-weight="700">✓ Payment approved</text>
     </svg>
   )}
 
