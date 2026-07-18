@@ -16,3 +16,6 @@ node_modules/
 *.png
 # ...but site assets in public/ must be tracked
 !public/**/*.png
+
+# local device-art masters (regenerate assets; box is backed up nightly)
+brand-source/device-art-sources/

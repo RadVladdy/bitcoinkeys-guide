@@ -18,6 +18,7 @@ export const walletsVerified = '2026-07-17';
 export const wallets = [
   {
     name: 'Coldcard Q',
+    image: '/devices/coldcard-q.webp',
     ladderReach: { s: 'strong', p: 'strong', m: 'strong', note: 'Full ladder, all first-class — buy-once, no new hardware as you climb.' },
     vendor: 'Coinkite',
     price: '$249',
@@ -39,6 +40,7 @@ export const wallets = [
   },
   {
     name: 'Coldcard Mk5',
+    image: '/devices/coldcard-mk5.webp',
     ladderReach: { s: 'strong', p: 'ok', m: 'strong', note: 'Full ladder; the numeric keypad makes passphrase entry more of a chore than the Q, but single-sig and multisig sign well.' },
     vendor: 'Coinkite',
     price: '$170',
@@ -60,6 +62,7 @@ export const wallets = [
   },
   {
     name: 'Foundation Passport Prime',
+    image: '/devices/passport-prime.webp',
     ladderReach: { s: 'strong', p: 'strong', m: 'strong', note: 'Full ladder; a built-in keyboard makes passphrase entry easy, and it signs multisig up to 15 keys.' },
     vendor: 'Foundation Devices',
     price: '$349',
@@ -81,6 +84,7 @@ export const wallets = [
   },
   {
     name: 'Trezor Safe 3',
+    image: '/devices/trezor-safe-3.webp',
     ladderReach: { s: 'strong', p: 'ok', m: 'ok', note: 'Two-button entry makes a passphrase a chore; multisig is only adequate. A fine hold-and-forget starter.' },
     vendor: 'SatoshiLabs',
     price: '$79',
@@ -102,6 +106,7 @@ export const wallets = [
   },
   {
     name: 'Trezor Safe 5',
+    image: '/devices/trezor-safe-5.webp',
     ladderReach: { s: 'strong', p: 'strong', m: 'ok', note: 'Single-sig and passphrase are easy on the touchscreen; multisig is only adequate (and it’s multi-coin).' },
     vendor: 'SatoshiLabs',
     price: '$129',
@@ -123,6 +128,7 @@ export const wallets = [
   },
   {
     name: 'Trezor Safe 7',
+    image: '/devices/trezor-safe-7.webp',
     ladderReach: { s: 'strong', p: 'strong', m: 'ok', note: 'The big touchscreen makes single-sig and passphrase easy; multisig is only adequate (and it’s multi-coin).' },
     vendor: 'SatoshiLabs',
     price: '$249',
@@ -144,6 +150,7 @@ export const wallets = [
   },
   {
     name: 'BitBox02 (BTC-only)',
+    image: '/devices/bitbox02.webp',
     ladderReach: { s: 'strong', p: 'ok', m: 'strong', note: 'An excellent multisig component; passphrase on the touch-slider is the fiddly part.' },
     vendor: 'Shift Crypto',
     price: '$137',
@@ -165,6 +172,7 @@ export const wallets = [
   },
   {
     name: 'Blockstream Jade Core',
+    image: '/devices/jade-core.webp',
     ladderReach: { s: 'strong', p: 'ok', m: 'ok', note: 'Covers the ladder cheaply; the joystick makes passphrase and multisig fiddlier. Great to start.' },
     vendor: 'Blockstream',
     price: '$79',
@@ -186,6 +194,7 @@ export const wallets = [
   },
   {
     name: 'Blockstream Jade Plus',
+    image: '/devices/jade-plus.webp',
     ladderReach: { s: 'strong', p: 'ok', m: 'ok', note: 'Covers the ladder; the joystick makes passphrase and multisig fiddlier, but the camera + battery make it a nicer air-gap unit than the Core.' },
     vendor: 'Blockstream',
     price: '$149',
@@ -207,6 +216,7 @@ export const wallets = [
   },
   {
     name: 'Bitkey',
+    image: '/devices/bitkey.webp',
     ladderReach: { s: 'na', p: 'na', m: 'na', note: 'Its own built-in 2-of-3 — a great first setup, but a DIY passphrase or multisig means different hardware.' },
     vendor: 'Block, Inc.',
     price: '$250',
@@ -228,6 +238,7 @@ export const wallets = [
   },
   {
     name: 'Ledger Nano family',
+    image: '/devices/ledger.webp',
     ladderReach: { s: 'ok', p: 'ok', m: 'ok', note: 'Covers the ladder, but closed firmware and the 2023 Recover episode are the real caveats.' },
     vendor: 'Ledger',
     price: '$79–$399',
