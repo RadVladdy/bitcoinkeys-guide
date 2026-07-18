@@ -18,8 +18,15 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
     <div class="callout">
       <span class="label">The right mental model</span>
       <p>The device is <strong>not</strong> your wallet — your <a href="/glossary#seed-phrase">seed phrase</a> is. (That’s the list of 12–24 words the device shows you at setup; written down, those words <em>are</em> your Bitcoin.) The hardware wallet is just a safe little screen for approving payments. Lose or break it and you restore from your written words onto a new one. So don’t agonise over the device; get the backup right.</p>
+      <p><a href="/how-it-works">How Bitcoin keys and wallets work →</a></p>
     </div>
   </section>
+
+  <!-- ── View tabs: filter/browse ⇄ comparison table (JS progressive enhancement) ── -->
+  <div class="wtabs" id="wtabs" role="tablist" aria-label="Device views" hidden>
+    <button class="wtab active" id="tab-browse" role="tab" aria-selected="true" aria-controls="chooser" type="button">Filter &amp; browse</button>
+    <button class="wtab" id="tab-table" role="tab" aria-selected="false" aria-controls="cmp-table" type="button">Comparison table</button>
+  </div>
 
   <!-- ── Interactive chooser ──────────────────────────────────────────── -->
   <section id="chooser" class="chooser">
@@ -125,7 +132,7 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
   </section>
 
   <!-- ── Full comparison table ────────────────────────────────────────── -->
-  <section>
+  <section id="cmp-table">
     <h2 class="prose">The full comparison</h2>
     <div class="scroll compare">
       <table>
@@ -151,7 +158,7 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
         </tbody>
       </table>
     </div>
-    <p class="legend mono"><span class="r-yes">✓</span> yes · <span class="r-partial">~</span> partial / caveats · <span class="r-no">✗</span> no — <span class="sub">column meanings are in the “plain-English meanings” box above</span></p>
+    <p class="legend mono"><span class="r-yes">✓</span> yes · <span class="r-partial">~</span> partial / caveats · <span class="r-no">✗</span> no — <span class="sub">column meanings are under “plain-English meanings” on the Filter &amp; browse tab</span></p>
   </section>
 
   <section class="prose">
@@ -246,6 +253,27 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
   });
 
   render();
+
+  // View tabs: toggle filter/browse ⇄ comparison table (progressive enhancement).
+  const wtabs = document.getElementById('wtabs');
+  const tabBrowse = document.getElementById('tab-browse');
+  const tabTable = document.getElementById('tab-table');
+  const panelBrowse = document.getElementById('chooser');
+  const panelTable = document.getElementById('cmp-table');
+  if (wtabs && panelBrowse && panelTable) {
+    const show = (browse) => {
+      panelBrowse.hidden = !browse;
+      panelTable.hidden = browse;
+      tabBrowse.classList.toggle('active', browse);
+      tabTable.classList.toggle('active', !browse);
+      tabBrowse.setAttribute('aria-selected', String(browse));
+      tabTable.setAttribute('aria-selected', String(!browse));
+    };
+    wtabs.hidden = false;
+    tabBrowse.addEventListener('click', () => show(true));
+    tabTable.addEventListener('click', () => show(false));
+    show(true);
+  }
 </script>
 
 <style>
@@ -277,6 +305,13 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
   .ch-reset { background: none; border: none; color: var(--muted); font-size: 0.85rem; cursor: pointer; padding: 0; text-decoration: underline; }
   .ch-reset:hover { color: var(--accent); }
   .ch-ns { color: var(--muted); }
+
+  /* View tabs (filter/browse ⇄ comparison table) */
+  .wtabs { display: inline-flex; gap: 0.25rem; margin: 0 0 1.6rem; padding: 0.25rem; border: 1px solid var(--line); border-radius: 0.6rem; background: var(--surface); }
+  .wtab { font-family: var(--sans); font-size: 0.92rem; color: var(--muted); cursor: pointer; background: none; border: 0; border-radius: 0.45rem; padding: 0.5rem 1.05rem; transition: background 0.15s, color 0.15s; }
+  .wtab:hover { color: var(--accent); }
+  .wtab.active { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+  #chooser[hidden], #cmp-table[hidden] { display: none; }
 </style>
 
 <style>

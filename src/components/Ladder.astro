@@ -44,10 +44,6 @@ const { active, linked = true } = Astro.props;
   .for { font-size: 0.78rem; color: var(--faint); text-align: right; max-width: 12rem; }
   .badge { font-family: var(--mono); font-size: 0.6rem; letter-spacing: 0.1em; text-transform: uppercase;
     color: var(--faint); border: 1px solid var(--line); border-radius: 999px; padding: 0.1rem 0.45rem; white-space: nowrap; }
-  /* stagger the rungs so it reads as an ascending ladder on wider screens */
-  @media (min-width: 720px) {
-    .rung { margin-right: calc((5 - var(--i)) * 1.5rem); }
-  }
   @media (max-width: 719px) {
     .rung-inner { grid-template-columns: 2rem 1fr auto; }
     .for { display: none; }
