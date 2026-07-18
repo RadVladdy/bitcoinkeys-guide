@@ -71,10 +71,56 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
       <button class="ch-reset" id="ch-reset" type="button" hidden>Reset filters</button>
     </div>
 
-    <div class="ch-results" id="ch-results" aria-live="polite"></div>
+    <p class="reach-legend">
+      <strong>Ladder reach</strong> — how far up <a href="/ladder">the ladder</a> a device carries you before you’d buy new hardware:
+      <span class="pip strong">handles it well</span>
+      <span class="pip ok">works, but fiddly</span>
+      <span class="pip na">n/a — its own model</span>
+    </p>
+
+    <div class="cards" aria-live="polite">
+      {wallets.map((w, i) => (
+        <article class="wcard" data-idx={i}>
+          <div class="wc-top">
+            <div class="wc-main">
+              <header>
+                <div class="wc-title"><h3>{w.name}</h3><span class="vendor mono">{w.vendor}</span></div>
+                <span class="price mono num">{w.price}</span>
+              </header>
+              <p class="best"><strong>Good fit:</strong> {w.bestFor}</p>
+            </div>
+            {w.image && <div class="wc-aside"><img class="dev-img" src={w.image} alt={w.name} loading="lazy" /></div>}
+          </div>
+          <div class="tbadges">
+            {badgeDefs.map((b) => {
+              const r = w[b.key];
+              const cls = r === 'yes' ? 'y' : r === 'partial' ? 'p' : 'n';
+              const mark = r === 'yes' ? '✓' : r === 'partial' ? '~' : '✗';
+              const tip = (w.notes && w.notes[b.key]) || b.tip;
+              return <span class:list={['tbadge', cls]} title={tip}><span class="tbm">{mark}</span> {b.label}</span>;
+            })}
+          </div>
+          <p class="watch"><strong>Watch out:</strong> {w.watch}</p>
+          {w.ladderReach && (
+            <div class="reach">
+              <span class="reach-pips">
+                <span class:list={['pip', w.ladderReach.s]}>Single-sig</span>
+                <span class:list={['pip', w.ladderReach.p]}>Passphrase</span>
+                <span class:list={['pip', w.ladderReach.m]}>Multisig</span>
+              </span>
+              <span class="reach-note">{w.ladderReach.note}</span>
+            </div>
+          )}
+        </article>
+      ))}
+      <div class="cards-empty" id="ch-empty" hidden>
+        <p><strong>No device matches every must-have.</strong></p>
+        <p>Loosen a filter — in self-custody the best device is the one you’ll actually use, not the one that ticks every box. A “partial” badge still counts as a pass here; only a hard “no” removes a device.</p>
+      </div>
+    </div>
 
     <noscript>
-      <p class="ch-ns">The filter tool needs JavaScript. The full comparison table below works without it.</p>
+      <p class="ch-ns">The filters need JavaScript — without it, every device is shown above and the full comparison table below still works.</p>
     </noscript>
   </section>
 
@@ -108,39 +154,6 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
     <p class="legend mono"><span class="r-yes">✓</span> yes · <span class="r-partial">~</span> partial / caveats · <span class="r-no">✗</span> no — <span class="sub">column meanings are in the “plain-English meanings” box above</span></p>
   </section>
 
-  <section>
-    <h2 class="prose">The devices, in one honest line each</h2>
-    <p class="reach-legend prose">
-      <strong>Ladder reach</strong> — how far up <a href="/ladder">the ladder</a> a device carries you before you’d buy new hardware:
-      <span class="pip strong">handles it well</span>
-      <span class="pip ok">works, but fiddly</span>
-      <span class="pip na">n/a — its own model</span>
-    </p>
-    <div class="cards">
-      {wallets.map((w) => (
-        <article class="wcard">
-          {w.image && <img class="dev-img" src={w.image} alt={`${w.name}`} loading="lazy" />}
-          <header>
-            <h3>{w.name}</h3>
-            <span class="price mono num">{w.price}</span>
-          </header>
-          <p class="best"><strong>Good fit:</strong> {w.bestFor}</p>
-          <p class="watch"><strong>Watch out:</strong> {w.watch}</p>
-          {w.ladderReach && (
-            <div class="reach">
-              <span class="reach-pips">
-                <span class:list={['pip', w.ladderReach.s]}>Single-sig</span>
-                <span class:list={['pip', w.ladderReach.p]}>Passphrase</span>
-                <span class:list={['pip', w.ladderReach.m]}>Multisig</span>
-              </span>
-              <span class="reach-note">{w.ladderReach.note}</span>
-            </div>
-          )}
-        </article>
-      ))}
-    </div>
-  </section>
-
   <section class="prose">
     <div class="callout safe">
       <span class="label">Advanced: if you’re running multisig, buy different brands</span>
@@ -159,15 +172,14 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
 </Base>
 
 <script>
-  import { wallets, badgeDefs, budgetBuckets } from '../data/wallets.js';
+  import { wallets, budgetBuckets } from '../data/wallets.js';
 
   const state = { filters: new Set(), chips: new Set(), budget: 'any' };
 
-  const elResults = document.getElementById('ch-results');
   const elCount = document.getElementById('ch-count');
   const elReset = document.getElementById('ch-reset');
-
-  function esc(s) { const d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
+  const elEmpty = document.getElementById('ch-empty');
+  const tiles = Array.from(document.querySelectorAll('.cards .wcard'));
 
   const budgetMax = (key) => (budgetBuckets.find((b) => b.key === key) || { max: Infinity }).max;
 
@@ -184,45 +196,22 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
     return true;
   }
 
-  function badgeHtml(w) {
-    return badgeDefs.map((b) => {
-      const rating = w[b.key];                       // 'yes' | 'partial' | 'no'
-      const cls = rating === 'yes' ? 'y' : rating === 'partial' ? 'p' : 'n';
-      const mark = rating === 'yes' ? '✓' : rating === 'partial' ? '~' : '✗';
-      const tip = (w.notes && w.notes[b.key]) || b.tip;
-      return `<span class="ch-badge ${cls}" title="${esc(tip)}"><span class="ch-bm">${mark}</span> ${esc(b.label)}</span>`;
-    }).join('');
-  }
-
-  function cardHtml(w) {
-    return `<article class="ch-card">
-      <header class="ch-card-head">
-        <div><h3>${esc(w.name)}</h3><span class="ch-vendor mono">${esc(w.vendor)}</span></div>
-        <span class="ch-price mono">${esc(w.price)}</span>
-      </header>
-      <p class="ch-best">${esc(w.bestFor)}</p>
-      <div class="ch-badges">${badgeHtml(w)}</div>
-      <p class="ch-watch"><strong>Watch:</strong> ${esc(w.watch)}</p>
-    </article>`;
-  }
-
+  // Filter the single tile set in place — show/hide, never re-render.
   function render() {
-    const hits = wallets.filter(matches);
+    let hits = 0;
+    wallets.forEach((w, i) => {
+      const ok = matches(w);
+      if (tiles[i]) tiles[i].hidden = !ok;
+      if (ok) hits++;
+    });
     const anyActive = state.filters.size || state.chips.size || state.budget !== 'any';
     elReset.hidden = !anyActive;
-
-    if (!hits.length) {
-      elCount.textContent = `0 of ${wallets.length} devices match`;
-      elResults.innerHTML = `<div class="ch-empty">
-        <p><strong>No device matches every must-have.</strong></p>
-        <p>Loosen a filter — in self-custody the best device is the one you’ll actually use, not the one that ticks every box. A “partial” badge still counts as a pass here; only a hard “no” removes a device.</p>
-      </div>`;
-      return;
-    }
-    elCount.textContent = anyActive
-      ? `${hits.length} of ${wallets.length} devices match`
-      : `All ${wallets.length} devices — filter to narrow`;
-    elResults.innerHTML = hits.map(cardHtml).join('');
+    elEmpty.hidden = hits > 0;
+    elCount.textContent = hits === 0
+      ? `0 of ${wallets.length} devices match`
+      : anyActive
+        ? `${hits} of ${wallets.length} devices match`
+        : `All ${wallets.length} devices — filter to narrow`;
   }
 
   // Must-have toggles + use-case chips: multi-select toggle.
@@ -290,32 +279,6 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
   .ch-ns { color: var(--muted); }
 </style>
 
-<!-- Result cards are injected by client JS, so they never receive Astro's scoped
-     attribute — these must be global, namespaced under #ch-results to not leak. -->
-<style is:global>
-  #ch-results { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 0.6rem; }
-  @media (max-width: 720px) { #ch-results { grid-template-columns: 1fr; } }
-  #ch-results .ch-card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface-2); padding: 1.1rem 1.2rem; box-shadow: var(--shadow); }
-  #ch-results .ch-card-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.6rem; margin-bottom: 0.5rem; }
-  #ch-results .ch-card-head h3 { margin: 0; font-size: 1.05rem; }
-  #ch-results .ch-vendor { display: block; font-size: 0.72rem; color: var(--faint); margin-top: 0.1rem; }
-  #ch-results .ch-price { color: var(--accent); font-size: 0.9rem; white-space: nowrap; }
-  #ch-results .ch-best { margin: 0 0 0.8rem; font-size: 0.9rem; color: var(--muted); }
-  #ch-results .ch-badges { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.8rem; }
-  #ch-results .ch-badge { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.74rem; font-family: var(--mono);
-    border: 1px solid var(--line); border-radius: 0.4rem; padding: 0.2rem 0.5rem; cursor: help; }
-  #ch-results .ch-badge .ch-bm { font-weight: 700; }
-  #ch-results .ch-badge.y { color: var(--safe); border-color: color-mix(in srgb, var(--safe) 40%, var(--line)); background: var(--safe-dim); }
-  #ch-results .ch-badge.p { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 40%, var(--line)); background: var(--warn-dim); }
-  #ch-results .ch-badge.n { color: var(--faint); border-color: var(--line); background: transparent; text-decoration: line-through; text-decoration-color: var(--danger); }
-  #ch-results .ch-watch { margin: 0; font-size: 0.82rem; color: var(--faint); }
-  #ch-results .ch-watch strong { color: var(--warn); }
-  #ch-results .ch-empty { grid-column: 1 / -1; border: 1px dashed var(--line); border-radius: var(--radius); padding: 1.6rem; text-align: center; }
-  #ch-results .ch-empty p { margin: 0 0 0.6rem; color: var(--muted); }
-  #ch-results .ch-empty p:last-child { margin-bottom: 0; }
-  #ch-results .ch-empty strong { color: var(--text); }
-</style>
-
 <style>
   .compare table { min-width: 44rem; }
   .ctr { text-align: center; }
@@ -335,7 +298,11 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
   .cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 1.4rem; }
   @media (max-width: 720px) { .cards { grid-template-columns: 1fr; } }
   .wcard { border: 1px solid var(--line); border-radius: var(--radius); padding: 1.2rem 1.3rem; background: var(--surface); }
-  .wcard .dev-img { display: block; width: auto; max-width: 100%; height: 130px; object-fit: contain; margin: 0 auto 0.9rem; }
+  .wc-top { display: flex; gap: 1.1rem; align-items: flex-start; margin-bottom: 0.85rem; }
+  .wc-main { flex: 1 1 auto; min-width: 0; }
+  .wc-main .best { margin-bottom: 0; }
+  .wc-aside { flex: 0 0 auto; width: 108px; }
+  .wcard .dev-img { display: block; width: 100%; height: 140px; object-fit: contain; }
   /* Device art is black line-art on transparent: keep black on the light ground,
      flip to white on the dark ground so the strokes read in both themes. */
   .wcard .dev-img { filter: invert(1); }                              /* default :root = dark ground */
@@ -348,6 +315,23 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
   .wcard p { margin: 0 0 0.5rem; font-size: 0.92rem; color: var(--muted); }
   .wcard .best strong { color: var(--safe); }
   .wcard .watch strong { color: var(--warn); }
+  .wcard[hidden] { display: none; }
+  .wcard .wc-title h3 { margin: 0; font-size: 1.05rem; }
+  .wcard .wc-title .vendor { margin-top: 0.15rem; }
+
+  /* Trust badges — the ✓/~/✗ facts that the filter above acts on. */
+  .tbadges { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0 0 0.75rem; }
+  .tbadge { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.72rem; font-family: var(--mono);
+    border: 1px solid var(--line); border-radius: 0.4rem; padding: 0.18rem 0.5rem; cursor: help; }
+  .tbadge .tbm { font-weight: 700; }
+  .tbadge.y { color: var(--safe); border-color: color-mix(in srgb, var(--safe) 40%, var(--line)); background: var(--safe-dim); }
+  .tbadge.p { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 40%, var(--line)); background: var(--warn-dim); }
+  .tbadge.n { color: var(--faint); border-color: var(--line); background: transparent; text-decoration: line-through; text-decoration-color: var(--danger); }
+
+  .cards-empty { grid-column: 1 / -1; border: 1px dashed var(--line); border-radius: var(--radius); padding: 1.6rem; text-align: center; }
+  .cards-empty p { margin: 0 0 0.6rem; color: var(--muted); }
+  .cards-empty p:last-child { margin-bottom: 0; }
+  .cards-empty strong { color: var(--text); }
 
   .reach-legend { font-size: 0.85rem; color: var(--muted); display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 0.4rem 0 0; }
   .reach { margin-top: 0.85rem; padding-top: 0.75rem; border-top: 1px solid var(--line-soft); }
