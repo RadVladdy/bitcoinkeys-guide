@@ -86,10 +86,10 @@ const total = checklistCount;
   items.forEach((li) => { if (saved[li.getAttribute('data-id')]) apply(li, true); });
   refresh();
 
+  // Whole row is the tap target (≥44px) — not just the small box.
   items.forEach((li) => {
-    const box = li.querySelector('.box');
-    if (!box) return;
-    box.addEventListener('click', () => {
+    li.addEventListener('click', (e) => {
+      if (e.target.closest('a')) return;   // let inline links work
       apply(li, !li.classList.contains('done'));
       refresh();
       if (elStatus && !elStatus.hidden) elStatus.hidden = true;
@@ -117,8 +117,9 @@ const total = checklistCount;
   .grouphead .sub { margin: 0; max-width: 60ch; }
 
   .clist { list-style: none; margin: 1.2rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.7rem; }
-  .citem { display: grid; grid-template-columns: 1.6rem 1fr; gap: 0.9rem; align-items: start;
+  .citem { display: grid; grid-template-columns: 1.6rem 1fr; gap: 0.9rem; align-items: start; cursor: pointer;
     background: var(--surface); border: 1px solid var(--line); border-radius: 0.7rem; padding: 1rem 1.2rem; transition: border-color 0.15s, background 0.15s; }
+  .citem:hover { border-color: color-mix(in srgb, var(--accent) 40%, var(--line)); }
   .citem.done { border-color: color-mix(in srgb, var(--safe) 45%, var(--line)); background: color-mix(in srgb, var(--safe) 7%, var(--surface)); }
   .box { width: 1.5rem; height: 1.5rem; border: 2px solid var(--accent); border-radius: 6px; margin-top: 0.1rem;
     background: var(--raise); cursor: pointer; display: inline-grid; place-items: center; color: var(--accent-ink); padding: 0; transition: background 0.15s; }

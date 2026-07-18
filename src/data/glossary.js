@@ -15,7 +15,7 @@ export const glossary = [
   },
   {
     "term": "BIP-39",
-    "def": "The widely used standard that turns your secret key into a list of 12 or 24 ordinary words (your <em>seed phrase</em>). Because most wallets follow it, you can restore your Bitcoin on a different brand of wallet if yours breaks."
+    "def": "The widely used standard that encodes your wallet's master secret as a list of 12 or 24 ordinary words (your <em>seed phrase</em>) — the same secret, written so a human can copy it. Because most wallets follow it, you can restore your Bitcoin on a different brand of wallet if yours breaks."
   },
   {
     "term": "BIP-85",

@@ -134,6 +134,7 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
   <!-- ── Full comparison table ────────────────────────────────────────── -->
   <section id="cmp-table">
     <h2 class="prose">The full comparison</h2>
+    <p class="scroll-hint">Swipe the table sideways to see every column →</p>
     <div class="scroll compare">
       <table>
         <thead>
@@ -316,6 +317,10 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
 
 <style>
   .compare table { min-width: 44rem; }
+  .scroll-hint { display: none; }
+  @media (max-width: 760px) {
+    .scroll-hint { display: block; font-family: var(--mono); font-size: 0.76rem; color: var(--muted); margin: 0 0 0.45rem; }
+  }
   .ctr { text-align: center; }
   .dev { min-width: 11rem; }
   .dname { display: block; font-weight: 650; }
