@@ -1,15 +1,7 @@
 ---
-const links = [
-  { href: '/start', label: 'Start here' },
-  { href: '/ladder', label: 'The ladder' },
-  { href: '/how-to', label: 'How-to' },
-  { href: '/wallets', label: 'Wallets' },
-  { href: '/checklist', label: 'Checklist' },
-  { href: '/glossary', label: 'Glossary' },
-  { href: '/my-plan', label: 'My plan' },
-  { href: '/about', label: 'About' },
-];
+import { primaryNav, navGroups } from '../data/nav.js';
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+const isActive = (href) => path === href || path.startsWith(href + '/');
 ---
 <header class="nav">
   <div class="wrap nav-inner">
@@ -18,9 +10,9 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
       <img class="mark mark-dark" src="/brand/mark-dark.png?v=2" alt="" aria-hidden="true" />
       <span>BitcoinKeys<span class="accent-text">.guide</span></span>
     </a>
-    <nav class="links" id="primary-nav" aria-label="Primary">
-      {links.map((l) => (
-        <a href={l.href} class:list={['link', { active: path === l.href || path.startsWith(l.href + '/') }]}>{l.label}</a>
+    <nav class="links" aria-label="Primary">
+      {primaryNav.map((l) => (
+        <a href={l.href} class:list={['link', { active: isActive(l.href) }]}>{l.label}</a>
       ))}
     </nav>
     <div class="nav-right">
@@ -28,12 +20,23 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
         <svg class="sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>
         <svg class="moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
       </button>
-      <button id="menu-btn" class="menu-btn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="primary-nav">
+      <button id="menu-btn" class="menu-btn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="mobile-menu">
         <svg class="i-open" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
         <svg class="i-close" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
       </button>
     </div>
   </div>
+  <!-- Mobile menu = the full grouped site map (the hamburger is the primary nav on phones) -->
+  <nav class="mobile-menu" id="mobile-menu" aria-label="Site menu">
+    {navGroups.map((g) => (
+      <div class="mm-group">
+        <p class="mm-title">{g.title}</p>
+        {g.links.map((l) => (
+          <a href={l.href} class:list={['mm-link', { active: isActive(l.href) }]}>{l.label}</a>
+        ))}
+      </div>
+    ))}
+  </nav>
 </header>
 
 <script is:inline>
@@ -49,16 +52,14 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
       });
     }
     var menuBtn = document.getElementById('menu-btn');
-    var linksNav = document.getElementById('primary-nav');
-    if (menuBtn && linksNav) {
+    var menu = document.getElementById('mobile-menu');
+    if (menuBtn && menu) {
       var setOpen = function (open) {
-        linksNav.classList.toggle('open', open);
+        menu.classList.toggle('open', open);
         menuBtn.setAttribute('aria-expanded', String(open));
       };
-      menuBtn.addEventListener('click', function () {
-        setOpen(!linksNav.classList.contains('open'));
-      });
-      linksNav.addEventListener('click', function (e) { if (e.target.closest('a')) setOpen(false); });
+      menuBtn.addEventListener('click', function () { setOpen(!menu.classList.contains('open')); });
+      menu.addEventListener('click', function (e) { if (e.target.closest('a')) setOpen(false); });
       document.addEventListener('keydown', function (e) { if (e.key === 'Escape') setOpen(false); });
     }
   })();
@@ -70,9 +71,7 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
   .nav-inner { position: relative; display: flex; align-items: center; gap: 1rem; height: 3.6rem; }
   .brand { display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 750; letter-spacing: -0.02em;
     color: var(--text); text-decoration: none; font-size: 1.02rem; }
-  .brand svg { flex: 0 0 auto; }
   .brand .mark { flex: 0 0 auto; height: 26px; width: auto; display: block; }
-  /* dark is the default theme → show white-keyline mark */
   .brand .mark-light { display: none; }
   @media (prefers-color-scheme: light) { .brand .mark-light { display: block; } .brand .mark-dark { display: none; } }
   :root[data-theme="dark"] .brand .mark-light { display: none; }
@@ -95,7 +94,6 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
   :root[data-theme="light"] .toggle .moon { display: none; }
   @media (prefers-color-scheme: light) { :root:not([data-theme]) .toggle .sun { display: block; } :root:not([data-theme]) .toggle .moon { display: none; } }
 
-  /* hamburger — hidden on desktop */
   .menu-btn { display: none; place-items: center; width: 2.4rem; height: 2.4rem;
     border: 1px solid var(--line); background: var(--surface); border-radius: 0.5rem; color: var(--text); cursor: pointer; }
   .menu-btn:hover { border-color: var(--accent); color: var(--accent); }
@@ -103,18 +101,26 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
   #menu-btn[aria-expanded="true"] .i-open { display: none; }
   #menu-btn[aria-expanded="true"] .i-close { display: block; }
 
+  /* Mobile grouped menu (hidden on desktop) */
+  .mobile-menu { display: none; }
   @media (max-width: 760px) {
+    .links { display: none; }
     .menu-btn { display: inline-grid; }
-    .links {
-      position: absolute; top: calc(100% + 1px); left: 0; right: 0; margin: 0;
-      flex-direction: column; align-items: stretch; gap: 0.15rem;
+    .mobile-menu {
+      display: none; position: absolute; top: calc(100% + 1px); left: 0; right: 0;
       background: var(--bg); border: 1px solid var(--line); border-top: none;
-      border-radius: 0 0 0.7rem 0.7rem; padding: 0.4rem; box-shadow: var(--shadow);
-      display: none;
+      border-radius: 0 0 0.7rem 0.7rem; padding: 0.6rem 0.5rem 0.8rem; box-shadow: var(--shadow);
+      max-height: calc(100vh - 4rem); overflow-y: auto;
     }
-    .links.open { display: flex; }
-    .link { padding: 0.8rem 0.9rem; font-size: 1rem; border-radius: 0.5rem; }
-    .link:hover, .link:active { background: var(--surface); color: var(--text); }
+    .mobile-menu.open { display: block; }
+    .mm-group { padding: 0.35rem 0; }
+    .mm-group + .mm-group { border-top: 1px solid var(--line-soft); }
+    .mm-title { margin: 0.35rem 0.6rem 0.2rem; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.12em;
+      text-transform: uppercase; color: var(--faint); }
+    .mm-link { display: block; padding: 0.7rem 0.9rem; border-radius: 0.5rem; text-decoration: none;
+      color: var(--text); font-size: 1rem; font-weight: 550; }
+    .mm-link:hover, .mm-link:active { background: var(--surface); }
+    .mm-link.active { color: var(--accent); }
     .brand { font-size: 0.98rem; }
   }
 </style>

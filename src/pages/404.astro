@@ -1,0 +1,45 @@
+---
+import Base from '../layouts/Base.astro';
+---
+<Base
+  title="Page not found · BitcoinKeys.guide"
+  description="That page doesn't exist — here's how to get back on track to holding your own Bitcoin."
+>
+  <section class="prose nf">
+    <p class="eyebrow">404</p>
+    <h1>That page took a <span class="accent">wrong turn</span></h1>
+    <p class="lead">The link's broken or the page moved — no harm done. Here's the quickest way back to what you were probably after:</p>
+
+    <div class="nf-cards">
+      <a href="/start" class="nf-card">
+        <h3>New here? Start from zero →</h3>
+        <p>The calm, step-by-step path from an exchange to your own tested cold storage.</p>
+      </a>
+      <a href="/quiz" class="nf-card">
+        <h3>Not sure what you need? Take the quiz →</h3>
+        <p>Four plain questions → one setup, a starter device, and a checklist that fits you.</p>
+      </a>
+      <a href="/wallets" class="nf-card">
+        <h3>Comparing devices? →</h3>
+        <p>An honest, no-affiliate comparison of the current hardware wallets.</p>
+      </a>
+      <a href="/glossary" class="nf-card">
+        <h3>Looking up a word? →</h3>
+        <p>Every term in the guide, in plain English.</p>
+      </a>
+    </div>
+
+    <p class="sub">Or head back to the <a href="/">home page</a>.</p>
+  </section>
+</Base>
+
+<style>
+  .nf h1 { margin-bottom: 0.4rem; }
+  .nf-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.8rem 0 1.4rem; }
+  @media (max-width: 640px) { .nf-cards { grid-template-columns: 1fr; } }
+  .nf-card { display: block; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface);
+    padding: 1.1rem 1.2rem; text-decoration: none; color: var(--text); transition: border-color .14s ease, transform .14s ease; }
+  .nf-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .nf-card h3 { margin: 0 0 0.35rem; font-size: 1rem; color: var(--accent); }
+  .nf-card p { margin: 0; font-size: 0.9rem; color: var(--muted); }
+</style>

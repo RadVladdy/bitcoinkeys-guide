@@ -1,4 +1,5 @@
 ---
+import { navGroups } from '../data/nav.js';
 const year = 2026;
 ---
 <footer class="foot">
@@ -7,19 +8,13 @@ const year = 2026;
       <p class="pledge-line"><span class="accent-text">We hold no keys and sell no device.</span></p>
       <p class="sub">BitcoinKeys.guide is an independent, Bitcoin-only guide to holding your own coins. No affiliate hardware brand, no custody service, nothing to sell you — just the simplest setup that fits you, and how to build it.</p>
     </div>
-    <nav class="foot-links" aria-label="Footer">
-      <a href="/start">Start here</a>
-      <a href="/ladder">The ladder</a>
-      <a href="/how-to">How-to guides</a>
-      <a href="/checklist">Checklist</a>
-      <a href="/my-plan">My plan</a>
-      <a href="/wallets">Compare wallets</a>
-      <a href="/glossary">Glossary</a>
-      <a href="/how-it-works">How Bitcoin works</a>
-      <a href="/principles">Core principles</a>
-      <a href="/resources">Resources</a>
-      <a href="/about">Who's behind this</a>
-      <a href="/tip">⚡ Tip the guide</a>
+    <nav class="foot-map" aria-label="Footer">
+      {navGroups.map((g) => (
+        <div class="foot-col">
+          <p class="foot-col-title">{g.title}</p>
+          {g.links.map((l) => <a href={l.href}>{l.label}</a>)}
+        </div>
+      ))}
     </nav>
   </div>
   <div class="wrap foot-base">
@@ -30,14 +25,18 @@ const year = 2026;
 
 <style>
   .foot { border-top: 1px solid var(--line-soft); background: var(--surface-2); margin-top: 2rem; }
-  .foot-inner { display: grid; grid-template-columns: 1.6fr 1fr; gap: 2rem; padding: 2.6rem 1.4rem 1.6rem; }
-  .pledge { max-width: 46ch; }
+  .foot-inner { display: grid; grid-template-columns: 1.3fr 2fr; gap: 2rem; padding: 2.6rem 1.4rem 1.6rem; }
+  .pledge { max-width: 42ch; }
   .pledge-line { font-size: 1.05rem; font-weight: 700; margin: 0 0 0.5rem; }
   .pledge .sub { margin: 0; font-size: 0.92rem; }
-  .foot-links { display: grid; grid-template-columns: 1fr 1fr; gap: 0.55rem 1.2rem; align-content: start; }
-  .foot-links a { color: var(--muted); text-decoration: none; font-size: 0.92rem; }
-  .foot-links a:hover { color: var(--accent); }
+  .foot-map { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.4rem 1.2rem; }
+  .foot-col { display: flex; flex-direction: column; gap: 0.5rem; }
+  .foot-col-title { margin: 0 0 0.15rem; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--faint); }
+  .foot-col a { color: var(--muted); text-decoration: none; font-size: 0.9rem; }
+  .foot-col a:hover { color: var(--accent); }
   .foot-base { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
     padding: 1.2rem 1.4rem 1.8rem; border-top: 1px solid var(--line-soft); color: var(--faint); font-size: 0.82rem; }
-  @media (max-width: 640px) { .foot-inner { grid-template-columns: 1fr; gap: 1.4rem; } }
+  @media (max-width: 860px) { .foot-inner { grid-template-columns: 1fr; gap: 1.6rem; } }
+  @media (max-width: 560px) { .foot-map { grid-template-columns: 1fr 1fr; } }
 </style>
