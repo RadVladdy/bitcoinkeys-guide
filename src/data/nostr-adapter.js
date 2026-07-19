@@ -108,6 +108,23 @@ export async function connectBunker(input) {
 }
 
 /**
+ * Fetch the user's public profile (kind-0 metadata) → { name, picture }.
+ * Used only to show a friendly "you're signed in" avatar. Best-effort: returns
+ * {} on any failure (no profile, relay timeout) so the UI degrades gracefully.
+ */
+export async function fetchProfile(pubkey, relays = DEFAULT_RELAYS) {
+  try {
+    const events = await withTimeout(
+      pool().querySync(relays, { kinds: [0], authors: [pubkey] }),
+      8000, 'profile timeout');
+    if (!events || !events.length) return {};
+    const newest = events.reduce((a, b) => (b.created_at > a.created_at ? b : a));
+    const meta = JSON.parse(newest.content || '{}');
+    return { name: meta.display_name || meta.name || '', picture: meta.picture || '' };
+  } catch (e) { return {}; }
+}
+
+/**
  * Encrypt the plan to the user's own key and publish it as the latest
  * kind-30078 replaceable event. Returns how many relays accepted it.
  */

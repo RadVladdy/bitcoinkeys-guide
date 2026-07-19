@@ -43,6 +43,7 @@ import Base from '../layouts/Base.astro';
   } from '../data/plan.js';
   import { getRung } from '../data/ladder.js';
   import { checklistLabels, checklistCount } from '../data/checklist.js';
+  import { getSession, setSession, clearSession } from '../data/nostr-session.js';
 
   const el = document.getElementById('plan-body');
   function esc(s) { const d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
@@ -148,9 +149,11 @@ import Base from '../layouts/Base.astro';
 
         <div class="p-actions">
           <button class="btn-primary" id="p-download">↓ Download my plan (.json)</button>
+          <button class="btn-ghost" id="p-nostr">☁ Save to Nostr ↓</button>
           <label class="btn-ghost file-btn">Import a plan<input type="file" id="p-import" accept="application/json,.json" hidden /></label>
           <button class="btn-danger" id="p-clear">Clear my saved plan</button>
         </div>
+        <p class="p-nostr-hint mono">Two ways to keep it: a <strong>downloaded file</strong> (most private — nothing leaves your browser) or <strong>your own Nostr</strong>, encrypted so only you can read it (syncs across devices). <a href="#nostr-sec">What's Nostr save? →</a></p>
         <p class="p-foot mono">This plan is stored only in this browser. A downloaded file is yours to keep — no seed words are ever in it. Never put your recovery words in the notes.</p>
       </div>`;
 
@@ -158,6 +161,18 @@ import Base from '../layouts/Base.astro';
       const p = loadLocal();
       downloadPlan(p);
       toast(`Downloaded ${PLAN_FILENAME}`, 'ok');
+    });
+
+    // "Save to Nostr" — pop the user down to the Nostr panel and focus the entry
+    // (the connect box if not signed in yet, or the Save button if already signed in).
+    document.getElementById('p-nostr').addEventListener('click', () => {
+      document.getElementById('nostr-sec').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      setTimeout(() => {
+        const focusEl = document.getElementById('nz-save')
+          || document.getElementById('nz-bunker-in')
+          || document.getElementById('nz-ext');
+        if (focusEl) focusEl.focus({ preventScroll: true });
+      }, 500);
     });
 
     // save notes on blur (explicit-ish — typing then leaving the field)
@@ -229,6 +244,25 @@ import Base from '../layouts/Base.astro';
     s.classList.toggle('ok', !err);
   }
 
+  // Re-establish a LIVE signer from the remembered session when an action needs one.
+  // Extension reconnects silently; a bunker re-uses its stored connection string (the
+  // signer app still approves each request — the nsec never touches the browser).
+  async function ensureSigner() {
+    if (session) return session;
+    const remembered = getSession();
+    if (!remembered) throw new Error('Not signed in.');
+    const mod = await loadNostr();
+    if (remembered.kind === 'bunker') {
+      if (!remembered.bunkerInput) throw new Error('Reconnect your bunker to continue — paste the bunker:// string again below.');
+      nzStatus('Reconnecting to your bunker — approve the request in your signer app…');
+      session = await mod.connectBunker(remembered.bunkerInput);
+    } else {
+      nzStatus('Reconnecting your extension…');
+      session = await mod.connectExtension();
+    }
+    return session;
+  }
+
   function renderNostrDisconnected() {
     const ext = typeof window !== 'undefined' && !!window.nostr;
     nostrUi.innerHTML = `
@@ -257,40 +291,64 @@ import Base from '../layouts/Base.astro';
       const mod = await loadNostr();
       session = kind === 'extension' ? await mod.connectExtension() : await mod.connectBunker(input);
       const { npubEncode } = await import('nostr-tools/nip19');
-      renderNostrConnected(npubEncode(session.pubkey));
+      const npub = npubEncode(session.pubkey);
+      nzStatus('Signed in — fetching your profile…');
+      const profile = await mod.fetchProfile(session.pubkey).catch(() => ({}));
+      // Remember the login (browser-only, public data). Bunker string kept so a
+      // return visit can save again without re-pasting; cleared on sign-out.
+      setSession({ kind: session.kind, pubkey: session.pubkey, npub,
+        name: profile.name || '', picture: profile.picture || '',
+        bunkerInput: kind === 'bunker' ? input : undefined });
+      renderNostrConnected(npub, profile);
     } catch (e) {
       nzStatus(e && e.message ? e.message : 'Could not connect.', true);
     }
   }
 
-  function renderNostrConnected(npub) {
+  function renderNostrConnected(npub, profile) {
+    profile = profile || {};
+    const remembered = getSession() || {};
+    const kindLabel = (session && session.kind) || remembered.kind || 'saved key';
+    const name = profile.name || remembered.name || '';
+    const pic = profile.picture || remembered.picture || '';
+    const initial = (name || npub.replace(/^npub1/, '') || 'N').slice(0, 1).toUpperCase();
     nostrUi.innerHTML = `
       <div class="nz-box on">
-        <p class="nz-id"><span class="nz-dot"></span> Connected as <span class="mono">${esc(shortNpub(npub))}</span> <span class="nz-kind mono">via ${esc(session.kind)}</span></p>
+        <div class="nz-id"><span class="nz-av nz-av-fb">${esc(initial)}</span><span class="nz-idtext"><span class="nz-name">${esc(name || 'Signed in')}</span> <span class="nz-npub mono">${esc(shortNpub(npub))}</span> <span class="nz-kind mono">via ${esc(kindLabel)}</span></span></div>
         <div class="nz-actions">
           <button class="btn-primary" id="nz-save">↑ Save my plan to Nostr</button>
           <button class="btn-ghost" id="nz-load">↓ Restore from Nostr</button>
-          <button class="nz-off" id="nz-off">Disconnect</button>
+          <button class="nz-off" id="nz-off">Sign out</button>
         </div>
         <p class="nz-status mono" id="nz-status" hidden></p>
       </div>`;
+    // Upgrade the fallback initial to the real photo (src via property → injection-safe).
+    if (pic) {
+      const fb = nostrUi.querySelector('.nz-av-fb');
+      const img = document.createElement('img');
+      img.className = 'nz-av'; img.alt = ''; img.referrerPolicy = 'no-referrer';
+      img.addEventListener('load', () => { if (fb) fb.replaceWith(img); });
+      img.src = pic;
+    }
 
     document.getElementById('nz-save').addEventListener('click', async () => {
       const plan = loadLocal() || emptyPlan();
       if (!planHasContent(plan)) { nzStatus('Nothing to save yet — build a plan first (take the quiz, tick the checklist).', true); return; }
-      nzStatus('Encrypting and publishing to your relays…');
       try {
+        const signer = await ensureSigner();
+        nzStatus('Encrypting and publishing to your relays…');
         const mod = await loadNostr();
-        const r = await mod.saveToNostr(plan, session);
+        const r = await mod.saveToNostr(plan, signer);
         nzStatus(`✓ Saved to Nostr — encrypted, accepted by ${r.ok} of ${r.total} relays.`);
       } catch (e) { nzStatus(e && e.message ? e.message : 'Save failed.', true); }
     });
 
     document.getElementById('nz-load').addEventListener('click', async () => {
-      nzStatus('Fetching from your relays and decrypting…');
       try {
+        const signer = await ensureSigner();
+        nzStatus('Fetching from your relays and decrypting…');
         const mod = await loadNostr();
-        const plan = await mod.loadFromNostr(session);
+        const plan = await mod.loadFromNostr(signer);
         if (!plan || !planHasContent(plan)) { nzStatus('No saved plan found on your relays for this key.', true); return; }
         saveLocal(plan);
         nzStatus('✓ Restored from Nostr into this browser.');
@@ -302,11 +360,16 @@ import Base from '../layouts/Base.astro';
     document.getElementById('nz-off').addEventListener('click', () => {
       if (session && session.close) session.close();
       session = null;
+      clearSession();
       renderNostrDisconnected();
     });
   }
 
-  renderNostrDisconnected();
+  // On load: if this browser remembers a Nostr login, show the signed-in panel right
+  // away (the live signer re-establishes only when they actually save/restore).
+  const rememberedNostr = getSession();
+  if (rememberedNostr && rememberedNostr.npub) renderNostrConnected(rememberedNostr.npub, rememberedNostr);
+  else renderNostrDisconnected();
 </script>
 
 <style>
@@ -403,9 +466,16 @@ import Base from '../layouts/Base.astro';
   #nostr-ui .nz-bunker input { flex: 1 1 18rem; min-width: 0; font-family: var(--mono); font-size: 0.82rem; color: var(--text);
     background: var(--raise); border: 1px solid var(--line); border-radius: 0.5rem; padding: 0.55rem 0.75rem; }
   #nostr-ui .nz-bunker input:focus { outline: none; border-color: var(--accent); }
-  #nostr-ui .nz-id { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin: 0 0 0.9rem; font-size: 0.92rem; color: var(--text); }
+  #nostr-ui .nz-id { display: flex; align-items: center; gap: 0.65rem; flex-wrap: wrap; margin: 0 0 0.9rem; font-size: 0.92rem; color: var(--text); }
   #nostr-ui .nz-dot { width: 0.55rem; height: 0.55rem; border-radius: 50%; background: var(--safe); display: inline-block; }
+  #nostr-ui .nz-av { width: 2.4rem; height: 2.4rem; border-radius: 50%; object-fit: cover; display: inline-grid; place-items: center;
+    border: 1px solid var(--safe); background: var(--safe-dim); color: var(--safe); font-weight: 700; flex: 0 0 auto; }
+  #nostr-ui .nz-idtext { display: flex; flex-direction: column; gap: 0.1rem; }
+  #nostr-ui .nz-name { font-weight: 600; }
+  #nostr-ui .nz-npub { color: var(--muted); font-size: 0.78rem; }
   #nostr-ui .nz-kind { color: var(--faint); font-size: 0.74rem; }
+  #plan .p-nostr-hint { color: var(--faint); font-size: 0.8rem; margin: 0.7rem 0 0; line-height: 1.5; }
+  #plan .p-nostr-hint a { color: var(--accent); }
   #nostr-ui .nz-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
   #nostr-ui .nz-off { background: none; border: none; color: var(--muted); font-family: var(--sans); font-size: 0.84rem; cursor: pointer; padding: 0.58rem 0.4rem; }
   #nostr-ui .nz-off:hover { color: var(--danger); }

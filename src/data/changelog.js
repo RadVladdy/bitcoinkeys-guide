@@ -11,6 +11,12 @@ export const changelog = [
   {
     date: '2026-07-19',
     type: 'feature',
+    title: 'Save to Nostr sits right beside “download my plan” — and remembers you',
+    detail: 'Saving your plan to your own Nostr is now one of the options in the same place as the file download — no hunting for a separate section. The button drops you straight to where you connect your signer, and once you’re signed in your profile picture shows top-right like a login, so a return visit knows it’s you. It stays encrypted to your key; a downloaded file is still the most private option, and Nostr never sees your key or your plan.',
+  },
+  {
+    date: '2026-07-19',
+    type: 'feature',
     title: 'The quiz now leans toward self-sovereignty — no funnel to services',
     detail: 'Added a question about how you feel about a company ever holding one of your keys, and changed the multisig outcome: instead of routing you to collaborative custody, the quiz now presents two equal paths — do-it-yourself self-sovereign multisig vs. collaborative custody — each with its honest trade-off (full responsibility vs. trusting an outside institution and its privacy cost). Self-custody leads by default; a service only leads if you explicitly ask for that help. Where heirs are involved, the DIY path notes that a fully self-custodied inheritance plan is achievable, no company in the loop.',
   },
