@@ -9,6 +9,12 @@
 // Entry types: 'price' | 'device' | 'spec' | 'security' | 'feature' | 'content'
 export const changelog = [
   {
+    date: '2026-07-19',
+    type: 'price',
+    title: 'Trezor Safe 3 dropped $79 → $59',
+    detail: 'Trezor cut the Safe 3’s price from $79 to $59 — a permanent reduction, verified on trezor.io. That makes the budget Trezor an even stronger first hardware wallet, and lowers the entry cost of a single-signature setup on the ladder to $59. Jade Plus ($169) and BitBox02 ($137) were re-checked at the same time and are unchanged.',
+  },
+  {
     date: '2026-07-18',
     type: 'feature',
     title: 'The interactive “deeper dive” tier grew to 11 demonstrations',

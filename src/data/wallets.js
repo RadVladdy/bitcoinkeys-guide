@@ -14,9 +14,12 @@
 //   original "Blockstream Jade" (button + screen, no camera → airgap 'no'), NOT the "Jade Core" (that's the $99
 //   touchscreen, also no camera; not carried here). Jade Plus is $169 (was $149). Bitkey $250 and Passport Prime
 //   $349 (Arctic Copper "America 250" limited edition) both confirmed.
+// 2026-07-19: Trezor Safe 3 repriced $79 → $59 at trezor.io (browser-verified: buy price "USD 59",
+//   no strikethrough, offer valid to 2031 — a permanent cut, not a sale). Ladder cost-floor cascaded
+//   to $59. Freshness runner caught it via the new headless-render deterministic (JSON-LD) price read.
 // Rule of the guide: there is no "best" device, only fit-to-purpose.
 
-export const walletsVerified = '2026-07-18';
+export const walletsVerified = '2026-07-19';
 
 // rating scale used in the compare table + chooser badges: 'yes' | 'partial' | 'no'
 export const wallets = [
@@ -91,8 +94,8 @@ export const wallets = [
     image: '/devices/trezor-safe-3.webp',
     ladderReach: { s: 'strong', p: 'ok', m: 'ok', note: 'Two-button entry makes a passphrase a chore; multisig is only adequate. A fine hold-and-forget starter.' },
     vendor: 'SatoshiLabs',
-    price: '$79',
-    priceNum: 79,
+    price: '$59',
+    priceNum: 59,
     airgap: 'no',       // USB, functionally cold
     btcOnly: 'partial', // multi-coin device
     openSource: 'yes',
