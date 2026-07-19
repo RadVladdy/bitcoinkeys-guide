@@ -1,0 +1,118 @@
+---
+import Base from '../../layouts/Base.astro';
+import '../../styles/demo.css';
+---
+<Base
+  title="Roll your own seed — dice entropy · BitcoinKeys.guide"
+  description="A demonstration of generating a Bitcoin seed from your own dice rolls instead of trusting the device's randomness. Rolls happen in your browser; the resulting seed is thrown away. Never your real seed."
+>
+  <section class="prose">
+    <p class="eyebrow">Deeper dive · a demonstration</p>
+    <h1>Roll your own <span class="accent">randomness</span></h1>
+    <p class="lead">
+      A seed is only as safe as the randomness behind it. If you don't want to trust a device's hidden
+      random-number generator, you don't have to — you can supply the entropy yourself, with dice. Roll enough,
+      hash them, and you get a seed that's provably random by your own hand.
+    </p>
+    <div class="callout danger" role="note">
+      <span class="label">🛑 A demonstration — never your real seed</span>
+      <p style="margin:0">The rolls and seed here are <strong>generated in your browser</strong> and thrown away when you leave.
+        <strong>Never type your real seed words anywhere.</strong> To roll a seed you'll actually use, do it offline on an airgapped device.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="demo" id="dice">
+      <p class="intro-lead" style="text-align:center;margin-top:0.2rem">Roll a six-sided die about 50 times — that's roughly 128 bits of your own entropy.</p>
+      <div class="roll-controls">
+        <button id="roll1" class="btn-go" type="button">🎲 Roll one</button>
+        <button id="rollall" class="btn-alt" type="button">Roll to 50</button>
+      </div>
+      <div class="panel" style="margin-top:1rem;min-height:3rem"><span class="rolls mono" id="rolls"></span><span class="caret" id="caret">▮</span></div>
+      <p class="micro mono" style="text-align:center">your rolls: <b id="count" class="cs">0</b> / 50 &nbsp;·&nbsp; <button id="reset" class="linkbtn" type="button">reset</button></p>
+
+      <div id="reveal" hidden>
+        <div class="flow" style="margin-top:1rem">
+          <span class="farrow">↓ SHA-256 your roll string</span>
+          <div class="fbox"><span class="fh">128-bit entropy (first half of the hash)</span><span class="fv mono" id="ent"></span></div>
+          <span class="farrow">↓ BIP-39</span>
+          <div class="fbox addr"><span class="fh">your seed phrase — as valid as any device's</span></div>
+        </div>
+        <div class="words" id="words" style="margin-top:0.7rem"></div>
+        <p class="micro mono" style="text-align:center">keep rolling for more entropy, or reset to start over</p>
+      </div>
+
+      <div class="callout" style="margin-top:1.2rem">
+        <span class="label">Why this matters</span>
+        <p style="margin:0">The rolls are <strong>yours</strong> — the device never chose them, so it can't have rigged them. Hashing turns your
+          dice into uniform bits, and BIP-39 turns those into words. This is exactly how airgapped signers like Coldcard and SeedSigner
+          let you "roll your own" seed when you don't want to trust their RNG.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="prose">
+    <p class="cta-row">
+      <a class="btn" href="/deep-dive/seed">← Watch a seed get born</a>
+      <a class="btn ghost" href="/deep-dive">All deeper dives →</a>
+    </p>
+  </section>
+</Base>
+
+<script>
+  let libs = null;
+  async function loadLibs() {
+    if (libs) return libs;
+    const bip39 = await import('@scure/bip39');
+    const en = await import('@scure/bip39/wordlists/english.js');
+    libs = { entropyToMnemonic: bip39.entropyToMnemonic, wordlist: en.wordlist };
+    return libs;
+  }
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
+  const NEED = 50;
+  let rolls = [];
+
+  function d6() { // unbiased 1-6
+    const buf = new Uint8Array(1);
+    do { crypto.getRandomValues(buf); } while (buf[0] >= 252);
+    return (buf[0] % 6) + 1;
+  }
+  async function refresh() {
+    $('rolls').textContent = rolls.join(' ');
+    $('count').textContent = String(rolls.length);
+    if (rolls.length >= NEED) {
+      const { entropyToMnemonic, wordlist } = await loadLibs();
+      const hash = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(rolls.join(''))));
+      const entropy = hash.slice(0, 16);
+      $('ent').textContent = [...entropy].map((b) => b.toString(16).padStart(2, '0')).join('');
+      $('words').innerHTML = entropyToMnemonic(entropy, wordlist).split(' ').map((w, i) => `<span class="word"><span class="wi">${i + 1}</span>${esc(w)}</span>`).join('');
+      $('reveal').hidden = false;
+    } else {
+      $('reveal').hidden = true;
+    }
+  }
+  $('roll1').addEventListener('click', () => { rolls.push(d6()); refresh(); });
+  $('rollall').addEventListener('click', () => { while (rolls.length < NEED) rolls.push(d6()); refresh(); });
+  $('reset').addEventListener('click', () => { rolls = []; refresh(); });
+  refresh();
+</script>
+
+<style>
+  .roll-controls { display: flex; gap: 0.7rem; justify-content: center; flex-wrap: wrap; margin-top: 0.6rem; }
+  .btn-alt { font-family: var(--sans); font-size: 0.95rem; font-weight: 600; cursor: pointer; color: var(--accent);
+    background: var(--accent-soft); border: 1px solid var(--accent-dim); border-radius: 0.6rem; padding: 0.85rem 1.3rem; }
+  .btn-alt:hover { border-color: var(--accent); }
+  .linkbtn { background: none; border: none; color: var(--accent); cursor: pointer; font: inherit; padding: 0; }
+  .caret { color: var(--accent); animation: blink 1.1s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+  .cta-row { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.2rem; }
+  .btn { display: inline-flex; align-items: center; background: var(--accent); color: var(--accent-ink); font-weight: 700;
+    font-family: var(--mono); font-size: 0.9rem; padding: 0.65rem 1rem; border-radius: 0.6rem; text-decoration: none; }
+  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+  .btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+</style>
+
+<style is:global>
+  #dice .rolls { font-size: 1rem; line-height: 1.9; color: var(--text); letter-spacing: 0.08em; }
+</style>

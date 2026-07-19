@@ -1,0 +1,131 @@
+---
+import Base from '../../layouts/Base.astro';
+import '../../styles/demo.css';
+---
+<Base
+  title="Multisig — why 2-of-3 works · BitcoinKeys.guide"
+  description="An interactive demonstration of 2-of-3 multisig: three keys form one wallet, and any two of them can approve a spend — so no single key is a point of failure. Real keys and address, generated in your browser."
+>
+  <section class="prose">
+    <p class="eyebrow">Deeper dive · a demonstration</p>
+    <h1>Multisig: why <span class="accent">2-of-3</span> works</h1>
+    <p class="lead">
+      A <a href="/glossary#multisig">multisig</a> wallet needs more than one key to move the coins. The classic is
+      <strong>2-of-3</strong>: three keys exist, and any <em>two</em> together can approve a spend. Tap the keys
+      below and watch the rule enforce itself.
+    </p>
+    <div class="callout danger" role="note">
+      <span class="label">🛑 A demonstration — never your real keys</span>
+      <p style="margin:0">The three keys below are <strong>randomly generated in your browser</strong> and thrown away when you leave.
+        <strong>Never enter your real seed or keys anywhere.</strong> The signing here is simulated to show the threshold rule.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="demo" id="ms">
+      <div id="intro" class="intro">
+        <p class="intro-lead">Generate three throwaway keys and form a real 2-of-3 wallet.</p>
+        <button id="go" class="btn-go" type="button">🎲 Generate a 2-of-3 wallet</button>
+        <p class="intro-note mono">Runs entirely in your browser · nothing is sent, saved, or logged.</p>
+      </div>
+      <div id="result" hidden>
+        <div class="fbox addr" style="max-width:none">
+          <span class="fh">the one wallet these three keys form (2-of-3 P2WSH)</span>
+          <span class="fv addrv" id="addr"></span>
+        </div>
+        <p class="demo-cap" style="text-align:center;margin:1.2rem 0 0.7rem">Tap keys to sign a spend — you need any <strong>2 of 3</strong>:</p>
+        <div class="keys" id="keys"></div>
+        <div class="verdict" id="verdict"></div>
+        <div class="callout" style="margin-top:1.2rem">
+          <span class="label">Why this matters</span>
+          <p style="margin:0">No <em>single</em> key can move the coins — so a thief who steals one key (or one device that fails) gets nothing.
+            And you can <strong>lose any one key entirely</strong> and still spend with the other two. That's why multisig is
+            "a difference in kind, not degree": you remove the single point of failure on both sides at once.</p>
+        </div>
+        <button class="btn-regen" id="regen" type="button">↻ New keys</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="prose">
+    <p class="cta-row">
+      <a class="btn" href="/ladder/multisig">← The multisig rung</a>
+      <a class="btn ghost" href="/deep-dive">All deeper dives →</a>
+    </p>
+  </section>
+</Base>
+
+<script>
+  let libs = null;
+  async function loadLibs() {
+    if (libs) return libs;
+    const [bip39, bip32, btc] = await Promise.all([import('@scure/bip39'), import('@scure/bip32'), import('@scure/btc-signer')]);
+    const en = await import('@scure/bip39/wordlists/english.js');
+    libs = { generateMnemonic: bip39.generateMnemonic, mnemonicToSeedSync: bip39.mnemonicToSeedSync, wordlist: en.wordlist,
+             HDKey: bip32.HDKey, p2ms: btc.p2ms, p2wsh: btc.p2wsh };
+    return libs;
+  }
+  const $ = (id) => document.getElementById(id);
+  const toHex = (u8) => [...u8].map((b) => b.toString(16).padStart(2, '0')).join('');
+  const NAMES = ['Key A', 'Key B', 'Key C'];
+  let keys = [];   // [{ fp, signed }]
+
+  function verdict() {
+    const n = keys.filter((k) => k.signed).length;
+    const ok = n >= 2;
+    $('verdict').className = 'verdict ' + (ok ? 'ok' : 'no');
+    $('verdict').innerHTML = `<span class="v-count mono">${n} of 3 signed</span>` +
+      (ok ? `<span class="v-msg">✓ Spend approved</span>` : `<span class="v-msg">✗ Not enough — need any 2</span>`);
+  }
+  function paintKeys() {
+    $('keys').innerHTML = keys.map((k, i) => `<button class="keycard${k.signed ? ' signed' : ''}" type="button" data-i="${i}">
+      <span class="key-ico">🔑</span><span class="key-name">${NAMES[i]}</span>
+      <span class="key-fp mono">${k.fp}</span><span class="key-state">${k.signed ? '✓ signed' : 'tap to sign'}</span></button>`).join('');
+    $('keys').querySelectorAll('.keycard').forEach((c) => c.addEventListener('click', () => { const i = +c.dataset.i; keys[i].signed = !keys[i].signed; paintKeys(); verdict(); }));
+  }
+  async function generate() {
+    const { generateMnemonic, mnemonicToSeedSync, wordlist, HDKey, p2ms, p2wsh } = await loadLibs();
+    const pubs = [], fps = [];
+    for (let i = 0; i < 3; i++) {
+      const hd = HDKey.fromMasterSeed(mnemonicToSeedSync(generateMnemonic(wordlist, 128))).derive("m/48'/0'/0'/2'/0/0");
+      pubs.push(hd.publicKey); fps.push(toHex(hd.publicKey.slice(0, 4)));
+    }
+    keys = fps.map((fp) => ({ fp, signed: false }));
+    $('addr').textContent = p2wsh(p2ms(2, pubs)).address;
+    $('intro').hidden = true; $('result').hidden = false;
+    paintKeys(); verdict();
+  }
+  $('go').addEventListener('click', () => { $('go').disabled = true; generate().catch((e) => { $('go').disabled = false; console.error(e); }); });
+  $('regen').addEventListener('click', () => generate());
+</script>
+
+<style>
+  .cta-row { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.2rem; }
+  .btn { display: inline-flex; align-items: center; background: var(--accent); color: var(--accent-ink); font-weight: 700;
+    font-family: var(--mono); font-size: 0.9rem; padding: 0.65rem 1rem; border-radius: 0.6rem; text-decoration: none; }
+  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+  .btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+</style>
+
+<style is:global>
+  #keys { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.7rem; }
+  @media (max-width: 560px) { #keys { grid-template-columns: 1fr; } }
+  #keys .keycard { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; cursor: pointer;
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 0.7rem; padding: 1rem 0.8rem; text-align: center; }
+  #keys .keycard:hover { border-color: var(--accent); }
+  #keys .keycard.signed { border-color: var(--safe); background: color-mix(in srgb, var(--safe) 9%, var(--surface-2)); }
+  #keys .key-ico { font-size: 1.5rem; filter: grayscale(1) opacity(0.6); }
+  #keys .keycard.signed .key-ico { filter: none; }
+  #keys .key-name { font-weight: 650; font-size: 0.95rem; }
+  #keys .key-fp { color: var(--faint); font-size: 0.72rem; }
+  #keys .key-state { font-size: 0.75rem; color: var(--muted); margin-top: 0.15rem; }
+  #keys .keycard.signed .key-state { color: var(--safe); font-weight: 600; }
+  .verdict { display: flex; align-items: center; justify-content: center; gap: 0.8rem; margin-top: 1rem; padding: 0.8rem;
+    border-radius: 0.6rem; border: 1px solid var(--line); }
+  .verdict.ok { border-color: var(--safe); background: var(--safe-dim); }
+  .verdict.no { border-color: var(--warn); background: var(--warn-dim); }
+  .verdict .v-count { color: var(--faint); font-size: 0.8rem; }
+  .verdict .v-msg { font-weight: 700; font-size: 1.05rem; }
+  .verdict.ok .v-msg { color: var(--safe); }
+  .verdict.no .v-msg { color: var(--warn); }
+</style>
