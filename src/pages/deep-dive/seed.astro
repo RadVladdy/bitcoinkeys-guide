@@ -34,7 +34,7 @@ import Base from '../../layouts/Base.astro';
 
       <div id="stepper" class="stepper" hidden>
         <div class="step-top">
-          <span class="step-count mono">Step <b id="step-n">1</b> / 6</span>
+          <span class="step-count mono">Step <b id="step-n">1</b> / 7</span>
           <span class="step-title" id="step-title"></span>
         </div>
         <div class="step-body" id="step-body"></div>
@@ -87,7 +87,7 @@ import Base from '../../layouts/Base.astro';
 
   let data = null;      // computed seed data
   let step = 1;
-  const STEPS = 6;
+  const STEPS = 7;
 
   async function generate() {
     const { mnemonicToSeedSync, wordlist, HDKey, p2wpkh } = await loadLibs();
@@ -104,7 +104,8 @@ import Base from '../../layouts/Base.astro';
     const seed = mnemonicToSeedSync(mnemonic);
     const hd = HDKey.fromMasterSeed(seed).derive("m/84'/0'/0'/0/0");
     const address = p2wpkh(hd.publicKey).address;
-    data = { entBits, csBits, allBits, rows, words, mnemonic, seedHex: toHex(seed), address };
+    data = { entHex: toHex(entropy), hashHex: toHex(hash), firstByteBits: toBits(hash.slice(0, 1)),
+             entBits, csBits, allBits, rows, words, mnemonic, seedHex: toHex(seed), address };
     step = 1;
     $('intro').hidden = true;
     $('stepper').hidden = false;
@@ -115,12 +116,13 @@ import Base from '../../layouts/Base.astro';
   const bitsHtml = (bits, cls) => `<span class="bits ${cls || ''}">${bits.replace(/(.{4})/g, '$1 ').trim()}</span>`;
 
   const TITLES = [
-    'Pure randomness', 'A built-in typo-check', 'Twelve chunks',
+    'Pure randomness', 'Hash it (make the checksum)', 'Bolt the checksum on', 'Twelve chunks',
     'Chunks become words', 'Your seed phrase', 'From words to an address',
   ];
   const CAPS = [
     "Your device just flipped 128 coins. That's it — no company, no account. Whoever holds this number holds the coins.",
-    "A 4-bit fingerprint (from a SHA-256 hash of the randomness) is tacked on. If you ever miscopy a word, wallets use it to catch the mistake.",
+    "Run the 128 bits through SHA-256 — a one-way fingerprint. We throw away almost all of it and keep only the very first 4 bits (that's 128 ÷ 32). Those 4 bits are the checksum.",
+    "Tack the 4 checksum bits onto the end of the 128 — now 132 bits. If you ever miscopy a word, a wallet re-hashes and this mismatch flags the typo before you lose anything.",
     "The 132 bits get sliced into twelve equal chunks of 11 bits each. Eleven bits can count from 0 to 2047 — remember that number.",
     "There's a fixed, public list of exactly 2048 words. Each chunk's number picks one word. Same list on every brand of wallet — that's why backups are portable.",
     "These twelve words ARE your key, in a form a human can write down. Anyone who reads them can take everything; lose them with no backup and it's gone.",
@@ -131,17 +133,24 @@ import Base from '../../layouts/Base.astro';
     const d = data;
     if (n === 1) return `<div class="panel">${bitsHtml(d.entBits, 'ent')}</div>
       <p class="micro mono">128 bits — the entropy</p>`;
-    if (n === 2) return `<div class="panel">${bitsHtml(d.entBits, 'ent')} ${bitsHtml(d.csBits, 'cs')}</div>
+    if (n === 2) return `<div class="panel"><div class="flow">
+        <div class="fbox"><span class="fh">the 128 bits, written as hex</span><span class="fv mono">${d.entHex}</span></div>
+        <span class="farrow">↓ SHA-256 (a one-way hash)</span>
+        <div class="fbox"><span class="fh">256-bit hash — we only look at the start</span><span class="fv mono"><b class="cs">${d.hashHex.slice(0, 2)}</b><span class="dimhex">${d.hashHex.slice(2)}</span></span></div>
+        <span class="farrow">↓ first byte <b class="cs">${d.hashHex.slice(0, 2)}</b> = <b class="cs">${d.firstByteBits.slice(0, 4)}</b>${d.firstByteBits.slice(4)} — keep the first 4</span>
+        <div class="fbox"><span class="fh">checksum (4 bits)</span><span class="fv mono cs csbig">${d.csBits}</span></div>
+      </div></div>`;
+    if (n === 3) return `<div class="panel">${bitsHtml(d.entBits, 'ent')} ${bitsHtml(d.csBits, 'cs')}</div>
       <p class="micro mono"><span class="k ent">128 random</span> + <span class="k cs">4 checksum</span> = 132 bits</p>`;
-    if (n === 3) return `<div class="panel chunks">${d.rows.map((r, i) => `<span class="chunk"><span class="chunk-i mono">${i + 1}</span>${r.bits}</span>`).join('')}</div>
+    if (n === 4) return `<div class="panel chunks">${d.rows.map((r, i) => `<span class="chunk"><span class="chunk-i mono">${i + 1}</span>${r.bits}</span>`).join('')}</div>
       <p class="micro mono">12 chunks × 11 bits</p>`;
-    if (n === 4) return `<div class="panel"><table class="maptable">
+    if (n === 5) return `<div class="panel"><table class="maptable">
         <thead><tr><th>#</th><th>11 bits</th><th>=</th><th>№</th><th>word</th></tr></thead>
         <tbody>${d.rows.map((r, i) => `<tr><td class="mono dim">${i + 1}</td><td class="mono">${r.bits}</td><td class="dim">→</td><td class="mono num">${r.num}</td><td class="w">${esc(r.word)}</td></tr>`).join('')}</tbody>
       </table></div>`;
-    if (n === 5) return `<div class="panel words">${d.words.map((w, i) => `<span class="word${i === 11 ? ' last' : ''}"><span class="wi mono">${i + 1}</span>${esc(w)}</span>`).join('')}</div>
+    if (n === 6) return `<div class="panel words">${d.words.map((w, i) => `<span class="word${i === 11 ? ' last' : ''}"><span class="wi mono">${i + 1}</span>${esc(w)}</span>`).join('')}</div>
       <p class="micro mono">word 12 carries the checksum</p>`;
-    if (n === 6) return `<div class="panel flow">
+    if (n === 7) return `<div class="panel flow">
         <div class="fbox"><span class="fh mono">12 words</span><span class="fv">${esc(d.words.slice(0, 2).join(' '))} … ${esc(d.words[11])}</span></div>
         <span class="farrow">↓ PBKDF2 (2048 rounds)</span>
         <div class="fbox"><span class="fh mono">512-bit master seed</span><span class="fv mono seedv">${d.seedHex.slice(0, 32)}…</span></div>
@@ -237,5 +246,8 @@ import Base from '../../layouts/Base.astro';
   #step-body .fv { font-size: 0.92rem; word-break: break-all; }
   #step-body .addrv { color: var(--safe); font-weight: 600; }
   #step-body .farrow { color: var(--muted); font-family: var(--mono); font-size: 0.74rem; }
+  #step-body .cs { color: var(--accent); font-weight: 700; }
+  #step-body .csbig { font-size: 1.15rem; letter-spacing: 0.14em; }
+  #step-body .dimhex { color: var(--faint); }
   @media (max-width: 560px) { #step-body .words { grid-template-columns: repeat(2, 1fr); } }
 </style>
