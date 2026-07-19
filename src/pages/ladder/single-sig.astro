@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
+import SaveSetup from '../../components/SaveSetup.astro';
 import { getRung } from '../../data/ladder.js';
 const r = getRung('single-sig');
 const accentize = (title, phrase) => {
@@ -98,6 +99,8 @@ const buildSteps = [
       <li>Want a professional safety net for your heirs? → <a href="/ladder/collaborative">Rung 4 — collaborative custody</a></li>
     </ul>
     <p class="sub">Until one of those is genuinely true, a well-managed single-sig setup is not a compromise — it’s the correct answer.</p>
+
+    <SaveSetup rung={r.slug} label={r.pageName ?? r.name} tier={r.tier} />
 
     <div class="cta-row">
       <a href="/wallets" class="btn btn-primary">Choose your device <span class="arw">→</span></a>

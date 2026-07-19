@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import Diagram from '../../components/Diagram.astro';
+import SaveSetup from '../../components/SaveSetup.astro';
 import { ladder, shamirNote } from '../../data/ladder.js';
 
 export function getStaticPaths() {
@@ -97,6 +98,8 @@ const accentize = (title, phrase) => {
 
     <h2>When to climb</h2>
     <p set:html={r.whenToClimb}></p>
+
+    {!r.optional && <SaveSetup rung={r.slug} label={r.pageName ?? r.name} tier={r.tier} />}
   </section>
 
   <nav class="rung-nav">

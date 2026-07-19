@@ -29,7 +29,7 @@ import Base from '../layouts/Base.astro';
 <script>
   import { questions, recommend } from '../data/quiz.js';
   import { wallets } from '../data/wallets.js';
-  import { saveQuizSlice } from '../data/plan.js';
+  import { savePlannedSetup, plannedSetupRung, plannedSetupLabel } from '../data/plan.js';
 
   const answers = {};
   let idx = 0;
@@ -183,6 +183,9 @@ import Base from '../layouts/Base.astro';
     const adaptive = devs.some((d) => d.checklist);   // e.g. Bitkey has its own flow
     let sel = 0;
     const primaryHasVendors = primary.vendors && primary.vendors.length;
+    const saveControl = (rung, label, tier, source) =>
+      `<div class="r-save" data-rung="${esc(rung)}" data-label="${esc(label)}" data-tier="${esc(tier || '')}" data-source="${source}"></div>`;
+
     elResult.innerHTML = `
       <div class="r-card">
         <p class="r-tier mono">1st choice · ${esc(primary.tier)}</p>
@@ -192,6 +195,7 @@ import Base from '../layouts/Base.astro';
         ${walletCard(primary, adaptive, sel)}
         <div class="r-checklist" id="r-checklist">${checklistHtml(primary, adaptive ? devs[sel] : null)}</div>
         ${primaryHasVendors ? vendorsBlock(primary.vendors) : ''}
+        ${saveControl(primary.rungSlug, primary.headline, primary.tier, 'quiz-primary')}
       </div>
       ${secondary ? `<div class="r-card secondary">
         <p class="r-tier mono muted">2nd choice · where you'd go next</p>
@@ -199,27 +203,45 @@ import Base from '../layouts/Base.astro';
         <p class="r-why">${esc(secondary.when)}</p>
         ${(!primaryHasVendors && secondary.vendors) ? vendorsBlock(secondary.vendors) : ''}
         <a class="r-how2" href="/ladder/${esc(secondary.rungSlug)}">Read the ${esc(secondary.rungLabel)} walkthrough →</a>
+        ${saveControl(secondary.rungSlug, secondary.headline, secondary.rungLabel, 'quiz-secondary')}
       </div>` : ''}
-      <div class="r-save" id="r-save">
-        <button class="btn-save" id="q-save">＋ Save this setup to my plan</button>
-        <span class="r-save-note">Optional. Kept only in your browser until you choose to — <a href="/my-plan">your data, not ours</a>.</span>
-      </div>
       <div class="r-links">
         <a class="btn-primary" href="/ladder/${esc(primary.rungSlug)}">Read the full ${esc(primary.rungLabel)} walkthrough →</a>
         <button class="btn-ghost" id="q-restart">Start over</button>
       </div>
       <p class="r-foot mono">This is guidance, not financial or legal advice — never act on a step you don't understand. When in doubt, choose the simpler setup.</p>`;
-    const saveBand = document.getElementById('r-save');
-    const saveBtn = document.getElementById('q-save');
-    saveBtn.addEventListener('click', () => {
-      saveQuizSlice({
-        answers,
-        primaryTier: primary.tier,
-        primaryLabel: primary.headline,
-        device: (adaptive && devs[sel]) ? devs[sel].name : (devs[0] && devs[0].name) || null,
+
+    // Per-setup save with replace-confirm. Only ONE planned setup at a time — saving one
+    // reverts the other card's control back to a button (paintSaveStates re-marks all bands).
+    const currentDevice = () => (adaptive && devs[sel]) ? devs[sel].name : (devs[0] && devs[0].name) || null;
+    const saveBands = Array.from(elResult.querySelectorAll('.r-save')).map((el) => ({
+      el, rung: el.dataset.rung, label: el.dataset.label, tier: el.dataset.tier, source: el.dataset.source,
+    }));
+    function paintSaveStates() {
+      const savedRung = plannedSetupRung();
+      saveBands.forEach((b) => {
+        if (savedRung && b.rung === savedRung) {
+          b.el.innerHTML = `<span class="r-saved">✓ This is your saved plan.</span> <a class="r-saved-link" href="/my-plan">View or download it →</a>`;
+        } else {
+          b.el.innerHTML = `<button class="btn-save js-save" type="button">＋ Save this setup to my plan</button>
+            <span class="r-save-note">One setup at a time — kept only in your browser until you save it. <a href="/my-plan">your data, not ours</a>.</span>`;
+          b.el.querySelector('.js-save').addEventListener('click', () => {
+            const curRung = plannedSetupRung();
+            const curLabel = plannedSetupLabel();
+            if (curLabel && curRung && curRung !== b.rung) {
+              if (!confirm(`Replace your current planned setup — ${curLabel} — with ${b.label}?`)) return;
+            }
+            savePlannedSetup({
+              rung: b.rung, label: b.label, tier: b.tier, source: b.source,
+              device: b.source === 'quiz-primary' ? currentDevice() : null,
+              answers: b.source.indexOf('quiz') === 0 ? answers : null,
+            });
+            paintSaveStates();
+          });
+        }
       });
-      saveBand.innerHTML = `<span class="r-saved">✓ Saved to your plan.</span> <a class="r-saved-link" href="/my-plan">View or download it →</a>`;
-    });
+    }
+    paintSaveStates();
     if (adaptive) {
       const slot = document.getElementById('r-checklist');
       elResult.querySelectorAll('.r-dev').forEach((btn) => {

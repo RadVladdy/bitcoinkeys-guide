@@ -112,11 +112,34 @@ export function clearLocal() {
 // ── per-tool save helpers (merge one slice into the shared plan) ────────────
 // Each starts from whatever is already saved, so tools compose into one plan.
 
-export function saveQuizSlice({ answers, primaryTier, primaryLabel, device }) {
+// The ONE planned setup the user has chosen — from the quiz (primary OR
+// secondary) or from browsing a ladder rung page. There is only ever one at a
+// time; saving a new setup REPLACES the current one (the UI confirms first when
+// it differs). Stored under `quiz` for backward-compatibility with earlier plans.
+export function savePlannedSetup({ rung, label, tier, device, source, answers }) {
   const cur = loadLocal() || emptyPlan();
-  cur.quiz = { answers: answers || null, primaryTier: primaryTier || null, primaryLabel: primaryLabel || null, device: device || null };
+  cur.quiz = {
+    answers: answers || null,
+    primaryTier: tier || null,
+    primaryLabel: label || null,
+    device: device || null,
+    rung: rung || null,
+    source: source || null,
+  };
   if (device) cur.device = device;
   return saveLocal(cur);
+}
+
+/** The rung slug of the currently-planned setup, or null. */
+export function plannedSetupRung() {
+  const p = loadLocal();
+  return p && p.quiz ? p.quiz.rung || null : null;
+}
+
+/** The display label of the currently-planned setup, or null. */
+export function plannedSetupLabel() {
+  const p = loadLocal();
+  return p && p.quiz ? p.quiz.primaryLabel || null : null;
 }
 
 export function saveLadderSlice(rung) {

@@ -63,10 +63,14 @@ import Base from '../layouts/Base.astro';
   function rowsHtml(plan) {
     const rows = [];
     if (plan.quiz && (plan.quiz.primaryLabel || plan.quiz.primaryTier)) {
+      const rung = plan.quiz.rung;
+      const label = plan.quiz.primaryLabel || plan.quiz.primaryTier;
+      const tier = plan.quiz.primaryLabel && plan.quiz.primaryTier ? `<span class="p-sub">${esc(plan.quiz.primaryTier)}</span>` : '';
       rows.push([
-        'Your setup',
-        esc(plan.quiz.primaryLabel || plan.quiz.primaryTier),
-        '/quiz', 'Re-take the quiz',
+        'Your planned setup',
+        `${esc(label)}${tier}`,
+        rung ? `/ladder/${esc(rung)}` : '/quiz',
+        rung ? 'Read the walkthrough' : 'Re-take the quiz',
       ]);
     }
     if (plan.ladder && plan.ladder.rung) {
@@ -342,6 +346,7 @@ import Base from '../layouts/Base.astro';
   #plan .p-row:first-child { border-top: none; padding-top: 0; }
   #plan .p-k { display: block; color: var(--faint); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; }
   #plan .p-v { color: var(--text); font-size: 1rem; }
+  #plan .p-sub { display: block; color: var(--muted); font-size: 0.82rem; margin-top: 0.15rem; }
   #plan .p-count { color: var(--accent); font-weight: 600; }
   #plan .p-mini { margin: 0.4rem 0 0; padding-left: 1.1rem; display: grid; gap: 0.2rem; }
   #plan .p-mini li { color: var(--muted); font-size: 0.9rem; }
