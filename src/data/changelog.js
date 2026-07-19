@@ -18,7 +18,7 @@ export const changelog = [
     date: '2026-07-19',
     type: 'feature',
     title: 'Save to Nostr sits right beside “download my plan” — and remembers you',
-    detail: 'Saving your plan to your own Nostr is now one of the options in the same place as the file download — no hunting for a separate section. The button drops you straight to where you connect your signer, and once you’re signed in your profile picture shows top-right like a login, so a return visit knows it’s you. It stays encrypted to your key; a downloaded file is still the most private option, and Nostr never sees your key or your plan.',
+    detail: 'Saving your plan to your own Nostr is now one of the options in the same place as the file download — no hunting for a separate section. If you’re not signed in yet it drops you to where you connect your signer; once you are, it just saves. Your profile picture shows top-right like a login (click it to open your plan or sign out), and when you’re signed out that spot offers a sign-in. It stays encrypted to your key; a downloaded file is still the most private option, and Nostr never sees your key or your plan.',
   },
   {
     date: '2026-07-19',
