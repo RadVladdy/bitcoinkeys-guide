@@ -1,0 +1,163 @@
+---
+import Base from '../../layouts/Base.astro';
+import '../../styles/demo.css';
+---
+<Base
+  title="Signing — prove it's you without showing the key · BitcoinKeys.guide"
+  description="A safe demonstration of how a Bitcoin signature proves you approved a payment without ever revealing your key — and why tampering with the payment breaks it. Real keys and signatures, generated in your browser."
+>
+  <section class="prose">
+    <p class="eyebrow">Deeper dive · a demonstration</p>
+    <h1>Signing: prove it's you, <span class="accent">without showing the key</span></h1>
+    <p class="lead">
+      This is the magic trick at the heart of Bitcoin. You <a href="/glossary#private-key">sign</a> a payment with
+      your private key — and anyone can confirm the signature could only have come from that key, yet no one can
+      work <em>backwards</em> from it to the key itself. Watch it happen, then try to cheat it.
+    </p>
+    <div class="callout danger" role="note">
+      <span class="label">🛑 A demonstration — never your real keys</span>
+      <p style="margin:0">The key below is <strong>randomly generated in your browser</strong> and thrown away when you leave.
+        <strong>Never enter your real seed or keys anywhere.</strong> These are real signatures, over a fake payment.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="demo" id="sign">
+      <div id="intro" class="intro">
+        <p class="intro-lead">Generate a throwaway key, sign a payment, then try tampering with it.</p>
+        <button id="go" class="btn-go" type="button">🎲 Generate a throwaway key</button>
+        <p class="intro-note mono">Runs entirely in your browser · nothing is sent, saved, or logged.</p>
+      </div>
+      <div id="result" hidden>
+        <div class="keypair">
+          <div class="kbox secret"><span class="fh">🔒 private key — never leaves your device</span><span class="fv mono" id="priv"></span></div>
+          <div class="kbox"><span class="fh">🌐 public key — share it freely</span><span class="fv mono" id="pub"></span></div>
+        </div>
+
+        <p class="lbl mono" style="margin-top:1.3rem">The payment you're approving</p>
+        <div class="msg" id="msg"></div>
+        <div class="sign-controls">
+          <button id="signbtn" class="btn-go" type="button">✍️ Sign it with the private key</button>
+          <button id="tamper" class="btn-warn" type="button" hidden>😈 Tamper: reroute it to Eve</button>
+          <button id="reset" class="linkbtn" type="button" hidden>reset payment</button>
+        </div>
+
+        <div id="sigwrap" hidden>
+          <div class="fbox" style="margin-top:1.1rem"><span class="fh">the signature (this is all that goes out — never the key)</span><span class="fv mono sigv" id="sig"></span></div>
+          <div class="verify" id="verify"></div>
+        </div>
+
+        <div class="callout" style="margin-top:1.2rem">
+          <span class="label">Why this matters</span>
+          <p style="margin:0">The private key <strong>never left</strong> — only the signature did, and the signature is glued to that <em>exact</em>
+            payment. Change one character and it stops verifying, so a thief can't reuse it or reroute your coins. This is why a
+            hardware wallet can sign on a malware-riddled computer and still be safe: it sends out proof, not the key.</p>
+        </div>
+        <button class="btn-regen" id="regen" type="button">↻ New key</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="prose">
+    <p class="cta-row">
+      <a class="btn" href="/how-it-works">← How it all works</a>
+      <a class="btn ghost" href="/deep-dive">All deeper dives →</a>
+    </p>
+  </section>
+</Base>
+
+<script>
+  let libs = null;
+  async function loadLibs() {
+    if (libs) return libs;
+    const [secpMod, shaMod, bip39, bip32] = await Promise.all([
+      import('@noble/curves/secp256k1.js'), import('@noble/hashes/sha2.js'), import('@scure/bip39'), import('@scure/bip32'),
+    ]);
+    const en = await import('@scure/bip39/wordlists/english.js');
+    libs = { schnorr: secpMod.schnorr, sha256: shaMod.sha256, generateMnemonic: bip39.generateMnemonic,
+             mnemonicToSeedSync: bip39.mnemonicToSeedSync, wordlist: en.wordlist, HDKey: bip32.HDKey };
+    return libs;
+  }
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
+  const toHex = (u) => [...u].map((b) => b.toString(16).padStart(2, '0')).join('');
+  const DEFAULT = { amt: '0.50', who: 'Bob' };
+  const EVIL = { amt: '5.00', who: 'Eve' };
+  let priv, pubX, pay = { ...DEFAULT }, signature = null;
+
+  const msgStr = () => `Send ${pay.amt} BTC to ${pay.who}`;
+  function verdict() {
+    const { schnorr, sha256 } = libs;
+    if (!signature) return;
+    const ok = schnorr.verify(signature, sha256(new TextEncoder().encode(msgStr())), pubX);
+    $('verify').className = 'verify ' + (ok ? 'ok' : 'no');
+    $('verify').innerHTML = ok
+      ? `<span class="v-msg">✓ Valid signature</span><span class="v-sub">Anyone with the public key just confirmed this could only come from the matching private key.</span>`
+      : `<span class="v-msg">✗ Invalid — signature doesn't match</span><span class="v-sub">The payment was changed after signing. The old signature no longer fits, so this spend is rejected.</span>`;
+  }
+  function paintMsg() {
+    const tampered = pay.who !== DEFAULT.who;
+    $('msg').className = 'msg' + (tampered ? ' tampered' : '');
+    $('msg').innerHTML = `Send <b class="${tampered ? 'chg' : ''}">${pay.amt}</b> BTC to <b class="${tampered ? 'chg' : ''}">${esc(pay.who)}</b>`;
+  }
+  function paint() {
+    paintMsg();
+    $('sig').textContent = signature ? toHex(signature) : '';
+    $('sigwrap').hidden = !signature;
+    $('tamper').hidden = !signature;
+    $('reset').hidden = !(signature && pay.who !== DEFAULT.who);
+    $('signbtn').textContent = signature ? '✍️ Re-sign this payment' : '✍️ Sign it with the private key';
+    verdict();
+  }
+  async function generate() {
+    const { schnorr, generateMnemonic, mnemonicToSeedSync, wordlist, HDKey } = await loadLibs();
+    priv = HDKey.fromMasterSeed(mnemonicToSeedSync(generateMnemonic(wordlist, 128))).derive("m/86'/0'/0'/0/0").privateKey;
+    pubX = schnorr.getPublicKey(priv);
+    pay = { ...DEFAULT }; signature = null;
+    $('priv').textContent = toHex(priv);
+    $('pub').textContent = toHex(pubX);
+    $('intro').hidden = true; $('result').hidden = false;
+    paint();
+  }
+  $('go').addEventListener('click', () => { $('go').disabled = true; generate().catch((e) => { $('go').disabled = false; console.error(e); }); });
+  $('regen').addEventListener('click', () => generate());
+  $('signbtn').addEventListener('click', () => { signature = libs.schnorr.sign(libs.sha256(new TextEncoder().encode(msgStr())), priv); paint(); });
+  $('tamper').addEventListener('click', () => { pay = { ...EVIL }; paint(); });
+  $('reset').addEventListener('click', () => { pay = { ...DEFAULT }; paint(); });
+</script>
+
+<style>
+  .lbl { color: var(--faint); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; text-align: center; margin: 0 0 0.6rem; }
+  .sign-controls { display: flex; gap: 0.7rem; justify-content: center; flex-wrap: wrap; align-items: center; margin-top: 1rem; }
+  .btn-warn { font-family: var(--sans); font-size: 0.9rem; font-weight: 600; cursor: pointer; color: var(--danger);
+    background: var(--danger-dim); border: 1px solid color-mix(in srgb, var(--danger) 45%, var(--line)); border-radius: 0.6rem; padding: 0.7rem 1.1rem; }
+  .btn-warn:hover { border-color: var(--danger); }
+  .linkbtn { background: none; border: none; color: var(--accent); cursor: pointer; font: inherit; }
+  .cta-row { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.2rem; }
+  .btn { display: inline-flex; align-items: center; background: var(--accent); color: var(--accent-ink); font-weight: 700;
+    font-family: var(--mono); font-size: 0.9rem; padding: 0.65rem 1rem; border-radius: 0.6rem; text-decoration: none; }
+  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+  .btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+</style>
+
+<style is:global>
+  #sign .keypair { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+  @media (max-width: 560px) { #sign .keypair { grid-template-columns: 1fr; } }
+  #sign .kbox { background: var(--surface-2); border: 1px solid var(--line); border-radius: 0.6rem; padding: 0.7rem 0.9rem; }
+  #sign .kbox.secret { border-color: color-mix(in srgb, var(--danger) 40%, var(--line)); }
+  #sign .kbox .fv { font-size: 0.78rem; word-break: break-all; color: var(--muted); }
+  #sign .kbox.secret .fv { color: var(--danger); }
+  #sign .msg { text-align: center; font-size: 1.15rem; background: var(--bg); border: 1px solid var(--line);
+    border-radius: 0.6rem; padding: 1rem; }
+  #sign .msg.tampered { border-color: var(--danger); }
+  #sign .msg .chg { color: var(--danger); }
+  #sign .sigv { color: var(--muted); font-size: 0.78rem; }
+  #sign .verify { margin-top: 1rem; padding: 0.9rem 1rem; border-radius: 0.6rem; border: 1px solid var(--line);
+    display: flex; flex-direction: column; gap: 0.2rem; }
+  #sign .verify.ok { border-color: var(--safe); background: var(--safe-dim); }
+  #sign .verify.no { border-color: var(--danger); background: var(--danger-dim); }
+  #sign .verify .v-msg { font-weight: 700; font-size: 1.05rem; }
+  #sign .verify.ok .v-msg { color: var(--safe); }
+  #sign .verify.no .v-msg { color: var(--danger); }
+  #sign .verify .v-sub { font-size: 0.86rem; color: var(--muted); }
+</style>
