@@ -18,7 +18,7 @@ export const resources = [
       },
       {
         "title": "Bitcoiner Guide (BitcoinQnA)",
-        "url": "https://bitcoiner.guide",
+        "url": "https://bitcoiner.guide/resources/",
         "what": "Plain-language, vendor-neutral how-to guides and a large privacy/self-custody Q&A covering wallets, backups, and passphrases.",
         "level": "Introductory"
       }
