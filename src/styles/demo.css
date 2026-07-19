@@ -1,0 +1,42 @@
+/* Shared visual language for the /deep-dive demonstration tools.
+   Global (imported), namespaced under .demo so it also styles JS-injected content. */
+
+.demo { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 1.6rem 1.4rem; margin: 1.4rem 0; }
+.demo .intro { text-align: center; }
+.demo .intro-lead { font-size: 1.05rem; margin: 0.3rem 0 1.2rem; }
+.demo .intro-note { color: var(--faint); font-size: 0.78rem; margin: 0.9rem 0 0; }
+
+.demo .btn-go { font-family: var(--sans); font-size: 1rem; font-weight: 700; cursor: pointer; color: var(--accent-ink);
+  background: var(--accent); border: none; border-radius: 0.6rem; padding: 0.85rem 1.5rem; }
+.demo .btn-go:hover { opacity: 0.92; }
+.demo .btn-go:disabled { opacity: 0.6; cursor: default; }
+.demo .btn-regen { display: block; margin: 1.3rem auto 0; background: none; border: none; color: var(--muted);
+  font-family: var(--sans); font-size: 0.85rem; cursor: pointer; }
+.demo .btn-regen:hover { color: var(--accent); }
+
+.demo .panel { width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 0.6rem; padding: 1rem; overflow-x: auto; }
+.demo .demo-cap { color: var(--muted); font-size: 0.95rem; line-height: 1.55; margin: 1.1rem 0 0; }
+
+/* vertical flow of labelled boxes (entropy → hash → …) */
+.demo .flow { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; text-align: center; }
+.demo .fbox { width: 100%; max-width: 32rem; background: var(--surface-2); border: 1px solid var(--line); border-radius: 0.55rem; padding: 0.7rem 0.9rem; }
+.demo .fbox.addr { border-color: var(--safe); }
+.demo .fh { display: block; color: var(--faint); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.2rem; }
+.demo .fv { font-size: 0.92rem; word-break: break-all; }
+.demo .addrv { color: var(--safe); font-weight: 600; font-family: var(--mono); }
+.demo .farrow { color: var(--muted); font-family: var(--mono); font-size: 0.74rem; }
+.demo .cs { color: var(--accent); font-weight: 700; }
+
+/* seed-word chips */
+.demo .words { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+@media (max-width: 560px) { .demo .words { grid-template-columns: repeat(2, 1fr); } }
+.demo .word { display: flex; align-items: baseline; gap: 0.45rem; background: var(--surface-2); border: 1px solid var(--line);
+  border-radius: 0.45rem; padding: 0.45rem 0.65rem; font-size: 0.92rem; font-weight: 600; }
+.demo .wi { color: var(--faint); font-size: 0.72rem; min-width: 1.1rem; font-family: var(--mono); }
+
+/* selectable option chips (e.g. passphrases) */
+.demo .chips { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; }
+.demo .chip { font-family: var(--sans); font-size: 0.9rem; cursor: pointer; color: var(--text);
+  background: var(--surface-2); border: 1px solid var(--line); border-radius: 2rem; padding: 0.45rem 0.95rem; }
+.demo .chip:hover { border-color: var(--accent); }
+.demo .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }

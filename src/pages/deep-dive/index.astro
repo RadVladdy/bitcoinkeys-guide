@@ -1,0 +1,68 @@
+---
+import Base from '../../layouts/Base.astro';
+const demos = [
+  { href: '/deep-dive/seed', title: 'Watch a seed get born', desc: 'Generate a throwaway seed and follow it from 128 random bits — with the real SHA-256 checksum — to twelve words to a Bitcoin address.', tag: 'live' },
+  { href: '/deep-dive/passphrase', title: 'The passphrase (25th word)', desc: 'Same seed, add a passphrase, land in a completely different wallet. See the decoy-vs-hidden idea for yourself.', tag: 'live' },
+  { href: '/deep-dive/bip85', title: 'BIP-85 — one seed, many seeds', desc: 'How one master seed derives an endless supply of fresh, independent child seeds — back up one, re-derive the rest.', tag: 'live' },
+];
+---
+<Base
+  title="Deeper dives — see how Bitcoin actually works · BitcoinKeys.guide"
+  description="Optional, hands-on demonstrations of the machinery under Bitcoin self-custody — seed generation, passphrases, BIP-85. Every one uses a throwaway seed generated in your browser. Never your real seed."
+>
+  <section class="prose">
+    <p class="eyebrow">Level 201 · optional</p>
+    <h1>Deeper <span class="accent">dives</span></h1>
+    <p class="lead">
+      You don't need any of this to hold Bitcoin safely. But if you've read
+      <a href="/how-it-works">how it all works</a> and want to <em>see</em> the machinery — not just read about it —
+      these are interactive demonstrations of what's really happening under the hood.
+    </p>
+    <div class="callout danger" role="note">
+      <span class="label">🛑 Demonstrations only — never your real seed</span>
+      <p style="margin:0">Every tool here <strong>generates a throwaway seed in your browser</strong> and forgets it when you leave.
+        <strong>None of them will ever let you type your own seed words</strong> — that's the point. A site that asks for your seed is a site trying to rob you.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="cards">
+      {demos.map((d) => (
+        <a class="dcard" href={d.href}>
+          <span class="dtag mono">{d.tag}</span>
+          <h3>{d.title}</h3>
+          <p>{d.desc}</p>
+          <span class="darrow">Open the demo →</span>
+        </a>
+      ))}
+    </div>
+    <p class="more mono">More on the way — a multisig visualizer and a dice-entropy demo are next.</p>
+  </section>
+
+  <section class="prose">
+    <p class="cta-row">
+      <a class="btn" href="/how-it-works">← How it all works</a>
+      <a class="btn ghost" href="/ladder">The ladder →</a>
+    </p>
+  </section>
+</Base>
+
+<style>
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1.6rem 0 0.8rem; }
+  @media (max-width: 640px) { .cards { grid-template-columns: 1fr; } }
+  .dcard { display: flex; flex-direction: column; gap: 0.4rem; text-decoration: none; color: var(--text);
+    border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 1.3rem 1.4rem;
+    transition: border-color .14s ease, transform .14s ease; }
+  .dcard:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .dtag { align-self: flex-start; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--safe);
+    border: 1px solid color-mix(in srgb, var(--safe) 45%, var(--line)); background: var(--safe-dim); border-radius: 999px; padding: 0.12rem 0.5rem; }
+  .dcard h3 { margin: 0.3rem 0 0; font-size: 1.1rem; }
+  .dcard p { margin: 0; font-size: 0.92rem; color: var(--muted); line-height: 1.55; }
+  .dcard .darrow { margin-top: 0.3rem; color: var(--accent); font-family: var(--mono); font-size: 0.85rem; }
+  .more { color: var(--faint); font-size: 0.82rem; margin: 0.4rem 0 0; }
+  .cta-row { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.4rem; }
+  .btn { display: inline-flex; align-items: center; background: var(--accent); color: var(--accent-ink); font-weight: 700;
+    font-family: var(--mono); font-size: 0.9rem; padding: 0.65rem 1rem; border-radius: 0.6rem; text-decoration: none; }
+  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+  .btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+</style>

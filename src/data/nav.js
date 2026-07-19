@@ -17,6 +17,7 @@ export const navGroups = [
     links: [
       { href: '/wallets', label: 'Compare wallets' },
       { href: '/ladder', label: 'The ladder' },
+      { href: '/deep-dive', label: 'Deeper dives' },
       { href: '/glossary', label: 'Glossary' },
       { href: '/principles', label: 'Core principles' },
     ],

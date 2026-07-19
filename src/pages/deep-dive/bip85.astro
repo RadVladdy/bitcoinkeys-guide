@@ -1,0 +1,127 @@
+---
+import Base from '../../layouts/Base.astro';
+import '../../styles/demo.css';
+---
+<Base
+  title="BIP-85 — one seed, many seeds · BitcoinKeys.guide"
+  description="A safe demonstration of BIP-85: how one master seed deterministically derives an endless supply of fresh, independent child seeds — so you back up one and re-derive the rest. Throwaway seed, in your browser."
+>
+  <section class="prose">
+    <p class="eyebrow">Deeper dive · a demonstration</p>
+    <h1>BIP-85: <span class="accent">one seed to rule them all</span></h1>
+    <p class="lead">
+      Backing up many wallets means many seed phrases to protect — a lot to lose. <strong>BIP-85</strong> fixes that:
+      from one master seed, it derives an endless supply of <em>fresh, fully independent</em> child seeds,
+      deterministically. Back up the master; re-derive any child on demand.
+    </p>
+
+    <div class="callout danger" role="note">
+      <span class="label">🛑 A demonstration — never your real seed</span>
+      <p style="margin:0">The master below is <strong>randomly generated in your browser</strong> and thrown away when you leave.
+        <strong>Never type your real seed words anywhere.</strong> There's no seed input here on purpose.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="demo" id="b85">
+      <div id="intro" class="intro">
+        <p class="intro-lead">Generate a throwaway master seed and watch it spawn independent child seeds.</p>
+        <button id="go" class="btn-go" type="button">🎲 Generate a throwaway master seed</button>
+        <p class="intro-note mono">Runs entirely in your browser · nothing is sent, saved, or logged.</p>
+      </div>
+      <div id="result" hidden>
+        <p class="lbl mono">The one master seed you back up</p>
+        <div class="words master" id="master"></div>
+        <p class="demo-cap" style="text-align:center;margin:1.1rem 0 0.4rem">Each child below is a full, independent 12-word wallet seed — derived from the master, never stored:</p>
+        <div id="children"></div>
+        <button class="btn-more" id="more" type="button">+ derive another child</button>
+        <div class="callout safe" style="margin-top:1.2rem">
+          <span class="label">Why this matters</span>
+          <p style="margin:0">You only ever back up <strong>one</strong> seed — the master. Need a fresh wallet? Derive child #7.
+            Lose a child's words? Re-derive them from the master. The children can't be linked back to the master or to
+            each other, so each is a genuinely separate wallet. <strong>One backup, unlimited wallets.</strong></p>
+        </div>
+        <button class="btn-regen" id="regen" type="button">↻ New master</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="prose">
+    <p class="cta-row">
+      <a class="btn" href="/how-it-works">← How it all works</a>
+      <a class="btn ghost" href="/deep-dive/seed">Watch a seed get born →</a>
+      <a class="btn ghost" href="/deep-dive">All deeper dives →</a>
+    </p>
+  </section>
+</Base>
+
+<script>
+  let libs = null;
+  async function loadLibs() {
+    if (libs) return libs;
+    const [bip39, bip32, hmacMod, shaMod] = await Promise.all([
+      import('@scure/bip39'), import('@scure/bip32'), import('@noble/hashes/hmac.js'), import('@noble/hashes/sha2.js'),
+    ]);
+    const en = await import('@scure/bip39/wordlists/english.js');
+    libs = { generateMnemonic: bip39.generateMnemonic, mnemonicToSeedSync: bip39.mnemonicToSeedSync,
+             entropyToMnemonic: bip39.entropyToMnemonic, wordlist: en.wordlist, HDKey: bip32.HDKey,
+             hmac: hmacMod.hmac, sha512: shaMod.sha512 };
+    return libs;
+  }
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
+  let master = null, count = 0;
+
+  // BIP-85 → a 12-word child seed at an index (verified against the spec test vector)
+  function child(index) {
+    const { HDKey, hmac, sha512, entropyToMnemonic, wordlist } = libs;
+    const path = `m/83696968'/39'/0'/12'/${index}'`;
+    const k = master.derive(path).privateKey;
+    const ent = hmac(sha512, new TextEncoder().encode('bip-entropy-from-k'), k).slice(0, 16);
+    return { path, words: entropyToMnemonic(ent, wordlist) };
+  }
+  function addChild() {
+    const c = child(count);
+    const el = document.createElement('div');
+    el.className = 'child';
+    el.innerHTML = `<div class="child-head"><span class="child-n mono">child #${count}</span><span class="child-path mono">${esc(c.path)}</span></div>
+      <div class="words small">${c.words.split(' ').map((w, i) => `<span class="word"><span class="wi">${i + 1}</span>${esc(w)}</span>`).join('')}</div>`;
+    $('children').appendChild(el);
+    count++;
+  }
+  async function generate() {
+    const { generateMnemonic, mnemonicToSeedSync, wordlist, HDKey } = await loadLibs();
+    const m = generateMnemonic(wordlist, 128);
+    master = HDKey.fromMasterSeed(mnemonicToSeedSync(m));
+    $('master').innerHTML = m.split(' ').map((w, i) => `<span class="word"><span class="wi">${i + 1}</span>${esc(w)}</span>`).join('');
+    $('children').innerHTML = ''; count = 0;
+    addChild(); addChild(); addChild();
+    $('intro').hidden = true; $('result').hidden = false;
+  }
+  $('go').addEventListener('click', () => { $('go').disabled = true; generate().catch((e) => { $('go').disabled = false; console.error(e); }); });
+  $('regen').addEventListener('click', () => generate());
+  $('more').addEventListener('click', () => addChild());
+</script>
+
+<style>
+  .lbl { color: var(--faint); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; text-align: center; margin: 0 0 0.6rem; }
+  #master.master :global(.word) { border-color: var(--accent); }
+  .btn-more { display: block; margin: 0.9rem auto 0; font-family: var(--sans); font-size: 0.88rem; font-weight: 600; cursor: pointer;
+    color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent-dim); border-radius: 0.5rem; padding: 0.5rem 1rem; }
+  .btn-more:hover { border-color: var(--accent); }
+  .cta-row { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.2rem; }
+  .btn { display: inline-flex; align-items: center; background: var(--accent); color: var(--accent-ink); font-weight: 700;
+    font-family: var(--mono); font-size: 0.9rem; padding: 0.65rem 1rem; border-radius: 0.6rem; text-decoration: none; }
+  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+  .btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+</style>
+
+<style is:global>
+  #children .child { border: 1px solid var(--line); border-radius: 0.6rem; padding: 0.8rem 0.9rem; margin-top: 0.7rem; background: var(--bg); }
+  #children .child-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.6rem; margin-bottom: 0.55rem; flex-wrap: wrap; }
+  #children .child-n { color: var(--accent); font-weight: 700; font-size: 0.82rem; }
+  #children .child-path { color: var(--faint); font-size: 0.7rem; }
+  #children .words.small { grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 560px) { #children .words.small { grid-template-columns: repeat(2, 1fr); } }
+  #children .words.small .word { font-size: 0.82rem; padding: 0.35rem 0.5rem; }
+</style>
