@@ -19,6 +19,11 @@ const year = 2026;
   </div>
   <div class="wrap foot-base">
     <span>A RadVladdy project · © {year}</span>
+    <nav class="foot-sisters" aria-label="Sister projects">
+      <span class="sis-label">Sister projects</span>
+      <a href="https://bitcoineconomy.ai" rel="noopener">bitcoineconomy.ai</a>
+      <a href="https://timechain.wiki" rel="noopener">timechain.wiki</a>
+    </nav>
     <span class="mono sub">Verify. Don't trust.</span>
   </div>
 </footer>
@@ -35,8 +40,13 @@ const year = 2026;
     text-transform: uppercase; color: var(--faint); }
   .foot-col a { color: var(--muted); text-decoration: none; font-size: 0.9rem; }
   .foot-col a:hover { color: var(--accent); }
-  .foot-base { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  .foot-base { display: flex; align-items: center; justify-content: space-between; gap: 1rem 1.4rem; flex-wrap: wrap;
     padding: 1.2rem 1.4rem 1.8rem; border-top: 1px solid var(--line-soft); color: var(--faint); font-size: 0.82rem; }
+  .foot-sisters { display: flex; align-items: center; flex-wrap: wrap; gap: 0.4rem 0.9rem; }
+  .foot-sisters .sis-label { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--faint); }
+  .foot-sisters a { color: var(--muted); text-decoration: none; }
+  .foot-sisters a:hover { color: var(--accent); }
   @media (max-width: 860px) { .foot-inner { grid-template-columns: 1fr; gap: 1.6rem; } }
   @media (max-width: 560px) { .foot-map { grid-template-columns: 1fr 1fr; } }
 </style>
