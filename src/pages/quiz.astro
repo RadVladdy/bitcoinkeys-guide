@@ -30,6 +30,7 @@ import Base from '../layouts/Base.astro';
   import { questions, recommend } from '../data/quiz.js';
   import { wallets } from '../data/wallets.js';
   import { savePlannedSetup, plannedSetupRung, plannedSetupLabel } from '../data/plan.js';
+  import { confirmDialog } from '../data/ui-dialog.js';
 
   const answers = {};
   let idx = 0;
@@ -248,11 +249,17 @@ import Base from '../layouts/Base.astro';
         } else {
           b.el.innerHTML = `<button class="btn-save js-save" type="button">＋ Save this setup to my plan</button>
             <span class="r-save-note">One setup at a time — kept only in your browser until you save it. <a href="/my-plan">your data, not ours</a>.</span>`;
-          b.el.querySelector('.js-save').addEventListener('click', () => {
+          b.el.querySelector('.js-save').addEventListener('click', async () => {
             const curRung = plannedSetupRung();
             const curLabel = plannedSetupLabel();
             if (curLabel && curRung && curRung !== b.rung) {
-              if (!confirm(`Replace your current planned setup — ${curLabel} — with ${b.label}?`)) return;
+              const ok = await confirmDialog({
+                title: 'Replace your planned setup?',
+                message: `You already have “${curLabel}” saved. Replace it with “${b.label}”?`,
+                emphasis: [curLabel, b.label],
+                confirmText: 'Replace', cancelText: 'Keep current',
+              });
+              if (!ok) return;
             }
             savePlannedSetup({
               rung: b.rung, label: b.label, tier: b.tier, source: b.source,

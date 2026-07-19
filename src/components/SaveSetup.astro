@@ -8,6 +8,7 @@ const { rung, label, tier = '', source = 'ladder' } = Astro.props;
 
 <script>
   import { savePlannedSetup, plannedSetupRung, plannedSetupLabel } from '../data/plan.js';
+  import { confirmDialog } from '../data/ui-dialog.js';
 
   function paint(band) {
     const rung = band.dataset.rung;
@@ -17,11 +18,17 @@ const { rung, label, tier = '', source = 'ladder' } = Astro.props;
     }
     band.innerHTML = `<button class="js-save-setup save-setup-btn" type="button">＋ Save this setup to my plan</button>
       <span class="save-setup-note">One setup at a time — saving replaces your current one. Kept only in your browser. <a href="/my-plan">Your plan →</a></span>`;
-    band.querySelector('.js-save-setup').addEventListener('click', () => {
+    band.querySelector('.js-save-setup').addEventListener('click', async () => {
       const label = band.dataset.label, tier = band.dataset.tier, source = band.dataset.source;
       const curRung = plannedSetupRung(), curLabel = plannedSetupLabel();
       if (curLabel && curRung && curRung !== rung) {
-        if (!confirm(`Replace your current planned setup — ${curLabel} — with ${label}?`)) return;
+        const ok = await confirmDialog({
+          title: 'Replace your planned setup?',
+          message: `You already have “${curLabel}” saved. Replace it with “${label}”?`,
+          emphasis: [curLabel, label],
+          confirmText: 'Replace', cancelText: 'Keep current',
+        });
+        if (!ok) return;
       }
       savePlannedSetup({ rung, label, tier, source });
       paint(band);

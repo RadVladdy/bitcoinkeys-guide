@@ -44,6 +44,7 @@ import Base from '../layouts/Base.astro';
   import { getRung } from '../data/ladder.js';
   import { checklistLabels, checklistCount } from '../data/checklist.js';
   import { getSession, setSession, clearSession } from '../data/nostr-session.js';
+  import { confirmDialog } from '../data/ui-dialog.js';
 
   const el = document.getElementById('plan-body');
   function esc(s) { const d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
@@ -216,12 +217,13 @@ import Base from '../layouts/Base.astro';
       }
     });
 
-    document.getElementById('p-clear').addEventListener('click', () => {
-      if (confirm('Clear your saved plan from this browser? This can\'t be undone (download it first if you want to keep it).')) {
-        clearLocal();
-        toast('Plan cleared', '');
-        render();
-      }
+    document.getElementById('p-clear').addEventListener('click', async () => {
+      const ok = await confirmDialog({
+        title: 'Clear your saved plan?',
+        message: 'This removes it from this browser and can’t be undone. Download it first if you want to keep a copy.',
+        confirmText: 'Clear plan', cancelText: 'Keep it', danger: true,
+      });
+      if (ok) { clearLocal(); toast('Plan cleared', ''); render(); }
     });
 
     wireImport('p-import');
