@@ -145,7 +145,7 @@ import Base from '../layouts/Base.astro';
         <span class="r-k mono">${label}</span>
         ${container}
         ${rec.walletNote ? `<p class="r-devnote">${esc(rec.walletNote)}</p>` : ''}
-        <a class="r-compare" href="/wallets">Compare all 7 devices →</a>
+        <a class="r-compare" href="/wallets">Compare all 11 devices →</a>
       </div>`;
     }
     // category-only (learning / collaborative — walletNote may hold intentional HTML)
@@ -174,6 +174,28 @@ import Base from '../layouts/Base.astro';
     </div>`;
   }
 
+  // The multisig FORK: two equal paths (DIY self-sovereign vs collaborative), side
+  // by side, each with its honest trade-off. Never a funnel. saveControl is passed
+  // in so each path gets its own "save to my plan" band.
+  function forkHtml(fork, tier, saveControl) {
+    const cards = fork.paths.map((p) => {
+      const isLead = p.key === fork.lead;
+      return `<div class="r-path${isLead ? ' lead' : ''}">
+        ${isLead ? `<span class="r-path-tag mono">Leans to your answers</span>` : ''}
+        <h3 class="r-path-label">${esc(p.label)}</h3>
+        <p class="r-path-essence">${esc(p.essence)}</p>
+        <div class="r-tradeoff"><span class="r-k mono">The trade-off</span><p>${esc(p.tradeoff)}</p></div>
+        ${p.inheritanceNote ? `<div class="r-inherit"><span class="r-k mono">Self-custodied inheritance</span><p>${esc(p.inheritanceNote)}</p></div>` : ''}
+        ${walletCard(p, false, 0)}
+        <div class="r-checklist">${checklistHtml(p, null)}</div>
+        ${p.vendors ? vendorsBlock(p.vendors) : ''}
+        <a class="r-how2" href="/ladder/${esc(p.rungSlug)}">Read the ${esc(p.rungLabel)} walkthrough →</a>
+        ${saveControl(p.rungSlug, p.label, tier, 'quiz-fork-' + p.key)}
+      </div>`;
+    }).join('<div class="r-or mono">— or —</div>');
+    return `<p class="r-leadnote">${esc(fork.leadNote)}</p><div class="r-paths">${cards}</div>`;
+  }
+
   function renderResult() {
     renderProgress();
     elCard.hidden = true;
@@ -187,15 +209,16 @@ import Base from '../layouts/Base.astro';
       `<div class="r-save" data-rung="${esc(rung)}" data-label="${esc(label)}" data-tier="${esc(tier || '')}" data-source="${source}"></div>`;
 
     elResult.innerHTML = `
-      <div class="r-card">
+      <div class="r-card${primary.fork ? ' is-fork' : ''}">
         <p class="r-tier mono">1st choice · ${esc(primary.tier)}</p>
         <h2 class="r-headline">Your setup: ${esc(primary.headline)}</h2>
         <p class="r-why">${primary.why}</p>
+        ${primary.fork ? forkHtml(primary.fork, primary.tier, saveControl) : `
         ${primary.holdback ? `<div class="r-holdback"><span class="r-k mono">Why not more?</span><p>${primary.holdback}</p></div>` : ''}
         ${walletCard(primary, adaptive, sel)}
         <div class="r-checklist" id="r-checklist">${checklistHtml(primary, adaptive ? devs[sel] : null)}</div>
         ${primaryHasVendors ? vendorsBlock(primary.vendors) : ''}
-        ${saveControl(primary.rungSlug, primary.headline, primary.tier, 'quiz-primary')}
+        ${saveControl(primary.rungSlug, primary.headline, primary.tier, 'quiz-primary')}`}
       </div>
       ${secondary ? `<div class="r-card secondary">
         <p class="r-tier mono muted">2nd choice · where you'd go next</p>
@@ -299,6 +322,21 @@ import Base from '../layouts/Base.astro';
   #quiz .r-k { display: block; color: var(--faint); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.4rem; }
   #quiz .r-holdback { border-left: 3px solid var(--warn); background: var(--warn-dim); border-radius: 0.5rem; padding: 0.9rem 1.1rem; margin: 0 0 1.2rem; }
   #quiz .r-holdback p { margin: 0; font-size: 0.92rem; color: var(--muted); }
+  /* The multisig fork — two EQUAL paths (self-sovereign DIY vs collaborative). Both
+     cards share the same treatment so neither reads as "the answer"; the lead gets only
+     a small tag. Stacked full-width with an "or" divider so each has room for its list. */
+  #quiz .r-leadnote { color: var(--muted); font-size: 0.95rem; font-style: italic; margin: 0 0 1.2rem; padding-top: 1.1rem; border-top: 1px solid var(--line-soft); }
+  #quiz .r-paths { display: grid; gap: 0; }
+  #quiz .r-path { border: 1px solid var(--line); border-radius: 0.7rem; background: var(--surface); padding: 1.3rem 1.4rem; }
+  #quiz .r-path.lead { border-color: var(--accent); }
+  #quiz .r-or { text-align: center; color: var(--faint); font-size: 0.78rem; letter-spacing: 0.15em; padding: 0.8rem 0; }
+  #quiz .r-path-tag { display: inline-block; color: var(--accent); background: var(--accent-soft); border-radius: 0.4rem; padding: 0.15rem 0.55rem; font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.55rem; }
+  #quiz .r-path-label { font-size: 1.18rem; margin: 0 0 0.5rem; line-height: 1.25; }
+  #quiz .r-path-essence { color: var(--text); font-size: 0.96rem; margin: 0 0 0.9rem; }
+  #quiz .r-tradeoff { border-left: 3px solid var(--faint); background: var(--raise); border-radius: 0.5rem; padding: 0.8rem 1rem; margin: 0 0 0.9rem; }
+  #quiz .r-tradeoff p { margin: 0; font-size: 0.9rem; color: var(--muted); }
+  #quiz .r-inherit { border-left: 3px solid var(--safe); background: var(--safe-dim); border-radius: 0.5rem; padding: 0.8rem 1rem; margin: 0 0 0.9rem; }
+  #quiz .r-inherit p { margin: 0; font-size: 0.9rem; color: var(--muted); }
   #quiz .r-wallet { border-top: 1px solid var(--line-soft); padding-top: 1.1rem; margin-bottom: 1.1rem; }
   #quiz .r-wallet p { margin: 0 0 0.5rem; }
   #quiz .r-devs { list-style: none; margin: 0 0 0.6rem; padding: 0; display: grid; gap: 0.5rem; }

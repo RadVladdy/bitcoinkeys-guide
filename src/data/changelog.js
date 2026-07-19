@@ -10,6 +10,12 @@
 export const changelog = [
   {
     date: '2026-07-19',
+    type: 'feature',
+    title: 'The quiz now leans toward self-sovereignty — no funnel to services',
+    detail: 'Added a question about how you feel about a company ever holding one of your keys, and changed the multisig outcome: instead of routing you to collaborative custody, the quiz now presents two equal paths — do-it-yourself self-sovereign multisig vs. collaborative custody — each with its honest trade-off (full responsibility vs. trusting an outside institution and its privacy cost). Self-custody leads by default; a service only leads if you explicitly ask for that help. Where heirs are involved, the DIY path notes that a fully self-custodied inheritance plan is achievable, no company in the loop.',
+  },
+  {
+    date: '2026-07-19',
     type: 'price',
     title: 'Trezor Safe 3 dropped $79 → $59',
     detail: 'Trezor cut the Safe 3’s price from $79 to $59 — a permanent reduction, verified on trezor.io. That makes the budget Trezor an even stronger first hardware wallet, and lowers the entry cost of a single-signature setup on the ladder to $59. Jade Plus ($169) and BitBox02 ($137) were re-checked at the same time and are unchanged.',

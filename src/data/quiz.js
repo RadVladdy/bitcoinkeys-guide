@@ -58,6 +58,17 @@ export const questions = [
       { value: 'technical', label: "I'm technical and want maximum control" },
     ],
   },
+  {
+    id: 'sovereignty',
+    type: 'single',
+    q: 'How do you feel about a company ever holding one of your keys?',
+    help: "Some setups lean on a Bitcoin service as a safety net; the most private, sovereign setups involve no company at all. Neither is wrong — it's a real trade-off, and your answer shapes what we recommend.",
+    options: [
+      { value: 'pure',      label: 'No third party — I want pure self-custody, maximum privacy, no one to ask permission' },
+      { value: 'lean-self', label: "I lean self-reliant, but I'd consider help if it clearly lowers my risk" },
+      { value: 'open-help', label: "I'd welcome a trusted service holding a backup key if it makes me safer or simpler" },
+    ],
+  },
 ];
 
 // Bitcoin-only collaborative-custody services (verified 2026-07-16). Shown when
@@ -126,6 +137,75 @@ const STEP = {
   separate:   { text: 'Store the backup separate from the device — ideally a second location', howto: 'physical-security' },
 };
 
+// ── The multisig FORK ───────────────────────────────────────────────────────
+// When the threat model calls for 2-of-3 multisig, we NEVER funnel to a service.
+// We present two EQUAL paths — do-it-yourself self-sovereign multisig vs.
+// collaborative custody — with the honest trade-off on each. The site's goal is
+// sovereign, private self-custody, so DIY leads by default; collaborative leads
+// ONLY when the user explicitly welcomes help AND isn't technical. Either way,
+// both paths always render, side by side.
+function multisigFork(a, sharedNeed) {
+  const { tech } = a;
+  const sovereignty = a.sovereignty || 'lean-self';
+  const lead = (sovereignty === 'open-help' && tech !== 'technical') ? 'collab' : 'diy';
+
+  const diy = {
+    key: 'diy',
+    label: 'Do it yourself — self-sovereign multisig',
+    rungSlug: 'multisig', rungLabel: 'Do-it-yourself multisig (2-of-3)',
+    essence: 'You — and, if you like, people you trust — hold all three keys. No company, no ID checks, no one who can freeze your coins or even see what you hold. This is the most private, most sovereign way to hold Bitcoin.',
+    tradeoff: 'The trade-off is responsibility. You buy devices from two different vendors, back up every key and the wallet descriptor (the map of your keys), test recovery yourself, and act as your own support desk. Done carefully it’s rock-solid — done carelessly it adds ways to lose access.',
+    wallets: [DEV.coldcard, DEV.bitbox],
+    walletNote: 'Use two DIFFERENT vendors (like these) so one vendor’s bug can’t sink all your keys. The Coldcard Q’s keyboard and clear menus make driving a multisig signing session the least fiddly — and if you already started single-sig on one, you don’t need new hardware to get here.',
+    inheritanceNote: sharedNeed
+      ? 'A fully self-custodied inheritance plan is entirely achievable here — your heirs recover from the keys plus a plain-English guide, with no company in the loop. It takes deliberate planning, but sovereignty and a real estate plan are not a trade-off you have to make.'
+      : null,
+    checklist: [
+      { text: 'Read the multisig walkthrough end-to-end before buying anything', howto: 'choose-a-wallet' },
+      { text: 'Buy 2–3 devices from TWO different vendors (directly from each)', howto: 'choose-a-wallet' },
+      STEP.offline,
+      { text: 'Back up EACH key’s seed on metal, stored in separate locations', howto: 'back-up-your-seed' },
+      { text: 'Back up the wallet descriptor (the map of your keys) — without it the keys can’t be reassembled', howto: 'back-up-your-seed' },
+      STEP.testRecover,
+      ...(sharedNeed ? [{ text: 'Write your heirs a plain-English recovery guide and store it with the estate documents', howto: 'inheritance' }] : []),
+      STEP.smallFirst,
+    ],
+  };
+
+  const collab = {
+    key: 'collab',
+    label: 'Share the load — collaborative custody',
+    rungSlug: 'collaborative', rungLabel: 'Collaborative custody (2-of-3)',
+    essence: 'A Bitcoin-only service (or a trusted partner) holds one of the three keys as a safety net. There’s far less for you to run, and recovery — including for your heirs — is built in by design.',
+    tradeoff: 'The trade-off is trust and privacy. You’re bringing an outside institution into your setup: most require ID verification (KYC), which ties your identity to your holdings, and most charge an ongoing fee. They can never move your coins alone — but they are now part of your plan, and can see it.',
+    walletNote: '<strong>Choose your service first — it comes before the hardware.</strong> Each service lists the devices it supports, and some (like Bitkey) send you one.',
+    checklist: [
+      { text: 'Choose your service or co-signer FIRST — a Bitcoin-only collaborative-custody service (see below) and/or a trusted partner', howto: 'choose-a-wallet' },
+      { text: 'Get your hardware key(s) from the service’s supported list — some (like Bitkey) send you the device', howto: 'choose-a-wallet' },
+      STEP.offline,
+      { text: 'Back up each key you control on metal, in separate locations', howto: 'back-up-your-seed' },
+      { text: 'Back up the wallet descriptor (the map of your keys) somewhere safe', howto: 'back-up-your-seed' },
+      STEP.testRecover,
+      { text: 'Document the recovery plainly for whoever needs it — partner or heirs', howto: 'inheritance' },
+      STEP.smallFirst,
+    ],
+    vendors: collaborativeVendors,
+  };
+
+  const paths = lead === 'collab' ? [collab, diy] : [diy, collab];
+  const leadNote = lead === 'collab'
+    ? 'Your answers suggest the collaborative path may be the easier fit — but the fully self-sovereign path is open to you too, and it’s the more private of the two. Both are laid out equally below; the choice is yours.'
+    : 'Your answers lean self-reliant, so we’ve put the do-it-yourself path first — but both are genuinely valid. The only real question is who holds the third key.';
+
+  return {
+    tier: 'Tier 2–3', rungSlug: paths[0].rungSlug, rungLabel: paths[0].rungLabel,
+    headline: 'Multisig (2-of-3) — your call on who holds the third key',
+    why: 'You’ve reached the level where a <strong>2-of-3 multisig</strong> is the right protection: three keys exist, any two together can move or recover your coins, so no single key that’s lost, stolen, or coerced can touch them — and losing any one key isn’t fatal. There are two honest ways to get there, and the only real question is <strong>who holds the third key.</strong>',
+    fork: { lead, leadNote, paths },
+    holdback: null,
+  };
+}
+
 // ── PRIMARY recommendation (uses your TOP-ranked worry) ─────────────────────
 function primaryRec(a) {
   const { stakes, recovery, worry, tech } = a;
@@ -152,47 +232,7 @@ function primaryRec(a) {
   const wantsMultisig = stakes === 'lifechanging' ||
     (stakes === 'serious' && (recovery === 'heirs' || worry === 'targeted' || worry === 'self-loss'));
 
-  if (wantsMultisig) {
-    const selfRun = tech === 'technical' && stakes === 'lifechanging';
-    if (selfRun) {
-      return {
-        tier: 'Tier 3 — advanced', rungSlug: 'multisig', rungLabel: 'Do-it-yourself multisig (2-of-3)',
-        headline: 'Self-run multisig (2-of-3)',
-        why: 'At life-changing stakes and with the skills to run it, multisig removes the single point of failure: two of three keys sign, so no one lost, stolen, or coerced key can move your coins — and losing any one key isn’t fatal. Use devices from two different vendors so one vendor’s bug can’t sink all your keys.',
-        wallets: [DEV.coldcard, DEV.bitbox],
-        walletNote: 'Use two DIFFERENT vendors (like these) so one vendor’s bug can’t sink all your keys. The Coldcard Q’s keyboard and clear menus make driving a multisig signing session the least fiddly — and if you already started single-sig on one, you don’t need new hardware to get here.',
-        checklist: [
-          { text: 'Read the multisig walkthrough end-to-end before buying anything', howto: 'choose-a-wallet' },
-          { text: 'Buy 2–3 devices from TWO different vendors (directly from each)', howto: 'choose-a-wallet' },
-          STEP.offline,
-          { text: 'Back up EACH key’s seed on metal, stored in separate locations', howto: 'back-up-your-seed' },
-          { text: 'Back up the wallet descriptor (the map of your keys) — without it the keys can’t be reassembled', howto: 'back-up-your-seed' },
-          STEP.testRecover,
-          ...(sharedNeed ? [{ text: 'Write your heirs a plain-English recovery guide and store it with the estate documents', howto: 'inheritance' }] : []),
-          STEP.smallFirst,
-        ],
-        holdback: 'Only because you told us you’re technical and the stakes are life-changing. If DIY multisig ever feels like too much to run reliably, collaborative custody (a service holds one key) gives you most of the safety with far less to maintain.',
-      };
-    }
-    return {
-      tier: 'Tier 2–3', rungSlug: 'collaborative', rungLabel: 'Collaborative custody (2-of-3, a partner or service co-signs)',
-      headline: 'Collaborative custody (2-of-3)',
-      why: `Your stakes are high${sharedNeed ? ' and someone else needs to be able to recover it' : ''}${worry === 'self-loss' ? ', and your real worry is losing access yourself' : ''} — which is exactly what collaborative custody solves. You hold keys, a partner or a Bitcoin-only service holds another, and any two of three can recover. No single lost key is fatal, no memorized secret to forget, and it builds inheritance in by design — without the burden of running multisig yourself.`,
-      wallets: null,
-      walletNote: '<strong>Choose your service first — it comes before the hardware.</strong> Collaborative-custody services specify which hardware wallets they support, and some (like Bitkey) send you the device. Pick a service below, then use a supported device from its list — no need to choose a wallet in advance.',
-      checklist: [
-        { text: 'Choose your service or co-signer FIRST — a Bitcoin-only collaborative-custody service (see below) and/or a trusted partner', howto: 'choose-a-wallet' },
-        { text: 'Get your hardware key(s) from the service’s supported list — some (like Bitkey) send you the device', howto: 'choose-a-wallet' },
-        STEP.offline,
-        { text: 'Back up each key you control on metal, in separate locations', howto: 'back-up-your-seed' },
-        { text: 'Back up the wallet descriptor (the map of your keys) somewhere safe', howto: 'back-up-your-seed' },
-        STEP.testRecover,
-        { text: 'Document the recovery plainly for whoever needs it — partner or heirs', howto: 'inheritance' },
-        STEP.smallFirst,
-      ],
-      holdback: 'We did NOT send you to do-it-yourself multisig on purpose — at your comfort level, collaborative custody gives you the same "no single point of failure" without the ongoing burden of running it all yourself.',
-    };
-  }
+  if (wantsMultisig) return multisigFork(a, sharedNeed);
 
   if ((worry === 'theft' || worry === 'targeted') && worry !== 'self-loss') {
     const powerDevice = tech === 'technical' || tech === 'careful';
@@ -241,6 +281,18 @@ function secondaryRec(a, primary) {
   const slug = primary.rungSlug;
   const S = (rungSlug, rungLabel, headline, when) => ({ rungSlug, rungLabel, headline, when });
 
+  // The multisig fork is already the top of the ladder — the step-up is more keys /
+  // more resilience, kept self-sovereign by default (only mention insurance if they
+  // didn't insist on pure self-custody).
+  if (primary.fork) {
+    if (a.sovereignty === 'pure') {
+      return S('multisig', '3-of-5 multisig', 'Spread the keys wider (3-of-5)',
+        'As holdings grow, a self-run 3-of-5 across separate locations tolerates more lost or stolen keys before anything is at risk — the same self-sovereign technology as your 2-of-3, just more keys and more resilience. No company required.');
+    }
+    return S('multisig', '3-of-5 or an insured vault', 'Spread wider — or add insurance',
+      'As holdings grow, a 3-of-5 across more locations adds resilience; or, if you leaned collaborative, an insured vault (AnchorWatch, backed by Lloyd’s of London) is a real backstop for large holdings. More protection, more to manage.');
+  }
+
   if (slug === 'single-sig') {
     // If a theft/coercion worry is anywhere in the ranking → passphrase; else if
     // someone else needs to recover → collaborative; else the natural next layer.
@@ -249,15 +301,15 @@ function secondaryRec(a, primary) {
         `If ${second === 'targeted' ? 'coercion' : 'someone finding your seed'} becomes your bigger worry, add a passphrase so a found seed alone can’t spend your coins. Only take this on once you’re confident you can back the passphrase up as carefully as the seed.`);
     }
     if (a.recovery !== 'just-me') {
-      return S('collaborative', 'Collaborative custody (2-of-3)', 'Move to collaborative custody',
-        'When your stack grows or you want inheritance handled cleanly, collaborative custody adds a second signer so no single lost key is fatal — and builds recovery for your heirs in by design.');
+      return S('multisig', '2-of-3 multisig', 'Step up to 2-of-3 multisig',
+        'When your stack grows or you want inheritance handled cleanly, 2-of-3 multisig means no single lost key is fatal. You can run it yourself — fully self-sovereign, no company — or let a Bitcoin service hold one key; the quiz lays out both, equally, when you get there.');
     }
     return S('passphrase', 'Single-sig + passphrase', 'Add a passphrase (the "25th word")',
       'The natural next layer as your stack grows: a passphrase means a found or photographed seed alone can’t spend your coins. Back it up as carefully as the seed.');
   }
   if (slug === 'passphrase') {
-    return S('collaborative', 'Collaborative custody (2-of-3)', 'Step up to collaborative multisig',
-      'As the stakes climb, multisig beats a passphrase: two of three keys sign, so no single lost, stolen, or forgotten key is fatal — and a passphrase’s "forget it and it’s gone" risk disappears. Collaborative custody gets you there without running it all yourself.');
+    return S('multisig', '2-of-3 multisig', 'Step up to 2-of-3 multisig',
+      'As the stakes climb, multisig beats a passphrase: two of three keys sign, so no single lost, stolen, or forgotten key is fatal — and a passphrase’s "forget it and it’s gone" risk disappears. Run it yourself for full sovereignty, or share one key with a Bitcoin service — your call.');
   }
   if (slug === 'collaborative') {
     if (a.tech === 'technical') {
@@ -277,7 +329,8 @@ function secondaryRec(a, primary) {
 }
 
 function withVendors(rec) {
-  if (rec && rec.rungSlug === 'collaborative') rec.vendors = collaborativeVendors;
+  // Forks carry their vendors inside the collaborative path, not at the top level.
+  if (rec && !rec.fork && rec.rungSlug === 'collaborative') rec.vendors = collaborativeVendors;
   return rec;
 }
 
