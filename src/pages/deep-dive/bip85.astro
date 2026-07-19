@@ -34,7 +34,17 @@ import '../../styles/demo.css';
         <div class="words master" id="master"></div>
         <p class="demo-cap" style="text-align:center;margin:1.1rem 0 0.4rem">Each child below is a full, independent 12-word wallet seed — derived from the master, never stored:</p>
         <div id="children"></div>
-        <button class="btn-more" id="more" type="button">+ derive another child</button>
+        <div class="idx-pick">
+          <label class="idx-lbl mono" for="idx-in">Try any index — pick a number, get its wallet</label>
+          <div class="idx-row">
+            <span class="idx-hash mono">child #</span>
+            <input type="number" id="idx-in" min="0" max="2147483647" step="1" value="7" inputmode="numeric" aria-label="BIP-85 child index" />
+            <button class="btn-idx" id="idx-go" type="button">Derive its 12 words →</button>
+          </div>
+          <p class="idx-msg mono" id="idx-msg" hidden></p>
+          <p class="idx-hint">Every number is a completely different, valid wallet — and the <em>same</em> number always gives the <em>same</em> words. That's the trick: back up one master, and child&nbsp;#5 (or&nbsp;#500) is always there to re-derive.</p>
+        </div>
+        <button class="btn-more" id="more" type="button">+ derive the next one in order</button>
         <div class="callout safe" style="margin-top:1.2rem">
           <span class="label">Why this matters</span>
           <p style="margin:0">You only ever back up <strong>one</strong> seed — the master. Need a fresh wallet? Derive child #7.
@@ -70,37 +80,70 @@ import '../../styles/demo.css';
   }
   const $ = (id) => document.getElementById(id);
   const esc = (s) => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
-  let master = null, count = 0;
+  const MAX_IDX = 2147483647;   // 2³¹−1 — BIP-85 uses a hardened index
+  let master = null;
+  const derived = new Map();    // index -> the rendered card element (dedupe + determinism demo)
 
   // BIP-85 → a 12-word child seed at an index (verified against the spec test vector)
   function child(index) {
-    const { HDKey, hmac, sha512, entropyToMnemonic, wordlist } = libs;
+    const { hmac, sha512, entropyToMnemonic, wordlist } = libs;
     const path = `m/83696968'/39'/0'/12'/${index}'`;
     const k = master.derive(path).privateKey;
     const ent = hmac(sha512, new TextEncoder().encode('bip-entropy-from-k'), k).slice(0, 16);
     return { path, words: entropyToMnemonic(ent, wordlist) };
   }
-  function addChild() {
-    const c = child(count);
+  function renderChild(index, picked) {
+    if (derived.has(index)) return derived.get(index);
+    const c = child(index);
     const el = document.createElement('div');
-    el.className = 'child';
-    el.innerHTML = `<div class="child-head"><span class="child-n mono">child #${count}</span><span class="child-path mono">${esc(c.path)}</span></div>
+    el.className = 'child' + (picked ? ' picked' : '');
+    el.innerHTML = `<div class="child-head"><span class="child-n mono">child #${index}</span><span class="child-path mono">${esc(c.path)}</span></div>
       <div class="words small">${c.words.split(' ').map((w, i) => `<span class="word"><span class="wi">${i + 1}</span>${esc(w)}</span>`).join('')}</div>`;
     $('children').appendChild(el);
-    count++;
+    derived.set(index, el);
+    return el;
+  }
+  function flash(el) {
+    el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  function idxMsg(text, kind) {
+    const m = $('idx-msg'); m.hidden = false; m.textContent = text;
+    m.className = 'idx-msg mono' + (kind ? ' ' + kind : '');
+  }
+  function pickIndex() {
+    const n = Number($('idx-in').value.trim());
+    if (!Number.isInteger(n) || n < 0 || n > MAX_IDX) {
+      idxMsg(`Enter a whole number from 0 to ${MAX_IDX.toLocaleString()}.`, 'err');
+      return;
+    }
+    if (derived.has(n)) {
+      flash(derived.get(n));
+      idxMsg(`child #${n} is already below — and the words are identical. Same number, same wallet, every time.`, 'ok');
+      return;
+    }
+    flash(renderChild(n, true));
+    idxMsg(`↑ child #${n} — a brand-new 12-word wallet from the same master.`, 'ok');
+  }
+  function nextInOrder() {
+    let n = 0; while (derived.has(n)) n++;
+    flash(renderChild(n, false));
   }
   async function generate() {
-    const { generateMnemonic, mnemonicToSeedSync, wordlist, HDKey } = await loadLibs();
+    const { generateMnemonic, mnemonicToSeedSync, wordlist } = await loadLibs();
     const m = generateMnemonic(wordlist, 128);
-    master = HDKey.fromMasterSeed(mnemonicToSeedSync(m));
+    master = libs.HDKey.fromMasterSeed(mnemonicToSeedSync(m));
     $('master').innerHTML = m.split(' ').map((w, i) => `<span class="word"><span class="wi">${i + 1}</span>${esc(w)}</span>`).join('');
-    $('children').innerHTML = ''; count = 0;
-    addChild(); addChild(); addChild();
+    $('children').innerHTML = ''; derived.clear();
+    renderChild(0); renderChild(1);
+    $('idx-msg').hidden = true;
     $('intro').hidden = true; $('result').hidden = false;
   }
   $('go').addEventListener('click', () => { $('go').disabled = true; generate().catch((e) => { $('go').disabled = false; console.error(e); }); });
   $('regen').addEventListener('click', () => generate());
-  $('more').addEventListener('click', () => addChild());
+  $('more').addEventListener('click', nextInOrder);
+  $('idx-go').addEventListener('click', pickIndex);
+  $('idx-in').addEventListener('keydown', (e) => { if (e.key === 'Enter') pickIndex(); });
 </script>
 
 <style>
@@ -109,6 +152,24 @@ import '../../styles/demo.css';
   .btn-more { display: block; margin: 0.9rem auto 0; font-family: var(--sans); font-size: 0.88rem; font-weight: 600; cursor: pointer;
     color: var(--accent); background: var(--accent-soft); border: 1px solid var(--accent-dim); border-radius: 0.5rem; padding: 0.5rem 1rem; }
   .btn-more:hover { border-color: var(--accent); }
+  /* Pick-any-index control — the interactive heart of the demo. */
+  .idx-pick { margin-top: 1.3rem; border: 1px solid var(--accent-dim); border-radius: 0.7rem; background: var(--accent-soft); padding: 1rem 1.1rem; }
+  .idx-lbl { display: block; color: var(--accent); font-size: 0.74rem; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.6rem; }
+  .idx-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+  .idx-hash { color: var(--faint); font-size: 0.95rem; }
+  #idx-in { width: 8rem; font-family: var(--mono); font-size: 1rem; color: var(--text); background: var(--bg);
+    border: 1px solid var(--line); border-radius: 0.45rem; padding: 0.5rem 0.6rem; }
+  #idx-in:focus { outline: none; border-color: var(--accent); }
+  .btn-idx { font-family: var(--sans); font-size: 0.88rem; font-weight: 700; cursor: pointer; color: var(--accent-ink);
+    background: var(--accent); border: none; border-radius: 0.5rem; padding: 0.55rem 0.9rem; }
+  .btn-idx:hover { filter: brightness(1.06); }
+  .idx-hint { color: var(--muted); font-size: 0.85rem; margin: 0.7rem 0 0; line-height: 1.5; }
+  .idx-msg { font-size: 0.85rem; margin: 0.7rem 0 0; }
+  .idx-msg.ok { color: var(--safe); }
+  .idx-msg.err { color: var(--warn); }
+  #children .child.picked { border-color: var(--accent); }
+  #children .child.flash { animation: idx-flash 1.1s ease-out; }
+  @keyframes idx-flash { 0% { box-shadow: 0 0 0 2px var(--accent); } 100% { box-shadow: 0 0 0 2px transparent; } }
   .cta-row { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.2rem; }
   .btn { display: inline-flex; align-items: center; background: var(--accent); color: var(--accent-ink); font-weight: 700;
     font-family: var(--mono); font-size: 0.9rem; padding: 0.65rem 1rem; border-radius: 0.6rem; text-decoration: none; }

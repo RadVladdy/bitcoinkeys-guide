@@ -11,6 +11,12 @@ export const changelog = [
   {
     date: '2026-07-19',
     type: 'feature',
+    title: 'BIP-85 demo: type any index and watch its wallet appear',
+    detail: 'The “one seed to rule them all” demonstration now lets you type any child number — 5, 7, 500 — and it derives that wallet’s 12 words on the spot. Ask for the same number twice and it shows you the words are identical: the whole point of BIP-85, that you back up one master and re-derive any child, on demand, forever.',
+  },
+  {
+    date: '2026-07-19',
+    type: 'feature',
     title: 'Save to Nostr sits right beside “download my plan” — and remembers you',
     detail: 'Saving your plan to your own Nostr is now one of the options in the same place as the file download — no hunting for a separate section. The button drops you straight to where you connect your signer, and once you’re signed in your profile picture shows top-right like a login, so a return visit knows it’s you. It stays encrypted to your key; a downloaded file is still the most private option, and Nostr never sees your key or your plan.',
   },
