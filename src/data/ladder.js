@@ -41,7 +41,7 @@ export const ladder = [
     solves: 'A found or photographed seed is no longer enough to steal your coins. Plausible deniability.',
     introduces: 'A new way to lose everything — forget the passphrase and the funds are gone, even with the seed.',
     built: true,
-    whatItIs: 'Exactly rung 1, plus a passphrase you choose when you set up the wallet. The seed phrase on its own opens one wallet — a <em>decoy</em>. The seed phrase <strong>plus</strong> the passphrase opens a different, hidden wallet — your real one. The passphrase is sometimes called the “25th word.”',
+    whatItIs: 'Exactly rung 1, plus a passphrase you choose when you set up the wallet. The seed phrase on its own opens one wallet — a <em>decoy</em>. The seed phrase <strong>plus</strong> the passphrase opens a different, hidden wallet — your real one. The passphrase is sometimes called the “25th word.” <a href="/deep-dive/passphrase">Watch a passphrase open a different wallet →</a>',
     gains: [
       '<strong>Protection against a found seed.</strong> A metal backup someone discovers, a photographed seed, a seed pulled off a compromised device — none of them alone can spend your real funds.',
       '<strong>Plausible deniability.</strong> The decoy wallet doesn’t look like a decoy. Under coercion you can hand over the seed and the (small) decoy wallet without revealing the real one.',
@@ -76,7 +76,7 @@ export const ladder = [
     solves: 'Removes the single point of failure entirely. One key can be lost OR stolen and you’re still safe.',
     introduces: 'Six-plus items to manage, the wallet descriptor to protect, and real operational complexity.',
     built: true,
-    whatItIs: 'A wallet made of several keys where more than one is needed to sign — most commonly <strong>2-of-3</strong>: three keys, any two together can spend. Each key ideally lives on its own hardware device, from a <em>different</em> manufacturer, all held by you. The keys live in different places (a common split: home, a bank safe-deposit box, and a trusted family member or second property). This is the first rung that genuinely removes single points of failure for personal-scale holdings.',
+    whatItIs: 'A wallet made of several keys where more than one is needed to sign — most commonly <strong>2-of-3</strong>: three keys, any two together can spend. Each key ideally lives on its own hardware device, from a <em>different</em> manufacturer, all held by you. The keys live in different places (a common split: home, a bank safe-deposit box, and a trusted family member or second property). This is the first rung that genuinely removes single points of failure for personal-scale holdings. <a href="/deep-dive/multisig">Tap through a live 2-of-3 wallet →</a>',
     gains: [
       '<strong>No single point of failure.</strong> Losing any one key, or one location, or trusting any one vendor, no longer risks your coins.',
       '<strong>Full sovereignty.</strong> No company is involved. Nothing to freeze, fail, or subpoena.',
@@ -188,7 +188,7 @@ export const shamirNote = {
 
 export const bip85 = {
   name: 'BIP-85 — the orthogonal simplifier',
-  note: 'BIP-85 sits beside the ladder rather than on it: it derives many child seeds from one master, cutting how many backups you keep. Useful at any rung — but it concentrates failure on that one master, which must then be protected at the level of everything derived from it.',
+  note: 'BIP-85 sits beside the ladder rather than on it: it derives many child seeds from one master, cutting how many backups you keep. Useful at any rung — but it concentrates failure on that one master, which must then be protected at the level of everything derived from it. <a href="/deep-dive/bip85">See one master spawn child seeds →</a>',
 };
 
 export function getRung(slug) {

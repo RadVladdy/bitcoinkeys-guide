@@ -19,7 +19,7 @@ export const glossary = [
   },
   {
     "term": "BIP-85",
-    "def": "A feature that lets one master <em>seed phrase</em> generate many separate child seed phrases on demand. It means you can back up just one phrase and derive others from it, instead of storing many unrelated backups."
+    "def": "A feature that lets one master <em>seed phrase</em> generate many separate child seed phrases on demand. It means you can back up just one phrase and derive others from it, instead of storing many unrelated backups. <a href=\"/deep-dive/bip85\">See it in action →</a>"
   },
   {
     "term": "Block explorer",
@@ -83,7 +83,7 @@ export const glossary = [
   },
   {
     "term": "Multisig",
-    "def": "A setup that requires several keys to approve a spend, such as 2 of 3, instead of just one. It protects you because losing or having one key stolen doesn't put your Bitcoin at risk."
+    "def": "A setup that requires several keys to approve a spend, such as 2 of 3, instead of just one. It protects you because losing or having one key stolen doesn't put your Bitcoin at risk. <a href=\"/deep-dive/multisig\">See it in action →</a>"
   },
   {
     "term": "Open-source firmware",
@@ -91,7 +91,7 @@ export const glossary = [
   },
   {
     "term": "Passphrase (25th word)",
-    "def": "An extra secret word you add on top of your <em>seed phrase</em> for another layer of protection. Even someone who finds your written seed can't reach your Bitcoin without it, but if you forget it your funds are gone forever."
+    "def": "An extra secret word you add on top of your <em>seed phrase</em> for another layer of protection. Even someone who finds your written seed can't reach your Bitcoin without it, but if you forget it your funds are gone forever. <a href=\"/deep-dive/passphrase\">See it in action →</a>"
   },
   {
     "term": "PayJoin",
@@ -127,7 +127,7 @@ export const glossary = [
   },
   {
     "term": "Seed phrase",
-    "def": "A list of 12 or 24 simple words that is the master backup of your entire wallet. Anyone who has it can take your Bitcoin, so write it on paper or metal and never type it into a website or store it online."
+    "def": "A list of 12 or 24 simple words that is the master backup of your entire wallet. Anyone who has it can take your Bitcoin, so write it on paper or metal and never type it into a website or store it online. <a href=\"/deep-dive/seed\">Watch one get made →</a>"
   },
   {
     "term": "Self-custody",
