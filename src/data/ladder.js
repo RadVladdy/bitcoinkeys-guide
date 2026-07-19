@@ -120,7 +120,7 @@ export const ladder = [
     solves: 'Multisig security with a partner who can help your heirs recover. Sovereign recovery keeps you in control.',
     introduces: 'A third party in the loop and an annual fee. Sovereign recovery is the make-or-break criterion.',
     built: true,
-    whatItIs: 'The same 2-of-3 setup as rung 3 — but one of the three keys is held by a collaborative-custody company (Unchained, Casa, Nunchuk, The Bitcoin Adviser, and others). They hold one key and help coordinate spending, recovery, and inheritance. They <strong>cannot move your funds</strong> — they only hold one of three, and you hold the other two. You keep unilateral control. What you outsource is complexity, not custody.',
+    whatItIs: 'The same 2-of-3 setup as rung 3 — but one of the three keys is held by a collaborative-custody company (Unchained, Nunchuk, AnchorWatch, The Bitcoin Adviser, and others). They hold one key and help coordinate spending, recovery, and inheritance. They <strong>cannot move your funds</strong> — they only hold one of three, and you hold the other two. You keep unilateral control. What you outsource is complexity, not custody.',
     gains: [
       '<strong>Much less to manage.</strong> Typically five items instead of seven — for many holders, the difference between “manageable” and “overwhelming.”',
       '<strong>Convenient spending.</strong> Sign with one key, ask the partner to co-sign; your second key stays untouched in its secure spot.',
@@ -139,7 +139,7 @@ export const ladder = [
     },
     providers: [
       { name: 'Unchained', note: 'White-glove partnership; documented inheritance protocols; attorney coordination.' },
-      { name: 'Casa', note: 'Multi-key architecture and tools first; lighter partner role.' },
+      { name: 'AnchorWatch', note: 'Insured 2-of-3 (Lloyd’s of London); you keep your own keys — built for larger holdings.' },
       { name: 'Nunchuk', note: 'Sovereignty and minimum trust; minimal disclosure (“don’t rely on us”).' },
       { name: 'The Bitcoin Adviser', note: 'Estate-planning end; multisig as infrastructure for a broader inheritance plan.' },
     ],

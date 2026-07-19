@@ -75,7 +75,7 @@ export const collaborativeVendors = [
 // Device options are always given as a PAIR of equal good fits — never a single
 // funnel. "No best device, only fit-to-purpose." Prices render from wallets.js.
 const DEV = {
-  jade:     { name: 'Blockstream Jade Core', why: 'genuinely good on a budget, simple, Bitcoin-only (connects by USB/Bluetooth — no on-device camera)' },
+  jade:     { name: 'Blockstream Jade', why: 'genuinely good on a budget, simple, Bitcoin-only (connects by USB/Bluetooth — no on-device camera)' },
   passport: { name: 'Foundation Passport Prime', why: 'a polished, US-assembled, independently audited security platform — a big touchscreen with a keyboard for easy passphrase entry, and Bitcoin multisig up to 15 keys (it also stores 2FA codes, passkeys and files, so it’s more device than a pure Bitcoin signer, at $349)' },
   bitbox:   { name: 'BitBox02 (BTC-only)', why: 'Swiss, minimalist, fully open-source — an excellent multisig component' },
   coldcard: { name: 'Coldcard Q',          why: 'the physical keyboard and clear menus make it the friendliest to operate — and it’s buy-once: the same device covers single-sig, a passphrase, and multisig, so you never re-buy as you climb (Bitcoin-only; premium price)' },
