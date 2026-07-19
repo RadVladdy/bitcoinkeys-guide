@@ -12,6 +12,9 @@
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.2.1",
+    "@scure/bip32": "^2.2.0",
+    "@scure/bip39": "^2.2.0",
+    "@scure/btc-signer": "^2.2.0",
     "astro": "^4.16.18",
     "nostr-tools": "^2.23.12"
   }

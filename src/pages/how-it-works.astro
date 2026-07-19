@@ -38,6 +38,7 @@ import Diagram from '../components/Diagram.astro';
     </p>
 
     <Diagram name="seed-to-words" caption="Your key is a huge random number. The words are the same key, written so a human can copy it." />
+    <p class="deeper"><strong>Deeper dive:</strong> <a href="/deep-dive/seed">watch a seed get created, one step at a time →</a> — a throwaway seed, generated safely in your browser.</p>
 
     <h2>3 · A “wallet” is a configuration of keys</h2>
     <p>
@@ -111,6 +112,8 @@ import Diagram from '../components/Diagram.astro';
 
 <style>
   .lead-sep { border: 0; border-top: 1px solid var(--line-soft); max-width: 46ch; margin: 1.4rem 0 1.6rem; }
+  .deeper { font-size: 0.92rem; color: var(--muted); margin: -0.6rem 0 1.6rem; }
+  .deeper a { color: var(--accent); }
   .prose :global(ul) { padding-left: 1.3rem; }
   .prose :global(li) { margin: 0.5rem 0; }
   .next h2 { margin-top: 2.4rem; }
