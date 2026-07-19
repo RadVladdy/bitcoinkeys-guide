@@ -1,0 +1,101 @@
+---
+import Base from '../layouts/Base.astro';
+import { changelog } from '../data/changelog.js';
+import { walletsVerified } from '../data/wallets.js';
+
+const typeMeta = {
+  price:    { label: 'Price', cls: 'price' },
+  device:   { label: 'Devices', cls: 'device' },
+  spec:     { label: 'Specs', cls: 'spec' },
+  security: { label: 'Security', cls: 'security' },
+  feature:  { label: 'New', cls: 'feature' },
+  content:  { label: 'Content', cls: 'content' },
+};
+const fmtDate = (d) => new Date(d + 'T00:00:00Z').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
+---
+<Base
+  title="What's changed — the freshness log · BitcoinKeys.guide"
+  description="Every substantive update to BitcoinKeys.guide, newest first — prices re-checked, devices added, specs corrected. We verify our facts on a schedule and tell you exactly what changed."
+>
+  <section class="prose">
+    <p class="eyebrow">Verify, don't trust — including us</p>
+    <h1>What's <span class="accent">changed</span></h1>
+    <p class="lead">
+      A self-custody guide is only as good as how current it is. Prices move, devices get discontinued, new models ship.
+      So we re-check the facts on a schedule and write down exactly what changed — no silent edits, no pretending the page
+      was always right.
+    </p>
+    <div class="freshness-stamp">
+      <span class="fs-dot" aria-hidden="true"></span>
+      <span>Wallet prices &amp; specs last verified against vendor stores on <strong>{fmtDate(walletsVerified)}</strong></span>
+    </div>
+  </section>
+
+  <section>
+    <ol class="timeline">
+      {changelog.map((e) => {
+        const m = typeMeta[e.type] || { label: e.type, cls: 'content' };
+        return (
+          <li class="tl-item">
+            <div class="tl-marker" aria-hidden="true"></div>
+            <div class="tl-body">
+              <div class="tl-head">
+                <span class={"tl-type " + m.cls}>{m.label}</span>
+                <time class="tl-date mono" datetime={e.date}>{fmtDate(e.date)}</time>
+              </div>
+              <h2 class="tl-title">{e.title}</h2>
+              <p class="tl-detail">{e.detail}</p>
+            </div>
+          </li>
+        );
+      })}
+    </ol>
+  </section>
+
+  <section class="prose">
+    <div class="callout">
+      <span class="label">How we keep this honest</span>
+      <p style="margin:0">A scheduled checker re-reads each vendor's own store and flags us when a price or spec drifts from what's
+        on this site. A human confirms every change before it's published here — so a bad reading never becomes a wrong
+        recommendation. The <a href="/wallets">wallet comparison</a> carries the same “last verified” date you see above.</p>
+    </div>
+    <p class="cta-row">
+      <a class="btn" href="/wallets">Compare wallets →</a>
+      <a class="btn ghost" href="/principles">Our principles →</a>
+    </p>
+  </section>
+</Base>
+
+<style>
+  .freshness-stamp { display: flex; align-items: center; gap: 0.6rem; background: var(--safe-dim); border: 1px solid var(--safe);
+    border-radius: 0.6rem; padding: 0.7rem 1rem; font-size: 0.9rem; color: var(--text); margin-top: 0.4rem; }
+  .fs-dot { width: 0.6rem; height: 0.6rem; border-radius: 50%; background: var(--safe); flex: none;
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--safe) 60%, transparent); animation: fspulse 2.6s ease-out infinite; }
+  @keyframes fspulse { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--safe) 55%, transparent); } 70%, 100% { box-shadow: 0 0 0 0.5rem transparent; } }
+  @media (prefers-reduced-motion: reduce) { .fs-dot { animation: none; } }
+
+  .timeline { list-style: none; margin: 1.6rem 0 0; padding: 0; position: relative; }
+  .timeline::before { content: ''; position: absolute; left: 0.42rem; top: 0.4rem; bottom: 0.4rem; width: 2px; background: var(--line); }
+  .tl-item { position: relative; padding: 0 0 1.6rem 1.8rem; }
+  .tl-marker { position: absolute; left: 0; top: 0.35rem; width: 0.9rem; height: 0.9rem; border-radius: 50%;
+    background: var(--surface); border: 2px solid var(--accent); }
+  .tl-body { }
+  .tl-head { display: flex; align-items: center; gap: 0.7rem; margin-bottom: 0.35rem; }
+  .tl-type { font-size: 0.66rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+    border-radius: 999px; padding: 0.14rem 0.55rem; border: 1px solid var(--line); }
+  .tl-type.price    { color: var(--accent); background: var(--accent-soft); border-color: color-mix(in srgb, var(--accent) 40%, var(--line)); }
+  .tl-type.device   { color: var(--text); background: var(--surface-2); }
+  .tl-type.spec     { color: var(--warn); background: var(--warn-dim); border-color: color-mix(in srgb, var(--warn) 40%, var(--line)); }
+  .tl-type.security { color: var(--safe); background: var(--safe-dim); border-color: var(--safe); }
+  .tl-type.feature  { color: var(--accent-ink); background: var(--accent); border-color: var(--accent); }
+  .tl-type.content  { color: var(--muted); background: var(--surface-2); }
+  .tl-date { color: var(--faint); font-size: 0.76rem; }
+  .tl-title { font-size: 1.08rem; margin: 0 0 0.3rem; line-height: 1.35; }
+  .tl-detail { margin: 0; color: var(--muted); font-size: 0.92rem; line-height: 1.6; max-width: 60ch; }
+
+  .cta-row { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.2rem; }
+  .btn { display: inline-flex; align-items: center; background: var(--accent); color: var(--accent-ink); font-weight: 700;
+    font-family: var(--mono); font-size: 0.9rem; padding: 0.65rem 1rem; border-radius: 0.6rem; text-decoration: none; }
+  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+  .btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+</style>

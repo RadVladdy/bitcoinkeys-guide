@@ -35,6 +35,7 @@ export const navGroups = [
     links: [
       { href: '/about', label: 'About' },
       { href: '/resources', label: 'Resources' },
+      { href: '/changelog', label: 'What’s changed' },
       { href: '/tip', label: '⚡ Tip the guide' },
     ],
   },
