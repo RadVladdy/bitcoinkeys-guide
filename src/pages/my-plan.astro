@@ -48,6 +48,30 @@ import Base from '../layouts/Base.astro';
   const el = document.getElementById('plan-body');
   function esc(s) { const d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
 
+  // The top "Save to Nostr" action reflects login state: signed in → your avatar +
+  // a direct save; signed out → the ↓ that drops you to the connect panel.
+  function paintNostrActionBtn() {
+    const b = document.getElementById('p-nostr');
+    if (!b) return;
+    const s = getSession();
+    if (s) {
+      const initial = (s.name || (s.npub || 'N').replace(/^npub1/, '') || 'N').slice(0, 1).toUpperCase();
+      b.classList.add('signed-in');
+      b.title = 'Save your plan to Nostr' + (s.name ? ' as ' + s.name : '');
+      b.innerHTML = `<span class="pn-av">${esc(initial)}</span><span>Save to Nostr</span>`;
+      if (s.picture) {
+        const img = document.createElement('img');
+        img.className = 'pn-av'; img.alt = ''; img.referrerPolicy = 'no-referrer';
+        img.addEventListener('load', () => { const fb = b.querySelector('.pn-av'); if (fb) fb.replaceWith(img); });
+        img.src = s.picture;
+      }
+    } else {
+      b.classList.remove('signed-in');
+      b.title = 'Sign in to save your plan to Nostr';
+      b.textContent = '☁ Save to Nostr ↓';
+    }
+  }
+
   function fmtDate(iso) {
     if (!iso) return '';
     try {
@@ -163,17 +187,22 @@ import Base from '../layouts/Base.astro';
       toast(`Downloaded ${PLAN_FILENAME}`, 'ok');
     });
 
-    // "Save to Nostr" — pop the user down to the Nostr panel and focus the entry
-    // (the connect box if not signed in yet, or the Save button if already signed in).
-    document.getElementById('p-nostr').addEventListener('click', () => {
-      document.getElementById('nostr-sec').scrollIntoView({ behavior: 'smooth', block: 'start' });
-      setTimeout(() => {
-        const focusEl = document.getElementById('nz-save')
-          || document.getElementById('nz-bunker-in')
-          || document.getElementById('nz-ext');
-        if (focusEl) focusEl.focus({ preventScroll: true });
-      }, 500);
+    // "Save to Nostr" — context-aware. Signed in → save straight away (no scroll).
+    // Not signed in → drop down to the Nostr panel and focus the connect entry.
+    document.getElementById('p-nostr').addEventListener('click', async () => {
+      if (getSession()) {
+        toast('Saving to Nostr…', 'ok');
+        const ok = await doNostrSave((m, err) => { if (err) toast(m, 'err'); nzStatus(m, err); });
+        if (ok) toast('✓ Saved to Nostr', 'ok');
+      } else {
+        document.getElementById('nostr-sec').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setTimeout(() => {
+          const focusEl = document.getElementById('nz-bunker-in') || document.getElementById('nz-ext');
+          if (focusEl) focusEl.focus({ preventScroll: true });
+        }, 500);
+      }
     });
+    paintNostrActionBtn();
 
     // save notes on blur (explicit-ish — typing then leaving the field)
     const notes = document.getElementById('p-notes-in');
@@ -263,6 +292,22 @@ import Base from '../layouts/Base.astro';
     return session;
   }
 
+  // Save the current plan to Nostr (used by both the panel's Save button AND the top
+  // "Save to Nostr" action once you're signed in). statusFn gets progress/result lines.
+  async function doNostrSave(statusFn) {
+    const say = statusFn || (() => {});
+    const plan = loadLocal() || emptyPlan();
+    if (!planHasContent(plan)) { say('Nothing to save yet — build a plan first (take the quiz, tick the checklist).', true); return false; }
+    try {
+      const signer = await ensureSigner();
+      say('Encrypting and publishing to your relays…');
+      const mod = await loadNostr();
+      const r = await mod.saveToNostr(plan, signer);
+      say(`✓ Saved to Nostr — encrypted, accepted by ${r.ok} of ${r.total} relays.`);
+      return true;
+    } catch (e) { say(e && e.message ? e.message : 'Save failed.', true); return false; }
+  }
+
   function renderNostrDisconnected() {
     const ext = typeof window !== 'undefined' && !!window.nostr;
     nostrUi.innerHTML = `
@@ -331,17 +376,7 @@ import Base from '../layouts/Base.astro';
       img.src = pic;
     }
 
-    document.getElementById('nz-save').addEventListener('click', async () => {
-      const plan = loadLocal() || emptyPlan();
-      if (!planHasContent(plan)) { nzStatus('Nothing to save yet — build a plan first (take the quiz, tick the checklist).', true); return; }
-      try {
-        const signer = await ensureSigner();
-        nzStatus('Encrypting and publishing to your relays…');
-        const mod = await loadNostr();
-        const r = await mod.saveToNostr(plan, signer);
-        nzStatus(`✓ Saved to Nostr — encrypted, accepted by ${r.ok} of ${r.total} relays.`);
-      } catch (e) { nzStatus(e && e.message ? e.message : 'Save failed.', true); }
-    });
+    document.getElementById('nz-save').addEventListener('click', () => doNostrSave(nzStatus));
 
     document.getElementById('nz-load').addEventListener('click', async () => {
       try {
@@ -370,6 +405,23 @@ import Base from '../layouts/Base.astro';
   const rememberedNostr = getSession();
   if (rememberedNostr && rememberedNostr.npub) renderNostrConnected(rememberedNostr.npub, rememberedNostr);
   else renderNostrDisconnected();
+  paintNostrActionBtn();
+
+  // Keep the top action button + panel in sync with sign-in/out from anywhere (the nav
+  // menu, another tab). A sign-out elsewhere resets this page's panel too.
+  window.addEventListener('bkeys-nostr-change', () => {
+    paintNostrActionBtn();
+    if (!getSession()) { if (session && session.close) session.close(); session = null; renderNostrDisconnected(); }
+  });
+
+  // Arriving from the nav's "Sign in with Nostr" (/my-plan#connect-nostr) → drop to the connect box.
+  if (location.hash === '#connect-nostr' && !getSession()) {
+    setTimeout(() => {
+      document.getElementById('nostr-sec').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const f = document.getElementById('nz-bunker-in') || document.getElementById('nz-ext');
+      if (f) f.focus({ preventScroll: true });
+    }, 300);
+  }
 </script>
 
 <style>
@@ -476,6 +528,10 @@ import Base from '../layouts/Base.astro';
   #nostr-ui .nz-kind { color: var(--faint); font-size: 0.74rem; }
   #plan .p-nostr-hint { color: var(--faint); font-size: 0.8rem; margin: 0.7rem 0 0; line-height: 1.5; }
   #plan .p-nostr-hint a { color: var(--accent); }
+  /* Signed-in "Save to Nostr" button → shows your avatar + saves directly. */
+  #plan #p-nostr.signed-in { display: inline-flex; align-items: center; gap: 0.5rem; border-color: var(--accent); color: var(--accent); }
+  #plan #p-nostr .pn-av { width: 1.35rem; height: 1.35rem; border-radius: 50%; object-fit: cover; display: inline-grid; place-items: center;
+    background: var(--accent); color: var(--accent-ink); font-size: 0.72rem; font-weight: 700; flex: 0 0 auto; }
   #nostr-ui .nz-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
   #nostr-ui .nz-off { background: none; border: none; color: var(--muted); font-family: var(--sans); font-size: 0.84rem; cursor: pointer; padding: 0.58rem 0.4rem; }
   #nostr-ui .nz-off:hover { color: var(--danger); }
