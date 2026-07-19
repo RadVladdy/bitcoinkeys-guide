@@ -1,0 +1,150 @@
+---
+import Base from '../../layouts/Base.astro';
+import '../../styles/demo.css';
+---
+<Base
+  title="One seed, endless addresses — the HD tree and the xpub · BitcoinKeys.guide"
+  description="An interactive demonstration of how one Bitcoin seed derives an unlimited tree of addresses, and how an xpub lets someone watch every address without ever being able to spend. Throwaway seed, generated in your browser."
+>
+  <section class="prose">
+    <p class="eyebrow">Deeper dive · a demonstration</p>
+    <h1>One seed, <span class="accent">endless addresses</span></h1>
+    <p class="lead">
+      A single <a href="/glossary#seed-phrase">seed</a> doesn't hold one address — it grows a whole <em>tree</em> of them.
+      That's why your wallet can hand you a fresh address every time without needing a new backup, and why you can share an
+      <strong>xpub</strong> to <em>watch</em> a wallet without ever being able to <em>spend</em> from it. Generate a throwaway
+      seed and climb the tree.
+    </p>
+    <div class="callout danger" role="note">
+      <span class="label">🛑 A demonstration — never your real seed</span>
+      <p style="margin:0">The seed and xpub below are <strong>randomly generated in your browser</strong> and thrown away when you leave.
+        <strong>Never type your own seed words into any website.</strong></p>
+    </div>
+  </section>
+
+  <section>
+    <div class="demo" id="hd-demo">
+      <div id="intro" class="intro">
+        <p class="intro-lead">Make one throwaway seed and watch a tree of addresses grow from it.</p>
+        <button id="go" class="btn-go" type="button">🎲 Generate a throwaway seed</button>
+        <p class="intro-note mono">Runs entirely in your browser · nothing is sent, saved, or logged.</p>
+      </div>
+
+      <div id="result" hidden>
+        <div class="flow" style="align-items:stretch">
+          <div class="fbox"><span class="fh">the master seed (the root of the tree)</span><span class="fv mono" id="seed-hint"></span></div>
+          <span class="farrow" style="text-align:center">↓ derive the account <span class="mono">m/84'/0'/0'</span></span>
+          <div class="fbox"><span class="fh">the account <b class="pfx">xpub</b> — the "watch-only" public master key</span><span class="fv mono xpub" id="xpub"></span></div>
+        </div>
+
+        <p class="demo-cap" style="text-align:center;margin:1.3rem 0 0.6rem">
+          From that one account key, your wallet derives a fresh receive address for each payment:
+        </p>
+        <div class="addr-list" id="recv"></div>
+        <button class="btn-more" id="more" type="button">+ Show 5 more addresses</button>
+
+        <div class="two-notes">
+          <div class="note-card watch">
+            <span class="note-h">👁 What the xpub <em>can</em> do</span>
+            <p>Anyone with this xpub can generate <strong>every address you'll ever receive at</strong> — forever — to build a
+              watch-only wallet, check your balance, or bill you. A fresh address each time also means outsiders can't tell your
+              payments apart at a glance.</p>
+          </div>
+          <div class="note-card cant">
+            <span class="note-h">🔒 What it <em>can't</em> do</span>
+            <p>The xpub holds <strong>no private keys</strong> — it can watch, but it can never <em>spend</em>. Spending needs the
+              seed. (The trade-off: whoever holds your xpub can see all your history, so treat it as private, not secret.)</p>
+          </div>
+        </div>
+
+        <button class="btn-regen" id="regen" type="button">↻ New seed</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="prose">
+    <div class="callout">
+      <span class="label">The takeaway</span>
+      <p style="margin:0">You back up <em>one</em> thing — the seed — and it regrows the entire tree of addresses on any wallet,
+        forever. The xpub is the tree's public half: perfect for a watch-only phone wallet or an accountant, useless to a thief.</p>
+    </div>
+    <p class="cta-row">
+      <a class="btn" href="/deep-dive/seed">← How a seed is born</a>
+      <a class="btn ghost" href="/deep-dive/addresses">Address formats →</a>
+      <a class="btn ghost" href="/deep-dive">All deeper dives →</a>
+    </p>
+  </section>
+</Base>
+
+<script>
+  let libs = null;
+  async function loadLibs() {
+    if (libs) return libs;
+    const [bip39, bip32, btc] = await Promise.all([import('@scure/bip39'), import('@scure/bip32'), import('@scure/btc-signer')]);
+    const en = await import('@scure/bip39/wordlists/english.js');
+    libs = { generateMnemonic: bip39.generateMnemonic, mnemonicToSeedSync: bip39.mnemonicToSeedSync, wordlist: en.wordlist,
+             HDKey: bip32.HDKey, p2wpkh: btc.p2wpkh };
+    return libs;
+  }
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
+
+  let watch = null;   // watch-only HDKey (from xpub, no privates)
+  let shown = 0;
+
+  function addRows(n) {
+    const L = document.getElementById('recv');
+    let html = '';
+    for (let i = shown; i < shown + n; i++) {
+      const addr = window.__hd.p2wpkh(watch.derive('m/0/' + i).publicKey).address;
+      html += `<div class="arow"><span class="apath mono">0/${i}</span><span class="aaddr mono">${esc(addr)}</span></div>`;
+    }
+    L.insertAdjacentHTML('beforeend', html);
+    shown += n;
+  }
+
+  async function generate() {
+    const L = await loadLibs();
+    window.__hd = L;
+    const seed = L.mnemonicToSeedSync(L.generateMnemonic(L.wordlist, 128));
+    const account = L.HDKey.fromMasterSeed(seed).derive("m/84'/0'/0'");
+    const xpub = account.publicExtendedKey;
+    watch = L.HDKey.fromExtendedKey(xpub);   // rebuilt from the xpub → provably no private keys
+    $('seed-hint').textContent = seed.slice(0, 4).reduce((a, b) => a + b.toString(16).padStart(2, '0'), '') + '… (512-bit)';
+    $('xpub').textContent = xpub;
+    $('recv').innerHTML = ''; shown = 0; addRows(3);
+    $('intro').hidden = true; $('result').hidden = false;
+  }
+  $('go').addEventListener('click', () => { $('go').disabled = true; generate().catch((e) => { $('go').disabled = false; console.error(e); }); });
+  $('regen').addEventListener('click', () => generate());
+  $('more').addEventListener('click', () => { if (shown < 30) addRows(5); if (shown >= 30) $('more').disabled = true; });
+</script>
+
+<style>
+  .cta-row { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.2rem; }
+  .btn { display: inline-flex; align-items: center; background: var(--accent); color: var(--accent-ink); font-weight: 700;
+    font-family: var(--mono); font-size: 0.9rem; padding: 0.65rem 1rem; border-radius: 0.6rem; text-decoration: none; }
+  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+  .btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+</style>
+
+<style is:global>
+  #hd-demo .xpub { color: var(--accent); font-size: 0.78rem; word-break: break-all; line-height: 1.5; }
+  #hd-demo .pfx { color: var(--accent); }
+  #recv { display: flex; flex-direction: column; gap: 0.4rem; }
+  #recv .arow { display: flex; gap: 0.7rem; align-items: baseline; background: var(--surface-2); border: 1px solid var(--line);
+    border-radius: 0.45rem; padding: 0.45rem 0.7rem; }
+  #recv .apath { color: var(--faint); font-size: 0.75rem; min-width: 2.6rem; }
+  #recv .aaddr { color: var(--safe); font-size: 0.8rem; word-break: break-all; }
+  .btn-more { display: block; margin: 0.7rem auto 0; background: none; border: 1px solid var(--line); color: var(--muted);
+    font-family: var(--sans); font-size: 0.82rem; cursor: pointer; border-radius: 0.5rem; padding: 0.45rem 0.9rem; }
+  .btn-more:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-more:disabled { opacity: 0.4; cursor: default; }
+  .two-notes { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-top: 1.4rem; }
+  @media (max-width: 620px) { .two-notes { grid-template-columns: 1fr; } }
+  .note-card { border: 1px solid var(--line); border-radius: 0.7rem; padding: 0.9rem 1rem; }
+  .note-card.watch { border-color: color-mix(in srgb, var(--accent) 40%, var(--line)); background: var(--accent-soft); }
+  .note-card.cant { border-color: var(--safe); background: var(--safe-dim); }
+  .note-card .note-h { display: block; font-weight: 700; font-size: 0.9rem; margin-bottom: 0.35rem; }
+  .note-card p { margin: 0; font-size: 0.85rem; line-height: 1.55; color: var(--muted); }
+</style>

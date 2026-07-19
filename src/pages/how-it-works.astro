@@ -25,6 +25,7 @@ import Diagram from '../components/Diagram.astro';
       Hold the key, hold the coins. Lose the key, lose the coins. There’s no bank to call to reset it,
       because there’s no bank — there’s just the key.
     </p>
+    <p class="deeper"><strong>Deeper dive:</strong> <a href="/deep-dive/key-space">see why that key can’t be guessed →</a> — the number of possible keys is so vast it stops feeling like a number.</p>
 
     <h2>2 · The seed words <em>are</em> that key</h2>
     <p>
@@ -74,6 +75,7 @@ import Diagram from '../components/Diagram.astro';
     </p>
 
     <Diagram name="keys-mailbox" caption="Public key = the mail slot anyone can drop coins into (your address). Private key = the only thing that opens the box." />
+    <p class="deeper"><strong>Deeper dive:</strong> <a href="/deep-dive/addresses">see the four address formats one key produces →</a> — why addresses start with <span class="mono">1</span>, <span class="mono">3</span>, <span class="mono">bc1q</span>, or <span class="mono">bc1p</span>. Or <a href="/deep-dive/hd-tree">watch one seed grow a whole tree of them →</a>.</p>
 
     <h2>5 · Signing — proving it’s you without showing the key</h2>
     <p>

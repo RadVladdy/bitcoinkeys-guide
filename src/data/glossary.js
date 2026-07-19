@@ -3,7 +3,7 @@
 export const glossary = [
   {
     "term": "Address",
-    "def": "A string of letters and numbers you give someone so they can send you Bitcoin, like an email address for payments. You can share it freely, but for privacy it's best to use a fresh one each time (see <em>address reuse</em>)."
+    "def": "A string of letters and numbers you give someone so they can send you Bitcoin, like an email address for payments. You can share it freely, but for privacy it's best to use a fresh one each time (see <em>address reuse</em>). <a href=\"/deep-dive/addresses\">See the four address formats →</a>"
   },
   {
     "term": "Address reuse",
@@ -15,7 +15,7 @@ export const glossary = [
   },
   {
     "term": "BIP-39",
-    "def": "The widely used standard that encodes your wallet's master secret as a list of 12 or 24 ordinary words (your <em>seed phrase</em>) — the same secret, written so a human can copy it. Because most wallets follow it, you can restore your Bitcoin on a different brand of wallet if yours breaks."
+    "def": "The widely used standard that encodes your wallet's master secret as a list of 12 or 24 ordinary words (your <em>seed phrase</em>) — the same secret, written so a human can copy it. Because most wallets follow it, you can restore your Bitcoin on a different brand of wallet if yours breaks. It also builds in a checksum that catches most miscopied words. <a href=\"/deep-dive/typo\">See a typo get caught →</a>"
   },
   {
     "term": "BIP-85",
@@ -99,7 +99,7 @@ export const glossary = [
   },
   {
     "term": "Private key",
-    "def": "The secret number that controls your Bitcoin and lets you spend it. Whoever knows it owns the coins, so keeping it secret and backed up is the whole point of self-custody."
+    "def": "The secret number that controls your Bitcoin and lets you spend it. Whoever knows it owns the coins, so keeping it secret and backed up is the whole point of self-custody. It's also so enormous that no one can ever guess it. <a href=\"/deep-dive/key-space\">See why it can't be guessed →</a>"
   },
   {
     "term": "Proof of reserves",
@@ -143,7 +143,7 @@ export const glossary = [
   },
   {
     "term": "SLIP-39 / Shamir",
-    "def": "A backup method that splits your seed into several shares, where you need a chosen number of them (like 3 of 5) to recover. It protects against losing one backup or having one found, without a single all-or-nothing piece of paper."
+    "def": "A backup method that splits your seed into several shares, where you need a chosen number of them (like 3 of 5) to recover. It protects against losing one backup or having one found, without a single all-or-nothing piece of paper. <a href=\"/deep-dive/shamir\">See a secret get split →</a>"
   },
   {
     "term": "Sovereign recovery",
@@ -175,7 +175,7 @@ export const glossary = [
   },
   {
     "term": "Xpub (extended public key)",
-    "def": "A master <em>public key</em> that can generate all of a wallet's receiving addresses without the power to spend. It's what you load into a <em>watch-only wallet</em>, but keep it private since it reveals your full balance and history."
+    "def": "A master <em>public key</em> that can generate all of a wallet's receiving addresses without the power to spend. It's what you load into a <em>watch-only wallet</em>, but keep it private since it reveals your full balance and history. <a href=\"/deep-dive/hd-tree\">See one seed grow a tree →</a>"
   },
   {
     "term": "Zap",

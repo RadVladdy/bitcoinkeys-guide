@@ -1,0 +1,142 @@
+---
+import Base from '../../layouts/Base.astro';
+import '../../styles/demo.css';
+---
+<Base
+  title="Why Bitcoin addresses look different — one key, four formats · BitcoinKeys.guide"
+  description="An interactive demonstration of the four Bitcoin address formats — legacy 1…, nested-segwit 3…, native-segwit bc1q…, and taproot bc1p… — all derived from one throwaway seed generated in your browser."
+>
+  <section class="prose">
+    <p class="eyebrow">Deeper dive · a demonstration</p>
+    <h1>One key, four <span class="accent">address formats</span></h1>
+    <p class="lead">
+      You've probably seen Bitcoin addresses that start with <span class="mono">1</span>, <span class="mono">3</span>,
+      <span class="mono">bc1q</span>, or <span class="mono">bc1p</span> and wondered whether they're different kinds of money.
+      They're not. They're four ways to write down <em>an address for the same wallet</em>. Generate a throwaway seed and watch all four
+      come out of it.
+    </p>
+    <div class="callout danger" role="note">
+      <span class="label">🛑 A demonstration — never your real seed</span>
+      <p style="margin:0">The seed below is <strong>randomly generated in your browser</strong> and thrown away when you leave.
+        <strong>Never type your own seed words into any website — including this one.</strong> There's no input box, on purpose.</p>
+    </div>
+  </section>
+
+  <section>
+    <div class="demo" id="addr-demo">
+      <div id="intro" class="intro">
+        <p class="intro-lead">Make one throwaway seed and see the four address formats it produces.</p>
+        <button id="go" class="btn-go" type="button">🎲 Generate a throwaway seed</button>
+        <p class="intro-note mono">Runs entirely in your browser · nothing is sent, saved, or logged.</p>
+      </div>
+
+      <div id="result" hidden>
+        <div class="fbox" style="max-width:none">
+          <span class="fh">the one throwaway seed behind all four (first &amp; last word shown)</span>
+          <span class="fv mono" id="seed-hint"></span>
+        </div>
+
+        <div class="fmts" id="fmts"></div>
+
+        <p class="demo-cap" style="text-align:center">
+          Same seed, same coins — just four ways your wallet can format a receive address. A modern wallet defaults to
+          <strong>native segwit</strong> (<span class="mono">bc1q</span>) or <strong>taproot</strong> (<span class="mono">bc1p</span>):
+          lower fees, better privacy. The older <span class="mono">1</span> and <span class="mono">3</span> formats still work forever —
+          any wallet can send to any of them.
+        </p>
+
+        <div class="callout" style="margin-top:1.2rem">
+          <span class="label">Why this matters for you</span>
+          <p style="margin:0">If a wallet shows you a <span class="mono">bc1</span> address and an exchange shows you a <span class="mono">3…</span> address,
+            <strong>nothing is wrong</strong> — both are Bitcoin, both are yours if they came from your keys. The format only changes the fee and
+            some privacy details, never <em>whether</em> it's real Bitcoin. (This is different from sending to the
+            <a href="/how-to/wrong-network">wrong network</a>, which is a real mistake.)</p>
+        </div>
+        <button class="btn-regen" id="regen" type="button">↻ New seed</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="prose">
+    <p class="cta-row">
+      <a class="btn" href="/deep-dive/seed">← How a seed is born</a>
+      <a class="btn ghost" href="/glossary#address">Address, defined →</a>
+      <a class="btn ghost" href="/deep-dive">All deeper dives →</a>
+    </p>
+  </section>
+</Base>
+
+<script>
+  let libs = null;
+  async function loadLibs() {
+    if (libs) return libs;
+    const [bip39, bip32, btc] = await Promise.all([import('@scure/bip39'), import('@scure/bip32'), import('@scure/btc-signer')]);
+    const en = await import('@scure/bip39/wordlists/english.js');
+    libs = { generateMnemonic: bip39.generateMnemonic, mnemonicToSeedSync: bip39.mnemonicToSeedSync, wordlist: en.wordlist,
+             HDKey: bip32.HDKey, p2pkh: btc.p2pkh, p2sh: btc.p2sh, p2wpkh: btc.p2wpkh, p2tr: btc.p2tr };
+    return libs;
+  }
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
+
+  const FORMATS = [
+    { key: 'legacy',  name: 'Legacy',        prefix: '1',    path: "m/44'/0'/0'/0/0", tag: 'the original (2009)',
+      note: 'The oldest format. Works everywhere, but costs the most in fees.' },
+    { key: 'nested',  name: 'Nested SegWit', prefix: '3',    path: "m/49'/0'/0'/0/0", tag: 'compatibility (2017)',
+      note: 'SegWit wrapped in an old-style address so ancient wallets can still pay it.' },
+    { key: 'segwit',  name: 'Native SegWit', prefix: 'bc1q', path: "m/84'/0'/0'/0/0", tag: 'the common default (2017)',
+      note: 'Cheaper fees and a built-in typo-catching checksum. Most modern wallets use this.' },
+    { key: 'taproot', name: 'Taproot',       prefix: 'bc1p', path: "m/86'/0'/0'/0/0", tag: 'the newest (2021)',
+      note: 'Best privacy and efficiency; complex spends look like simple ones on-chain.' },
+  ];
+
+  async function generate() {
+    const L = await loadLibs();
+    const seed = L.mnemonicToSeedSync(L.generateMnemonic(L.wordlist, 128));
+    const root = L.HDKey.fromMasterSeed(seed);
+    const addrs = {
+      legacy:  L.p2pkh(root.derive(FORMATS[0].path).publicKey).address,
+      nested:  L.p2sh(L.p2wpkh(root.derive(FORMATS[1].path).publicKey)).address,
+      segwit:  L.p2wpkh(root.derive(FORMATS[2].path).publicKey).address,
+      taproot: L.p2tr(root.derive(FORMATS[3].path).publicKey.slice(1)).address,
+    };
+    // a friendly seed hint without exposing the whole throwaway phrase
+    $('seed-hint').textContent = seed.slice(0, 4).reduce((a, b) => a + b.toString(16).padStart(2, '0'), '') + '… (a 512-bit master seed)';
+    $('fmts').innerHTML = FORMATS.map((f) => {
+      const a = addrs[f.key];
+      const rest = esc(a.slice(f.prefix.length));
+      return `<div class="fmt">
+        <div class="fmt-head"><span class="fmt-name">${f.name}</span><span class="fmt-tag mono">${f.tag}</span></div>
+        <div class="fmt-addr mono"><b class="pfx">${f.prefix}</b>${rest}</div>
+        <div class="fmt-meta"><span class="fmt-path mono">${f.path}</span></div>
+        <div class="fmt-note">${f.note}</div>
+      </div>`;
+    }).join('');
+    $('intro').hidden = true; $('result').hidden = false;
+  }
+  $('go').addEventListener('click', () => { $('go').disabled = true; generate().catch((e) => { $('go').disabled = false; console.error(e); }); });
+  $('regen').addEventListener('click', () => generate());
+</script>
+
+<style>
+  .cta-row { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.2rem; }
+  .btn { display: inline-flex; align-items: center; background: var(--accent); color: var(--accent-ink); font-weight: 700;
+    font-family: var(--mono); font-size: 0.9rem; padding: 0.65rem 1rem; border-radius: 0.6rem; text-decoration: none; }
+  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+  .btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+</style>
+
+<style is:global>
+  #fmts { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin: 1.2rem 0; }
+  @media (max-width: 620px) { #fmts { grid-template-columns: 1fr; } }
+  #fmts .fmt { background: var(--surface-2); border: 1px solid var(--line); border-radius: 0.7rem; padding: 0.9rem 1rem; }
+  #fmts .fmt-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; margin-bottom: 0.5rem; }
+  #fmts .fmt-name { font-weight: 700; font-size: 1rem; }
+  #fmts .fmt-tag { color: var(--faint); font-size: 0.68rem; }
+  #fmts .fmt-addr { font-size: 0.82rem; word-break: break-all; line-height: 1.5; background: var(--bg); border: 1px solid var(--line);
+    border-radius: 0.4rem; padding: 0.5rem 0.6rem; }
+  #fmts .fmt-addr .pfx { color: var(--accent); }
+  #fmts .fmt-meta { margin-top: 0.5rem; }
+  #fmts .fmt-path { color: var(--faint); font-size: 0.72rem; }
+  #fmts .fmt-note { color: var(--muted); font-size: 0.82rem; line-height: 1.5; margin-top: 0.4rem; }
+</style>

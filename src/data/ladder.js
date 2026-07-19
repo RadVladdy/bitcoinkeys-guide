@@ -166,7 +166,7 @@ export const shamirNote = {
   solves: 'No single backup location is a complete secret. Distribute shares across people or places.',
   introduces: 'At recovery the seed is reassembled on one device — a momentary single point. And more parts to track.',
   built: true,
-  whatItIs: 'This isn’t a signing configuration like the rungs — it’s a <strong>backup method</strong>, which is why it sits beside the ladder rather than on it. Instead of one or two complete seed backups, a single seed is mathematically split into several <em>shares</em> — for example, five shares where any three can rebuild the seed, but two or fewer reveal nothing at all. You distribute the shares across locations or trusted people.',
+  whatItIs: 'This isn’t a signing configuration like the rungs — it’s a <strong>backup method</strong>, which is why it sits beside the ladder rather than on it. Instead of one or two complete seed backups, a single seed is mathematically split into several <em>shares</em> — for example, five shares where any three can rebuild the seed, but two or fewer reveal nothing at all. You distribute the shares across locations or trusted people. <a href="/deep-dive/shamir">Split a secret and rebuild it yourself →</a>',
   gains: [
     '<strong>A single found share is useless.</strong> Someone who discovers one share (below the threshold) learns nothing about your seed.',
     '<strong>Redundancy without full copies.</strong> In a 3-of-5 split you can lose two shares entirely and still recover.',
