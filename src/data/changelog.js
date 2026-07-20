@@ -11,6 +11,12 @@ export const changelog = [
   {
     date: '2026-07-19',
     type: 'feature',
+    title: 'The quiz now starts from where you are — your plan as a journey',
+    detail: 'The quiz asks where your Bitcoin is right now (on an exchange, one hardware wallet, a passphrase, multisig…), then frames the recommendation as a path from there: whether you’re one step away, a few steps, already exactly where you should be, or even a little ahead of what your situation needs. It’s encouraging about wherever you are and never tells you to downgrade — a destination only means something once you know your starting point.',
+  },
+  {
+    date: '2026-07-19',
+    type: 'feature',
     title: 'BIP-85 demo: type any index and watch its wallet appear',
     detail: 'The “one seed to rule them all” demonstration now lets you type any child number — 5, 7, 500 — and it derives that wallet’s 12 words on the spot. Ask for the same number twice and it shows you the words are identical: the whole point of BIP-85, that you back up one master and re-derive any child, on demand, forever.',
   },

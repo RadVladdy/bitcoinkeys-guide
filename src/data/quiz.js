@@ -13,6 +13,19 @@
 
 export const questions = [
   {
+    id: 'current',
+    type: 'single',
+    q: 'Where’s your Bitcoin right now?',
+    help: 'This is your starting point — the recommendation is the destination, and we’ll show you the path from here. There’s no wrong answer; most people are near the beginning.',
+    options: [
+      { value: 'pre',           label: 'Nothing yet — it’s on an exchange, or in a phone / software wallet' },
+      { value: 'single-sig',    label: 'One key on a hardware wallet, with a seed backup' },
+      { value: 'passphrase',    label: 'One key + a passphrase (a secret “25th word”)' },
+      { value: 'multisig',      label: 'Multisig I run entirely myself (2-of-3 or 3-of-5, all my own keys)' },
+      { value: 'collaborative', label: 'Multisig where a service holds one key (Unchained, Nunchuk…)' },
+    ],
+  },
+  {
     id: 'stakes',
     type: 'single',
     q: 'How much would losing this Bitcoin hurt?',
@@ -334,9 +347,61 @@ function withVendors(rec) {
   return rec;
 }
 
+// ── "Your journey" — the recommendation is a DESTINATION; frame it from where they
+// are now (Q1). The current setup never changes the target (that's threat-model-driven);
+// it only sets the framing — how far, the encouragement, and the difference. We are
+// deliberately encouraging about wherever they are, and never tell anyone to downgrade.
+const SETUP_STEP = { pre: 0, 'single-sig': 1, passphrase: 2, multisig: 3, collaborative: 4 };
+const STEP_LABEL = {
+  0: 'an exchange or hot wallet',
+  1: 'single-signature cold storage',
+  2: 'single-sig + a passphrase',
+  3: 'self-run multisig (2-of-3)',
+  4: 'collaborative multisig',
+};
+
+function targetStepOf(primary) {
+  if (primary.fork) return 3;                    // the multisig fork = reaching 2-of-3
+  return SETUP_STEP[primary.rungSlug] ?? 1;
+}
+
+function journeyFor(a, primary) {
+  const curStep = SETUP_STEP[a.current];
+  if (curStep == null) return null;              // Q1 not answered → no journey block
+  const targetStep = targetStepOf(primary);
+  const gap = targetStep - curStep;
+  const curLabel = STEP_LABEL[curStep];
+  const targetLabel = STEP_LABEL[targetStep];
+  let kind, headline, message;
+
+  if (curStep === 0) {
+    kind = 'start';
+    headline = 'The best time to start is right now';
+    message = 'Your Bitcoin is somewhere someone else can freeze or lose it. Your first move is the biggest and most valuable one: getting it onto a device where you alone hold the keys. Everything below is that first setup, one step at a time — you don’t have to do it all today.';
+  } else if (gap === 0) {
+    kind = 'there';
+    headline = 'Good news — you’re already right where you should be';
+    message = `Your current setup — ${curLabel} — is exactly what fits your situation. There’s nothing to add; the win now is keeping it healthy. Treat the checklist below as a maintenance pass: test your recovery, confirm your backups, and make sure someone could find them if they needed to.`;
+  } else if (gap < 0) {
+    kind = 'ahead';
+    headline = 'You’re already ahead of what your situation needs';
+    message = `You’re running ${curLabel}, and your answers point to ${targetLabel} as plenty. That’s not a mistake — extra protection is fine, it’s just more to maintain than your situation strictly requires. Nothing to add here; you’re in great shape. And if it ever feels heavier than you want, it’s good to know the simpler setup would also have you covered.`;
+  } else if (gap === 1) {
+    kind = 'one';
+    headline = 'You’re just one step away';
+    message = `You’re already doing the hard part — your Bitcoin is at ${curLabel}. Your situation points one rung further, to ${targetLabel}. It’s a single, well-trodden step; below is exactly what it changes and how to make it.`;
+  } else {
+    kind = 'few';
+    headline = `You’ve got a clear path — about ${gap} steps`;
+    message = `Today you’re at ${curLabel}, and the setup that fits your situation is ${targetLabel}. That’s a few rungs up — very doable, one step at a time, and there’s no rush. Below is the destination and how to get there.`;
+  }
+  return { kind, gap, curStep, targetStep, curLabel, targetLabel, headline, message };
+}
+
 export function recommend(a) {
   const worryArr = Array.isArray(a.worry) ? a.worry : (a.worry ? [a.worry] : ['unsure']);
   const primary = primaryRec({ ...a, worry: worryArr[0] || 'unsure' });
   const secondary = secondaryRec({ ...a, worry: worryArr }, primary);
-  return { primary: withVendors(primary), secondary: withVendors(secondary) };
+  const journey = journeyFor(a, primary);
+  return { primary: withVendors(primary), secondary: withVendors(secondary), journey };
 }
