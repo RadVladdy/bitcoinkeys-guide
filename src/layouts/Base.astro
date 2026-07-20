@@ -30,6 +30,9 @@ const verifiedLabel = verified
   ? new Date(verified + 'T00:00:00Z').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })
   : null;
 ---
+<!doctype html>
+<html lang="en">
+<head>
 <!-- theme is set before paint to avoid a flash -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -63,7 +66,9 @@ const verifiedLabel = verified
     } catch (e) {}
   })();
 </script>
+</head>
 
+<body>
 <Nav />
 
 <main class="wrap">
@@ -142,6 +147,8 @@ const verifiedLabel = verified
     });
   })();
 </script>
+</body>
+</html>
 
 <style>
   main { padding-top: 2.4rem; padding-bottom: 3.5rem; min-height: 60vh; }
