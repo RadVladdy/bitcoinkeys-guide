@@ -47,7 +47,7 @@ import Base from '../layouts/Base.astro';
   } from '../data/plan.js';
   import { getRung } from '../data/ladder.js';
   import { ownedName } from '../data/wallets.js';
-  import { custodianName } from '../data/custodians.js';
+  import { custodianName, custodianBySlug } from '../data/custodians.js';
   import { mountOwnedPicker } from '../data/owned-picker.js';
   import { checklistLabels, checklistCount } from '../data/checklist.js';
   import { getSession, setSession, clearSession } from '../data/nostr-session.js';
@@ -226,6 +226,26 @@ import Base from '../layouts/Base.astro';
           ${recSlugs.map((s) => `<a class="ps-rec-chip" href="/wallets">${esc(ownedName(s))}</a>`).join('')}
           <span class="ps-recs-note">— pick these on the <a href="/wallets">wallet comparison</a>.</span></p>`
       : '';
+    // Custodian-specific device advice for a collaborative plan's user-held keys.
+    let custAdviceHtml = '';
+    if (isCollab && plan.custodian) {
+      const cust = custodianBySlug[plan.custodian];
+      if (cust) {
+        const supports = cust.supports || [];
+        const recNames = (cust.recommends || []).map((s) => ownedName(s));
+        if (!supports.length) {
+          custAdviceHtml = `<p class="ps-recs"><span class="ps-recs-k mono">★ With ${esc(cust.name)}</span>
+            <span class="ps-recs-note">${esc(cust.name)} includes its own device — there's no separate hardware wallet to choose for these keys. <a href="/collaborative">custodian details →</a></span></p>`;
+        } else {
+          const supNames = supports.map((s) => ownedName(s));
+          const supList = supNames.slice(0, 6).join(', ') + (supNames.length > 6 ? ', and more' : '');
+          custAdviceHtml = `<p class="ps-recs"><span class="ps-recs-k mono">★ Devices for your ${esc(cust.name)} keys</span>
+            <span class="ps-recs-note">${esc(cust.name)} works with ${esc(supList)}.</span>
+            ${recNames.length ? `<span class="ps-recs-note">Of those, we'd recommend ${recNames.map((n) => `<a class="ps-rec-chip" href="/wallets">${esc(n)}</a>`).join(' ')} for your keys${recNames.length > 1 ? ' — different brands, so one vendor’s bug can’t affect both' : ''}.</span>` : ''}
+            <span class="ps-recs-note"><a href="/collaborative">See ${esc(cust.name)}’s device support →</a></span></p>`;
+        }
+      }
+    }
     return `
       <div class="ps-road-in">
         <p class="ps-cur ps-plan-lead">Plan: <strong>${esc(planLabel)}</strong> <span class="ps-need mono">${needLabel}</span>${plan.quiz.rung ? ` <a class="ps-mini-link" href="/ladder/${esc(plan.quiz.rung)}">read the walkthrough →</a>` : ''}</p>
@@ -234,6 +254,7 @@ import Base from '../layouts/Base.astro';
         ${sidelineHtml}
         ${footer}
         ${recHtml}
+        ${custAdviceHtml}
         <a class="ps-rework" href="/wallets">✎ Rework devices — compare &amp; add from the wallets page →</a>
       </div>`;
   }
@@ -487,18 +508,33 @@ import Base from '../layouts/Base.astro';
     const mod = await loadNostr();
     if (remembered.kind === 'bunker') {
       // Resume as the SAME client the bunker already approved (see nostr-adapter).
-      // A session without a stored channel key predates this fix and can't resume —
-      // its bunker secret is spent, so a full reconnect would just hang and fail.
-      if (!remembered.bunkerInput || !remembered.clientKey) {
-        throw new Error('Your saved sign-in can’t reconnect — sign out (top right) and connect your bunker again with a fresh bunker:// string.');
+      // If we can't (a pre-fix session with no stored channel key, or the bunker's
+      // relay session has since expired), SELF-HEAL: clear the dead session and drop
+      // the user to the reconnect box — no dead-end error, no hunting for "sign out".
+      if (remembered.bunkerInput && remembered.clientKey) {
+        try {
+          nzStatus('Reconnecting to your signer…');
+          session = await mod.reconnectBunker(remembered.bunkerInput, remembered.clientKey);
+          return session;
+        } catch (e) { /* fall through to the reconnect prompt */ }
       }
-      nzStatus('Reconnecting to your signer…');
-      session = await mod.reconnectBunker(remembered.bunkerInput, remembered.clientKey);
-    } else {
-      nzStatus('Reconnecting your extension…');
-      session = await mod.connectExtension();
+      needsReconnect();
+      throw new Error('Your Nostr connection needs a refresh — paste your bunker link below and connect again, then save.');
     }
+    nzStatus('Reconnecting your extension…');
+    session = await mod.connectExtension();
     return session;
+  }
+
+  // Self-heal a stale/expired bunker session: forget it, show the connect box, focus it.
+  function needsReconnect() {
+    try { if (session && session.close) session.close(); } catch (e) {}
+    session = null;
+    clearSession();
+    renderNostrDisconnected();
+    const sec = document.getElementById('nostr-sec');
+    if (sec) sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setTimeout(() => { const f = document.getElementById('nz-bunker-in') || document.getElementById('nz-ext'); if (f) f.focus({ preventScroll: true }); }, 400);
   }
 
   // Save the current plan to Nostr (used by both the panel's Save button AND the top

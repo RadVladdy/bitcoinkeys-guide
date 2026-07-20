@@ -133,5 +133,18 @@ export const custodianCompare = [
   { key: 'jurisdiction', label: 'Where', type: 'text' },
 ];
 
+// Device support per custodian, in current-catalog slugs (wallets.js), + the picks
+// we'd recommend for the user-held keys. Drives the custodian-specific device advice
+// on /my-plan. Bitkey ships its own device (no bring-your-own). Verified 2026-07-20.
+const _support = {
+  nunchuk: { supports: ['coldcard-q', 'coldcard-mk5', 'passport-prime', 'trezor-safe-3', 'trezor-safe-5', 'trezor-safe-7', 'bitbox02', 'jade-core', 'jade-plus', 'ledger'], recommends: ['coldcard-q', 'bitbox02'] },
+  unchained: { supports: ['coldcard-q', 'coldcard-mk5', 'trezor-safe-3', 'trezor-safe-5', 'trezor-safe-7', 'ledger', 'bitbox02', 'jade-core', 'jade-plus', 'passport-prime'], recommends: ['coldcard-q', 'trezor-safe-5'] },
+  'swan-vault': { supports: ['jade-core', 'jade-plus'], recommends: ['jade-plus'] },
+  anchorwatch: { supports: ['coldcard-q', 'ledger'], recommends: ['coldcard-q', 'ledger'] },
+  'bitcoin-adviser': { supports: ['coldcard-q', 'coldcard-mk5', 'jade-core', 'jade-plus', 'ledger', 'trezor-safe-3', 'trezor-safe-5', 'trezor-safe-7', 'bitbox02', 'passport-prime'], recommends: ['coldcard-q', 'bitbox02'] },
+  bitkey: { supports: [], recommends: [] },
+};
+custodians.forEach((c) => { const s = _support[c.slug]; if (s) { c.supports = s.supports; c.recommends = s.recommends; } });
+
 export const custodianBySlug = Object.fromEntries(custodians.map((c) => [c.slug, c]));
 export function custodianName(slug) { return (custodianBySlug[slug] && custodianBySlug[slug].name) || slug; }
