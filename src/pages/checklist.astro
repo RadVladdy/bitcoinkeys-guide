@@ -7,14 +7,14 @@ const total = checklistCount;
 ---
 <Base
   title="The self-custody checklist · BitcoinKeys.guide"
-  description="A plain-English Bitcoin self-custody checklist: what to do first, what to do next, and what to review every year. Tick items off and save your progress — device-neutral, nothing to sell you."
+  description="A plain-English Bitcoin self-custody checklist: what to do first, what to do next, and what to review every year. Tick items off and your progress saves to your plan (in your browser) — device-neutral, nothing to sell you."
   verified="2026-07-15"
 >
   <section class="prose">
     <p class="eyebrow">Checklist</p>
     <h1>The self-custody <span class="accent">checklist</span></h1>
-    <p class="lead">Everything that matters, in the order that matters — do-first, do-next, and review-yearly. Tick items as you go; when you're ready, save your progress to your own plan.</p>
-    <p class="sub">Each item links to the full how-to. This is the map; the guides are the detail. Nothing is saved until you press <strong>Save my progress</strong> — your data stays in your browser.</p>
+    <p class="lead">Everything that matters, in the order that matters — do-first, do-next, and review-yearly. Tick items as you go; your progress saves to your own plan automatically.</p>
+    <p class="sub">Each item links to the full how-to. This is the map; the guides are the detail. Your ticks are kept <strong>only in your browser</strong> — nothing is ever sent anywhere, and you can clear them any time on <a href="/my-plan">your plan</a>.</p>
   </section>
 
   {groups.map((g) => (
@@ -43,10 +43,9 @@ const total = checklistCount;
 
   <section>
     <div class="savebar" id="savebar">
-      <div class="sb-count"><span id="sb-n">0</span> of {total} done</div>
+      <div class="sb-count"><span id="sb-n">0</span> of {total} done <span class="sb-auto mono" id="sb-auto" hidden>· ✓ saved to your plan</span></div>
       <div class="sb-actions">
-        <button class="btn-save" id="sb-save" type="button">Save my progress</button>
-        <a class="sb-link" href="/my-plan">My plan →</a>
+        <a class="sb-link" href="/my-plan">View your plan →</a>
       </div>
     </div>
     <p class="sb-status mono" id="sb-status" hidden></p>
@@ -66,11 +65,18 @@ const total = checklistCount;
   const checked = {};
   const items = Array.from(document.querySelectorAll('.citem'));
   const elN = document.getElementById('sb-n');
-  const elStatus = document.getElementById('sb-status');
-  const elSave = document.getElementById('sb-save');
+  const elAuto = document.getElementById('sb-auto');
 
   function count() { return Object.keys(checked).length; }
   function refresh() { if (elN) elN.textContent = String(count()); }
+
+  function toast(msg) {
+    const t = document.createElement('div');
+    t.className = 'cl-toast'; t.textContent = msg;
+    document.body.appendChild(t);
+    requestAnimationFrame(() => t.classList.add('show'));
+    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 1800);
+  }
 
   function apply(li, on) {
     const id = li.getAttribute('data-id');
@@ -86,27 +92,20 @@ const total = checklistCount;
   items.forEach((li) => { if (saved[li.getAttribute('data-id')]) apply(li, true); });
   refresh();
 
-  // Whole row is the tap target (≥44px) — not just the small box.
+  // Whole row is the tap target (≥44px) — not just the small box. Each tick AUTO-SAVES
+  // to the plan (browser-only) so nothing you check is ever lost.
   items.forEach((li) => {
     li.addEventListener('click', (e) => {
       if (e.target.closest('a')) return;   // let inline links work
-      apply(li, !li.classList.contains('done'));
+      const nowOn = !li.classList.contains('done');
+      apply(li, nowOn);
       refresh();
-      if (elStatus && !elStatus.hidden) elStatus.hidden = true;
+      saveChecklistSlice(checked);          // persist to the plan on every tick
+      if (elAuto) elAuto.hidden = false;
+      toast(nowOn ? '✓ Saved to your plan' : 'Updated your plan');
     });
   });
-
-  if (elSave) {
-    elSave.addEventListener('click', () => {
-      saveChecklistSlice(checked);
-      if (elStatus) {
-        elStatus.hidden = false;
-        elStatus.textContent = count()
-          ? `✓ Saved — ${count()} of ${items.length} items, kept in this browser. View or download it on your plan.`
-          : `✓ Saved — checklist cleared in your plan.`;
-      }
-    });
-  }
+  if (Object.keys(saved).length && elAuto) elAuto.hidden = false; // already have saved ticks
 </script>
 
 <style>
@@ -142,7 +141,13 @@ const total = checklistCount;
   .btn-save { background: var(--accent); color: var(--accent-ink); border: none; font-family: var(--sans); font-weight: 600; font-size: 0.9rem;
     cursor: pointer; padding: 0.6rem 1.1rem; border-radius: 0.55rem; }
   .btn-save:hover { opacity: 0.9; }
-  .sb-link { color: var(--muted); text-decoration: none; font-size: 0.88rem; }
-  .sb-link:hover { color: var(--accent); }
+  .sb-link { color: var(--accent); text-decoration: none; font-size: 0.88rem; font-weight: 600; }
+  .sb-link:hover { text-decoration: underline; }
   .sb-status { color: var(--safe); font-size: 0.82rem; margin: 0.7rem 0 0; }
+  .sb-auto { color: var(--safe); }
+  .cl-toast { position: fixed; left: 50%; bottom: 1.6rem; transform: translateX(-50%) translateY(1rem);
+    background: var(--surface-2); color: var(--text); border: 1px solid var(--safe); border-radius: 0.6rem;
+    padding: 0.6rem 1.05rem; font-size: 0.9rem; box-shadow: var(--shadow); opacity: 0; z-index: 50;
+    transition: opacity 0.25s, transform 0.25s; }
+  .cl-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
