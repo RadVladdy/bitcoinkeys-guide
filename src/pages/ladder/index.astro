@@ -49,7 +49,7 @@ import { bip85 } from '../../data/ladder.js';
   <section id="whereami" class="whereami">
     <div class="prose">
       <h2>Where am I on the ladder?</h2>
-      <p class="wa-lead">Tell us your setup today. We’ll show you what it covers, where it’s weak, and — honestly — <strong>whether you should climb at all.</strong> Most people are already on the right rung. This runs entirely in your browser; nothing is sent or saved.</p>
+      <p class="wa-lead">Tell us your setup today. We’ll show you what it covers, where it’s weak, and — honestly — <strong>whether you should climb at all.</strong> Most people are already on the right rung. This runs entirely in your browser; where you land is saved to your plan automatically — and nothing is ever sent anywhere.</p>
     </div>
     <div id="wa" aria-live="polite">
       <div id="wa-locate"></div>
@@ -107,7 +107,12 @@ import { bip85 } from '../../data/ladder.js';
     ).join('');
     elLocate.innerHTML = `<div class="wa-card"><h3 class="wa-q">What does your setup look like today?</h3><div class="wa-opts">${opts}</div></div>`;
     elLocate.querySelectorAll('.wa-opt').forEach((b) => {
-      b.addEventListener('click', () => { pickedSlug = b.getAttribute('data-slug'); renderResult(); });
+      b.addEventListener('click', () => {
+        pickedSlug = b.getAttribute('data-slug');
+        saveLadderSlice(pickedSlug);           // auto-save where you are, the moment you pick
+        toast('✓ Saved to your plan');
+        renderResult();
+      });
     });
   }
 
@@ -164,7 +169,6 @@ import { bip85 } from '../../data/ladder.js';
     // pre + rung 6 skip diagnostics → straight to verdict
     if (!qs.length) {
       elResult.innerHTML = `${whereCard}${verdictHtml(pickedSlug)}${saveBandHtml()}${restartHtml()}`;
-      wireSave(pickedSlug);
       wireRestart();
       elResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
       return;
@@ -198,25 +202,24 @@ import { bip85 } from '../../data/ladder.js';
     });
     document.getElementById('wa-see').addEventListener('click', () => {
       document.getElementById('wa-verdict').innerHTML = verdictHtml(pickedSlug) + saveBandHtml();
-      wireSave(pickedSlug);
       document.getElementById('wa-verdict').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     });
     wireRestart();
     elResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
+  // Where you are is auto-saved on pick (above) — this band just confirms it.
   const saveBandHtml = () => `<div class="wa-save" id="wa-save">
-      <button class="wa-save-b" id="wa-save-b">＋ Save my rung to my plan</button>
-      <span class="wa-save-note">Optional. Kept only in your browser until you choose to — <a href="/my-plan">your data, not ours</a>.</span>
+      <span class="wa-saved">✓ Saved to your plan — you're on ${esc(content(pickedSlug).name)}.</span>
+      <a class="wa-saved-link" href="/my-plan">View your plan →</a>
     </div>`;
-  function wireSave(slug) {
-    const band = document.getElementById('wa-save');
-    const btn = document.getElementById('wa-save-b');
-    if (!band || !btn) return;
-    btn.addEventListener('click', () => {
-      saveLadderSlice(slug);
-      band.innerHTML = `<span class="wa-saved">✓ Saved to your plan.</span> <a class="wa-saved-link" href="/my-plan">View or download it →</a>`;
-    });
+
+  function toast(msg) {
+    const t = document.createElement('div');
+    t.className = 'wa-toast'; t.textContent = msg;
+    document.body.appendChild(t);
+    requestAnimationFrame(() => t.classList.add('show'));
+    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 1800);
   }
 
   const restartHtml = () => `<button class="wa-restart" id="wa-restart">← Start over</button>`;
@@ -237,6 +240,11 @@ import { bip85 } from '../../data/ladder.js';
   .whereami { margin-top: 2.2rem; }
   .wa-lead { color: var(--muted); max-width: 46rem; }
   .wa-ns { color: var(--muted); }
+  .wa-toast { position: fixed; left: 50%; bottom: 1.6rem; transform: translateX(-50%) translateY(1rem);
+    background: var(--surface-2); color: var(--text); border: 1px solid var(--safe); border-radius: 0.6rem;
+    padding: 0.6rem 1.05rem; font-size: 0.9rem; box-shadow: var(--shadow); opacity: 0; z-index: 50;
+    transition: opacity 0.25s, transform 0.25s; }
+  .wa-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 
 <!-- The tool's cards/questions are injected by client JS (no scoped attribute),
