@@ -284,9 +284,14 @@ import Base from '../layouts/Base.astro';
     if (!remembered) throw new Error('Not signed in.');
     const mod = await loadNostr();
     if (remembered.kind === 'bunker') {
-      if (!remembered.bunkerInput) throw new Error('Reconnect your bunker to continue — paste the bunker:// string again below.');
-      nzStatus('Reconnecting to your bunker — approve the request in your signer app…');
-      session = await mod.connectBunker(remembered.bunkerInput);
+      // Resume as the SAME client the bunker already approved (see nostr-adapter).
+      // A session without a stored channel key predates this fix and can't resume —
+      // its bunker secret is spent, so a full reconnect would just hang and fail.
+      if (!remembered.bunkerInput || !remembered.clientKey) {
+        throw new Error('Your saved sign-in can’t reconnect — sign out (top right) and connect your bunker again with a fresh bunker:// string.');
+      }
+      nzStatus('Reconnecting to your signer…');
+      session = await mod.reconnectBunker(remembered.bunkerInput, remembered.clientKey);
     } else {
       nzStatus('Reconnecting your extension…');
       session = await mod.connectExtension();
@@ -341,11 +346,14 @@ import Base from '../layouts/Base.astro';
       const npub = npubEncode(session.pubkey);
       nzStatus('Signed in — fetching your profile…');
       const profile = await mod.fetchProfile(session.pubkey).catch(() => ({}));
-      // Remember the login (browser-only, public data). Bunker string kept so a
-      // return visit can save again without re-pasting; cleared on sign-out.
+      // Remember the login (browser-only, public data + our own channel key). The
+      // bunker string AND the client channel key are kept so a return visit resumes
+      // as the same already-approved client (the bunker secret is single-use — a
+      // fresh client can't re-spend it); cleared on sign-out.
       setSession({ kind: session.kind, pubkey: session.pubkey, npub,
         name: profile.name || '', picture: profile.picture || '',
-        bunkerInput: kind === 'bunker' ? input : undefined });
+        bunkerInput: kind === 'bunker' ? input : undefined,
+        clientKey: kind === 'bunker' ? session.clientKey : undefined });
       renderNostrConnected(npub, profile);
     } catch (e) {
       nzStatus(e && e.message ? e.message : 'Could not connect.', true);

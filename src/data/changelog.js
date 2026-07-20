@@ -9,6 +9,12 @@
 // Entry types: 'price' | 'device' | 'spec' | 'security' | 'feature' | 'content'
 export const changelog = [
   {
+    date: '2026-07-20',
+    type: 'feature',
+    title: 'Nostr sign-in now survives your return — fixed the failed save on a second visit',
+    detail: 'If you signed in with a bunker (like Amber), came back later, and tried to save, it failed — the site was redialing your signer as a stranger with an already-used invite. Now it remembers the exact connection your signer approved and resumes it, so a return visit just saves (your signer still approves every request). Also: when a signer refuses, you now see its actual reason instead of a generic error. Verified end-to-end with a real signer on the live site — save and restore both round-trip.',
+  },
+  {
     date: '2026-07-19',
     type: 'security',
     title: 'Nostr save now hides which app it came from',

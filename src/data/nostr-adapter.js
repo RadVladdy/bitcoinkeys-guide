@@ -21,7 +21,7 @@ import { SimplePool } from 'nostr-tools/pool';
 import { BunkerSigner, parseBunkerInput } from 'nostr-tools/nip46';
 import { generateSecretKey } from 'nostr-tools/pure';
 import { sha256 } from '@noble/hashes/sha2.js';
-import { bytesToHex } from '@noble/hashes/utils.js';
+import { bytesToHex, hexToBytes } from '@noble/hashes/utils.js';
 import { normalize } from './plan.js';
 
 export const NOSTR_KIND = 30078;
@@ -95,6 +95,15 @@ function withTimeout(promise, ms, msg) {
   ]);
 }
 
+// NIP-46 bunkers reject with PLAIN STRINGS (e.g. "unauthorized"), not Errors —
+// so the UI's `e.message` came up empty and showed a useless generic line.
+// Wrap every signer call so whatever the bunker says reaches the user readably.
+function asError(promise) {
+  return promise.catch((e) => {
+    throw e instanceof Error ? e : new Error(`The signer refused: ${String(e)}`);
+  });
+}
+
 /** Connect via a NIP-46 bunker (paste a bunker:// string, e.g. from Amber). */
 export async function connectBunker(input) {
   const bp = await parseBunkerInput(input);
@@ -111,17 +120,51 @@ export async function connectBunker(input) {
     onauth: (url) => { try { window.open(url, '_blank', 'noopener,noreferrer'); } catch (e) {} },
   });
   await withTimeout(
-    signer.connect(),
+    asError(signer.connect()),
     120000,
     'Timed out waiting for the bunker. Open your signer app (e.g. Amber), approve the request, and try again.'
   );
-  const pubkey = await withTimeout(signer.getPublicKey(), 30000, 'Connected, but the signer did not return your key. Try again.');
+  const pubkey = await withTimeout(asError(signer.getPublicKey()), 30000, 'Connected, but the signer did not return your key. Try again.');
   return {
     kind: 'bunker',
     pubkey,
-    signEvent: (evt) => signer.signEvent(evt),
-    nip44Encrypt: (pk, pt) => signer.nip44Encrypt(pk, pt),
-    nip44Decrypt: (pk, ct) => signer.nip44Decrypt(pk, ct),
+    // The ephemeral CLIENT channel key (ours, not the user's). The bunker authorized
+    // this exact client — persist it so a return visit can resume as the SAME client
+    // instead of a stranger re-spending the (single-use) bunker secret.
+    clientKey: bytesToHex(clientKey),
+    signEvent: (evt) => asError(signer.signEvent(evt)),
+    nip44Encrypt: (pk, pt) => asError(signer.nip44Encrypt(pk, pt)),
+    nip44Decrypt: (pk, ct) => asError(signer.nip44Decrypt(pk, ct)),
+    close: () => { try { signer.close(); } catch (e) {} },
+  };
+}
+
+/**
+ * Resume a previously-approved bunker connection on a later visit. Rebuilds the
+ * signer from the SAME client channel key the bunker already authorized and skips
+ * the `connect` handshake entirely (its secret is single-use — re-sending it is
+ * why return-visit saves used to fail). getPublicKey() doubles as the liveness
+ * check: an authorized client gets an answer; a dead pairing times out.
+ */
+export async function reconnectBunker(input, clientKeyHex) {
+  const bp = await parseBunkerInput(input);
+  if (!bp || !bp.pubkey) throw new Error('Saved bunker connection is unreadable — sign out and connect again.');
+  const signer = BunkerSigner.fromBunker(hexToBytes(clientKeyHex), bp, {
+    pool: pool(),
+    onauth: (url) => { try { window.open(url, '_blank', 'noopener,noreferrer'); } catch (e) {} },
+  });
+  const pubkey = await withTimeout(
+    asError(signer.getPublicKey()),
+    25000,
+    'Your signer did not answer — open your signer app (e.g. Amber), then try again. If it keeps failing, sign out and connect fresh.'
+  );
+  return {
+    kind: 'bunker',
+    pubkey,
+    clientKey: clientKeyHex,
+    signEvent: (evt) => asError(signer.signEvent(evt)),
+    nip44Encrypt: (pk, pt) => asError(signer.nip44Encrypt(pk, pt)),
+    nip44Decrypt: (pk, ct) => asError(signer.nip44Decrypt(pk, ct)),
     close: () => { try { signer.close(); } catch (e) {} },
   };
 }

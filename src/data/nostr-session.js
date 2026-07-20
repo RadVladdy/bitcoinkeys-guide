@@ -4,12 +4,17 @@
 // here" — so we can show a login avatar top-right and let the user pick up
 // where they left off. Consistent with the site's model: this lives ONLY in
 // the user's own localStorage, is never sent to any server, and is cleared on
-// disconnect. It holds PUBLIC data only (npub + public profile name/picture)
-// plus, for a bunker, the connection string so a return visit can re-establish
-// the signer without re-pasting (the bunker still approves every signature —
-// the nsec never touches the browser). No secret key is ever stored.
+// disconnect. It holds PUBLIC data (npub + public profile name/picture) plus,
+// for a bunker, what a return visit needs to resume the signer without
+// re-pasting: the connection string AND our own client CHANNEL key (the
+// throwaway key this site introduced itself to the bunker with — required
+// because the bunker authorized that exact client, and its connect secret is
+// single-use, so a fresh client can never redial). The channel key is NOT the
+// user's key; the user's nsec never touches the browser, and the bunker still
+// gates every request.
 //
-// Shape: { kind: 'extension'|'bunker', pubkey, npub, name, picture, bunkerInput? }
+// Shape: { kind: 'extension'|'bunker', pubkey, npub, name, picture,
+//          bunkerInput?, clientKey? }
 
 const KEY = 'bkeys.nostr.session';
 export const NOSTR_CHANGE_EVENT = 'bkeys-nostr-change';
