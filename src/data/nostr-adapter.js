@@ -20,10 +20,29 @@
 import { SimplePool } from 'nostr-tools/pool';
 import { BunkerSigner, parseBunkerInput } from 'nostr-tools/nip46';
 import { generateSecretKey } from 'nostr-tools/pure';
+import { sha256 } from '@noble/hashes/sha2.js';
+import { bytesToHex } from '@noble/hashes/utils.js';
 import { normalize } from './plan.js';
 
 export const NOSTR_KIND = 30078;
+// Legacy plaintext d-tag (kept only as a restore fallback for anything saved before the
+// opaque locator below). Do NOT save under this anymore.
 export const NOSTR_D_TAG = 'bitcoinkeys.guide/plan';
+
+// Per-user OPAQUE d-tag. The plan's replaceable event lives at a d-tag derived from the
+// user's own pubkey, not a shared plaintext string — so nobody can scan relays with
+// {kinds:[30078], "#d":["bitcoinkeys.guide/plan"]} to harvest a list of this guide's
+// users (the $5-wrench target list). It is deterministic (recomputable on restore from
+// the connected pubkey), so it stays key-safe — no signer secret needed.
+//   HONEST LIMIT: this is NOT a secret locator. The derivation is open-source and keyed on
+//   the PUBLIC key, so an observer who already has YOUR pubkey could recompute it and
+//   confirm you use this app. It defeats mass enumeration, not a targeted lookup — the
+//   event is still authored by your key, so use a key you're comfortable associating with
+//   self-custody. A truly secret locator needs a deterministic secret from the signer,
+//   which NIP-07/NIP-46 don't cleanly expose (see _Product-Ideas-Research 2026-07-19).
+export function planDTag(pubkey) {
+  return bytesToHex(sha256(new TextEncoder().encode(`${pubkey}|bitcoinkeys.guide/plan|v1`)));
+}
 
 // Plain, widely-federated relays. (Per hard-won hub lessons: avoid
 // relay.getalby.com/v1 — its auth/path has silently blocked clients.)
@@ -136,7 +155,7 @@ export async function saveToNostr(plan, signer, relays = DEFAULT_RELAYS) {
   const unsigned = {
     kind: NOSTR_KIND,
     created_at: Math.floor(Date.now() / 1000),
-    tags: [['d', NOSTR_D_TAG]],
+    tags: [['d', planDTag(pk)]],   // opaque, per-user locator (not the plaintext app name)
     content: ciphertext,
     pubkey: pk,
   };
@@ -153,10 +172,12 @@ export async function saveToNostr(plan, signer, relays = DEFAULT_RELAYS) {
  */
 export async function loadFromNostr(signer, relays = DEFAULT_RELAYS) {
   const pk = signer.pubkey;
+  // Query the opaque locator AND the legacy plaintext d-tag (so a plan saved before the
+  // switch still restores), newest across both wins.
   const events = await pool().querySync(relays, {
     kinds: [NOSTR_KIND],
     authors: [pk],
-    '#d': [NOSTR_D_TAG],
+    '#d': [planDTag(pk), NOSTR_D_TAG],
   });
   if (!events || !events.length) return null;
   const newest = events.reduce((a, b) => (b.created_at > a.created_at ? b : a));

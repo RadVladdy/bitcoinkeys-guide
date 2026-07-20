@@ -10,6 +10,12 @@
 export const changelog = [
   {
     date: '2026-07-19',
+    type: 'security',
+    title: 'Nostr save now hides which app it came from',
+    detail: 'When you save your plan to Nostr, we now store it under a scrambled tag derived from your own key instead of a plain “bitcoinkeys.guide” label — so no one can scan the relays to build a list of this guide’s users. The contents were already encrypted; this closes the last bit of metadata that advertised the app. (Your key still signs the event, so someone who already has your public key could confirm it — use a key you’re comfortable associating with self-custody, or just keep a downloaded file, which shares nothing.)',
+  },
+  {
+    date: '2026-07-19',
     type: 'feature',
     title: 'The quiz now starts from where you are — your plan as a journey',
     detail: 'The quiz asks where your Bitcoin is right now (on an exchange, one hardware wallet, a passphrase, multisig…), then frames the recommendation as a path from there: whether you’re one step away, a few steps, already exactly where you should be, or even a little ahead of what your situation needs. It’s encouraging about wherever you are and never tells you to downgrade — a destination only means something once you know your starting point.',
