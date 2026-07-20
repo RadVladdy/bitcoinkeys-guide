@@ -11,6 +11,12 @@ export const changelog = [
   {
     date: '2026-07-20',
     type: 'feature',
+    title: 'New: compare collaborative custody services — honestly',
+    detail: 'A new “Compare custodians” page puts the six Bitcoin-only collaborative-custody services (Unchained, Nunchuk, Swan Vault, AnchorWatch, Bitkey, The Bitcoin Adviser) side by side — the same honest, no-affiliate treatment as the wallet comparison. Each is scored on the questions that matter: no-KYC, whether you can recover your coins on your own if they vanish (open-source recovery — the most important one), insurance, fees, and minimums. Facts verified against each provider’s own site plus independent sources. And if the quiz points you to collaborative custody, your plan now has a “service key” slot: pick your custodian right from the comparison and it slots into your roadmap alongside the two keys you hold.',
+  },
+  {
+    date: '2026-07-20',
+    type: 'feature',
     title: 'Rework the devices in your plan · encrypt your plan file · a slimmer page',
     detail: 'Your plan’s key slots are now fully editable on “My plan”: take a wallet out of a slot, add one you own, or swap them — extra wallets you own sit off to the side as spare (with a Retire option), and “Rework devices” takes you to the comparison page to add more. You can also now download your plan as a password-encrypted file (click “Encrypt & download,” choose a password — the file is unreadable without it; there’s no recovery, and it holds no seed words). The “Save to Nostr” button now says “Save to Nostr (encrypted)” to be clear it’s private, and once you’re signed in to Nostr the long explainer collapses so the page stays lean.',
   },

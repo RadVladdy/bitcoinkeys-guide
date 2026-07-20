@@ -28,6 +28,7 @@ export function emptyPlan() {
     device: null, // last chosen device name
     owned: [], // slugs of hardware wallets the user already HAS (0..n) — their status inventory
     ownPrivate: false, // user chose "I'd rather not say" for owned hardware
+    custodian: null, // chosen collaborative-custody service slug (collaborative plans only)
     checklist: {}, // { [itemId]: true }
     notes: '',
   };
@@ -73,6 +74,7 @@ export function normalize(obj) {
     device: typeof obj.device === 'string' ? obj.device : null,
     owned: strList(obj.owned),
     ownPrivate: obj.ownPrivate === true,
+    custodian: typeof obj.custodian === 'string' ? obj.custodian : null,
     checklist,
     notes: typeof obj.notes === 'string' ? obj.notes.slice(0, 2000) : '',
   };
@@ -82,7 +84,7 @@ export function normalize(obj) {
 export function planHasContent(p) {
   if (!p) return false;
   return Boolean(
-    p.quiz || p.ladder || p.device || p.notes || p.ownPrivate ||
+    p.quiz || p.ladder || p.device || p.notes || p.ownPrivate || p.custodian ||
     (p.owned && p.owned.length) ||
     (p.checklist && Object.keys(p.checklist).length)
   );
@@ -218,6 +220,18 @@ export function togglePlannedDevice(slug) {
 export function hasPlannedSetup() {
   const p = loadLocal();
   return Boolean(p && p.quiz && (p.quiz.primaryLabel || p.quiz.rung));
+}
+
+// ── COLLABORATIVE CUSTODIAN: the service holding one key (collaborative plans) ──
+export function getCustodian() {
+  const p = loadLocal();
+  return p ? p.custodian || null : null;
+}
+// Set the chosen custodian; passing the one already set clears it (toggle off).
+export function setCustodian(slug) {
+  const cur = loadLocal() || emptyPlan();
+  cur.custodian = cur.custodian === slug ? null : (slug || null);
+  return saveLocal(cur);
 }
 // Assign an owned/chosen device to a key slot. Capped at keysNeeded, so extra owned
 // wallets stay "sidelined" (owned but not part of this plan). Returns {ok, reason}.

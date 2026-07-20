@@ -47,6 +47,7 @@ import Base from '../layouts/Base.astro';
   } from '../data/plan.js';
   import { getRung } from '../data/ladder.js';
   import { ownedName } from '../data/wallets.js';
+  import { custodianName } from '../data/custodians.js';
   import { mountOwnedPicker } from '../data/owned-picker.js';
   import { checklistLabels, checklistCount } from '../data/checklist.js';
   import { getSession, setSession, clearSession } from '../data/nostr-session.js';
@@ -148,8 +149,11 @@ import Base from '../layouts/Base.astro';
           <p class="ps-road-note">This setup starts on a <strong>non-custodial phone wallet</strong> — no hardware to buy yet. When your stack grows, you’ll graduate to a single hardware wallet. No shopping list for now; just learn the moves.</p>
         </div>`;
     }
+    // Collaborative custody: the user holds `need` keys (wallets) + a service holds one
+    // (the custodian slot). DIY / single-sig plans have no custodian slot.
+    const isCollab = plan.quiz.rung === 'collaborative';
     const owned = plan.owned || [];
-    const assigned = (plan.quiz.plannedDevices || []).slice(0, need); // the plan's key slots
+    const assigned = (plan.quiz.plannedDevices || []).slice(0, need); // the plan's wallet key slots
     const sidelined = owned.filter((s) => !assigned.includes(s));     // owned but not in this plan
     const hasSpace = assigned.length < need;
     let slots = '';
@@ -163,6 +167,12 @@ import Base from '../layouts/Base.astro';
         slots += `<div class="ps-slot empty"><span class="ps-slot-n mono">Key ${i + 1}</span><span class="ps-slot-dev ps-muted">Empty — assign a wallet or get one</span><a class="ps-slot-cta" href="/wallets">Choose →</a></div>`;
       }
     }
+    if (isCollab) {
+      const cust = plan.custodian;
+      slots += cust
+        ? `<div class="ps-slot filled ps-slot-cust"><span class="ps-slot-n mono">Service key</span><span class="ps-slot-dev">${esc(custodianName(cust))}</span><span class="ps-slot-tag plan">custodian</span><a class="ps-slot-cta" href="/collaborative">Change →</a></div>`
+        : `<div class="ps-slot empty ps-slot-cust"><span class="ps-slot-n mono">Service key</span><span class="ps-slot-dev ps-muted">Collaborative custodian — not yet chosen</span><a class="ps-slot-cta" href="/collaborative">Choose one →</a></div>`;
+    }
     // Sidelined wallets: owned but not in this plan (retired-in-place, or spare beyond need).
     let sidelineHtml = '';
     if (sidelined.length) {
@@ -172,19 +182,25 @@ import Base from '../layouts/Base.astro';
       </div>`;
     }
     const gaps = Math.max(0, need - assigned.length);
+    const custGap = isCollab && !plan.custodian; // collaborative plan missing its custodian
     const multi = need >= 3;
+    const needLabel = isCollab
+      ? `you hold ${need} key${need > 1 ? 's' : ''} + a service key`
+      : `needs ${need} key${need > 1 ? 's' : ''}`;
     let footer;
     if (plan.ownPrivate && !owned.length) {
       footer = `<p class="ps-road-gap">You’d rather not say which wallets you own — so we’ve laid out the full setup. <strong>You may already have some of these.</strong>${multi ? ' Best practice: use a <em>different brand</em> for each key.' : ''} <a href="/wallets">Compare devices →</a></p>`;
+    } else if (gaps === 0 && custGap) {
+      footer = `<p class="ps-road-gap"><strong>Your keys are set — now choose who holds the service key.</strong> <a href="/collaborative">Compare custodians →</a></p>`;
     } else if (gaps === 0) {
       footer = `<p class="ps-road-done">✓ Every key slot is filled. What’s left is configuring and testing the setup — follow the walkthrough below.</p>`;
     } else {
-      footer = `<p class="ps-road-gap"><strong>${gaps} more ${gaps > 1 ? 'keys' : 'key'} to add.</strong>${multi ? ' Best practice: use a <em>different brand</em> for each key, so one vendor’s bug can’t affect more than one.' : ''} <a href="/wallets">Compare &amp; add devices →</a></p>`;
+      footer = `<p class="ps-road-gap"><strong>${gaps} more ${gaps > 1 ? 'keys' : 'key'} to add.</strong>${custGap ? ' Also choose your <a href="/collaborative">collaborative custodian →</a>.' : ''}${multi ? ' Best practice: use a <em>different brand</em> for each key, so one vendor’s bug can’t affect more than one.' : ''} <a href="/wallets">Compare &amp; add devices →</a></p>`;
     }
     return `
       <div class="ps-card ps-road">
         <span class="ps-k mono">Your roadmap — from where you are to your plan</span>
-        <p class="ps-cur">Plan: <strong>${esc(planLabel)}</strong> <span class="ps-need mono">needs ${need} key${need > 1 ? 's' : ''}</span></p>
+        <p class="ps-cur">Plan: <strong>${esc(planLabel)}</strong> <span class="ps-need mono">${needLabel}</span></p>
         <div class="ps-slots">${slots}</div>
         ${sidelineHtml}
         ${footer}

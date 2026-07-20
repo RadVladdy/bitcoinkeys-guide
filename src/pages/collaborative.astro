@@ -1,0 +1,229 @@
+---
+import Base from '../layouts/Base.astro';
+import { custodians, custodianBadges, custodianCompare, custodiansVerified } from '../data/custodians.js';
+
+const mark = { yes: '✓', partial: '~', no: '✗' };
+const markCls = { yes: 'y', partial: 'p', no: 'n' };
+---
+<Base
+  title="Compare collaborative custody services · BitcoinKeys.guide"
+  description="An honest, independent comparison of Bitcoin-only collaborative-custody services — Unchained, Nunchuk, Swan Vault, AnchorWatch, Bitkey, The Bitcoin Adviser. You keep 2 of 3 keys; a service holds one for recovery help. No affiliate links. Compare by KYC, open-source recovery, insurance, and fees."
+  verified={custodiansVerified}
+>
+  <section class="prose">
+    <p class="eyebrow">Choose a partner</p>
+    <h1>Collaborative custody, compared <span class="accent">honestly</span></h1>
+    <p class="lead">In collaborative custody you still hold <strong>two of three keys</strong> — a Bitcoin service holds the third as a safety net for recovery and inheritance. They <strong>can never move your coins alone.</strong> What you outsource is complexity, not custody. Because we take no affiliate money, this page can compare them plainly.</p>
+    <div class="callout">
+      <span class="label">The one test that matters most</span>
+      <p>Before anything else, ask: <strong>if this company vanished tomorrow, could you still recover your Bitcoin on your own?</strong> With a reputable partner the answer is yes — your two keys plus the wallet descriptor rebuild the wallet in open tools like <a href="/glossary#multisig">Sparrow or Bitcoin Core</a>. That "open-source recovery" badge is the difference between a helper and a dependency.</p>
+    </div>
+  </section>
+
+  <div class="wtabs" id="ctabs" role="tablist" aria-label="Views" hidden>
+    <button class="wtab active" id="tab-tiles" role="tab" aria-selected="true" type="button">Browse services</button>
+    <button class="wtab" id="tab-ctable" role="tab" aria-selected="false" type="button">Comparison table</button>
+  </div>
+
+  <section id="ctiles">
+    <p class="reach-legend"><strong>Badges</strong> — a fact about the service, not a ranking:
+      <span class="tbadge y"><span class="tbm">✓</span> meets it</span>
+      <span class="tbadge p"><span class="tbm">~</span> partly / caveat</span>
+      <span class="tbadge n"><span class="tbm">✗</span> no</span>
+    </p>
+    <div class="cards">
+      {custodians.map((c) => (
+        <article class="wcard">
+          <div class="wc-top">
+            <div class="wc-main">
+              <header>
+                <div class="wc-title"><h3><a href={c.url} target="_blank" rel="noopener noreferrer">{c.name} ↗</a></h3></div>
+              </header>
+              <p class="cmodel mono">{c.model}</p>
+              <p class="best"><strong>Good fit:</strong> {c.bestFor}</p>
+            </div>
+          </div>
+          <div class="tbadges">
+            {custodianBadges.map((b) => {
+              const r = c[b.key];
+              const tip = (c.notes && c.notes[b.key]) || b.tip;
+              return <span class:list={['tbadge', markCls[r]]} title={tip}><span class="tbm">{mark[r]}</span> {b.label}</span>;
+            })}
+            {c.insured === 'yes'
+              ? <span class="tbadge ins" title={(c.notes && c.notes.insured) || 'Holdings are insured.'}><span class="tbm">⛨</span> Insured</span>
+              : <span class="tbadge muted"><span class="tbm">—</span> Uninsured</span>}
+          </div>
+          <p class="watch"><strong>Watch out:</strong> {c.watch}</p>
+          <div class="cmeta">
+            <span class="cmeta-row"><span class="ck mono">Fee</span> {c.fee}</span>
+            <span class="cmeta-row"><span class="ck mono">Minimum</span> {c.minimum}</span>
+            <span class="cmeta-row"><span class="ck mono">Where</span> {c.jurisdiction}</span>
+            <span class="cmeta-row"><span class="ck mono">Devices</span> {c.devices}</span>
+          </div>
+          <div class="wc-plan" data-slug={c.slug} hidden></div>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section id="ctable" hidden>
+    <h2 class="prose">The full comparison</h2>
+    <p class="scroll-hint">Swipe the table sideways to see every column →</p>
+    <div class="scroll compare">
+      <table>
+        <thead>
+          <tr><th>Service</th>{custodianCompare.map((c) => <th class="ctr">{c.label}</th>)}</tr>
+        </thead>
+        <tbody>
+          {custodians.map((c) => (
+            <tr>
+              <td class="dev"><span class="dname">{c.name}</span></td>
+              {custodianCompare.map((col) => (
+                <td class="ctr">
+                  {col.type === 'text'
+                    ? <span class="num">{c[col.key]}</span>
+                    : <span class:list={['mark', markCls[c[col.key]]]}>{mark[c[col.key]]}</span>}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+    <p class="legend mono"><span class="r-yes">✓</span> yes · <span class="r-partial">~</span> partial / caveat · <span class="r-no">✗</span> no</p>
+  </section>
+
+  <section class="prose">
+    <div class="callout safe">
+      <span class="label">Collaborative isn’t the only way up</span>
+      <p>Running your own <a href="/ladder/multisig">multisig (rung 3)</a> keeps every key in your hands — no company, no KYC, maximum privacy. Collaborative custody trades a little of that sovereignty for far less to manage and built-in recovery. Neither is “more correct” — it’s a real trade-off. Not sure which fits? <a href="/quiz">Take the quiz →</a></p>
+    </div>
+    <p class="sub">Verify, don’t trust — including us. Fees and KYC policies change; we re-check them on a schedule and log every change in the <a href="/changelog">what’s-changed log</a>. Always confirm the current terms on the provider’s own site before committing.</p>
+  </section>
+</Base>
+
+<script>
+  // View tabs (progressive enhancement).
+  const ctabs = document.getElementById('ctabs');
+  const tabTiles = document.getElementById('tab-tiles');
+  const tabTable = document.getElementById('tab-ctable');
+  const panelTiles = document.getElementById('ctiles');
+  const panelTable = document.getElementById('ctable');
+  if (ctabs && panelTiles && panelTable) {
+    const show = (tiles) => {
+      panelTiles.hidden = !tiles; panelTable.hidden = tiles;
+      tabTiles.classList.toggle('active', tiles); tabTable.classList.toggle('active', !tiles);
+      tabTiles.setAttribute('aria-selected', String(tiles)); tabTable.setAttribute('aria-selected', String(!tiles));
+    };
+    ctabs.hidden = false;
+    tabTiles.addEventListener('click', () => show(true));
+    tabTable.addEventListener('click', () => show(false));
+    show(true);
+  }
+</script>
+
+<!-- Per-tile plan control: pick this service as your plan's collaborative custodian. -->
+<script>
+  import { setCustodian, getCustodian, hasPlannedSetup } from '../data/plan.js';
+
+  function ctoast(msg, kind) {
+    const t = document.createElement('div');
+    t.className = `w-toast ${kind || ''}`; t.textContent = msg;
+    document.body.appendChild(t);
+    requestAnimationFrame(() => t.classList.add('show'));
+    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 2600);
+  }
+  function paintCustodianControls() {
+    const chosen = getCustodian();
+    document.querySelectorAll('.wc-plan').forEach((el) => {
+      const slug = el.dataset.slug;
+      const isChosen = chosen === slug;
+      el.hidden = false;
+      el.innerHTML = `<button class="wcp-btn wcp-cust ${isChosen ? 'on' : ''}" type="button">${isChosen ? '★ Your custodian' : '☆ Make this my custodian'}</button>`;
+      el.querySelector('.wcp-cust').addEventListener('click', () => {
+        setCustodian(slug);
+        const nowChosen = getCustodian() === slug;
+        ctoast(nowChosen ? 'Set as your plan’s custodian' : 'Removed from your plan', 'ok');
+        if (nowChosen && !hasPlannedSetup()) ctoast('Tip: take the quiz to build the rest of your plan', '');
+        paintCustodianControls();
+      });
+    });
+  }
+  paintCustodianControls();
+</script>
+
+<style>
+  /* View tabs */
+  .wtabs { display: inline-flex; gap: 0.25rem; margin: 0 0 1.6rem; padding: 0.25rem; border: 1px solid var(--line); border-radius: 0.6rem; background: var(--surface); }
+  .wtab { font-family: var(--sans); font-size: 0.92rem; color: var(--muted); cursor: pointer; background: none; border: 0; border-radius: 0.45rem; padding: 0.5rem 1.05rem; transition: background 0.15s, color 0.15s; }
+  .wtab:hover { color: var(--accent); }
+  .wtab.active { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+  #ctiles[hidden], #ctable[hidden] { display: none; }
+
+  /* Tiles */
+  .cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 1.4rem; }
+  @media (max-width: 720px) { .cards { grid-template-columns: 1fr; } }
+  .wcard { border: 1px solid var(--line); border-radius: var(--radius); padding: 1.2rem 1.3rem; background: var(--surface); }
+  .wc-top { display: flex; gap: 1.1rem; align-items: flex-start; margin-bottom: 0.6rem; }
+  .wc-main { flex: 1 1 auto; min-width: 0; }
+  .wcard header { display: flex; align-items: baseline; justify-content: space-between; gap: 0.6rem; margin-bottom: 0.4rem; }
+  .wcard h3 { margin: 0; font-size: 1.05rem; }
+  .wcard h3 a { color: var(--text); text-decoration: none; }
+  .wcard h3 a:hover { color: var(--accent); }
+  .wcard .price { color: var(--accent); font-size: 0.85rem; font-family: var(--mono); text-align: right; flex: 0 0 auto; }
+  .wcard p { margin: 0 0 0.5rem; font-size: 0.92rem; color: var(--muted); }
+  .wcard .best strong { color: var(--safe); }
+  .wcard .watch strong { color: var(--warn); }
+
+  /* Trust badges */
+  .tbadges { display: flex; flex-wrap: wrap; gap: 0.4rem; margin: 0 0 0.75rem; }
+  .tbadge { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.72rem; font-family: var(--mono);
+    border: 1px solid var(--line); border-radius: 0.4rem; padding: 0.18rem 0.5rem; cursor: help; }
+  .tbadge .tbm { font-weight: 700; }
+  .tbadge.y { color: var(--safe); border-color: color-mix(in srgb, var(--safe) 40%, var(--line)); background: var(--safe-dim); }
+  .tbadge.p { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 40%, var(--line)); background: var(--warn-dim); }
+  .tbadge.n { color: var(--faint); border-color: var(--line); background: transparent; text-decoration: line-through; text-decoration-color: var(--danger); }
+
+  /* Comparison table */
+  .scroll { overflow-x: auto; }
+  .compare table { min-width: 44rem; border-collapse: collapse; width: 100%; }
+  .compare th, .compare td { border-bottom: 1px solid var(--line-soft); padding: 0.6rem 0.7rem; font-size: 0.86rem; text-align: left; vertical-align: top; }
+  .compare th { color: var(--faint); font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase; }
+  .scroll-hint { display: none; }
+  @media (max-width: 760px) { .scroll-hint { display: block; font-family: var(--mono); font-size: 0.76rem; color: var(--muted); margin: 0 0 0.45rem; } }
+  .ctr { text-align: center; }
+  .dev { min-width: 9rem; }
+  .dname { display: block; font-weight: 650; color: var(--text); }
+  .mark { display: inline-grid; place-items: center; width: 1.7rem; height: 1.7rem; border-radius: 50%; font-weight: 700; font-family: var(--mono); }
+  .r-yes { color: var(--safe); } .mark.r-yes { background: var(--safe-dim); }
+  .r-partial { color: var(--warn); } .mark.r-partial { background: var(--warn-dim); }
+  .r-no { color: var(--danger); } .mark.r-no { background: var(--danger-dim); }
+  .legend { font-size: 0.8rem; margin-top: 0.9rem; display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center; }
+  .legend .r-yes, .legend .r-partial, .legend .r-no { font-weight: 700; }
+
+  .cmodel { color: var(--accent); font-size: 0.82rem; margin: 0.2rem 0 0.6rem; line-height: 1.4; }
+  .cmeta { display: grid; gap: 0.35rem; margin: 0.8rem 0 0; padding-top: 0.75rem; border-top: 1px solid var(--line-soft); }
+  .cmeta-row { font-size: 0.85rem; color: var(--muted); }
+  .cmeta .ck { display: inline-block; min-width: 4.5rem; color: var(--faint); font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; }
+  .tbadge.ins { color: var(--safe); border-color: color-mix(in srgb, var(--safe) 45%, var(--line)); background: var(--safe-dim); }
+  .tbadge.muted { color: var(--faint); border-color: var(--line); background: transparent; }
+  .reach-legend { font-size: 0.85rem; color: var(--muted); display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 1.2rem 0 0.4rem; }
+</style>
+
+<!-- Plan control injected by JS → global styles (shared w/ wallets' .wcp-btn / .w-toast). -->
+<style is:global>
+  #ctiles .wc-plan { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.9rem; padding-top: 0.8rem; border-top: 1px solid var(--line-soft); }
+  .wcp-cust { font-family: var(--sans); font-size: 0.82rem; cursor: pointer; background: var(--raise);
+    border: 1px solid var(--line); border-radius: 2rem; padding: 0.4rem 0.85rem; color: var(--text);
+    transition: border-color 0.15s, background 0.15s, color 0.15s; }
+  .wcp-cust:hover { border-color: var(--accent); }
+  .wcp-cust.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+
+  .w-toast { position: fixed; left: 50%; bottom: 1.6rem; transform: translateX(-50%) translateY(1rem);
+    background: var(--surface-2); color: var(--text); border: 1px solid var(--line); border-radius: 0.6rem;
+    padding: 0.7rem 1.1rem; font-size: 0.9rem; box-shadow: var(--shadow); opacity: 0; z-index: 50;
+    transition: opacity 0.25s, transform 0.25s; max-width: min(92vw, 26rem); text-align: center; }
+  .w-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .w-toast.ok { border-color: var(--safe); }
+  .w-toast.err { border-color: var(--warn); }
+</style>
