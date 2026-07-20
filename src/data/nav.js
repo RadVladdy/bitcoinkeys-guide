@@ -18,9 +18,9 @@ export const navGroups = [
     title: 'Learn',
     links: [
       { href: '/how-it-works', label: 'How Bitcoin works' },
-      { href: '/principles', label: 'Core principles' },
+      { href: '/principles', label: 'Security principles' },
       { href: '/how-to', label: 'How-to guides' },
-      { href: '/deep-dive', label: 'Deeper dives' },
+      { href: '/deep-dive', label: 'Deep dives' },
       { href: '/glossary', label: 'Glossary' },
       { href: '/resources', label: 'Resources' },
     ],
@@ -28,8 +28,8 @@ export const navGroups = [
   {
     title: 'Research',
     links: [
-      { href: '/wallets', label: 'Compare wallets' },
-      { href: '/collaborative', label: 'Compare custodians' },
+      { href: '/wallets', label: 'Hardware wallets' },
+      { href: '/collaborative', label: 'Collab custodians' },
     ],
   },
   {

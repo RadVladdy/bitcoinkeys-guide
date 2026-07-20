@@ -121,12 +121,15 @@ import Base from '../layouts/Base.astro';
   // picker, mounted after render into #ps-own-mount; supports multiple wallets).
   function statusHtml(plan) {
     const cur = currentSetupLabel(plan);
+    const ladder = plan.ladder && plan.ladder.rung
+      ? `<p class="ps-cur">On the ladder: <strong>${esc(rungName(plan.ladder.rung))}</strong> <a class="ps-mini-link" href="/ladder#whereami">re-check →</a></p>` : '';
     return `
       <div class="ps-card ps-status">
-        <span class="ps-k mono">Where you are</span>
+        <span class="ps-k mono">Where you are — your current status</span>
         ${cur
           ? `<p class="ps-cur">Your current setup: <strong>${esc(cur)}</strong></p>`
           : `<p class="ps-cur ps-muted">No current setup recorded yet — <a href="/quiz">take the quiz</a> to set your starting point.</p>`}
+        ${ladder}
         <div class="ps-own">
           <span class="ps-sub mono">Hardware wallets you own <span class="ps-hint">add as many as you have</span></span>
           <div id="ps-own-mount"></div>
@@ -143,9 +146,8 @@ import Base from '../layouts/Base.astro';
     const planLabel = plan.quiz.primaryLabel || rungName(plan.quiz.rung);
     if (need === 0) {
       return `
-        <div class="ps-card ps-road">
-          <span class="ps-k mono">Your roadmap</span>
-          <p class="ps-cur">Plan: <strong>${esc(planLabel)}</strong></p>
+        <div class="ps-road-in">
+          <p class="ps-cur ps-plan-lead">Plan: <strong>${esc(planLabel)}</strong></p>
           <p class="ps-road-note">This setup starts on a <strong>non-custodial phone wallet</strong> — no hardware to buy yet. When your stack grows, you’ll graduate to a single hardware wallet. No shopping list for now; just learn the moves.</p>
         </div>`;
     }
@@ -198,9 +200,9 @@ import Base from '../layouts/Base.astro';
       footer = `<p class="ps-road-gap"><strong>${gaps} more ${gaps > 1 ? 'keys' : 'key'} to add.</strong>${custGap ? ' Also choose your <a href="/collaborative">collaborative custodian →</a>.' : ''}${multi ? ' Best practice: use a <em>different brand</em> for each key, so one vendor’s bug can’t affect more than one.' : ''} <a href="/wallets">Compare &amp; add devices →</a></p>`;
     }
     return `
-      <div class="ps-card ps-road">
-        <span class="ps-k mono">Your roadmap — from where you are to your plan</span>
-        <p class="ps-cur">Plan: <strong>${esc(planLabel)}</strong> <span class="ps-need mono">${needLabel}</span></p>
+      <div class="ps-road-in">
+        <p class="ps-cur ps-plan-lead">Plan: <strong>${esc(planLabel)}</strong> <span class="ps-need mono">${needLabel}</span>${plan.quiz.rung ? ` <a class="ps-mini-link" href="/ladder/${esc(plan.quiz.rung)}">read the walkthrough →</a>` : ''}</p>
+        <span class="ps-sub mono">Your key setup — the wallets in this plan</span>
         <div class="ps-slots">${slots}</div>
         ${sidelineHtml}
         ${footer}
@@ -208,25 +210,10 @@ import Base from '../layouts/Base.astro';
       </div>`;
   }
 
+  // The saved-plan card now leads with the roadmap (the setup + its wallet slots) and
+  // the status card carries the ladder position — so rowsHtml is just the checklist.
   function rowsHtml(plan) {
     const rows = [];
-    if (plan.quiz && (plan.quiz.primaryLabel || plan.quiz.primaryTier)) {
-      const rung = plan.quiz.rung;
-      const label = plan.quiz.primaryLabel || plan.quiz.primaryTier;
-      const tier = plan.quiz.primaryLabel && plan.quiz.primaryTier ? `<span class="p-sub">${esc(plan.quiz.primaryTier)}</span>` : '';
-      rows.push([
-        'Your planned setup',
-        `${esc(label)}${tier}`,
-        rung ? `/ladder/${esc(rung)}` : '/quiz',
-        rung ? 'Read the walkthrough' : 'Re-take the quiz',
-      ]);
-    }
-    if (plan.ladder && plan.ladder.rung) {
-      rows.push(['Where you are on the ladder', esc(rungName(plan.ladder.rung)), '/ladder#whereami', 'Re-check the ladder']);
-    }
-    if (plan.device) {
-      rows.push(['Chosen device', esc(plan.device), '/wallets', 'Compare devices']);
-    }
     const done = plan.checklist ? Object.keys(plan.checklist).length : 0;
     if (done > 0) {
       const items = Object.keys(plan.checklist)
@@ -283,12 +270,12 @@ import Base from '../layouts/Base.astro';
 
     el.innerHTML = `
       ${statusHtml(plan)}
-      <div id="ps-road-mount">${roadmapHtml(plan)}</div>
       <div class="p-card">
         <div class="p-head">
           <h2>Your saved plan</h2>
           ${plan.updated ? `<span class="p-updated mono">Saved ${esc(fmtDate(plan.updated))}</span>` : ''}
         </div>
+        <div id="ps-road-mount">${roadmapHtml(plan)}</div>
         ${rowsHtml(plan)}
 
         <div class="p-notes">
@@ -678,6 +665,13 @@ import Base from '../layouts/Base.astro';
   #plan .ps-road-note, #plan .ps-road-gap, #plan .ps-road-done { margin: 0; font-size: 0.9rem; color: var(--muted); line-height: 1.55; }
   #plan .ps-road-done { color: var(--safe); }
   #plan .ps-road-gap strong { color: var(--text); }
+  /* the roadmap is now embedded inside the saved-plan card (not its own card) */
+  #plan .ps-road-in { margin: 0 0 0.4rem; }
+  #plan .ps-plan-lead { font-size: 1.05rem; margin: 0 0 1rem; }
+  #plan .ps-plan-lead strong { color: var(--text); }
+  #plan .ps-mini-link { color: var(--accent); text-decoration: none; font-size: 0.82rem; font-weight: 500; white-space: nowrap; }
+  #plan .ps-mini-link:hover { text-decoration: underline; }
+  #plan .ps-status .ps-cur { margin-bottom: 0.5rem; }
 
   /* sidelined wallets (owned, not in this plan) + rework link */
   #plan .ps-sideline { border-top: 1px solid var(--line-soft); margin-top: 1rem; padding-top: 0.9rem; }
