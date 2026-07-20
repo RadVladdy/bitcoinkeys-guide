@@ -42,7 +42,7 @@ import Base from '../layouts/Base.astro';
   import {
     loadLocal, hasLocal, clearLocal, saveLocal, downloadPlan, parsePlanText,
     planHasContent, emptyPlan, PLAN_FILENAME, setOwnedAndPrivacy,
-    assignToPlan, removeFromPlan, retireOwned,
+    assignToPlan, removeFromPlan, retireOwned, getRecommendedDevices,
     encryptPlanToEnvelope, decryptEnvelope, downloadEncryptedPlan, isEncryptedEnvelope,
   } from '../data/plan.js';
   import { getRung } from '../data/ladder.js';
@@ -123,16 +123,36 @@ import Base from '../layouts/Base.astro';
     const cur = currentSetupLabel(plan);
     const ladder = plan.ladder && plan.ladder.rung
       ? `<p class="ps-cur">On the ladder: <strong>${esc(rungName(plan.ladder.rung))}</strong> <a class="ps-mini-link" href="/ladder#whereami">re-check →</a></p>` : '';
+    const owned = plan.owned || [];
+    // Owned wallets are DISPLAY-ONLY here (they're gathered from the quiz + /wallets).
+    // The full make→model picker is tucked behind an "add or edit" toggle; if none are
+    // recorded yet, a gentle optional prompt to add one.
+    let ownBlock;
+    if (owned.length) {
+      ownBlock = `<div id="ps-owned-display" class="ps-owned-display">
+          <span class="ps-sub mono">Hardware wallets you own</span>
+          <div class="ps-owned-chips">${owned.map((s) => `<span class="ps-owned-chip">${esc(ownedName(s))}</span>`).join('')}</div>
+          <button class="ps-edit-own" id="ps-edit-own" type="button">✎ add or edit</button>
+        </div>`;
+    } else if (plan.ownPrivate) {
+      ownBlock = `<div id="ps-owned-display" class="ps-owned-display">
+          <p class="ps-muted">You preferred not to list your hardware wallets. <button class="ps-edit-own" id="ps-edit-own" type="button">change</button></p>
+        </div>`;
+    } else {
+      ownBlock = `<div id="ps-owned-display" class="ps-owned-display">
+          <p class="ps-muted">${cur ? `You're on <strong>${esc(cur)}</strong> but haven't noted the hardware wallet${cur.toLowerCase().includes('multisig') ? 's' : ''} you use.` : `No hardware wallets noted yet.`} <button class="ps-edit-own" id="ps-edit-own" type="button">＋ add a wallet</button></p>
+        </div>`;
+    }
     return `
       <div class="ps-card ps-status">
-        <span class="ps-k mono">Where you are — your current status</span>
+        <h2 class="ps-h2">Where you are — your current status</h2>
         ${cur
           ? `<p class="ps-cur">Your current setup: <strong>${esc(cur)}</strong></p>`
           : `<p class="ps-cur ps-muted">No current setup recorded yet — <a href="/quiz">take the quiz</a> to set your starting point.</p>`}
         ${ladder}
         <div class="ps-own">
-          <span class="ps-sub mono">Hardware wallets you own <span class="ps-hint">add as many as you have</span></span>
-          <div id="ps-own-mount"></div>
+          ${ownBlock}
+          <div id="ps-own-mount" hidden></div>
         </div>
       </div>`;
   }
@@ -199,6 +219,13 @@ import Base from '../layouts/Base.astro';
     } else {
       footer = `<p class="ps-road-gap"><strong>${gaps} more ${gaps > 1 ? 'keys' : 'key'} to add.</strong>${custGap ? ' Also choose your <a href="/collaborative">collaborative custodian →</a>.' : ''}${multi ? ' Best practice: use a <em>different brand</em> for each key, so one vendor’s bug can’t affect more than one.' : ''} <a href="/wallets">Compare &amp; add devices →</a></p>`;
     }
+    // Recommended devices for this setup (from the quiz) — suggest them to fill gaps.
+    const recSlugs = (plan.quiz.recommendedDevices || []).filter((s) => !assigned.includes(s));
+    const recHtml = (gaps > 0 && recSlugs.length)
+      ? `<p class="ps-recs"><span class="ps-recs-k mono">★ Recommended for your plan</span>
+          ${recSlugs.map((s) => `<a class="ps-rec-chip" href="/wallets">${esc(ownedName(s))}</a>`).join('')}
+          <span class="ps-recs-note">— pick these on the <a href="/wallets">wallet comparison</a>.</span></p>`
+      : '';
     return `
       <div class="ps-road-in">
         <p class="ps-cur ps-plan-lead">Plan: <strong>${esc(planLabel)}</strong> <span class="ps-need mono">${needLabel}</span>${plan.quiz.rung ? ` <a class="ps-mini-link" href="/ladder/${esc(plan.quiz.rung)}">read the walkthrough →</a>` : ''}</p>
@@ -206,6 +233,7 @@ import Base from '../layouts/Base.astro';
         <div class="ps-slots">${slots}</div>
         ${sidelineHtml}
         ${footer}
+        ${recHtml}
         <a class="ps-rework" href="/wallets">✎ Rework devices — compare &amp; add from the wallets page →</a>
       </div>`;
   }
@@ -370,11 +398,21 @@ import Base from '../layouts/Base.astro';
         }
       }));
     }
-    // Status: the make→model owned-wallet picker (multiple wallets + "rather not say").
-    mountOwnedPicker(document.getElementById('ps-own-mount'), {
-      initial: plan.owned || [],
-      privateInit: !!plan.ownPrivate,
-      onChange: (slugs, isPrivate) => { setOwnedAndPrivacy(slugs, isPrivate); refreshRoadmap(); },
+    // Status: owned wallets are display-only; the make→model picker opens on demand.
+    const editBtn = document.getElementById('ps-edit-own');
+    if (editBtn) editBtn.addEventListener('click', () => {
+      const mount = document.getElementById('ps-own-mount');
+      const display = document.getElementById('ps-owned-display');
+      if (display) display.hidden = true;
+      mount.hidden = false;
+      if (!mount.dataset.mounted) {
+        mount.dataset.mounted = '1';
+        mountOwnedPicker(mount, {
+          initial: (loadLocal() || emptyPlan()).owned || [],
+          privateInit: !!(loadLocal() || emptyPlan()).ownPrivate,
+          onChange: (slugs, isPrivate) => { setOwnedAndPrivacy(slugs, isPrivate); refreshRoadmap(); },
+        });
+      }
     });
     refreshRoadmap();
 
@@ -629,8 +667,25 @@ import Base from '../layouts/Base.astro';
 
   /* Status → roadmap cards (sit above the saved-plan card) */
   #plan .ps-card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface-2); padding: 1.3rem 1.5rem; margin-bottom: 1rem; }
-  #plan .ps-status { border-color: var(--line); }
+  #plan .ps-status { border-color: var(--accent); background: var(--surface-2); box-shadow: var(--shadow); padding: 1.6rem 1.7rem; }
+  #plan .ps-h2 { margin: 0 0 1rem; font-size: 1.35rem; }
   #plan .ps-road { border-color: var(--accent-dim); background: var(--accent-soft); }
+  /* owned wallets — display-only chips + an edit toggle */
+  #plan .ps-owned-display .ps-sub { display: block; margin-bottom: 0.5rem; }
+  #plan .ps-owned-chips { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-bottom: 0.6rem; }
+  #plan .ps-owned-chip { font-size: 0.85rem; font-weight: 600; background: var(--safe-dim); color: var(--safe);
+    border: 1px solid color-mix(in srgb, var(--safe) 40%, var(--line)); border-radius: 999px; padding: 0.35rem 0.8rem; }
+  #plan .ps-edit-own { background: none; border: none; color: var(--accent); font-family: var(--sans); font-size: 0.83rem; cursor: pointer; padding: 0.2rem 0; text-decoration: underline; }
+  #plan .ps-edit-own:hover { opacity: 0.85; }
+  #plan .ps-owned-display .ps-muted button { color: var(--accent); }
+  /* recommended-for-your-plan suggestions in the empty-slot area */
+  #plan .ps-recs { margin: 0.8rem 0 0; font-size: 0.9rem; color: var(--muted); display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 0.5rem; }
+  #plan .ps-recs-k { color: var(--accent); font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase; width: 100%; }
+  #plan .ps-rec-chip { font-size: 0.85rem; font-weight: 600; background: var(--accent-soft); color: var(--accent);
+    border: 1px solid var(--accent-dim); border-radius: 999px; padding: 0.3rem 0.75rem; text-decoration: none; }
+  #plan .ps-rec-chip:hover { border-color: var(--accent); }
+  #plan .ps-recs-note { color: var(--faint); font-size: 0.83rem; }
+  #plan .ps-recs-note a { color: var(--accent); }
   #plan .ps-k { display: block; color: var(--faint); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.6rem; }
   #plan .ps-cur { color: var(--text); font-size: 1rem; margin: 0 0 0.9rem; }
   #plan .ps-cur strong { color: var(--text); }

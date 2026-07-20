@@ -11,6 +11,12 @@ export const changelog = [
   {
     date: '2026-07-20',
     type: 'feature',
+    title: 'Your recommended wallets follow you to the comparison page',
+    detail: 'When the quiz recommends specific hardware wallets for your setup, those recommendations now stick: your plan’s empty key slots suggest them by name, and over on the wallet comparison page the recommended devices are flagged “★ Recommended for your plan” so they’re easy to spot and add. The “My plan” page was also cleaned up — “where you are” (your current setup, ladder rung, and the wallets you own, shown read-only with a tuck-away editor) and “your saved plan” (the setup you’re building, with its wallet slots) are now two clearly separated, equal sections.',
+  },
+  {
+    date: '2026-07-20',
+    type: 'feature',
     title: 'The tools now talk to each other — and a clearer menu',
     detail: 'Everything you do across the site now flows into one plan, and back out again. Mark a wallet you own on the comparison page, pick a custodian, or place yourself on the ladder, and the quiz will greet you with “welcome back” and prefill what you’ve already told it — so it feels like the site is keeping track (it is, entirely in your browser). A quick banner on the wallet and custodian pages shows what’s noted and links to your plan. The menu was also reorganized into four clearer groups — Take action, Learn, Research, and About.',
   },

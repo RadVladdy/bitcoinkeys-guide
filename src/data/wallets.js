@@ -326,6 +326,9 @@ export const deviceCatalog = wallets.map((w) => ({
 }));
 export const deviceBySlug = Object.fromEntries(deviceCatalog.map((d) => [d.slug, d]));
 export function deviceName(slug) { return (deviceBySlug[slug] && deviceBySlug[slug].name) || slug; }
+// Map a device display name (as the quiz recommends devices by name) → its slug.
+const _slugByName = Object.fromEntries(deviceCatalog.map((d) => [d.name, d.slug]));
+export function slugForName(name) { return _slugByName[name] || null; }
 
 // How many keys the user personally holds for a given setup — drives the roadmap
 // slots (owned devices fill them; the rest become a "still to get" shopping list).

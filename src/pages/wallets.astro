@@ -284,7 +284,7 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
      planned setup's key slots. Explicit, opt-in writes — the page stays dataless
      until you click. Injected by JS, so styles live in a global block below. -->
 <script>
-  import { toggleOwned, assignToPlan, removeFromPlan, getOwned, getPlannedDevices, hasPlannedSetup } from '../data/plan.js';
+  import { toggleOwned, assignToPlan, removeFromPlan, getOwned, getPlannedDevices, hasPlannedSetup, getRecommendedDevices } from '../data/plan.js';
 
   function wtoast(msg, kind) {
     const t = document.createElement('div');
@@ -311,13 +311,16 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
     paintNudge();
     const owned = new Set(getOwned());
     const planned = new Set(getPlannedDevices());
+    const recommended = new Set(getRecommendedDevices());
     const hasPlan = hasPlannedSetup();
     document.querySelectorAll('.wc-plan').forEach((el) => {
       const slug = el.dataset.slug;
       const isOwned = owned.has(slug);
       const isPlanned = planned.has(slug);
+      const isRec = recommended.has(slug);
       el.hidden = false;
       el.innerHTML = `
+        ${isRec ? `<span class="wcp-rec">★ Recommended for your plan</span>` : ''}
         <button class="wcp-btn wcp-own ${isOwned ? 'on' : ''}" type="button">${isOwned ? '✓ You own this' : '＋ I own this'}</button>
         <button class="wcp-btn wcp-plan ${isPlanned ? 'on' : ''}" type="button">${isPlanned ? '★ In your plan' : '☆ Add to my plan'}</button>`;
       el.querySelector('.wcp-own').addEventListener('click', () => {
@@ -457,6 +460,7 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
   .wcp-btn:hover { border-color: var(--accent); }
   .wcp-own.on { background: var(--safe-dim); border-color: color-mix(in srgb, var(--safe) 40%, var(--line)); color: var(--safe); font-weight: 600; }
   .wcp-plan.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+  .wcp-rec { flex-basis: 100%; color: var(--accent); font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.04em; font-weight: 700; margin-bottom: 0.15rem; }
 
   .w-toast { position: fixed; left: 50%; bottom: 1.6rem; transform: translateX(-50%) translateY(1rem);
     background: var(--surface-2); color: var(--text); border: 1px solid var(--line); border-radius: 0.6rem;

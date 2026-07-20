@@ -45,6 +45,7 @@ function normQuiz(q) {
     ...q,
     keysNeeded: typeof q.keysNeeded === 'number' ? q.keysNeeded : null,
     plannedDevices: strList(q.plannedDevices),
+    recommendedDevices: strList(q.recommendedDevices),
   };
 }
 
@@ -138,7 +139,7 @@ export function clearLocal() {
 // secondary) or from browsing a ladder rung page. There is only ever one at a
 // time; saving a new setup REPLACES the current one (the UI confirms first when
 // it differs). Stored under `quiz` for backward-compatibility with earlier plans.
-export function savePlannedSetup({ rung, label, tier, device, source, answers, keysNeeded, owned, ownPrivate }) {
+export function savePlannedSetup({ rung, label, tier, device, source, answers, keysNeeded, owned, ownPrivate, recommendedDevices }) {
   const cur = loadLocal() || emptyPlan();
   const prev = cur.quiz || {};
   const sameSetup = prev.rung && prev.rung === rung;
@@ -153,6 +154,9 @@ export function savePlannedSetup({ rung, label, tier, device, source, answers, k
     keysNeeded: typeof keysNeeded === 'number' ? keysNeeded : (sameSetup ? prev.keysNeeded : null),
     // keep the user's device assignments only if the SETUP didn't change
     plannedDevices: sameSetup ? strList(prev.plannedDevices) : [],
+    // the quiz's recommended devices for THIS setup — suggested in empty slots +
+    // annotated on /wallets ("recommended for your plan"). NOT a selection.
+    recommendedDevices: Array.isArray(recommendedDevices) ? strList(recommendedDevices) : (sameSetup ? strList(prev.recommendedDevices) : []),
   };
   // NOTE: we deliberately do NOT store the quiz's recommended device as a "chosen
   // device" — a recommendation isn't a selection. The user's real device choices are
@@ -209,6 +213,11 @@ export function getPlannedDevices() {
 export function plannedKeysNeeded() {
   const p = loadLocal();
   return p && p.quiz && typeof p.quiz.keysNeeded === 'number' ? p.quiz.keysNeeded : null;
+}
+// The quiz's recommended device slugs for the saved setup (suggestions, not choices).
+export function getRecommendedDevices() {
+  const p = loadLocal();
+  return p && p.quiz && Array.isArray(p.quiz.recommendedDevices) ? p.quiz.recommendedDevices : [];
 }
 // Assign/unassign a device to the plan. No-op if there is no planned setup yet.
 export function togglePlannedDevice(slug) {
