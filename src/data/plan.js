@@ -159,6 +159,11 @@ export function savePlannedSetup({ rung, label, tier, device, source, answers, k
     cur.owned = Array.from(new Set([...(cur.owned || []), ...owned.filter((s) => typeof s === 'string')]));
   }
   if (typeof ownPrivate === 'boolean') cur.ownPrivate = ownPrivate && !(cur.owned && cur.owned.length);
+  // Seed the plan's key slots from the wallets they own (up to what the setup needs),
+  // so an owner sees their hardware pre-assigned. Fully editable afterward on /my-plan.
+  if (!cur.quiz.plannedDevices.length && cur.owned && cur.owned.length && typeof cur.quiz.keysNeeded === 'number') {
+    cur.quiz.plannedDevices = cur.owned.slice(0, cur.quiz.keysNeeded);
+  }
   return saveLocal(cur);
 }
 
@@ -214,6 +219,35 @@ export function hasPlannedSetup() {
   const p = loadLocal();
   return Boolean(p && p.quiz && (p.quiz.primaryLabel || p.quiz.rung));
 }
+// Assign an owned/chosen device to a key slot. Capped at keysNeeded, so extra owned
+// wallets stay "sidelined" (owned but not part of this plan). Returns {ok, reason}.
+export function assignToPlan(slug) {
+  const cur = loadLocal();
+  if (!cur || !cur.quiz) return { ok: false, reason: 'no-plan' };
+  const need = typeof cur.quiz.keysNeeded === 'number' ? cur.quiz.keysNeeded : Infinity;
+  const list = strList(cur.quiz.plannedDevices);
+  if (list.includes(slug)) return { ok: true };
+  if (list.length >= need) return { ok: false, reason: 'full' };
+  list.push(slug);
+  cur.quiz.plannedDevices = list;
+  saveLocal(cur);
+  return { ok: true };
+}
+// Take a device out of the plan's slots (it stays in the owned inventory → sidelined).
+export function removeFromPlan(slug) {
+  const cur = loadLocal();
+  if (!cur || !cur.quiz) return cur;
+  cur.quiz.plannedDevices = strList(cur.quiz.plannedDevices).filter((s) => s !== slug);
+  return saveLocal(cur);
+}
+// Retire a wallet entirely — out of the plan AND out of the owned inventory.
+export function retireOwned(slug) {
+  const cur = loadLocal();
+  if (!cur) return cur;
+  cur.owned = (cur.owned || []).filter((s) => s !== slug);
+  if (cur.quiz) cur.quiz.plannedDevices = strList(cur.quiz.plannedDevices).filter((s) => s !== slug);
+  return saveLocal(cur);
+}
 
 /** The rung slug of the currently-planned setup, or null. */
 export function plannedSetupRung() {
@@ -257,6 +291,45 @@ export function downloadPlan(plan) {
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// ── optional password encryption (WebCrypto AES-GCM + PBKDF2; no deps, no network) ──
+// The plaintext download is already private (nothing leaves the browser). This adds a
+// belt-and-braces option: encrypt the file with a password before it's saved, so the
+// file itself is unreadable without it. There is NO recovery — lose the password, lose
+// the file (never your Bitcoin — this is only the plan doc, and it holds no seed words).
+const _b64 = (bytes) => btoa(String.fromCharCode(...new Uint8Array(bytes)));
+const _ub64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+async function _deriveKey(password, salt, iterations) {
+  const km = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey(
+    { name: 'PBKDF2', salt, iterations, hash: 'SHA-256' },
+    km, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+}
+export function isEncryptedEnvelope(obj) {
+  return Boolean(obj && obj.bkg_encrypted === true && obj.data && obj.salt && obj.iv);
+}
+export async function encryptPlanToEnvelope(plan, password) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const iterations = 250000;
+  const key = await _deriveKey(password, salt, iterations);
+  const pt = new TextEncoder().encode(JSON.stringify(normalize(plan)));
+  const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, pt);
+  return { bkg_encrypted: true, app: APP, v: 1, kdf: 'PBKDF2-SHA256', iterations, salt: _b64(salt), iv: _b64(iv), data: _b64(ct) };
+}
+export async function decryptEnvelope(obj, password) {
+  const key = await _deriveKey(password, _ub64(obj.salt), obj.iterations || 250000);
+  const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: _ub64(obj.iv) }, key, _ub64(obj.data)); // throws on wrong password
+  return normalize(JSON.parse(new TextDecoder().decode(pt)));
+}
+export function downloadEncryptedPlan(envelope) {
+  const blob = new Blob([JSON.stringify(envelope, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'bitcoinkeys-plan.encrypted.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 

@@ -282,7 +282,7 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
      planned setup's key slots. Explicit, opt-in writes — the page stays dataless
      until you click. Injected by JS, so styles live in a global block below. -->
 <script>
-  import { toggleOwned, togglePlannedDevice, getOwned, getPlannedDevices, hasPlannedSetup } from '../data/plan.js';
+  import { toggleOwned, assignToPlan, removeFromPlan, getOwned, getPlannedDevices, hasPlannedSetup } from '../data/plan.js';
 
   function wtoast(msg, kind) {
     const t = document.createElement('div');
@@ -312,8 +312,12 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
       });
       el.querySelector('.wcp-plan').addEventListener('click', () => {
         if (!hasPlan) { wtoast('Take the quiz to choose a setup first — then you can slot wallets into your plan.', 'err'); return; }
-        togglePlannedDevice(slug);
-        wtoast(isPlanned ? 'Removed from your plan' : 'Added to your plan', 'ok');
+        if (isPlanned) { removeFromPlan(slug); wtoast('Removed from your plan', 'ok'); }
+        else {
+          const r = assignToPlan(slug);
+          if (!r.ok && r.reason === 'full') { wtoast('Your plan’s key slots are full — remove one on My plan first.', 'err'); return; }
+          wtoast('Added to your plan', 'ok');
+        }
         paintPlanControls();
       });
     });

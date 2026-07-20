@@ -11,6 +11,12 @@ export const changelog = [
   {
     date: '2026-07-20',
     type: 'feature',
+    title: 'Rework the devices in your plan · encrypt your plan file · a slimmer page',
+    detail: 'Your plan’s key slots are now fully editable on “My plan”: take a wallet out of a slot, add one you own, or swap them — extra wallets you own sit off to the side as spare (with a Retire option), and “Rework devices” takes you to the comparison page to add more. You can also now download your plan as a password-encrypted file (click “Encrypt & download,” choose a password — the file is unreadable without it; there’s no recovery, and it holds no seed words). The “Save to Nostr” button now says “Save to Nostr (encrypted)” to be clear it’s private, and once you’re signed in to Nostr the long explainer collapses so the page stays lean.',
+  },
+  {
+    date: '2026-07-20',
+    type: 'feature',
     title: 'Your plan now knows which wallets you own — and maps the road to your setup',
     detail: 'If your current setup already involves hardware, the quiz now has a quick optional step to note which wallet(s) you own — pick make then model from a full list (older and discontinued models included), add as many as you have, or choose “I’d rather not say.” Your plan turns that into a roadmap: on “My plan” you’ll see where you are now, the setup you’re aiming for, and exactly how many keys it needs — with the wallets you own already filling those slots and only what’s left showing as a short “still to get” list. You can also tap “I own this” or “Add to my plan” on any device on the Compare page, and it all flows into the same plan. As always: nothing is saved unless you choose to save it.',
   },

@@ -29,6 +29,10 @@ function injectStyle() {
     .uid-confirm { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
     .uid-confirm:hover { filter: brightness(1.07); }
     .uid-confirm.danger { background: var(--warn); border-color: var(--warn); color: #fff; }
+    .uid-input { width: 100%; box-sizing: border-box; font-family: var(--sans); font-size: 0.95rem; color: var(--text);
+      background: var(--raise); border: 1px solid var(--line); border-radius: 0.55rem; padding: 0.65rem 0.85rem; margin: 0 0 1.1rem; }
+    .uid-input:focus { outline: none; border-color: var(--accent); }
+    .uid-err { color: var(--warn); font-size: 0.85rem; margin: -0.7rem 0 1rem; min-height: 1rem; }
     @media (max-width: 480px) { .uid-actions { justify-content: stretch; } .uid-btn { flex: 1 1 auto; } }
   `;
   document.head.appendChild(style);
@@ -115,6 +119,77 @@ export function confirmDialog(opts = {}) {
     confirmBtn.addEventListener('click', () => close(true));
     cancelBtn.addEventListener('click', () => close(false));
     overlay.addEventListener('click', (e) => { if (e.target === overlay) close(false); });
+    document.addEventListener('keydown', onKey, true);
+  });
+}
+
+/**
+ * Prompt for a password (themed, injection-safe). Resolves the string, or null on
+ * cancel/backdrop/Esc. With `confirmField:true` it asks twice and requires a match.
+ * @param {{title?:string, message?:string, confirmText?:string, cancelText?:string,
+ *          placeholder?:string, confirmField?:boolean, minLength?:number}} opts
+ */
+export function promptPassword(opts = {}) {
+  const { title = 'Password', message = '', confirmText = 'OK', cancelText = 'Cancel',
+    placeholder = 'Password', confirmField = false, minLength = 1 } = opts;
+  injectStyle();
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.className = 'uid-overlay';
+    const card = document.createElement('div');
+    card.className = 'uid-card';
+    card.setAttribute('role', 'dialog');
+    card.setAttribute('aria-modal', 'true');
+    if (title) { const h = document.createElement('h2'); h.className = 'uid-title'; h.textContent = title; card.appendChild(h); }
+    if (message) { const p = document.createElement('p'); p.className = 'uid-msg'; p.textContent = message; card.appendChild(p); }
+
+    const in1 = document.createElement('input');
+    in1.type = 'password'; in1.className = 'uid-input'; in1.placeholder = placeholder;
+    in1.autocomplete = 'new-password'; in1.setAttribute('aria-label', placeholder);
+    card.appendChild(in1);
+    let in2 = null;
+    if (confirmField) {
+      in2 = document.createElement('input');
+      in2.type = 'password'; in2.className = 'uid-input'; in2.placeholder = 'Confirm password';
+      in2.autocomplete = 'new-password'; in2.setAttribute('aria-label', 'Confirm password');
+      card.appendChild(in2);
+    }
+    const err = document.createElement('p'); err.className = 'uid-err'; card.appendChild(err);
+
+    const actions = document.createElement('div');
+    actions.className = 'uid-actions';
+    const cancelBtn = document.createElement('button');
+    cancelBtn.type = 'button'; cancelBtn.className = 'uid-btn uid-cancel'; cancelBtn.textContent = cancelText;
+    const okBtn = document.createElement('button');
+    okBtn.type = 'button'; okBtn.className = 'uid-btn uid-confirm'; okBtn.textContent = confirmText;
+    actions.appendChild(cancelBtn); actions.appendChild(okBtn);
+    card.appendChild(actions);
+    overlay.appendChild(card);
+    document.body.appendChild(overlay);
+    requestAnimationFrame(() => overlay.classList.add('show'));
+
+    const prevFocus = document.activeElement;
+    in1.focus();
+
+    function close(result) {
+      overlay.classList.remove('show');
+      document.removeEventListener('keydown', onKey, true);
+      setTimeout(() => { overlay.remove(); if (prevFocus && prevFocus.focus) { try { prevFocus.focus(); } catch (e) {} } }, 180);
+      resolve(result);
+    }
+    function submit() {
+      const v = in1.value;
+      if (v.length < minLength) { err.textContent = `Use at least ${minLength} character${minLength > 1 ? 's' : ''}.`; return; }
+      if (confirmField && v !== in2.value) { err.textContent = 'The passwords don’t match.'; return; }
+      close(v);
+    }
+    function onKey(e) {
+      if (e.key === 'Escape') { e.preventDefault(); close(null); }
+      else if (e.key === 'Enter') { e.preventDefault(); submit(); }
+    }
+    okBtn.addEventListener('click', submit);
+    cancelBtn.addEventListener('click', () => close(null));
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(null); });
     document.addEventListener('keydown', onKey, true);
   });
 }

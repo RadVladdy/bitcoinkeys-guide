@@ -23,14 +23,16 @@ import Base from '../layouts/Base.astro';
   </div>
 
   <section class="prose sovereign" id="nostr-sec">
-    <h2>Save to your Nostr — encrypted, only you can read it</h2>
-    <p><strong>New to all this? You can skip this whole section.</strong> A downloaded file (above) is all you need — Nostr is an advanced, optional way to sync your plan across devices, for people who already use it.</p>
-    <p>Already have a Nostr key? Save your plan to your own relays. It's <strong>encrypted to your key before it leaves this page</strong> — we never see your key or your plan, and neither do your relays. Sign in with a browser extension, or with a bunker (Amber, nsec.app…) so your key never touches the browser.</p>
+    <h2 id="nostr-h2">Save to your Nostr — encrypted, only you can read it</h2>
+    <div id="nostr-explain">
+      <p><strong>New to all this? You can skip this whole section.</strong> A downloaded file (above) is all you need — Nostr is an advanced, optional way to sync your plan across devices, for people who already use it.</p>
+      <p>Already have a Nostr key? Save your plan to your own relays. It's <strong>encrypted to your key before it leaves this page</strong> — we never see your key or your plan, and neither do your relays. Sign in with a browser extension, or with a bunker (Amber, nsec.app…) so your key never touches the browser.</p>
+    </div>
     <div id="nostr-ui" aria-live="polite"></div>
-    <p class="soon-foot">Privacy note: the plan's contents are encrypted, and we store it under a <em>scrambled tag derived from your key</em> — so no one can scan the relays to build a list of this guide's users. But the event is still signed by your key, so anyone who already has <em>your</em> public key could confirm you saved something here. Use a key you're comfortable associating with self-custody. <strong>Want to publish nothing at all? A downloaded file is the most private option.</strong></p>
+    <p class="soon-foot" id="nostr-privacy">Privacy note: the plan's contents are encrypted, and we store it under a <em>scrambled tag derived from your key</em> — so no one can scan the relays to build a list of this guide's users. But the event is still signed by your key, so anyone who already has <em>your</em> public key could confirm you saved something here. Use a key you're comfortable associating with self-custody. <strong>Want to publish nothing at all? A downloaded file is the most private option.</strong></p>
   </section>
 
-  <section class="prose sovereign2">
+  <section class="prose sovereign2" id="pubky-sec">
     <h3>Also planned: Pubky</h3>
     <p><strong>Pubky</strong> <span class="tag mono">on hold</span> — a personal datastore addressed by your key. We're holding this one on purpose. Today a Pubky homeserver stores only <strong>public, unencrypted</strong> data (encrypted storage is on their roadmap), and Pubky Ring signs you in but doesn't offer apps a way to <em>encrypt to your key</em> the way a Nostr signer does — so a private plan would mean this site handling key material, which we won't do. We'll add Pubky the moment it can encrypt to your key. (Verify, don't trust — including us.)</p>
   </section>
@@ -39,14 +41,16 @@ import Base from '../layouts/Base.astro';
 <script>
   import {
     loadLocal, hasLocal, clearLocal, saveLocal, downloadPlan, parsePlanText,
-    planHasContent, emptyPlan, PLAN_FILENAME, togglePlannedDevice, setOwnedAndPrivacy,
+    planHasContent, emptyPlan, PLAN_FILENAME, setOwnedAndPrivacy,
+    assignToPlan, removeFromPlan, retireOwned,
+    encryptPlanToEnvelope, decryptEnvelope, downloadEncryptedPlan, isEncryptedEnvelope,
   } from '../data/plan.js';
   import { getRung } from '../data/ladder.js';
   import { ownedName } from '../data/wallets.js';
   import { mountOwnedPicker } from '../data/owned-picker.js';
   import { checklistLabels, checklistCount } from '../data/checklist.js';
   import { getSession, setSession, clearSession } from '../data/nostr-session.js';
-  import { confirmDialog } from '../data/ui-dialog.js';
+  import { confirmDialog, promptPassword } from '../data/ui-dialog.js';
 
   const el = document.getElementById('plan-body');
   function esc(s) { const d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
@@ -61,7 +65,7 @@ import Base from '../layouts/Base.astro';
       const initial = (s.name || (s.npub || 'N').replace(/^npub1/, '') || 'N').slice(0, 1).toUpperCase();
       b.classList.add('signed-in');
       b.title = 'Save your plan to Nostr' + (s.name ? ' as ' + s.name : '');
-      b.innerHTML = `<span class="pn-av">${esc(initial)}</span><span>Save to Nostr</span>`;
+      b.innerHTML = `<span class="pn-av">${esc(initial)}</span><span>Save to Nostr (encrypted)</span>`;
       if (s.picture) {
         const img = document.createElement('img');
         img.className = 'pn-av'; img.alt = ''; img.referrerPolicy = 'no-referrer';
@@ -71,8 +75,19 @@ import Base from '../layouts/Base.astro';
     } else {
       b.classList.remove('signed-in');
       b.title = 'Sign in to save your plan to Nostr';
-      b.textContent = '☁ Save to Nostr ↓';
+      b.textContent = '☁ Save to Nostr (encrypted) ↓';
     }
+  }
+
+  // Slim the page to the current status: once you're signed in to Nostr, the long
+  // "what is Nostr / how to connect" explainer + the Pubky note are just noise, so
+  // collapse them and keep only the control. (the owner: keep the site slim per state.)
+  function slimNostr() {
+    const signedIn = !!getSession();
+    const hide = (id) => { const e = document.getElementById(id); if (e) e.style.display = signedIn ? 'none' : ''; };
+    hide('nostr-explain'); hide('pubky-sec'); hide('nostr-privacy');
+    const h2 = document.getElementById('nostr-h2');
+    if (h2) h2.textContent = signedIn ? 'Your Nostr' : 'Save to your Nostr — encrypted, only you can read it';
   }
 
   function fmtDate(iso) {
@@ -134,37 +149,46 @@ import Base from '../layouts/Base.astro';
         </div>`;
     }
     const owned = plan.owned || [];
-    const planned = plan.quiz.plannedDevices || [];
-    const committed = Array.from(new Set([...planned, ...owned])); // explicit picks first, then owned
+    const assigned = (plan.quiz.plannedDevices || []).slice(0, need); // the plan's key slots
+    const sidelined = owned.filter((s) => !assigned.includes(s));     // owned but not in this plan
+    const hasSpace = assigned.length < need;
     let slots = '';
     for (let i = 0; i < need; i++) {
-      const slug = committed[i];
+      const slug = assigned[i];
       if (slug) {
         const isOwned = owned.includes(slug);
-        const tag = isOwned ? 'you own' : 'planned';
-        const rm = (!isOwned && planned.includes(slug))
-          ? `<button class="ps-slot-x" data-slug="${esc(slug)}" title="Remove from plan" type="button">×</button>` : '';
-        slots += `<div class="ps-slot filled"><span class="ps-slot-n mono">Key ${i + 1}</span><span class="ps-slot-dev">${esc(ownedName(slug))}</span><span class="ps-slot-tag ${isOwned ? 'own' : 'plan'}">${tag}</span>${rm}</div>`;
+        const tag = isOwned ? 'you own' : 'to buy';
+        slots += `<div class="ps-slot filled"><span class="ps-slot-n mono">Key ${i + 1}</span><span class="ps-slot-dev">${esc(ownedName(slug))}</span><span class="ps-slot-tag ${isOwned ? 'own' : 'plan'}">${tag}</span><button class="ps-slot-x" data-act="unassign" data-slug="${esc(slug)}" title="Take out of this plan" type="button">×</button></div>`;
       } else {
-        slots += `<div class="ps-slot empty"><span class="ps-slot-n mono">Key ${i + 1}</span><span class="ps-slot-dev ps-muted">Still to get</span><a class="ps-slot-cta" href="/wallets">Choose one →</a></div>`;
+        slots += `<div class="ps-slot empty"><span class="ps-slot-n mono">Key ${i + 1}</span><span class="ps-slot-dev ps-muted">Empty — assign a wallet or get one</span><a class="ps-slot-cta" href="/wallets">Choose →</a></div>`;
       }
     }
-    const gaps = Math.max(0, need - committed.length);
+    // Sidelined wallets: owned but not in this plan (retired-in-place, or spare beyond need).
+    let sidelineHtml = '';
+    if (sidelined.length) {
+      sidelineHtml = `<div class="ps-sideline">
+        <span class="ps-sub mono">Owned, not in this plan <span class="ps-hint">${hasSpace ? 'add to a slot, or set aside' : 'spare — this plan is full'}</span></span>
+        ${sidelined.map((s) => `<div class="ps-side-row"><span class="ps-side-dev">${esc(ownedName(s))}</span><span class="ps-side-acts">${hasSpace ? `<button class="ps-side-add" data-act="assign" data-slug="${esc(s)}" type="button">＋ Add to plan</button>` : ''}<button class="ps-side-retire" data-act="retire" data-slug="${esc(s)}" type="button">Retire</button></span></div>`).join('')}
+      </div>`;
+    }
+    const gaps = Math.max(0, need - assigned.length);
     const multi = need >= 3;
     let footer;
     if (plan.ownPrivate && !owned.length) {
       footer = `<p class="ps-road-gap">You’d rather not say which wallets you own — so we’ve laid out the full setup. <strong>You may already have some of these.</strong>${multi ? ' Best practice: use a <em>different brand</em> for each key.' : ''} <a href="/wallets">Compare devices →</a></p>`;
     } else if (gaps === 0) {
-      footer = `<p class="ps-road-done">✓ You have enough hardware for this setup. What’s left is configuring and testing it — follow the walkthrough below.</p>`;
+      footer = `<p class="ps-road-done">✓ Every key slot is filled. What’s left is configuring and testing the setup — follow the walkthrough below.</p>`;
     } else {
-      footer = `<p class="ps-road-gap"><strong>${gaps} more ${gaps > 1 ? 'keys' : 'key'} to get.</strong>${multi ? ' Best practice: use a <em>different brand</em> for each key, so one vendor’s bug can’t affect more than one.' : ''} <a href="/wallets">Compare devices →</a></p>`;
+      footer = `<p class="ps-road-gap"><strong>${gaps} more ${gaps > 1 ? 'keys' : 'key'} to add.</strong>${multi ? ' Best practice: use a <em>different brand</em> for each key, so one vendor’s bug can’t affect more than one.' : ''} <a href="/wallets">Compare &amp; add devices →</a></p>`;
     }
     return `
       <div class="ps-card ps-road">
         <span class="ps-k mono">Your roadmap — from where you are to your plan</span>
         <p class="ps-cur">Plan: <strong>${esc(planLabel)}</strong> <span class="ps-need mono">needs ${need} key${need > 1 ? 's' : ''}</span></p>
         <div class="ps-slots">${slots}</div>
+        ${sidelineHtml}
         ${footer}
+        <a class="ps-rework" href="/wallets">✎ Rework devices — compare &amp; add from the wallets page →</a>
       </div>`;
   }
 
@@ -258,11 +282,12 @@ import Base from '../layouts/Base.astro';
 
         <div class="p-actions">
           <button class="btn-primary" id="p-download">↓ Download my plan (.json)</button>
-          <button class="btn-ghost" id="p-nostr">☁ Save to Nostr ↓</button>
+          <button class="btn-ghost" id="p-encrypt">🔒 Encrypt &amp; download</button>
+          <button class="btn-ghost" id="p-nostr">☁ Save to Nostr (encrypted) ↓</button>
           <label class="btn-ghost file-btn">Import a plan<input type="file" id="p-import" accept="application/json,.json" hidden /></label>
           <button class="btn-danger" id="p-clear">Clear my saved plan</button>
         </div>
-        <p class="p-nostr-hint mono">Two ways to keep it: a <strong>downloaded file</strong> (most private — nothing leaves your browser) or <strong>your own Nostr</strong>, encrypted so only you can read it (syncs across devices). <a href="#nostr-sec">What's Nostr save? →</a></p>
+        <p class="p-nostr-hint mono">Ways to keep it: a <strong>plain or password-encrypted file</strong> (most private — nothing leaves your browser), or <strong>your own Nostr</strong>, encrypted so only you can read it (syncs across devices). <a href="#nostr-sec">What's Nostr save? →</a></p>
         <p class="p-foot mono">This plan is stored only in this browser. A downloaded file is yours to keep — no seed words are ever in it. Never put your recovery words in the notes.</p>
       </div>`;
 
@@ -270,6 +295,22 @@ import Base from '../layouts/Base.astro';
       const p = loadLocal();
       downloadPlan(p);
       toast(`Downloaded ${PLAN_FILENAME}`, 'ok');
+    });
+
+    document.getElementById('p-encrypt').addEventListener('click', async () => {
+      const p = loadLocal();
+      if (!p) return;
+      const pw = await promptPassword({
+        title: 'Encrypt your plan',
+        message: 'Choose a password — the downloaded file is unreadable without it. There is no recovery, so use one you won’t forget. (Your plan holds no seed words; this just protects the plan file itself.)',
+        confirmText: 'Encrypt & download', confirmField: true, minLength: 6, placeholder: 'Password (min 6 characters)',
+      });
+      if (pw == null) return;
+      try {
+        const env = await encryptPlanToEnvelope(p, pw);
+        downloadEncryptedPlan(env);
+        toast('Downloaded encrypted plan', 'ok');
+      } catch (e) { toast('Encryption failed.', 'err'); }
     });
 
     // "Save to Nostr" — context-aware. Signed in → save straight away (no scroll).
@@ -288,6 +329,7 @@ import Base from '../layouts/Base.astro';
       }
     });
     paintNostrActionBtn();
+    slimNostr();
 
     // save notes on blur (explicit-ish — typing then leaving the field)
     const notes = document.getElementById('p-notes-in');
@@ -315,8 +357,21 @@ import Base from '../layouts/Base.astro';
       const mount = document.getElementById('ps-road-mount');
       if (!mount) return;
       mount.innerHTML = roadmapHtml(loadLocal() || emptyPlan());
-      mount.querySelectorAll('.ps-slot-x').forEach((x) =>
-        x.addEventListener('click', () => { togglePlannedDevice(x.dataset.slug); refreshRoadmap(); }));
+      mount.querySelectorAll('[data-act]').forEach((b) => b.addEventListener('click', async () => {
+        const slug = b.dataset.slug;
+        if (b.dataset.act === 'assign') {
+          const r = assignToPlan(slug);
+          if (!r.ok && r.reason === 'full') { toast('This plan’s key slots are full — remove one first', 'err'); return; }
+          refreshRoadmap();
+        } else if (b.dataset.act === 'unassign') {
+          removeFromPlan(slug); refreshRoadmap();
+        } else if (b.dataset.act === 'retire') {
+          const ok = await confirmDialog({ title: 'Retire this wallet?', message: `Remove “${ownedName(slug)}” from the wallets you own and from this plan? You can always add it back later.`, confirmText: 'Retire', cancelText: 'Keep it', danger: true });
+          if (!ok) return;
+          retireOwned(slug);
+          render(); // rebuild status (picker) + roadmap together
+        }
+      }));
     }
     // Status: the make→model owned-wallet picker (multiple wallets + "rather not say").
     mountOwnedPicker(document.getElementById('ps-own-mount'), {
@@ -336,17 +391,29 @@ import Base from '../layouts/Base.astro';
       const file = input.files && input.files[0];
       if (!file) return;
       const reader = new FileReader();
-      reader.onload = () => {
-        try {
-          const plan = parsePlanText(String(reader.result));
-          if (!planHasContent(plan)) { toast('That file has no plan data.', 'err'); return; }
-          saveLocal(plan);
-          toast('Plan imported', 'ok');
-          render();
-          document.getElementById('plan').scrollIntoView({ behavior: 'smooth', block: 'start' });
-        } catch (e) {
-          toast('That doesn\'t look like a valid plan file.', 'err');
+      reader.onload = async () => {
+        let raw;
+        try { raw = JSON.parse(String(reader.result)); }
+        catch (e) { toast('That doesn\'t look like a valid plan file.', 'err'); return; }
+        let plan;
+        if (isEncryptedEnvelope(raw)) {
+          const pw = await promptPassword({
+            title: 'Encrypted plan',
+            message: 'This plan file is password-protected. Enter its password to import it.',
+            confirmText: 'Decrypt & import', placeholder: 'Password',
+          });
+          if (pw == null) return;
+          try { plan = await decryptEnvelope(raw, pw); }
+          catch (e) { toast('Wrong password — couldn’t decrypt that file.', 'err'); return; }
+        } else {
+          try { plan = parsePlanText(String(reader.result)); }
+          catch (e) { toast('That doesn\'t look like a valid plan file.', 'err'); return; }
         }
+        if (!planHasContent(plan)) { toast('That file has no plan data.', 'err'); return; }
+        saveLocal(plan);
+        toast('Plan imported', 'ok');
+        render();
+        document.getElementById('plan').scrollIntoView({ behavior: 'smooth', block: 'start' });
       };
       reader.readAsText(file);
       input.value = '';
@@ -516,11 +583,13 @@ import Base from '../layouts/Base.astro';
   if (rememberedNostr && rememberedNostr.npub) renderNostrConnected(rememberedNostr.npub, rememberedNostr);
   else renderNostrDisconnected();
   paintNostrActionBtn();
+  slimNostr();
 
   // Keep the top action button + panel in sync with sign-in/out from anywhere (the nav
   // menu, another tab). A sign-out elsewhere resets this page's panel too.
   window.addEventListener('bkeys-nostr-change', () => {
     paintNostrActionBtn();
+    slimNostr();
     if (!getSession()) { if (session && session.close) session.close(); session = null; renderNostrDisconnected(); }
   });
 
@@ -593,6 +662,18 @@ import Base from '../layouts/Base.astro';
   #plan .ps-road-note, #plan .ps-road-gap, #plan .ps-road-done { margin: 0; font-size: 0.9rem; color: var(--muted); line-height: 1.55; }
   #plan .ps-road-done { color: var(--safe); }
   #plan .ps-road-gap strong { color: var(--text); }
+
+  /* sidelined wallets (owned, not in this plan) + rework link */
+  #plan .ps-sideline { border-top: 1px solid var(--line-soft); margin-top: 1rem; padding-top: 0.9rem; }
+  #plan .ps-side-row { display: flex; align-items: center; justify-content: space-between; gap: 0.6rem; padding: 0.45rem 0; flex-wrap: wrap; }
+  #plan .ps-side-dev { color: var(--text); font-size: 0.92rem; font-weight: 600; }
+  #plan .ps-side-acts { display: inline-flex; gap: 0.5rem; }
+  #plan .ps-side-add { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-dim); border-radius: 999px; font-family: var(--sans); font-size: 0.78rem; cursor: pointer; padding: 0.3rem 0.7rem; }
+  #plan .ps-side-add:hover { border-color: var(--accent); }
+  #plan .ps-side-retire { background: none; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; font-family: var(--sans); font-size: 0.78rem; cursor: pointer; padding: 0.3rem 0.7rem; }
+  #plan .ps-side-retire:hover { border-color: var(--danger); color: var(--danger); }
+  #plan .ps-rework { display: inline-block; margin-top: 1rem; color: var(--accent); text-decoration: none; font-size: 0.85rem; }
+  #plan .ps-rework:hover { text-decoration: underline; }
 
   #plan .p-card { border: 1px solid var(--accent); border-radius: var(--radius); background: var(--surface-2); padding: 1.6rem 1.7rem; box-shadow: var(--shadow); }
   #plan .p-head { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
