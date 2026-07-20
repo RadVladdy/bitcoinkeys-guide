@@ -265,4 +265,12 @@ const groupActive = (g) => g.links.some((l) => isActive(l.href));
   .nostr-menu .nm-signout { color: var(--muted); }
   .nostr-menu .nm-note { color: var(--accent); font-size: 0.76rem; margin: 0.5rem 0.1rem 0; }
   .nostr-menu .nm-foot { color: var(--faint); font-size: 0.76rem; line-height: 1.5; margin: 0.55rem 0.1rem 0.1rem; }
+
+  /* On mobile the avatar sits mid-nav (toggle + hamburger are to its right), so a
+     menu anchored right:0 to the avatar overflows the LEFT screen edge. Pin it to
+     the viewport's right edge instead and cap the width so it always fits. */
+  @media (max-width: 820px) {
+    .nostr-menu { position: fixed; top: 3.9rem; right: 0.6rem; left: auto;
+      width: min(16rem, calc(100vw - 1.2rem)); }
+  }
 </style>
