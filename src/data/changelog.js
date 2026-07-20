@@ -11,6 +11,12 @@ export const changelog = [
   {
     date: '2026-07-20',
     type: 'feature',
+    title: 'Your plan now knows which wallets you own — and maps the road to your setup',
+    detail: 'The quiz can now ask which hardware wallet(s) you already have (only if you have any — a total beginner skips it), and your plan turns that into a roadmap. On “My plan” you’ll see where you are now, the setup you’re aiming for, and exactly how many keys it needs — with the wallets you own already filling those slots and only what’s left showing as a short “still to get” list. You can also tap “I own this” or “Add to my plan” on any device on the Compare page, and it all flows into the same plan. As always: nothing is saved unless you choose to save it.',
+  },
+  {
+    date: '2026-07-20',
+    type: 'feature',
     title: 'Nostr sign-in now survives your return — fixed the failed save on a second visit',
     detail: 'If you signed in with a bunker (like Amber), came back later, and tried to save, it failed — the site was redialing your signer as a stranger with an already-used invite. Now it remembers the exact connection your signer approved and resumes it, so a return visit just saves (your signer still approves every request). Also: when a signer refuses, you now see its actual reason instead of a generic error. Verified end-to-end with a real signer on the live site — save and restore both round-trip.',
   },
