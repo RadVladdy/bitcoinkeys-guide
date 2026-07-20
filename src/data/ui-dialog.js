@@ -33,6 +33,9 @@ function injectStyle() {
       background: var(--raise); border: 1px solid var(--line); border-radius: 0.55rem; padding: 0.65rem 0.85rem; margin: 0 0 1.1rem; }
     .uid-input:focus { outline: none; border-color: var(--accent); }
     .uid-err { color: var(--warn); font-size: 0.85rem; margin: -0.7rem 0 1rem; min-height: 1rem; }
+    .uid-check { display: flex; align-items: flex-start; gap: 0.55rem; margin: 0 0 1rem; cursor: pointer; font-size: 0.95rem; color: var(--text); }
+    .uid-check input { margin-top: 0.15rem; width: 1.05rem; height: 1.05rem; accent-color: var(--accent); cursor: pointer; flex: 0 0 auto; }
+    .uid-check .uid-check-sub { display: block; color: var(--faint); font-size: 0.82rem; margin-top: 0.15rem; }
     @media (max-width: 480px) { .uid-actions { justify-content: stretch; } .uid-btn { flex: 1 1 auto; } }
   `;
   document.head.appendChild(style);
@@ -182,6 +185,73 @@ export function promptPassword(opts = {}) {
       if (v.length < minLength) { err.textContent = `Use at least ${minLength} character${minLength > 1 ? 's' : ''}.`; return; }
       if (confirmField && v !== in2.value) { err.textContent = 'The passwords don’t match.'; return; }
       close(v);
+    }
+    function onKey(e) {
+      if (e.key === 'Escape') { e.preventDefault(); close(null); }
+      else if (e.key === 'Enter') { e.preventDefault(); submit(); }
+    }
+    okBtn.addEventListener('click', submit);
+    cancelBtn.addEventListener('click', () => close(null));
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(null); });
+    document.addEventListener('keydown', onKey, true);
+  });
+}
+
+/**
+ * Download dialog with an OPTIONAL "encrypt with a password" checkbox. One button →
+ * plain or encrypted. Resolves { mode:'plain' } | { mode:'encrypted', password } | null.
+ */
+export function downloadDialog(opts = {}) {
+  const { title = 'Download your plan', minLength = 6 } = opts;
+  injectStyle();
+  return new Promise((resolve) => {
+    const overlay = document.createElement('div');
+    overlay.className = 'uid-overlay';
+    const card = document.createElement('div');
+    card.className = 'uid-card';
+    card.setAttribute('role', 'dialog'); card.setAttribute('aria-modal', 'true');
+
+    const h = document.createElement('h2'); h.className = 'uid-title'; h.textContent = title; card.appendChild(h);
+    const msg = document.createElement('p'); msg.className = 'uid-msg';
+    msg.textContent = 'The file lives on your device — nothing leaves your browser. You can optionally lock it with a password.';
+    card.appendChild(msg);
+
+    const checkLabel = document.createElement('label'); checkLabel.className = 'uid-check';
+    const check = document.createElement('input'); check.type = 'checkbox';
+    const checkText = document.createElement('span');
+    checkText.innerHTML = '🔒 Encrypt this file with a password<span class="uid-check-sub">The file becomes unreadable without it — and there’s no recovery. (Your plan holds no seed words.)</span>';
+    checkLabel.appendChild(check); checkLabel.appendChild(checkText); card.appendChild(checkLabel);
+
+    const pw = document.createElement('input'); pw.type = 'password'; pw.className = 'uid-input'; pw.placeholder = `Password (min ${minLength} characters)`; pw.autocomplete = 'new-password'; pw.hidden = true;
+    const pw2 = document.createElement('input'); pw2.type = 'password'; pw2.className = 'uid-input'; pw2.placeholder = 'Confirm password'; pw2.autocomplete = 'new-password'; pw2.hidden = true;
+    card.appendChild(pw); card.appendChild(pw2);
+    const err = document.createElement('p'); err.className = 'uid-err'; card.appendChild(err);
+
+    const actions = document.createElement('div'); actions.className = 'uid-actions';
+    const cancelBtn = document.createElement('button'); cancelBtn.type = 'button'; cancelBtn.className = 'uid-btn uid-cancel'; cancelBtn.textContent = 'Cancel';
+    const okBtn = document.createElement('button'); okBtn.type = 'button'; okBtn.className = 'uid-btn uid-confirm'; okBtn.textContent = 'Download';
+    actions.appendChild(cancelBtn); actions.appendChild(okBtn); card.appendChild(actions);
+    overlay.appendChild(card); document.body.appendChild(overlay);
+    requestAnimationFrame(() => overlay.classList.add('show'));
+
+    const prevFocus = document.activeElement;
+    check.addEventListener('change', () => {
+      pw.hidden = pw2.hidden = !check.checked;
+      err.textContent = '';
+      if (check.checked) { pw.focus(); }
+    });
+
+    function close(result) {
+      overlay.classList.remove('show');
+      document.removeEventListener('keydown', onKey, true);
+      setTimeout(() => { overlay.remove(); if (prevFocus && prevFocus.focus) { try { prevFocus.focus(); } catch (e) {} } }, 180);
+      resolve(result);
+    }
+    function submit() {
+      if (!check.checked) { close({ mode: 'plain' }); return; }
+      if (pw.value.length < minLength) { err.textContent = `Use at least ${minLength} characters.`; return; }
+      if (pw.value !== pw2.value) { err.textContent = 'The passwords don’t match.'; return; }
+      close({ mode: 'encrypted', password: pw.value });
     }
     function onKey(e) {
       if (e.key === 'Escape') { e.preventDefault(); close(null); }

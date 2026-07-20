@@ -51,7 +51,7 @@ import Base from '../layouts/Base.astro';
   import { mountOwnedPicker } from '../data/owned-picker.js';
   import { checklistLabels, checklistCount } from '../data/checklist.js';
   import { getSession, setSession, clearSession } from '../data/nostr-session.js';
-  import { confirmDialog, promptPassword } from '../data/ui-dialog.js';
+  import { confirmDialog, promptPassword, downloadDialog } from '../data/ui-dialog.js';
 
   const el = document.getElementById('plan-body');
   function esc(s) { const d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
@@ -284,8 +284,7 @@ import Base from '../layouts/Base.astro';
         </div>
 
         <div class="p-actions">
-          <button class="btn-primary" id="p-download">↓ Download my plan (.json)</button>
-          <button class="btn-ghost" id="p-encrypt">🔒 Encrypt &amp; download</button>
+          <button class="btn-primary" id="p-download">↓ Download my plan <span class="p-btn-note">(encryption optional)</span></button>
           <button class="btn-ghost" id="p-nostr">☁ Save to Nostr (encrypted) ↓</button>
           <label class="btn-ghost file-btn">Import a plan<input type="file" id="p-import" accept="application/json,.json" hidden /></label>
           <button class="btn-danger" id="p-clear">Clear my saved plan</button>
@@ -294,26 +293,21 @@ import Base from '../layouts/Base.astro';
         <p class="p-foot mono">This plan is stored only in this browser. A downloaded file is yours to keep — no seed words are ever in it. Never put your recovery words in the notes.</p>
       </div>`;
 
-    document.getElementById('p-download').addEventListener('click', () => {
-      const p = loadLocal();
-      downloadPlan(p);
-      toast(`Downloaded ${PLAN_FILENAME}`, 'ok');
-    });
-
-    document.getElementById('p-encrypt').addEventListener('click', async () => {
+    document.getElementById('p-download').addEventListener('click', async () => {
       const p = loadLocal();
       if (!p) return;
-      const pw = await promptPassword({
-        title: 'Encrypt your plan',
-        message: 'Choose a password — the downloaded file is unreadable without it. There is no recovery, so use one you won’t forget. (Your plan holds no seed words; this just protects the plan file itself.)',
-        confirmText: 'Encrypt & download', confirmField: true, minLength: 6, placeholder: 'Password (min 6 characters)',
-      });
-      if (pw == null) return;
-      try {
-        const env = await encryptPlanToEnvelope(p, pw);
-        downloadEncryptedPlan(env);
-        toast('Downloaded encrypted plan', 'ok');
-      } catch (e) { toast('Encryption failed.', 'err'); }
+      const choice = await downloadDialog();
+      if (!choice) return;
+      if (choice.mode === 'encrypted') {
+        try {
+          const env = await encryptPlanToEnvelope(p, choice.password);
+          downloadEncryptedPlan(env);
+          toast('Downloaded encrypted plan', 'ok');
+        } catch (e) { toast('Encryption failed.', 'err'); }
+      } else {
+        downloadPlan(p);
+        toast(`Downloaded ${PLAN_FILENAME}`, 'ok');
+      }
     });
 
     // "Save to Nostr" — context-aware. Signed in → save straight away (no scroll).
@@ -719,6 +713,7 @@ import Base from '../layouts/Base.astro';
   #plan .btn-danger:hover { background: var(--danger-dim); }
   #plan .file-btn { position: relative; overflow: hidden; }
   #plan .p-foot { color: var(--faint); font-size: 0.76rem; margin: 1.1rem 0 0; }
+  #plan .p-btn-note { font-weight: 400; opacity: 0.8; font-size: 0.82rem; }
 
   /* empty state */
   #plan .p-empty { border: 1px dashed var(--line); border-radius: var(--radius); background: var(--surface); padding: 1.6rem 1.7rem; }

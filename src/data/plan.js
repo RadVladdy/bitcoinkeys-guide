@@ -154,7 +154,9 @@ export function savePlannedSetup({ rung, label, tier, device, source, answers, k
     // keep the user's device assignments only if the SETUP didn't change
     plannedDevices: sameSetup ? strList(prev.plannedDevices) : [],
   };
-  if (device) cur.device = device;
+  // NOTE: we deliberately do NOT store the quiz's recommended device as a "chosen
+  // device" — a recommendation isn't a selection. The user's real device choices are
+  // the plan's key slots (plannedDevices), managed on /my-plan + /wallets.
   // owned wallets captured in the quiz MERGE into the status inventory (never clobber
   // devices recorded on /wallets or a prior visit). Supports multiple wallets.
   if (Array.isArray(owned) && owned.length) {
