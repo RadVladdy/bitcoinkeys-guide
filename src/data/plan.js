@@ -23,11 +23,26 @@ export function emptyPlan() {
     v: PLAN_VERSION,
     app: APP,
     updated: null,
-    quiz: null, // { answers: {...}, primaryTier, primaryLabel, device }
+    quiz: null, // { answers, primaryTier, primaryLabel, device, rung, source, keysNeeded, plannedDevices[] }
     ladder: null, // { rung }  (a ladder slug)
     device: null, // last chosen device name
+    owned: [], // slugs of hardware wallets the user already HAS — their status inventory
     checklist: {}, // { [itemId]: true }
     notes: '',
+  };
+}
+
+// Keep only strings from a maybe-array (defensive — imported files are untrusted).
+function strList(arr, cap = 20) {
+  return Array.isArray(arr) ? arr.filter((x) => typeof x === 'string').slice(0, cap) : [];
+}
+// Sanitize the planned-setup slice, coercing its device/keys fields to safe types.
+function normQuiz(q) {
+  if (!q || typeof q !== 'object') return null;
+  return {
+    ...q,
+    keysNeeded: typeof q.keysNeeded === 'number' ? q.keysNeeded : null,
+    plannedDevices: strList(q.plannedDevices),
   };
 }
 
@@ -49,12 +64,13 @@ export function normalize(obj) {
     v: PLAN_VERSION,
     app: APP,
     updated: typeof obj.updated === 'string' ? obj.updated : null,
-    quiz: obj.quiz && typeof obj.quiz === 'object' ? obj.quiz : null,
+    quiz: normQuiz(obj.quiz),
     ladder:
       obj.ladder && typeof obj.ladder === 'object' && typeof obj.ladder.rung === 'string'
         ? { rung: obj.ladder.rung }
         : null,
     device: typeof obj.device === 'string' ? obj.device : null,
+    owned: strList(obj.owned),
     checklist,
     notes: typeof obj.notes === 'string' ? obj.notes.slice(0, 2000) : '',
   };
@@ -64,7 +80,9 @@ export function normalize(obj) {
 export function planHasContent(p) {
   if (!p) return false;
   return Boolean(
-    p.quiz || p.ladder || p.device || p.notes || (p.checklist && Object.keys(p.checklist).length)
+    p.quiz || p.ladder || p.device || p.notes ||
+    (p.owned && p.owned.length) ||
+    (p.checklist && Object.keys(p.checklist).length)
   );
 }
 
@@ -116,8 +134,10 @@ export function clearLocal() {
 // secondary) or from browsing a ladder rung page. There is only ever one at a
 // time; saving a new setup REPLACES the current one (the UI confirms first when
 // it differs). Stored under `quiz` for backward-compatibility with earlier plans.
-export function savePlannedSetup({ rung, label, tier, device, source, answers }) {
+export function savePlannedSetup({ rung, label, tier, device, source, answers, keysNeeded, owned }) {
   const cur = loadLocal() || emptyPlan();
+  const prev = cur.quiz || {};
+  const sameSetup = prev.rung && prev.rung === rung;
   cur.quiz = {
     answers: answers || null,
     primaryTier: tier || null,
@@ -125,9 +145,59 @@ export function savePlannedSetup({ rung, label, tier, device, source, answers })
     device: device || null,
     rung: rung || null,
     source: source || null,
+    // how many keys this setup needs → the roadmap slot count
+    keysNeeded: typeof keysNeeded === 'number' ? keysNeeded : (sameSetup ? prev.keysNeeded : null),
+    // keep the user's device assignments only if the SETUP didn't change
+    plannedDevices: sameSetup ? strList(prev.plannedDevices) : [],
   };
   if (device) cur.device = device;
+  // owned wallets captured in the quiz MERGE into the status inventory (never clobber
+  // devices recorded on /wallets or a prior visit).
+  if (Array.isArray(owned) && owned.length) {
+    cur.owned = Array.from(new Set([...(cur.owned || []), ...owned.filter((s) => typeof s === 'string')]));
+  }
   return saveLocal(cur);
+}
+
+// ── STATUS: hardware wallets the user already owns ──────────────────────────
+export function getOwned() {
+  const p = loadLocal();
+  return p && Array.isArray(p.owned) ? p.owned : [];
+}
+export function setOwned(slugs) {
+  const cur = loadLocal() || emptyPlan();
+  cur.owned = Array.from(new Set(strList(slugs)));
+  return saveLocal(cur);
+}
+export function toggleOwned(slug) {
+  const cur = loadLocal() || emptyPlan();
+  const set = new Set(cur.owned || []);
+  if (set.has(slug)) set.delete(slug); else set.add(slug);
+  cur.owned = Array.from(set);
+  return saveLocal(cur);
+}
+
+// ── PLAN: the wallet(s) assigned to the planned setup's key slots ────────────
+export function getPlannedDevices() {
+  const p = loadLocal();
+  return p && p.quiz && Array.isArray(p.quiz.plannedDevices) ? p.quiz.plannedDevices : [];
+}
+export function plannedKeysNeeded() {
+  const p = loadLocal();
+  return p && p.quiz && typeof p.quiz.keysNeeded === 'number' ? p.quiz.keysNeeded : null;
+}
+// Assign/unassign a device to the plan. No-op if there is no planned setup yet.
+export function togglePlannedDevice(slug) {
+  const cur = loadLocal();
+  if (!cur || !cur.quiz) return cur;
+  const set = new Set(cur.quiz.plannedDevices || []);
+  if (set.has(slug)) set.delete(slug); else set.add(slug);
+  cur.quiz.plannedDevices = Array.from(set);
+  return saveLocal(cur);
+}
+export function hasPlannedSetup() {
+  const p = loadLocal();
+  return Boolean(p && p.quiz && (p.quiz.primaryLabel || p.quiz.rung));
 }
 
 /** The rung slug of the currently-planned setup, or null. */

@@ -118,6 +118,7 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
               <span class="reach-note">{w.ladderReach.note}</span>
             </div>
           )}
+          <div class="wc-plan" data-slug={w.image.replace('/devices/', '').replace('.webp', '')} hidden></div>
         </article>
       ))}
       <div class="cards-empty" id="ch-empty" hidden>
@@ -277,6 +278,49 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
   }
 </script>
 
+<!-- Per-tile plan controls: mark a device as OWNED (status) or add it to your
+     planned setup's key slots. Explicit, opt-in writes — the page stays dataless
+     until you click. Injected by JS, so styles live in a global block below. -->
+<script>
+  import { toggleOwned, togglePlannedDevice, getOwned, getPlannedDevices, hasPlannedSetup } from '../data/plan.js';
+
+  function wtoast(msg, kind) {
+    const t = document.createElement('div');
+    t.className = `w-toast ${kind || ''}`;
+    t.textContent = msg;
+    document.body.appendChild(t);
+    requestAnimationFrame(() => t.classList.add('show'));
+    setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 2600);
+  }
+
+  function paintPlanControls() {
+    const owned = new Set(getOwned());
+    const planned = new Set(getPlannedDevices());
+    const hasPlan = hasPlannedSetup();
+    document.querySelectorAll('.wc-plan').forEach((el) => {
+      const slug = el.dataset.slug;
+      const isOwned = owned.has(slug);
+      const isPlanned = planned.has(slug);
+      el.hidden = false;
+      el.innerHTML = `
+        <button class="wcp-btn wcp-own ${isOwned ? 'on' : ''}" type="button">${isOwned ? '✓ You own this' : '＋ I own this'}</button>
+        <button class="wcp-btn wcp-plan ${isPlanned ? 'on' : ''}" type="button">${isPlanned ? '★ In your plan' : '☆ Add to my plan'}</button>`;
+      el.querySelector('.wcp-own').addEventListener('click', () => {
+        toggleOwned(slug);
+        wtoast(isOwned ? 'Removed from the wallets you own' : 'Saved — added to the wallets you own', 'ok');
+        paintPlanControls();
+      });
+      el.querySelector('.wcp-plan').addEventListener('click', () => {
+        if (!hasPlan) { wtoast('Take the quiz to choose a setup first — then you can slot wallets into your plan.', 'err'); return; }
+        togglePlannedDevice(slug);
+        wtoast(isPlanned ? 'Removed from your plan' : 'Added to your plan', 'ok');
+        paintPlanControls();
+      });
+    });
+  }
+  paintPlanControls();
+</script>
+
 <style>
   /* ── Chooser: static controls (present at build, scoped styling is fine) ── */
   .chooser { margin-top: 2.4rem; }
@@ -383,4 +427,23 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
   .pip.weak { color: var(--faint); }
   .pip.na { color: var(--faint); border-style: dashed; }
   .reach-note { display: block; font-size: 0.84rem; color: var(--muted); line-height: 1.45; margin: 0; }
+</style>
+
+<!-- Plan controls are injected by JS (no scoped attr) → global styles. -->
+<style is:global>
+  .wc-plan { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.9rem; padding-top: 0.8rem; border-top: 1px solid var(--line-soft); }
+  .wcp-btn { font-family: var(--sans); font-size: 0.82rem; cursor: pointer; background: var(--raise);
+    border: 1px solid var(--line); border-radius: 2rem; padding: 0.4rem 0.85rem; color: var(--text);
+    transition: border-color 0.15s, background 0.15s, color 0.15s; }
+  .wcp-btn:hover { border-color: var(--accent); }
+  .wcp-own.on { background: var(--safe-dim); border-color: color-mix(in srgb, var(--safe) 40%, var(--line)); color: var(--safe); font-weight: 600; }
+  .wcp-plan.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+
+  .w-toast { position: fixed; left: 50%; bottom: 1.6rem; transform: translateX(-50%) translateY(1rem);
+    background: var(--surface-2); color: var(--text); border: 1px solid var(--line); border-radius: 0.6rem;
+    padding: 0.7rem 1.1rem; font-size: 0.9rem; box-shadow: var(--shadow); opacity: 0; z-index: 50;
+    transition: opacity 0.25s, transform 0.25s; max-width: min(92vw, 26rem); text-align: center; }
+  .w-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .w-toast.ok { border-color: var(--safe); }
+  .w-toast.err { border-color: var(--warn); }
 </style>

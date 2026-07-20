@@ -313,3 +313,33 @@ export const budgetBuckets = [
   { key: 'under150', label: 'Under $150', max: 150 },
   { key: 'under100', label: 'Under $100', max: 100 },
 ];
+
+// ── Plan integration: stable per-device slugs + a setup→keys map ─────────────
+// The plan feature (owned wallets · roadmap slots · "add to plan" on tiles) needs
+// a canonical id per device. We derive it from each device's image basename —
+// already unique and stable — so no hand-maintained id list can drift from `wallets`.
+export const deviceCatalog = wallets.map((w) => ({
+  slug: w.image.replace('/devices/', '').replace(/\.webp$/, ''),
+  name: w.name,
+  price: w.price,
+  priceNum: w.priceNum,
+}));
+export const deviceBySlug = Object.fromEntries(deviceCatalog.map((d) => [d.slug, d]));
+export function deviceName(slug) { return (deviceBySlug[slug] && deviceBySlug[slug].name) || slug; }
+
+// How many keys the user personally holds for a given setup — drives the roadmap
+// slots (owned devices fill them; the rest become a "still to get" shopping list).
+// Collaborative = the user holds 2 of 3 (a Bitcoin service holds the third).
+// "Getting started" (learning) = 0: a phone wallet first, no hardware pushed yet —
+// consistent with the guide's "don't buy gear you don't need" ethos.
+export function keysForSetup({ rungSlug, label = '', tier = '' } = {}) {
+  if (/getting started/i.test(tier)) return 0;
+  if (/3-of-5/.test(String(label) + ' ' + String(tier))) return 5;
+  switch (rungSlug) {
+    case 'single-sig': return 1;
+    case 'passphrase': return 1;
+    case 'multisig': return 3;      // DIY 2-of-3, all your own keys
+    case 'collaborative': return 2; // you hold 2, the service holds 1
+    default: return 1;
+  }
+}

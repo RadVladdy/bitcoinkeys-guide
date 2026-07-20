@@ -8,6 +8,7 @@ const { rung, label, tier = '', source = 'ladder' } = Astro.props;
 
 <script>
   import { savePlannedSetup, plannedSetupRung, plannedSetupLabel } from '../data/plan.js';
+  import { keysForSetup } from '../data/wallets.js';
   import { confirmDialog } from '../data/ui-dialog.js';
 
   function paint(band) {
@@ -30,7 +31,7 @@ const { rung, label, tier = '', source = 'ladder' } = Astro.props;
         });
         if (!ok) return;
       }
-      savePlannedSetup({ rung, label, tier, source });
+      savePlannedSetup({ rung, label, tier, source, keysNeeded: keysForSetup({ rungSlug: rung, label, tier }) });
       paint(band);
     });
   }
