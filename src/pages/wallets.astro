@@ -322,7 +322,8 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
       el.innerHTML = `
         ${isRec ? `<span class="wcp-rec">★ Recommended for your plan</span>` : ''}
         <button class="wcp-btn wcp-own ${isOwned ? 'on' : ''}" type="button">${isOwned ? '✓ You own this' : '＋ I own this'}</button>
-        <button class="wcp-btn wcp-plan ${isPlanned ? 'on' : ''}" type="button">${isPlanned ? '★ In your plan' : '☆ Add to my plan'}</button>`;
+        <button class="wcp-btn wcp-plan ${isPlanned ? 'on' : ''}" type="button">${isPlanned ? '★ In your plan' : '☆ Add to my plan'}</button>
+        ${(isOwned || isPlanned) && hasPlan ? `<a class="wcp-return" href="/my-plan">↩ back to your plan →</a>` : ''}`;
       el.querySelector('.wcp-own').addEventListener('click', () => {
         toggleOwned(slug);
         wtoast(isOwned ? 'Removed from the wallets you own' : 'Saved — added to the wallets you own', 'ok');
@@ -461,6 +462,8 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
   .wcp-own.on { background: var(--safe-dim); border-color: color-mix(in srgb, var(--safe) 40%, var(--line)); color: var(--safe); font-weight: 600; }
   .wcp-plan.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
   .wcp-rec { flex-basis: 100%; color: var(--accent); font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.04em; font-weight: 700; margin-bottom: 0.15rem; }
+  .wcp-return { display: inline-flex; align-items: center; color: var(--accent); font-size: 0.82rem; font-weight: 600; text-decoration: none; padding: 0.4rem 0.2rem; }
+  .wcp-return:hover { text-decoration: underline; }
 
   .w-toast { position: fixed; left: 50%; bottom: 1.6rem; transform: translateX(-50%) translateY(1rem);
     background: var(--surface-2); color: var(--text); border: 1px solid var(--line); border-radius: 0.6rem;
