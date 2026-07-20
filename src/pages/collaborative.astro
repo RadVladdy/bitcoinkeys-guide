@@ -20,6 +20,8 @@ const markCls = { yes: 'y', partial: 'p', no: 'n' };
     </div>
   </section>
 
+  <div id="plan-nudge" class="plan-nudge" hidden></div>
+
   <div class="wtabs" id="ctabs" role="tablist" aria-label="Views" hidden>
     <button class="wtab active" id="tab-tiles" role="tab" aria-selected="true" type="button">Browse services</button>
     <button class="wtab" id="tab-ctable" role="tab" aria-selected="false" type="button">Comparison table</button>
@@ -133,7 +135,22 @@ const markCls = { yes: 'y', partial: 'p', no: 'n' };
     requestAnimationFrame(() => t.classList.add('show'));
     setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 2600);
   }
+  function paintNudge() {
+    const el = document.getElementById('plan-nudge');
+    if (!el) return;
+    const chosen = getCustodian();
+    const hasPlan = hasPlannedSetup();
+    if (!chosen && !hasPlan) { el.hidden = true; return; }
+    el.hidden = false;
+    el.innerHTML = (chosen && hasPlan)
+      ? `<span>✓ We’re keeping track — your custodian feeds your plan.</span> <a href="/my-plan">View your plan →</a>`
+      : chosen
+        ? `<span>✓ Noted your custodian choice.</span> <a href="/quiz">Take the 2-min quiz to build the rest of your plan →</a>`
+        : `<span>✓ You have a plan going.</span> <a href="/my-plan">View your plan →</a>`;
+  }
+
   function paintCustodianControls() {
+    paintNudge();
     const chosen = getCustodian();
     document.querySelectorAll('.wc-plan').forEach((el) => {
       const slug = el.dataset.slug;
@@ -226,4 +243,9 @@ const markCls = { yes: 'y', partial: 'p', no: 'n' };
   .w-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   .w-toast.ok { border-color: var(--safe); }
   .w-toast.err { border-color: var(--warn); }
+
+  .plan-nudge { display: flex; flex-wrap: wrap; gap: 0.3rem 0.7rem; align-items: center; margin: 1.4rem 0 0;
+    border: 1px solid var(--safe); background: var(--safe-dim); border-radius: 0.6rem; padding: 0.7rem 1rem; font-size: 0.9rem; color: var(--muted); }
+  .plan-nudge a { color: var(--accent); text-decoration: none; font-weight: 600; }
+  .plan-nudge a:hover { text-decoration: underline; }
 </style>

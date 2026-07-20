@@ -19,6 +19,7 @@ import Base from '../layouts/Base.astro';
   </section>
 
   <div id="quiz" class="quiz" aria-live="polite">
+    <div id="q-resume" hidden></div>
     <div class="quiz-progress mono" id="q-progress"></div>
     <div id="q-card"></div>
     <div id="q-result" hidden></div>
@@ -29,7 +30,7 @@ import Base from '../layouts/Base.astro';
 <script>
   import { questions, recommend } from '../data/quiz.js';
   import { wallets, keysForSetup } from '../data/wallets.js';
-  import { savePlannedSetup, plannedSetupRung, plannedSetupLabel } from '../data/plan.js';
+  import { savePlannedSetup, plannedSetupRung, plannedSetupLabel, loadLocal } from '../data/plan.js';
   import { mountOwnedPicker } from '../data/owned-picker.js';
   import { confirmDialog } from '../data/ui-dialog.js';
 
@@ -103,7 +104,8 @@ import Base from '../layouts/Base.astro';
   }
 
   function renderSingle(q) {
-    const opts = q.options.map((o) => `<button class="q-opt" data-value="${esc(o.value)}"><span>${esc(o.label)}</span></button>`).join('');
+    const prior = answers[q.id]; // prefilled from a saved plan → highlight it
+    const opts = q.options.map((o) => `<button class="q-opt ${o.value === prior ? 'sel' : ''}" data-value="${esc(o.value)}"><span>${esc(o.label)}</span>${o.value === prior ? '<span class="q-prior mono">your answer</span>' : ''}</button>`).join('');
     elCard.innerHTML = shell(q, `<div class="q-opts">${opts}</div>${idx > 0 ? `<button class="q-back" id="q-back">← Back</button>` : ''}`);
     elCard.querySelectorAll('.q-opt').forEach((b) => {
       b.addEventListener('click', () => {
@@ -265,6 +267,8 @@ import Base from '../layouts/Base.astro';
 
   function renderResult() {
     renderProgress();
+    const rb = document.getElementById('q-resume');
+    if (rb) rb.hidden = true; // the result speaks for itself
     elCard.hidden = true;
     elResult.hidden = false;
     const { primary, secondary, journey } = recommend(answers);
@@ -362,6 +366,59 @@ import Base from '../layouts/Base.astro';
     });
   }
 
+  // ── Cross-site continuity: prefill from anything already saved elsewhere (wallets
+  // owned, a chosen custodian, a prior quiz, the ladder self-locator). Reads ONLY
+  // explicitly-saved plan data, so "nothing saved unless you save" still holds — and
+  // a "welcome back" banner makes the tracking visible.
+  const CURRENT_VALUES = ['pre', 'single-sig', 'passphrase', 'multisig', 'collaborative'];
+  function prefillFromPlan() {
+    const saved = loadLocal();
+    if (!saved) return { any: false, got: [] };
+    const got = [];
+    if (Array.isArray(saved.owned) && saved.owned.length) { answers.ownedDevices = saved.owned.slice(); got.push('owned'); }
+    if (saved.ownPrivate) answers.ownPrivate = true;
+    if (saved.quiz && saved.quiz.answers && typeof saved.quiz.answers === 'object') {
+      for (const [k, v] of Object.entries(saved.quiz.answers)) { if (v != null) answers[k] = Array.isArray(v) ? v.slice() : v; }
+      got.push('answers');
+    }
+    if (answers.current == null && saved.ladder && CURRENT_VALUES.includes(saved.ladder.rung)) {
+      answers.current = saved.ladder.rung; got.push('ladder');
+    }
+    if (saved.custodian) got.push('custodian');
+    return { any: got.length > 0, got };
+  }
+  function allAnswered() {
+    return questions.every((q) => answers[q.id] != null && (q.type !== 'rank' || (Array.isArray(answers[q.id]) && answers[q.id].length)));
+  }
+  function renderResume(pf) {
+    const box = document.getElementById('q-resume');
+    if (!pf.any) { box.hidden = true; return; }
+    const bits = [];
+    if (pf.got.includes('owned')) bits.push('the wallets you own');
+    if (pf.got.includes('answers')) bits.push('your earlier answers');
+    else if (pf.got.includes('ladder')) bits.push('where you are on the ladder');
+    if (pf.got.includes('custodian')) bits.push('your chosen custodian');
+    const list = bits.length ? bits.join(' · ') : 'your earlier choices';
+    box.hidden = false;
+    box.innerHTML = `
+      <div class="q-resume-in">
+        <span class="q-resume-k mono">👋 Welcome back — we kept track</span>
+        <p>We've prefilled what you told us elsewhere (<strong>${esc(list)}</strong>). Walk through and change anything${allAnswered() ? ', or jump straight to your result.' : ' — or just confirm as you go.'}</p>
+        <div class="q-resume-acts">
+          ${allAnswered() ? `<button class="btn-primary" id="q-jump" type="button">See your result →</button>` : ''}
+          <button class="q-fresh" id="q-fresh" type="button">Start fresh</button>
+        </div>
+      </div>`;
+    const jump = document.getElementById('q-jump');
+    if (jump) jump.addEventListener('click', () => { renderResult(); document.getElementById('quiz').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+    document.getElementById('q-fresh').addEventListener('click', () => {
+      for (const k in answers) delete answers[k];
+      idx = 0; atOwned = false; box.hidden = true;
+      renderQuestion();
+    });
+  }
+
+  renderResume(prefillFromPlan());
   renderQuestion();
 </script>
 
@@ -378,6 +435,19 @@ import Base from '../layouts/Base.astro';
      Astro's scoped attribute — these must be global. Namespaced under #quiz to not leak. -->
 <style is:global>
   #quiz { margin-top: 2rem; max-width: 44rem; }
+  /* "Welcome back" resume banner — cross-site continuity made visible */
+  #quiz #q-resume { margin-bottom: 1rem; }
+  #quiz .q-resume-in { border: 1px solid var(--safe); background: var(--safe-dim); border-radius: var(--radius); padding: 1rem 1.2rem; }
+  #quiz .q-resume-k { display: block; color: var(--safe); font-size: 0.74rem; letter-spacing: 0.05em; margin-bottom: 0.35rem; }
+  #quiz .q-resume-in p { margin: 0 0 0.8rem; color: var(--muted); font-size: 0.92rem; line-height: 1.55; }
+  #quiz .q-resume-in p strong { color: var(--text); }
+  #quiz .q-resume-acts { display: flex; flex-wrap: wrap; gap: 0.7rem; align-items: center; }
+  #quiz .q-resume-acts .btn-primary { font-size: 0.9rem; padding: 0.55rem 1rem; }
+  #quiz .q-fresh { background: none; border: none; color: var(--muted); font-family: var(--sans); font-size: 0.86rem; cursor: pointer; padding: 0.55rem 0.2rem; text-decoration: underline; }
+  #quiz .q-fresh:hover { color: var(--accent); }
+  /* prior-answer marker on a prefilled option (inline pill — no layout change) */
+  #quiz .q-opt.sel { border-color: var(--accent); background: var(--accent-soft); }
+  #quiz .q-prior { display: inline-block; margin-left: 0.5rem; vertical-align: middle; color: var(--accent); font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.06em; border: 1px solid var(--accent-dim); border-radius: 999px; padding: 0.1rem 0.5rem; }
   /* "Your journey" — leads the result, framing the destination from where they are now. */
   #quiz .r-journey { border: 1px solid var(--accent-dim); background: var(--accent-soft); border-radius: var(--radius); padding: 1.3rem 1.4rem; margin-bottom: 1rem; }
   #quiz .r-journey.j-there, #quiz .r-journey.j-ahead { border-color: var(--safe); background: var(--safe-dim); }
