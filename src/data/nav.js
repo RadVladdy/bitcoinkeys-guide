@@ -5,37 +5,37 @@
 // Used by the mobile hamburger menu and the footer.
 export const navGroups = [
   {
-    title: 'Get started',
+    title: 'Take action',
     links: [
       { href: '/start', label: 'Start here' },
       { href: '/quiz', label: 'Take the quiz' },
-      { href: '/how-it-works', label: 'How Bitcoin works' },
+      { href: '/ladder', label: 'The ladder' },
+      { href: '/checklist', label: 'Checklist' },
+      { href: '/my-plan', label: 'My plan' },
     ],
   },
   {
-    title: 'Choose & learn',
+    title: 'Learn',
+    links: [
+      { href: '/how-it-works', label: 'How Bitcoin works' },
+      { href: '/principles', label: 'Core principles' },
+      { href: '/how-to', label: 'How-to guides' },
+      { href: '/deep-dive', label: 'Deeper dives' },
+      { href: '/glossary', label: 'Glossary' },
+      { href: '/resources', label: 'Resources' },
+    ],
+  },
+  {
+    title: 'Research',
     links: [
       { href: '/wallets', label: 'Compare wallets' },
       { href: '/collaborative', label: 'Compare custodians' },
-      { href: '/ladder', label: 'The ladder' },
-      { href: '/deep-dive', label: 'Deeper dives' },
-      { href: '/glossary', label: 'Glossary' },
-      { href: '/principles', label: 'Core principles' },
-    ],
-  },
-  {
-    title: 'Do it',
-    links: [
-      { href: '/how-to', label: 'How-to guides' },
-      { href: '/checklist', label: 'Checklist' },
-      { href: '/my-plan', label: 'My plan' },
     ],
   },
   {
     title: 'About',
     links: [
       { href: '/about', label: 'About' },
-      { href: '/resources', label: 'Resources' },
       { href: '/changelog', label: 'What’s changed' },
       { href: '/tip', label: '⚡ Tip the guide' },
     ],

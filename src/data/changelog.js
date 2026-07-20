@@ -11,6 +11,12 @@ export const changelog = [
   {
     date: '2026-07-20',
     type: 'feature',
+    title: 'The tools now talk to each other — and a clearer menu',
+    detail: 'Everything you do across the site now flows into one plan, and back out again. Mark a wallet you own on the comparison page, pick a custodian, or place yourself on the ladder, and the quiz will greet you with “welcome back” and prefill what you’ve already told it — so it feels like the site is keeping track (it is, entirely in your browser). A quick banner on the wallet and custodian pages shows what’s noted and links to your plan. The menu was also reorganized into four clearer groups — Take action, Learn, Research, and About.',
+  },
+  {
+    date: '2026-07-20',
+    type: 'feature',
     title: 'New: compare collaborative custody services — honestly',
     detail: 'A new “Compare custodians” page puts the six Bitcoin-only collaborative-custody services (Unchained, Nunchuk, Swan Vault, AnchorWatch, Bitkey, The Bitcoin Adviser) side by side — the same honest, no-affiliate treatment as the wallet comparison. Each is scored on the questions that matter: no-KYC, whether you can recover your coins on your own if they vanish (open-source recovery — the most important one), insurance, fees, and minimums. Facts verified against each provider’s own site plus independent sources. And if the quiz points you to collaborative custody, your plan now has a “service key” slot: pick your custodian right from the comparison and it slots into your roadmap alongside the two keys you hold.',
   },
