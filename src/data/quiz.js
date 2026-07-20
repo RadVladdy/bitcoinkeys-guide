@@ -15,7 +15,7 @@ export const questions = [
   {
     id: 'current',
     type: 'single',
-    q: 'Where’s your Bitcoin right now?',
+    q: 'What’s your current Bitcoin setup?',
     help: 'This is your starting point — the recommendation is the destination, and we’ll show you the path from here. There’s no wrong answer; most people are near the beginning.',
     options: [
       { value: 'pre',           label: 'Nothing yet — it’s on an exchange, or in a phone / software wallet' },

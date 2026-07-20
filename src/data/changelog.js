@@ -24,7 +24,7 @@ export const changelog = [
     date: '2026-07-19',
     type: 'feature',
     title: 'The quiz now starts from where you are — your plan as a journey',
-    detail: 'The quiz asks where your Bitcoin is right now (on an exchange, one hardware wallet, a passphrase, multisig…), then frames the recommendation as a path from there: whether you’re one step away, a few steps, already exactly where you should be, or even a little ahead of what your situation needs. It’s encouraging about wherever you are and never tells you to downgrade — a destination only means something once you know your starting point.',
+    detail: 'The quiz asks about your current setup (on an exchange, one hardware wallet, a passphrase, multisig…), then frames the recommendation as a path from there: whether you’re one step away, a few steps, already exactly where you should be, or even a little ahead of what your situation needs. It’s encouraging about wherever you are and never tells you to downgrade — a destination only means something once you know your starting point.',
   },
   {
     date: '2026-07-19',
