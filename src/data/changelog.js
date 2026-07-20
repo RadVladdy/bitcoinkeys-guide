@@ -10,6 +10,12 @@
 export const changelog = [
   {
     date: '2026-07-20',
+    type: 'content',
+    title: 'Sharper risk defenses + a quick way back to your plan',
+    detail: 'On “how people lose Bitcoin,” the physical-attack defense now covers the passphrase / decoy-wallet trick (your recovery words alone open only a believable decoy, while the real coins sit behind a passphrase in your head), and the exchange-failure defense now points you at reputable Bitcoin-only services (River, Swan, Strike) rather than multi-coin “crypto casinos.” And on the wallet comparison, once you add a device to your plan you’ll see a “↩ back to your plan” link so you can jump straight back.',
+  },
+  {
+    date: '2026-07-20',
     type: 'feature',
     title: 'Your recommended wallets follow you to the comparison page',
     detail: 'When the quiz recommends specific hardware wallets for your setup, those recommendations now stick: your plan’s empty key slots suggest them by name, and over on the wallet comparison page the recommended devices are flagged “★ Recommended for your plan” so they’re easy to spot and add. The “My plan” page was also cleaned up — “where you are” (your current setup, ladder rung, and the wallets you own, shown read-only with a tuck-away editor) and “your saved plan” (the setup you’re building, with its wallet slots) are now two clearly separated, equal sections.',
