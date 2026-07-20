@@ -343,3 +343,107 @@ export function keysForSetup({ rungSlug, label = '', tier = '' } = {}) {
     default: return 1;
   }
 }
+
+// ── Ownership catalog: what someone might ALREADY OWN (make → model) ─────────
+// Deliberately broader than the 11-device comparison above — most people hold an
+// OLDER or discontinued model, so this leans legacy. Current-lineup models reuse
+// the exact `deviceCatalog` slugs so "I own this" on /wallets and this picker agree.
+// Grouped by make for a compact make→model dropdown; `current:true` marks the
+// still-sold models. Anything truly unlisted is captured as free text ("x:<name>").
+export const ownableCatalog = [
+  { brand: 'Coldcard (Coinkite)', models: [
+    { slug: 'coldcard-q', name: 'Coldcard Q', current: true },
+    { slug: 'coldcard-mk5', name: 'Coldcard Mk5', current: true },
+    { slug: 'coldcard-mk4', name: 'Coldcard Mk4' },
+    { slug: 'coldcard-mk3', name: 'Coldcard Mk3' },
+    { slug: 'coldcard-mk2', name: 'Coldcard Mk2' },
+    { slug: 'coldcard-mk1', name: 'Coldcard Mk1' },
+    { slug: 'coinkite-tapsigner', name: 'Tapsigner' },
+    { slug: 'coinkite-opendime', name: 'Opendime' },
+  ] },
+  { brand: 'Trezor', models: [
+    { slug: 'trezor-safe-7', name: 'Trezor Safe 7', current: true },
+    { slug: 'trezor-safe-5', name: 'Trezor Safe 5', current: true },
+    { slug: 'trezor-safe-3', name: 'Trezor Safe 3', current: true },
+    { slug: 'trezor-model-t', name: 'Trezor Model T' },
+    { slug: 'trezor-model-one', name: 'Trezor Model One' },
+  ] },
+  { brand: 'Ledger', models: [
+    { slug: 'ledger', name: 'Ledger Nano (unsure which)', current: true },
+    { slug: 'ledger-stax', name: 'Ledger Stax' },
+    { slug: 'ledger-flex', name: 'Ledger Flex' },
+    { slug: 'ledger-nano-x', name: 'Ledger Nano X' },
+    { slug: 'ledger-nano-s-plus', name: 'Ledger Nano S Plus' },
+    { slug: 'ledger-nano-s', name: 'Ledger Nano S' },
+  ] },
+  { brand: 'BitBox', models: [
+    { slug: 'bitbox02', name: 'BitBox02 (Bitcoin-only)', current: true },
+    { slug: 'bitbox02-multi', name: 'BitBox02 (Multi edition)' },
+    { slug: 'bitbox01', name: 'BitBox01 (Digital Bitbox)' },
+  ] },
+  { brand: 'Blockstream', models: [
+    { slug: 'jade-plus', name: 'Blockstream Jade Plus', current: true },
+    { slug: 'jade-core', name: 'Blockstream Jade', current: true },
+    { slug: 'jade-2021', name: 'Blockstream Jade (original, 2021)' },
+  ] },
+  { brand: 'Foundation', models: [
+    { slug: 'passport-prime', name: 'Passport Prime', current: true },
+    { slug: 'passport-core', name: 'Passport Core' },
+    { slug: 'passport-gen1', name: 'Passport (gen 1 / batch 2)' },
+  ] },
+  { brand: 'Bitkey (Block)', models: [
+    { slug: 'bitkey', name: 'Bitkey', current: true },
+  ] },
+  { brand: 'Keystone', models: [
+    { slug: 'keystone-3-pro', name: 'Keystone 3 Pro' },
+    { slug: 'keystone-essential', name: 'Keystone Essential' },
+    { slug: 'keystone-pro', name: 'Keystone Pro / Cobo Vault Pro' },
+    { slug: 'cobo-vault', name: 'Cobo Vault' },
+  ] },
+  { brand: 'KeepKey', models: [ { slug: 'keepkey', name: 'KeepKey' } ] },
+  { brand: 'DIY (SeedSigner · Krux · Specter)', models: [
+    { slug: 'seedsigner', name: 'SeedSigner' },
+    { slug: 'krux', name: 'Krux' },
+    { slug: 'specter-diy', name: 'Specter DIY' },
+  ] },
+  { brand: 'Ellipal', models: [
+    { slug: 'ellipal-titan-2', name: 'Ellipal Titan 2.0' },
+    { slug: 'ellipal-titan', name: 'Ellipal Titan' },
+  ] },
+  { brand: 'OneKey', models: [
+    { slug: 'onekey-pro', name: 'OneKey Pro' },
+    { slug: 'onekey-classic', name: 'OneKey Classic' },
+    { slug: 'onekey-touch', name: 'OneKey Touch' },
+    { slug: 'onekey-mini', name: 'OneKey Mini' },
+  ] },
+  { brand: 'Cypherock', models: [ { slug: 'cypherock-x1', name: 'Cypherock X1' } ] },
+  { brand: 'NGRAVE', models: [ { slug: 'ngrave-zero', name: 'NGRAVE Zero' } ] },
+  { brand: 'GridPlus', models: [ { slug: 'gridplus-lattice1', name: 'GridPlus Lattice1' } ] },
+  { brand: 'SecuX', models: [
+    { slug: 'secux-v20', name: 'SecuX V20' },
+    { slug: 'secux-w20', name: 'SecuX W20' },
+    { slug: 'secux-nifty', name: 'SecuX Nifty' },
+  ] },
+  { brand: "D'CENT", models: [ { slug: 'dcent-biometric', name: "D'CENT Biometric" } ] },
+  { brand: 'CoolWallet', models: [
+    { slug: 'coolwallet-pro', name: 'CoolWallet Pro' },
+    { slug: 'coolwallet-s', name: 'CoolWallet S' },
+  ] },
+  { brand: 'SafePal', models: [ { slug: 'safepal-s1', name: 'SafePal S1' } ] },
+  { brand: 'Tangem', models: [ { slug: 'tangem', name: 'Tangem cards' } ] },
+  { brand: 'Other brands', models: [
+    { slug: 'arculus', name: 'Arculus' },
+    { slug: 'ballet', name: 'Ballet' },
+    { slug: 'imkey-pro', name: 'imKey Pro' },
+    { slug: 'prokey', name: 'Prokey Optimum' },
+    { slug: 'keevo', name: 'Keevo' },
+  ] },
+];
+export const ownableDevices = ownableCatalog.flatMap((b) => b.models.map((m) => ({ ...m, brand: b.brand })));
+export const ownableBySlug = Object.fromEntries(ownableDevices.map((d) => [d.slug, d]));
+// Display name for any owned slug, including current-lineup devices and free-text
+// ("x:<name>") entries the user typed for something not in the catalog.
+export function ownedName(slug) {
+  if (typeof slug === 'string' && slug.startsWith('x:')) return slug.slice(2);
+  return (ownableBySlug[slug] && ownableBySlug[slug].name) || (deviceBySlug[slug] && deviceBySlug[slug].name) || slug;
+}

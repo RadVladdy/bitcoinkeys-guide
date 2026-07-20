@@ -26,7 +26,8 @@ export function emptyPlan() {
     quiz: null, // { answers, primaryTier, primaryLabel, device, rung, source, keysNeeded, plannedDevices[] }
     ladder: null, // { rung }  (a ladder slug)
     device: null, // last chosen device name
-    owned: [], // slugs of hardware wallets the user already HAS — their status inventory
+    owned: [], // slugs of hardware wallets the user already HAS (0..n) — their status inventory
+    ownPrivate: false, // user chose "I'd rather not say" for owned hardware
     checklist: {}, // { [itemId]: true }
     notes: '',
   };
@@ -71,6 +72,7 @@ export function normalize(obj) {
         : null,
     device: typeof obj.device === 'string' ? obj.device : null,
     owned: strList(obj.owned),
+    ownPrivate: obj.ownPrivate === true,
     checklist,
     notes: typeof obj.notes === 'string' ? obj.notes.slice(0, 2000) : '',
   };
@@ -80,7 +82,7 @@ export function normalize(obj) {
 export function planHasContent(p) {
   if (!p) return false;
   return Boolean(
-    p.quiz || p.ladder || p.device || p.notes ||
+    p.quiz || p.ladder || p.device || p.notes || p.ownPrivate ||
     (p.owned && p.owned.length) ||
     (p.checklist && Object.keys(p.checklist).length)
   );
@@ -134,7 +136,7 @@ export function clearLocal() {
 // secondary) or from browsing a ladder rung page. There is only ever one at a
 // time; saving a new setup REPLACES the current one (the UI confirms first when
 // it differs). Stored under `quiz` for backward-compatibility with earlier plans.
-export function savePlannedSetup({ rung, label, tier, device, source, answers, keysNeeded, owned }) {
+export function savePlannedSetup({ rung, label, tier, device, source, answers, keysNeeded, owned, ownPrivate }) {
   const cur = loadLocal() || emptyPlan();
   const prev = cur.quiz || {};
   const sameSetup = prev.rung && prev.rung === rung;
@@ -152,10 +154,11 @@ export function savePlannedSetup({ rung, label, tier, device, source, answers, k
   };
   if (device) cur.device = device;
   // owned wallets captured in the quiz MERGE into the status inventory (never clobber
-  // devices recorded on /wallets or a prior visit).
+  // devices recorded on /wallets or a prior visit). Supports multiple wallets.
   if (Array.isArray(owned) && owned.length) {
     cur.owned = Array.from(new Set([...(cur.owned || []), ...owned.filter((s) => typeof s === 'string')]));
   }
+  if (typeof ownPrivate === 'boolean') cur.ownPrivate = ownPrivate && !(cur.owned && cur.owned.length);
   return saveLocal(cur);
 }
 
@@ -174,6 +177,18 @@ export function toggleOwned(slug) {
   const set = new Set(cur.owned || []);
   if (set.has(slug)) set.delete(slug); else set.add(slug);
   cur.owned = Array.from(set);
+  if (cur.owned.length) cur.ownPrivate = false; // owning something ≠ "rather not say"
+  return saveLocal(cur);
+}
+export function getOwnPrivate() {
+  const p = loadLocal();
+  return Boolean(p && p.ownPrivate);
+}
+// Set the whole owned inventory + privacy flag at once (the /my-plan picker's onChange).
+export function setOwnedAndPrivacy(slugs, ownPrivate) {
+  const cur = loadLocal() || emptyPlan();
+  cur.owned = Array.from(new Set(strList(slugs)));
+  cur.ownPrivate = Boolean(ownPrivate) && cur.owned.length === 0;
   return saveLocal(cur);
 }
 

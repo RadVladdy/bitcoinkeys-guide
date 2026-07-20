@@ -28,12 +28,16 @@ import Base from '../layouts/Base.astro';
 
 <script>
   import { questions, recommend } from '../data/quiz.js';
-  import { wallets, deviceCatalog, deviceBySlug, keysForSetup } from '../data/wallets.js';
+  import { wallets, keysForSetup } from '../data/wallets.js';
   import { savePlannedSetup, plannedSetupRung, plannedSetupLabel } from '../data/plan.js';
+  import { mountOwnedPicker } from '../data/owned-picker.js';
   import { confirmDialog } from '../data/ui-dialog.js';
 
   const answers = {};
   let idx = 0;
+  // The owned-wallets step is an interstitial between Q1 and Q2, shown only when the
+  // user's current setup implies they hold hardware (Q1 ≠ 'pre'). Not one of the 6.
+  let atOwned = false;
 
   const elProgress = document.getElementById('q-progress');
   const elCard = document.getElementById('q-card');
@@ -45,76 +49,53 @@ import Base from '../layouts/Base.astro';
     const total = questions.length;
     let dots = '';
     for (let i = 0; i < total; i++) {
-      const cls = i < idx ? 'done' : i === idx ? 'now' : '';
+      const cls = i < idx ? 'done' : (i === idx && !atOwned) ? 'now' : '';
       dots += `<span class="dot ${cls}"></span>`;
     }
+    if (atOwned) { elProgress.innerHTML = `<span class="dots">${dots}</span> The wallets you own — optional`; return; }
     elProgress.innerHTML = idx < total
       ? `<span class="dots">${dots}</span> Question ${idx + 1} of ${total}`
       : `<span class="dots">${dots}</span> Your setup`;
   }
 
   function renderQuestion() {
+    if (atOwned) { renderOwnedStep(); return; }
     const q = questions[idx];
     renderProgress();
     elResult.hidden = true;
     elCard.hidden = false;
-    if (q.id === 'current') renderCurrent(q);
-    else if (q.type === 'rank') renderRank(q);
+    if (q.type === 'rank') renderRank(q);
     else renderSingle(q);
   }
 
-  // Q1 ("current setup") with an OPTIONAL owned-wallet capture. Picking a hardware
-  // answer reveals a device multi-select (only device-owners see it — a beginner on
-  // an exchange advances straight through, keeping the "six plain questions" feel).
-  // Owned wallets ride in memory like every other answer; they persist only if the
-  // user later saves their plan. 'other'/'unsure' are UX-only, never saved as a device.
-  function renderCurrent(q) {
-    const owned = new Set(Array.isArray(answers.ownedDevices) ? answers.ownedDevices : []);
-    let chosen = answers.current || null;
-    const isHardware = (v) => v && v !== 'pre';
-
-    const advance = () => {
-      answers.ownedDevices = Array.from(owned);
-      idx++;
+  // The interstitial owned-wallets step — its own card between Q1 and Q2, shown only
+  // when the current setup implies hardware. Compact make→model picker; supports
+  // multiple wallets + a privacy opt-out. Answers ride in memory; saved only if the
+  // user later saves their plan (the quiz's "nothing stored unless you save" holds).
+  function renderOwnedStep() {
+    renderProgress();
+    elResult.hidden = true;
+    elCard.hidden = false;
+    elCard.innerHTML = `<div class="q-card">
+      <h2 class="q-title">Which hardware wallet(s) do you own?</h2>
+      <p class="q-help">Optional — this lets us build your roadmap around what you already have, so we only suggest what you still need. Add as many as you own.</p>
+      <div id="q-own-mount"></div>
+      <div class="rank-actions">
+        <button class="q-back" id="q-back">← Back</button>
+        <button class="btn-primary q-continue" id="q-continue" type="button">Continue →</button>
+      </div>
+    </div>`;
+    mountOwnedPicker(document.getElementById('q-own-mount'), {
+      initial: Array.isArray(answers.ownedDevices) ? answers.ownedDevices : [],
+      privateInit: !!answers.ownPrivate,
+      onChange: (sel, priv) => { answers.ownedDevices = sel; answers.ownPrivate = priv; },
+    });
+    document.getElementById('q-continue').addEventListener('click', () => {
+      atOwned = false; idx = 1;
       if (idx >= questions.length) renderResult(); else renderQuestion();
       elCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    };
-
-    const draw = () => {
-      const opts = q.options.map((o) =>
-        `<button class="q-opt ${chosen === o.value ? 'sel' : ''}" data-value="${esc(o.value)}"><span>${esc(o.label)}</span></button>`).join('');
-      const showPicker = isHardware(chosen);
-      const chip = (slug, name) => `<button class="own-chip ${owned.has(slug) ? 'on' : ''}" data-slug="${esc(slug)}" type="button">${owned.has(slug) ? '✓ ' : ''}${esc(name)}</button>`;
-      const chips = deviceCatalog.map((d) => chip(d.slug, d.name)).join('')
-        + chip('other', 'Another one') + chip('unsure', 'Not sure yet');
-      const picker = showPicker ? `
-        <div class="q-own">
-          <span class="q-own-k mono">Which hardware wallet(s) do you have? <span class="q-own-opt">optional</span></span>
-          <p class="q-own-help">We'll build your roadmap around what you already own — so we only suggest what you still need. Pick any that apply, or skip it.</p>
-          <div class="own-chips">${chips}</div>
-        </div>` : '';
-      const cont = showPicker
-        ? `<div class="q-current-actions"><button class="btn-primary q-continue" id="q-continue" type="button">Continue →</button><span class="q-own-skip mono">wallet list is optional</span></div>`
-        : '';
-      elCard.innerHTML = shell(q, `<div class="q-opts">${opts}</div>${picker}${cont}`);
-
-      elCard.querySelectorAll('.q-opt').forEach((b) => b.addEventListener('click', () => {
-        const v = b.getAttribute('data-value');
-        chosen = v;
-        answers.current = v;
-        if (!isHardware(v)) { owned.clear(); advance(); return; } // "nothing yet" → no wallets to own
-        draw();
-      }));
-      elCard.querySelectorAll('.own-chip').forEach((c) => c.addEventListener('click', () => {
-        const s = c.getAttribute('data-slug');
-        if (owned.has(s)) owned.delete(s); else owned.add(s);
-        answers.ownedDevices = Array.from(owned);
-        draw();
-      }));
-      const contBtn = document.getElementById('q-continue');
-      if (contBtn) contBtn.addEventListener('click', advance);
-    };
-    draw();
+    });
+    document.getElementById('q-back').addEventListener('click', () => { atOwned = false; idx = 0; renderQuestion(); });
   }
 
   function shell(q, inner) {
@@ -127,6 +108,12 @@ import Base from '../layouts/Base.astro';
     elCard.querySelectorAll('.q-opt').forEach((b) => {
       b.addEventListener('click', () => {
         answers[q.id] = b.getAttribute('data-value');
+        // Q1: a hardware setup routes to the owned-wallets step; "nothing yet" skips it.
+        if (q.id === 'current' && answers.current !== 'pre') {
+          atOwned = true; renderQuestion();
+          elCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          return;
+        }
         idx++;
         if (idx >= questions.length) renderResult(); else renderQuestion();
         elCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -180,6 +167,8 @@ import Base from '../layouts/Base.astro';
     if (!back) return;
     back.addEventListener('click', () => {
       if (isRank) answers[q.id] = ranked.slice();
+      // Going back from Q2 returns to the owned step when it was shown (Q1 ≠ 'pre').
+      if (idx === 1 && answers.current && answers.current !== 'pre') { atOwned = true; renderQuestion(); return; }
       idx--;
       renderQuestion();
     });
@@ -338,14 +327,15 @@ import Base from '../layouts/Base.astro';
               });
               if (!ok) return;
             }
-            const ownedSlugs = (Array.isArray(answers.ownedDevices) ? answers.ownedDevices : [])
-              .filter((s) => deviceBySlug[s]); // drop 'other'/'unsure' — keep real devices
+            const fromQuiz = b.source.indexOf('quiz') === 0;
+            const ownedSlugs = Array.isArray(answers.ownedDevices) ? answers.ownedDevices : [];
             savePlannedSetup({
               rung: b.rung, label: b.label, tier: b.tier, source: b.source,
               device: b.source === 'quiz-primary' ? currentDevice() : null,
-              answers: b.source.indexOf('quiz') === 0 ? answers : null,
+              answers: fromQuiz ? answers : null,
               keysNeeded: keysForSetup({ rungSlug: b.rung, label: b.label, tier: b.tier }),
-              owned: b.source.indexOf('quiz') === 0 ? ownedSlugs : undefined,
+              owned: fromQuiz ? ownedSlugs : undefined,
+              ownPrivate: fromQuiz ? !!answers.ownPrivate : undefined,
             });
             paintSaveStates();
           });
@@ -416,19 +406,6 @@ import Base from '../layouts/Base.astro';
   #quiz .q-opt:hover { border-color: var(--accent); background: var(--accent-soft); }
   #quiz .q-back { margin-top: 1.2rem; background: none; border: none; color: var(--muted); font-size: 0.9rem; cursor: pointer; padding: 0; }
   #quiz .q-back:hover { color: var(--accent); }
-
-  /* Q1 optional owned-wallet capture (only shown when a hardware setup is chosen) */
-  #quiz .q-own { border-top: 1px solid var(--line-soft); margin-top: 1.2rem; padding-top: 1.1rem; }
-  #quiz .q-own-k { display: block; color: var(--text); font-size: 0.9rem; letter-spacing: 0; text-transform: none; margin-bottom: 0.3rem; }
-  #quiz .q-own-opt { color: var(--faint); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.08em; border: 1px solid var(--line); border-radius: 999px; padding: 0.05rem 0.45rem; margin-left: 0.35rem; }
-  #quiz .q-own-help { color: var(--muted); font-size: 0.85rem; margin: 0 0 0.8rem; }
-  #quiz .own-chips { display: flex; flex-wrap: wrap; gap: 0.45rem; }
-  #quiz .own-chip { font-family: var(--sans); font-size: 0.85rem; color: var(--text); cursor: pointer; background: var(--raise);
-    border: 1px solid var(--line); border-radius: 999px; padding: 0.4rem 0.8rem; transition: border-color 0.15s, background 0.15s, color 0.15s; }
-  #quiz .own-chip:hover { border-color: var(--accent); }
-  #quiz .own-chip.on { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 600; }
-  #quiz .q-current-actions { display: flex; align-items: center; gap: 0.9rem; margin-top: 1.3rem; flex-wrap: wrap; }
-  #quiz .q-own-skip { color: var(--faint); font-size: 0.78rem; }
 
   #quiz .r-card { border: 1px solid var(--accent); border-radius: var(--radius); background: var(--surface-2); padding: 1.8rem; box-shadow: var(--shadow); }
   #quiz .r-tier { color: var(--accent); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; margin: 0 0 0.4rem; }

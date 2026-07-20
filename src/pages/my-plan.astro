@@ -39,10 +39,11 @@ import Base from '../layouts/Base.astro';
 <script>
   import {
     loadLocal, hasLocal, clearLocal, saveLocal, downloadPlan, parsePlanText,
-    planHasContent, emptyPlan, PLAN_FILENAME, toggleOwned, togglePlannedDevice,
+    planHasContent, emptyPlan, PLAN_FILENAME, togglePlannedDevice, setOwnedAndPrivacy,
   } from '../data/plan.js';
   import { getRung } from '../data/ladder.js';
-  import { deviceCatalog, deviceName } from '../data/wallets.js';
+  import { ownedName } from '../data/wallets.js';
+  import { mountOwnedPicker } from '../data/owned-picker.js';
   import { checklistLabels, checklistCount } from '../data/checklist.js';
   import { getSession, setSession, clearSession } from '../data/nostr-session.js';
   import { confirmDialog } from '../data/ui-dialog.js';
@@ -100,12 +101,10 @@ import Base from '../layouts/Base.astro';
     return cur ? (CURRENT_LABELS[cur] || cur) : null;
   }
 
-  // STATUS: where you are now — current setup + the wallets you own (editable chips).
+  // STATUS: where you are now — current setup + the wallets you own (make→model
+  // picker, mounted after render into #ps-own-mount; supports multiple wallets).
   function statusHtml(plan) {
-    const owned = new Set(plan.owned || []);
     const cur = currentSetupLabel(plan);
-    const chips = deviceCatalog.map((d) =>
-      `<button class="ps-chip ${owned.has(d.slug) ? 'on' : ''}" data-slug="${esc(d.slug)}" type="button">${owned.has(d.slug) ? '✓ ' : ''}${esc(d.name)}</button>`).join('');
     return `
       <div class="ps-card ps-status">
         <span class="ps-k mono">Where you are</span>
@@ -113,8 +112,8 @@ import Base from '../layouts/Base.astro';
           ? `<p class="ps-cur">Your current setup: <strong>${esc(cur)}</strong></p>`
           : `<p class="ps-cur ps-muted">No current setup recorded yet — <a href="/quiz">take the quiz</a> to set your starting point.</p>`}
         <div class="ps-own">
-          <span class="ps-sub mono">Hardware wallets you own <span class="ps-hint">tap to add or remove</span></span>
-          <div class="ps-chips">${chips}</div>
+          <span class="ps-sub mono">Hardware wallets you own <span class="ps-hint">add as many as you have</span></span>
+          <div id="ps-own-mount"></div>
         </div>
       </div>`;
   }
@@ -145,21 +144,27 @@ import Base from '../layouts/Base.astro';
         const tag = isOwned ? 'you own' : 'planned';
         const rm = (!isOwned && planned.includes(slug))
           ? `<button class="ps-slot-x" data-slug="${esc(slug)}" title="Remove from plan" type="button">×</button>` : '';
-        slots += `<div class="ps-slot filled"><span class="ps-slot-n mono">Key ${i + 1}</span><span class="ps-slot-dev">${esc(deviceName(slug))}</span><span class="ps-slot-tag ${isOwned ? 'own' : 'plan'}">${tag}</span>${rm}</div>`;
+        slots += `<div class="ps-slot filled"><span class="ps-slot-n mono">Key ${i + 1}</span><span class="ps-slot-dev">${esc(ownedName(slug))}</span><span class="ps-slot-tag ${isOwned ? 'own' : 'plan'}">${tag}</span>${rm}</div>`;
       } else {
         slots += `<div class="ps-slot empty"><span class="ps-slot-n mono">Key ${i + 1}</span><span class="ps-slot-dev ps-muted">Still to get</span><a class="ps-slot-cta" href="/wallets">Choose one →</a></div>`;
       }
     }
     const gaps = Math.max(0, need - committed.length);
     const multi = need >= 3;
+    let footer;
+    if (plan.ownPrivate && !owned.length) {
+      footer = `<p class="ps-road-gap">You’d rather not say which wallets you own — so we’ve laid out the full setup. <strong>You may already have some of these.</strong>${multi ? ' Best practice: use a <em>different brand</em> for each key.' : ''} <a href="/wallets">Compare devices →</a></p>`;
+    } else if (gaps === 0) {
+      footer = `<p class="ps-road-done">✓ You have enough hardware for this setup. What’s left is configuring and testing it — follow the walkthrough below.</p>`;
+    } else {
+      footer = `<p class="ps-road-gap"><strong>${gaps} more ${gaps > 1 ? 'keys' : 'key'} to get.</strong>${multi ? ' Best practice: use a <em>different brand</em> for each key, so one vendor’s bug can’t affect more than one.' : ''} <a href="/wallets">Compare devices →</a></p>`;
+    }
     return `
       <div class="ps-card ps-road">
         <span class="ps-k mono">Your roadmap — from where you are to your plan</span>
         <p class="ps-cur">Plan: <strong>${esc(planLabel)}</strong> <span class="ps-need mono">needs ${need} key${need > 1 ? 's' : ''}</span></p>
         <div class="ps-slots">${slots}</div>
-        ${gaps === 0
-          ? `<p class="ps-road-done">✓ You have enough hardware for this setup. What’s left is configuring and testing it — follow the walkthrough below.</p>`
-          : `<p class="ps-road-gap"><strong>${gaps} more ${gaps > 1 ? 'keys' : 'key'} to get.</strong>${multi ? ' Best practice: use a <em>different brand</em> for each key, so one vendor’s bug can’t affect more than one.' : ''} <a href="/wallets">Compare devices →</a></p>`}
+        ${footer}
       </div>`;
   }
 
@@ -238,7 +243,7 @@ import Base from '../layouts/Base.astro';
 
     el.innerHTML = `
       ${statusHtml(plan)}
-      ${roadmapHtml(plan)}
+      <div id="ps-road-mount">${roadmapHtml(plan)}</div>
       <div class="p-card">
         <div class="p-head">
           <h2>Your saved plan</h2>
@@ -305,12 +310,21 @@ import Base from '../layouts/Base.astro';
       if (ok) { clearLocal(); toast('Plan cleared', ''); render(); }
     });
 
-    // Status: toggle a wallet you own → re-render (the roadmap gap updates with it).
-    el.querySelectorAll('.ps-chip').forEach((c) =>
-      c.addEventListener('click', () => { toggleOwned(c.dataset.slug); render(); toast('Saved', 'ok'); }));
-    // Roadmap: drop a planned (not-owned) device out of a slot.
-    el.querySelectorAll('.ps-slot-x').forEach((x) =>
-      x.addEventListener('click', () => { togglePlannedDevice(x.dataset.slug); render(); }));
+    // Update ONLY the roadmap block (so the picker mid-edit isn't torn down).
+    function refreshRoadmap() {
+      const mount = document.getElementById('ps-road-mount');
+      if (!mount) return;
+      mount.innerHTML = roadmapHtml(loadLocal() || emptyPlan());
+      mount.querySelectorAll('.ps-slot-x').forEach((x) =>
+        x.addEventListener('click', () => { togglePlannedDevice(x.dataset.slug); refreshRoadmap(); }));
+    }
+    // Status: the make→model owned-wallet picker (multiple wallets + "rather not say").
+    mountOwnedPicker(document.getElementById('ps-own-mount'), {
+      initial: plan.owned || [],
+      privateInit: !!plan.ownPrivate,
+      onChange: (slugs, isPrivate) => { setOwnedAndPrivacy(slugs, isPrivate); refreshRoadmap(); },
+    });
+    refreshRoadmap();
 
     wireImport('p-import');
   }

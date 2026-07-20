@@ -12,7 +12,7 @@ export const changelog = [
     date: '2026-07-20',
     type: 'feature',
     title: 'Your plan now knows which wallets you own — and maps the road to your setup',
-    detail: 'The quiz can now ask which hardware wallet(s) you already have (only if you have any — a total beginner skips it), and your plan turns that into a roadmap. On “My plan” you’ll see where you are now, the setup you’re aiming for, and exactly how many keys it needs — with the wallets you own already filling those slots and only what’s left showing as a short “still to get” list. You can also tap “I own this” or “Add to my plan” on any device on the Compare page, and it all flows into the same plan. As always: nothing is saved unless you choose to save it.',
+    detail: 'If your current setup already involves hardware, the quiz now has a quick optional step to note which wallet(s) you own — pick make then model from a full list (older and discontinued models included), add as many as you have, or choose “I’d rather not say.” Your plan turns that into a roadmap: on “My plan” you’ll see where you are now, the setup you’re aiming for, and exactly how many keys it needs — with the wallets you own already filling those slots and only what’s left showing as a short “still to get” list. You can also tap “I own this” or “Add to my plan” on any device on the Compare page, and it all flows into the same plan. As always: nothing is saved unless you choose to save it.',
   },
   {
     date: '2026-07-20',
