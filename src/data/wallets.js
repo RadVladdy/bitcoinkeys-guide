@@ -350,6 +350,10 @@ export function keysForSetup({ rungSlug, label = '', tier = '' } = {}) {
 // the exact `deviceCatalog` slugs so "I own this" on /wallets and this picker agree.
 // Grouped by make for a compact make→model dropdown; `current:true` marks the
 // still-sold models. Anything truly unlisted is captured as free text ("x:<name>").
+// FRESHNESS SYNC: legacy models here are static and NOT price/availability-checked.
+// But when the freshness runner flags a CURRENT device as added/discontinued
+// (an `avail-*` judge in ~/dev/bkeys-freshness), update this catalog's `current:`
+// flags to match the 11-device comparison — that's the only maintenance tie-in.
 export const ownableCatalog = [
   { brand: 'Coldcard (Coinkite)', models: [
     { slug: 'coldcard-q', name: 'Coldcard Q', current: true },
