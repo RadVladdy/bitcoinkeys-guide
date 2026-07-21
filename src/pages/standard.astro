@@ -1,0 +1,123 @@
+---
+import Base from '../layouts/Base.astro';
+import { standardGates, inStandardWallets, belowBarWallets, gateByKey, wallets, walletsVerified } from '../data/wallets.js';
+
+const caveated = wallets.filter((w) => w.barCaveat && !w.belowBar);
+const nIn = inStandardWallets.length;
+const nTotal = wallets.length;
+---
+<Base
+  title="The bar every hardware wallet has to clear · BitcoinKeys.guide"
+  description="Our published, opinionated selection standard for Bitcoin hardware wallets: five hard rules a device must clear to sit in-standard — Bitcoin-only firmware, keys that can never leave over the internet, a minimal single-purpose signer, open-source firmware, and portable self-custodial recovery. Devices that miss are covered honestly in a penalty box with the reasons."
+  verified={walletsVerified}
+>
+  <section class="prose">
+    <p class="eyebrow">Our selection standard</p>
+    <h1>The bar every wallet has to <span class="accent">clear</span></h1>
+    <p class="lead">Most comparison sites pretend every device is fine and let affiliate links do the talking. We don’t. This is a Bitcoin-only guide with an opinion: a hardware wallet has to clear five hard rules to earn a place on our in-standard list. Miss even one and it drops to the <a href="#penalty-box">penalty box</a> — still covered and compared in full, but marked below the bar with the reason spelled out.</p>
+    <p>Right now <strong>{nIn} of {nTotal}</strong> devices we cover clear the bar. We would rather tell you plainly why we’d steer you away from the rest than bury it.</p>
+  </section>
+
+  <section>
+    <ol class="gates">
+      {standardGates.map((g, i) => (
+        <li class="gate">
+          <span class="gn num">{String(i + 1).padStart(2, '0')}</span>
+          <div class="gbody">
+            <h3>{g.title}</h3>
+            <p class="gshort">{g.short}</p>
+            <p class="gwhy"><span class="wl">Why:</span> {g.why}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+  <section id="penalty-box" class="prose">
+    <h2>The penalty box <span class="pb-count">{belowBarWallets.length} below the bar</span></h2>
+    <p>These are covered everywhere else on the site — specs, reasoning, the comparison table — because pretending they don’t exist wouldn’t help you. But they miss the bar, so we say so, here and on every list.</p>
+  </section>
+  <section>
+    <div class="pbcards">
+      {belowBarWallets.map((w) => (
+        <article class="pbcard">
+          <header class="pbhead">
+            <div class="pbtitle"><h3>{w.name}</h3><span class="vendor mono">{w.vendor}</span></div>
+            {w.image && <img class="pbimg" src={w.image} alt={w.name} loading="lazy" />}
+          </header>
+          <p class="pbfails-label">Misses:</p>
+          <ul class="pbfails">
+            {w.belowBar.fails.map((k) => (
+              <li>{(gateByKey[k] && gateByKey[k].title) || k}</li>
+            ))}
+          </ul>
+          <p class="pbdetail">{w.belowBar.detail}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  {caveated.length > 0 && (
+    <section class="prose">
+      <h2>Clears the bar — with a caveat worth knowing</h2>
+      <p>These sit in-standard, but honesty cuts both ways: each makes a trade-off you should understand before you buy.</p>
+    </section>
+    <section>
+      <ul class="caveats">
+        {caveated.map((w) => (
+          <li class="caveat">
+            <span class="cvname">{w.name}</span>
+            <span class="cvtext">{w.barCaveat}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  <section class="prose">
+    <div class="callout safe">
+      <span class="label">The one rule behind all five</span>
+      <p><strong>Verify, don’t trust.</strong> Every gate here is one expression of it — you can only truly hold your own keys on a device that’s Bitcoin-only, can’t leak your seed, does one job, can be inspected, and hands you a backup no company controls. See how each device measures up in the <a href="/wallets">full comparison</a>.</p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .gates { list-style: none; margin: 1.4rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.7rem; }
+  .gate { display: grid; grid-template-columns: 3rem 1fr; gap: 1.1rem; align-items: start;
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.15rem 1.35rem; }
+  .gn { font-family: var(--mono); font-size: 1.4rem; font-weight: 800; color: var(--accent); line-height: 1; }
+  .gbody h3 { margin: 0.1rem 0 0.35rem; color: var(--text); }
+  .gshort { margin: 0 0 0.5rem; color: var(--text); font-weight: 550; }
+  .gwhy { margin: 0; color: var(--muted); font-size: 0.95rem; }
+  .gwhy .wl { color: var(--accent); font-weight: 700; }
+
+  .pb-count { display: inline-block; margin-left: 0.5rem; vertical-align: middle; font-family: var(--mono);
+    font-size: 0.7rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--danger);
+    background: var(--danger-dim); border: 1px solid var(--danger); border-radius: 999px; padding: 0.2rem 0.6rem; }
+
+  .pbcards { display: flex; flex-direction: column; gap: 0.9rem; margin-top: 1.1rem; }
+  .pbcard { border: 1px solid var(--danger); border-radius: var(--radius);
+    background: var(--danger-dim); padding: 1.15rem 1.35rem; }
+  .pbhead { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+  .pbtitle h3 { margin: 0 0 0.1rem; color: var(--text); }
+  .pbtitle .vendor { color: var(--faint); font-size: 0.8rem; }
+  .pbimg { flex: 0 0 auto; width: 64px; height: 64px; object-fit: contain; }
+  .pbfails-label { margin: 0.7rem 0 0.3rem; font-family: var(--mono); font-size: 0.7rem;
+    letter-spacing: 0.1em; text-transform: uppercase; color: var(--danger); }
+  .pbfails { list-style: none; margin: 0 0 0.7rem; padding: 0; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .pbfails li { font-size: 0.82rem; color: var(--danger); border: 1px solid var(--danger);
+    border-radius: 0.4rem; padding: 0.2rem 0.55rem; background: color-mix(in srgb, var(--danger) 8%, transparent); }
+  .pbdetail { margin: 0; color: var(--text); font-size: 0.95rem; line-height: 1.6; }
+
+  .caveats { list-style: none; margin: 1.1rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
+  .caveat { border: 1px solid var(--line); border-left: 3px solid var(--warn); border-radius: var(--radius);
+    background: var(--surface); padding: 0.9rem 1.15rem; }
+  .cvname { display: block; font-weight: 700; color: var(--text); margin-bottom: 0.2rem; }
+  .cvtext { color: var(--muted); font-size: 0.92rem; line-height: 1.6; }
+
+  @media (max-width: 560px) {
+    .gate { grid-template-columns: 2.2rem 1fr; gap: 0.8rem; padding: 1rem 1.05rem; }
+    .pbimg { width: 48px; height: 48px; }
+  }
+</style>

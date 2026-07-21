@@ -25,6 +25,7 @@ export const walletsVerified = '2026-07-19';
 export const wallets = [
   {
     name: 'Coldcard Q',
+    barCaveat: 'Clears the bar comfortably. One honest asterisk: the firmware is source-available and independently reproducible rather than OSI-licensed open-source — you can read and rebuild it, but the licence is stricter than a purist would like. A philosophical caveat, not a functional one.',
     image: '/devices/coldcard-q.webp',
     ladderReach: { s: 'strong', p: 'strong', m: 'strong', note: 'Full ladder, all first-class — buy-once, no new hardware as you climb.' },
     vendor: 'Coinkite',
@@ -47,6 +48,7 @@ export const wallets = [
   },
   {
     name: 'Coldcard Mk5',
+    barCaveat: 'Clears the bar comfortably. Same asterisk as the Q: firmware is source-available and reproducible rather than OSI-licensed open-source — readable and verifiable, but a stricter licence than purists prefer.',
     image: '/devices/coldcard-mk5.webp',
     ladderReach: { s: 'strong', p: 'ok', m: 'strong', note: 'Full ladder; the numeric keypad makes passphrase entry more of a chore than the Q, but single-sig and multisig sign well.' },
     vendor: 'Coinkite',
@@ -69,6 +71,11 @@ export const wallets = [
   },
   {
     name: 'Foundation Passport Prime',
+    belowBar: {
+      fails: ['minimal-os'],
+      summary: 'A general-purpose platform — it runs apps (including altcoin apps), stores files, 2FA and passkeys — rather than a minimal Bitcoin-only signer.',
+      detail: 'We rate Foundation highly, and the Passport Prime is open-source, has an air-gap mode, and ships a Bitcoin-only first-party wallet — so this is not a knock on its security engineering. It falls below the bar on one criterion: it is no longer a minimal, single-purpose signer. The Prime is a general-purpose secure platform that also stores 2FA codes, passkeys and files, adds Bluetooth and NFC, and can run third-party (including altcoin) apps. That is more surface, and more to trust, than a device whose only job is to hold Bitcoin keys. If Foundation ships a stripped Bitcoin-only signer again — as the older $199 Passport was — it would clear the bar. For now we cover it fully but keep it below the line, and would point a first-time buyer at a simpler signer.',
+    },
     image: '/devices/passport-prime.webp',
     ladderReach: { s: 'strong', p: 'strong', m: 'strong', note: 'Full ladder; a built-in keyboard makes passphrase entry easy, and it signs multisig up to 15 keys.' },
     vendor: 'Foundation Devices',
@@ -135,6 +142,7 @@ export const wallets = [
   },
   {
     name: 'Trezor Safe 7',
+    barCaveat: 'A Bitcoin-only firmware is available and the source is open, so it clears the bar — but note it is a multi-coin device by default, and this model adds a Bluetooth radio a USB-only or air-gapped signer does not have. Every spend still needs on-device approval, so we treat the radio as a caveat, not a disqualifier.',
     image: '/devices/trezor-safe-7.webp',
     ladderReach: { s: 'strong', p: 'strong', m: 'ok', note: 'The big touchscreen makes single-sig and passphrase easy; multisig is only adequate (and it’s multi-coin).' },
     vendor: 'SatoshiLabs',
@@ -179,6 +187,7 @@ export const wallets = [
   },
   {
     name: 'Blockstream Jade',
+    barCaveat: 'Clears the bar — Bitcoin-only, fully open-source and reproducible. Its one trade-off is deliberate: no dedicated secure-element chip. That is fine for its threat model (and a blind-oracle mode hardens it), but a determined attacker with physical possession of the device is more of a concern than on a secure-element signer.',
     image: '/devices/jade-core.webp',
     ladderReach: { s: 'strong', p: 'ok', m: 'ok', note: 'Covers the ladder cheaply; the joystick makes passphrase and multisig fiddlier. Great to start.' },
     vendor: 'Blockstream',
@@ -201,6 +210,7 @@ export const wallets = [
   },
   {
     name: 'Blockstream Jade Plus',
+    barCaveat: 'Clears the bar — Bitcoin-only, fully open-source and reproducible, with an air-gap mode. Same deliberate trade-off as the original Jade: no dedicated secure-element chip, so physical-extraction resistance leans on its blind-oracle design rather than a hardened chip.',
     image: '/devices/jade-plus.webp',
     ladderReach: { s: 'strong', p: 'ok', m: 'ok', note: 'Covers the ladder; the joystick makes passphrase and multisig fiddlier, but the camera + battery make it a nicer air-gap unit than the standard Jade.' },
     vendor: 'Blockstream',
@@ -223,6 +233,7 @@ export const wallets = [
   },
   {
     name: 'Bitkey',
+    barCaveat: 'Clears the bar on the letter of every rule — Bitcoin-only, open-source, your device key never leaves it. Know the trade-off it makes: it is a 2-of-3 where Block holds one key on its servers and recovery runs through Block’s app, rather than a lone seed phrase you control. That is a deliberate, well-built design for non-technical holders, but it leans on a company staying online in a way the other in-standard signers do not.',
     image: '/devices/bitkey.webp',
     ladderReach: { s: 'na', p: 'na', m: 'na', note: 'Its own built-in 2-of-3 — a great first setup, but a DIY passphrase or multisig means different hardware.' },
     vendor: 'Block, Inc.',
@@ -245,6 +256,11 @@ export const wallets = [
   },
   {
     name: 'Ledger Nano family',
+    belowBar: {
+      fails: ['btc-only', 'key-export', 'minimal-os', 'open-source'],
+      summary: 'No Bitcoin-only firmware, closed-source, and the 2023 Recover feature proved the firmware can shard your seed to third parties over the internet.',
+      detail: 'Ledger is the clearest miss against every version of this bar. There is no Bitcoin-only firmware — the device is built around a multi-coin app store running on a closed-source operating system you cannot inspect. Most seriously, the 2023 “Ledger Recover” feature revealed that the firmware is capable of extracting your seed, splitting it into shares, and sending those shares to outside companies over the internet — the exact thing a hardware wallet exists to make impossible. Ledger notes it is opt-in; the problem is that the capability now lives in the firmware at all. Add the 2020 customer-data breach and it falls below the bar on Bitcoin-only, keys-never-leave, minimal-signer, and open-source alike.',
+    },
     image: '/devices/ledger.webp',
     ladderReach: { s: 'ok', p: 'ok', m: 'ok', note: 'Covers the ladder, but closed firmware and the 2023 Recover episode are the real caveats.' },
     vendor: 'Ledger',
@@ -266,6 +282,53 @@ export const wallets = [
     },
   },
 ];
+
+// ── The published selection standard ("the bar") ────────────────────────────
+// A device must clear ALL of these hard gates to sit in-standard on this guide.
+// Miss even one and it moves to the penalty box: still covered and compared in
+// full, but marked below the bar with the reason. This is a deliberate,
+// opinionated stance from a Bitcoin-only point of view — see /standard.
+// A device fails a gate when its `belowBar.fails` array lists that gate's key.
+export const standardGates = [
+  {
+    key: 'btc-only',
+    title: 'Bitcoin-only firmware',
+    short: 'A firmware that runs only Bitcoin must exist for the device.',
+    why: 'A signer juggling dozens of other coins carries code you will never use — and every line of code is attack surface. A Bitcoin-only build does one thing, so there is less that can go wrong and less to audit. We only require that a Bitcoin-only firmware is available, not that the device can never run anything else.',
+  },
+  {
+    key: 'key-export',
+    title: 'Keys can never leave over the internet',
+    short: 'The seed is made on the device and no feature can copy, shard, or back it up to a server.',
+    why: 'The whole reason to own cold storage is that the secret never touches an online system. A feature that can send your seed out — even encrypted, even opt-in — puts back exactly the risk you paid to remove. If the firmware is capable of it at all, the device fails here.',
+  },
+  {
+    key: 'minimal-os',
+    title: 'A minimal, single-purpose signer',
+    short: 'Lean firmware built to hold keys and sign — not a general-purpose gadget that installs apps or stays wirelessly connected.',
+    why: 'Every extra app, file store, and radio is another door. A device you cannot turn into a little internet computer is a smaller target. Bluetooth alone is a caveat we will note, not an automatic fail; a general-purpose app platform is a fail.',
+  },
+  {
+    key: 'open-source',
+    title: 'Open-source and verifiable',
+    short: 'The firmware source is public so anyone can inspect it — ideally reproducibly buildable.',
+    why: 'Principle number ten: verify, don’t trust. You cannot check a black box. Source-available-and-reproducible firmware (you can rebuild it and confirm the match) clears this even if the licence is stricter than OSI open-source; a fully closed operating system does not.',
+  },
+  {
+    key: 'portable-recovery',
+    title: 'Portable, self-custodial recovery',
+    short: 'A standard seed phrase you can restore in independent wallet software if the maker disappears.',
+    why: 'Self-custody means no permission slips. Your recovery must not depend on a company staying alive, online, or willing. A proprietary format or a server standing between you and your coins is lock-in wearing a security costume.',
+  },
+];
+
+// Derived membership — nothing here is hand-maintained, so the bar and the
+// device list can never drift. A device is in-standard unless it declares a
+// `belowBar` block; the penalty box is everything that does.
+export const meetsBar = (w) => !w.belowBar;
+export const inStandardWallets = wallets.filter(meetsBar);
+export const belowBarWallets = wallets.filter((w) => w.belowBar);
+export const gateByKey = Object.fromEntries(standardGates.map((g) => [g.key, g]));
 
 export const compareCriteria = [
   { key: 'price', label: 'Price', type: 'text' },

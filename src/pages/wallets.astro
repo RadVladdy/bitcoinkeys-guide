@@ -1,6 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
-import { wallets, compareCriteria, walletsVerified, badgeDefs, chooserFilters, useCaseChips, budgetBuckets } from '../data/wallets.js';
+import { wallets, compareCriteria, walletsVerified, badgeDefs, chooserFilters, useCaseChips, budgetBuckets, inStandardWallets, belowBarWallets } from '../data/wallets.js';
 
 const ratingMark = { yes: '✓', partial: '~', no: '✗' };
 const ratingClass = { yes: 'r-yes', partial: 'r-partial', no: 'r-no' };
@@ -8,7 +8,7 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
 ---
 <Base
   title="Compare Bitcoin hardware wallets · BitcoinKeys.guide"
-  description="An honest, independent comparison of the 2026 Bitcoin hardware wallets — Coldcard, Passport, Trezor, BitBox, Jade, Bitkey, Ledger. Filter by what matters to you. No affiliate links, no house brand. There is no best device, only fit-to-purpose."
+  description="An honest, independent comparison of the 2026 Bitcoin hardware wallets — Coldcard, Passport, Trezor, BitBox, Jade, Bitkey, Ledger. We hold every device to a published, Bitcoin-only security bar; those that miss it are covered in a penalty box with the reasons. No affiliate links, no house brand."
   verified={walletsVerified}
 >
   <section class="prose">
@@ -19,6 +19,10 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
       <span class="label">The right mental model</span>
       <p>The device is <strong>not</strong> your wallet — your <a href="/glossary#seed-phrase">seed phrase</a> is. (That’s the list of 12–24 words the device shows you at setup; written down, those words <em>are</em> your Bitcoin.) The hardware wallet is just a safe little screen for approving payments. Lose or break it and you restore from your written words onto a new one. So don’t agonise over the device; get the backup right.</p>
       <p><a href="/how-it-works">How Bitcoin keys and wallets work →</a></p>
+    </div>
+    <div class="callout warn">
+      <span class="label">We hold every device to a bar</span>
+      <p>Fit matters — but only among devices that clear a hard, Bitcoin-only security standard: Bitcoin-only firmware, keys that can never leave over the internet, a minimal single-purpose signer, open-source firmware, and portable recovery. <strong>{inStandardWallets.length} of {wallets.length}</strong> devices here clear it. The other {belowBarWallets.length} are in the <a href="#below-bar">penalty box</a> — still covered, but marked below the bar with the reason. <a href="/standard">Read the standard →</a></p>
     </div>
   </section>
 
@@ -89,7 +93,10 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
 
     <div class="cards" aria-live="polite">
       {wallets.map((w, i) => (
-        <article class="wcard" data-idx={i}>
+        <article class:list={['wcard', { belowbar: w.belowBar }]} data-idx={i}>
+          {w.belowBar && (
+            <a class="bb-ribbon" href="/standard#penalty-box">Below our bar ↓</a>
+          )}
           <div class="wc-top">
             <div class="wc-main">
               <header>
@@ -110,6 +117,9 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
             })}
           </div>
           <p class="watch"><strong>Watch out:</strong> {w.watch}</p>
+          {w.belowBar && (
+            <p class="bb-reason"><strong>Below the bar:</strong> {w.belowBar.summary} <a href="/standard#penalty-box">Full reasoning →</a></p>
+          )}
           {w.ladderReach && (
             <div class="reach">
               <span class="reach-pips">
@@ -147,8 +157,22 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
           </tr>
         </thead>
         <tbody>
-          {wallets.map((w) => (
+          <tr class="grouprow"><td colspan={compareCriteria.length + 1}>Meets the bar · {inStandardWallets.length}</td></tr>
+          {inStandardWallets.map((w) => (
             <tr>
+              <td class="dev"><span class="dname">{w.name}</span><span class="vendor mono">{w.vendor}</span></td>
+              {compareCriteria.map((c) => (
+                <td class="ctr">
+                  {c.type === 'text'
+                    ? <span class="num">{w[c.key]}</span>
+                    : <span class:list={['mark', ratingClass[w[c.key]]]} title={ratingTitle[w[c.key]]}>{ratingMark[w[c.key]]}</span>}
+                </td>
+              ))}
+            </tr>
+          ))}
+          <tr class="grouprow below" id="below-bar"><td colspan={compareCriteria.length + 1}>Penalty box · below our <a href="/standard">standard</a> · {belowBarWallets.length}</td></tr>
+          {belowBarWallets.map((w) => (
+            <tr class="belowrow">
               <td class="dev"><span class="dname">{w.name}</span><span class="vendor mono">{w.vendor}</span></td>
               {compareCriteria.map((c) => (
                 <td class="ctr">
@@ -176,7 +200,7 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
       <li><strong>Strict air-gap by design:</strong> Coldcard Q (sign by QR or microSD, never a cable).</li>
       <li><strong>Using a passphrase:</strong> Coldcard Q (full keyboard) or Trezor Safe 5 (touchscreen) — both make typing a strong passphrase painless.</li>
       <li><strong>Non-technical, phone-first:</strong> Bitkey.</li>
-      <li><strong>Already own a Ledger?</strong> Read the <a href="/ladder">caveats</a> on closed firmware and the 2023 Recover controversy before you rely on it.</li>
+      <li><strong>Already own a Ledger?</strong> It’s in our <a href="/standard#penalty-box">penalty box</a> — closed firmware, no Bitcoin-only build, and the 2023 Recover feature. Read why before you rely on it.</li>
     </ul>
     <p class="sub">Buy direct from the manufacturer, verify the tamper-evident seal, and generate a fresh seed yourself — never use a pre-loaded one.</p>
   </section>
@@ -402,9 +426,25 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
   .legend { font-size: 0.8rem; margin-top: 0.9rem; display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center; }
   .legend .r-yes, .legend .r-partial, .legend .r-no { font-weight: 700; }
 
+  /* Table grouping: "meets the bar" vs the penalty box */
+  .grouprow td { padding-top: 1.1rem; font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--safe); border-bottom: 1px solid var(--line); }
+  .grouprow.below td { color: var(--danger); }
+  .grouprow.below a { color: inherit; }
+  .belowrow { opacity: 0.72; }
+  .belowrow .dname { text-decoration: line-through; text-decoration-color: var(--danger); text-decoration-thickness: 1px; }
+
   .cards { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-top: 1.4rem; }
   @media (max-width: 720px) { .cards { grid-template-columns: 1fr; } }
-  .wcard { border: 1px solid var(--line); border-radius: var(--radius); padding: 1.2rem 1.3rem; background: var(--surface); }
+  .wcard { position: relative; border: 1px solid var(--line); border-radius: var(--radius); padding: 1.2rem 1.3rem; background: var(--surface); }
+  .wcard.belowbar { border-color: var(--danger); background: color-mix(in srgb, var(--danger-dim) 60%, var(--surface)); }
+  .bb-ribbon { position: absolute; top: 0; right: 0; z-index: 1; font-family: var(--mono); font-size: 0.66rem;
+    letter-spacing: 0.06em; text-transform: uppercase; text-decoration: none; color: var(--accent-ink);
+    background: var(--danger); padding: 0.25rem 0.6rem; border-radius: 0 var(--radius) 0 0.5rem; }
+  .bb-ribbon:hover { filter: brightness(1.08); }
+  .bb-reason { font-size: 0.9rem; color: var(--text) !important; border-top: 1px dashed var(--danger); padding-top: 0.6rem; }
+  .bb-reason strong { color: var(--danger); }
+  .bb-reason a { color: var(--danger); white-space: nowrap; }
   .wc-top { display: flex; gap: 1.1rem; align-items: flex-start; margin-bottom: 0.85rem; }
   .wc-main { flex: 1 1 auto; min-width: 0; }
   .wc-main .best { margin-bottom: 0; }

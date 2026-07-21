@@ -29,6 +29,7 @@ export const navGroups = [
     title: 'Research',
     links: [
       { href: '/wallets', label: 'Hardware wallets' },
+      { href: '/standard', label: 'Our selection standard' },
       { href: '/collaborative', label: 'Collab custodians' },
     ],
   },
