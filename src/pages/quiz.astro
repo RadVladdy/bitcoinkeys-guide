@@ -4,7 +4,7 @@ import Base from '../layouts/Base.astro';
 <Base
   title="Find your setup — the self-custody quiz · BitcoinKeys.guide"
   description="Six plain questions → a self-custody setup that fits you, a personal roadmap from where you are now (built around any wallets you already own), and an ordered checklist. Runs entirely in your browser — we never ask how much Bitcoin you hold."
-  verified="2026-07-16"
+  verified="2026-07-22"
 >
   <section class="prose">
     <p class="eyebrow">Find your setup</p>
@@ -195,7 +195,7 @@ import Base from '../layouts/Base.astro';
         <span class="r-k mono">${label}</span>
         ${container}
         ${rec.walletNote ? `<p class="r-devnote">${esc(rec.walletNote)}</p>` : ''}
-        <a class="r-compare" href="/wallets">Compare all 11 devices →</a>
+        <a class="r-compare" href="/wallets">Compare all ${wallets.length} devices →</a>
       </div>`;
     }
     // category-only (learning / collaborative — walletNote may hold intentional HTML)

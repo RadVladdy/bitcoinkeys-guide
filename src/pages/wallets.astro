@@ -9,7 +9,7 @@ const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
 // Tier presentation for cards and the comparison table.
 const tierMeta = {
   spending: { cls: 'spend', ribbon: 'Built for spending →', label: 'Built for spending', anchor: '/standard#built-for-spending' },
-  disqualified: { cls: 'dq', ribbon: 'Doesn’t clear our bar →', label: 'Disqualified', anchor: '/standard#penalty-box' },
+  disqualified: { cls: 'dq', ribbon: 'Doesn’t clear our bar →', label: 'Doesn’t clear our bar', anchor: '/standard#doesnt-clear-our-bar' },
 };
 const tableGroups = [
   { key: 'cold', title: 'Built for cold storage', rows: coldWallets },
@@ -54,6 +54,7 @@ const tableGroups = [
       <details class="ch-defs">
         <summary>New to these words? Tap here for plain-English meanings</summary>
         <dl>
+          <div class="def-row"><dt>Cold-storage tier</dt><dd>Only devices our published standard rates “built for cold storage” — what we’d trust with long-term savings. The other filters are facts about each device; this one is our judgement.</dd></div>
           {badgeDefs.map((b) => (
             <div class="def-row"><dt>{b.label}</dt><dd>{b.tip}</dd></div>
           ))}
@@ -204,7 +205,7 @@ const tableGroups = [
       <li><strong>Strict air-gap by design:</strong> Coldcard Q (sign by QR or microSD, never a cable).</li>
       <li><strong>Using a passphrase:</strong> Coldcard Q (full keyboard) or Trezor Safe 5 (touchscreen) — both make typing a strong passphrase painless.</li>
       <li><strong>Non-technical, phone-first, spending money:</strong> Bitkey — <a href="/standard#built-for-spending">built for spending</a>, not a long-term vault.</li>
-      <li><strong>Already own a Ledger?</strong> It <a href="/standard#penalty-box">doesn’t clear our bar</a> — closed firmware that has proven it can export your seed. Read why before you rely on it for savings.</li>
+      <li><strong>Already own a Ledger?</strong> It <a href="/standard#doesnt-clear-our-bar">doesn’t clear our bar</a> — closed firmware that has proven it can export your seed. Read why before you rely on it for savings.</li>
     </ul>
     <p class="sub">Buy direct from the manufacturer, verify the tamper-evident seal, and generate a fresh seed yourself — never use a pre-loaded one.</p>
   </section>
@@ -224,7 +225,11 @@ const tableGroups = [
 
   function matches(w) {
     // Must-have filters: AND. A device passes unless its rating is 'no'.
-    for (const key of state.filters) { if (w[key] === 'no') return false; }
+    // 'coldTier' is the tier-system filter: only cold-storage-tier devices pass.
+    for (const key of state.filters) {
+      if (key === 'coldTier') { if (w.tier) return false; continue; }
+      if (w[key] === 'no') return false;
+    }
     // Use-case chips: OR within the facet.
     if (state.chips.size) {
       const has = (w.useCases || []).some((u) => state.chips.has(u));
@@ -455,6 +460,11 @@ const tableGroups = [
   .tier-ribbon.dq { background: var(--danger); }
   .tier-ribbon.spend { background: var(--warn); }
   .tier-ribbon:hover { filter: brightness(1.08); }
+  /* On narrow screens the corner ribbon can graze the price in the card header —
+     give flagged cards a touch more headroom so they never collide. */
+  @media (max-width: 560px) {
+    .wcard.tier-dq .wc-top, .wcard.tier-spend .wc-top { padding-top: 1.15rem; }
+  }
   .tier-reason { font-size: 0.9rem; color: var(--text) !important; padding-top: 0.6rem; }
   .tier-reason.dq { border-top: 1px dashed var(--danger); }
   .tier-reason.spend { border-top: 1px dashed var(--warn); }

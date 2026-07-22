@@ -9,7 +9,7 @@ export const checklistGroups = [
     intro: 'The moves that get your Bitcoin into your own hands, safely.',
     items: [
       { id: 'test-send', t: 'Move a test amount off the exchange first', d: 'Send a small amount to your own wallet, confirm it arrives, then move the rest. Never move everything in one blind step.', href: '/how-to/send-bitcoin-safely' },
-      { id: 'get-device', t: 'Get a real hardware wallet', d: 'A Bitcoin-only device with its own screen and offline signing. Buy direct from the maker and check the tamper seal.', href: '/wallets' },
+      { id: 'get-device', t: 'Get a real hardware wallet', d: 'A device from our cold-storage tier — Bitcoin-only firmware available, its own screen, offline signing. Buy direct from the maker and check the tamper seal.', href: '/wallets' },
       { id: 'generate-seed', t: 'Generate a fresh seed on the device yourself', d: 'Never use pre-set words. Let the device create the seed in front of you.', href: '/ladder/single-sig' },
       { id: 'back-up-seed', t: 'Back up the seed on metal, in two places', d: 'Write it by hand, move it to steel, store two copies in separate locations. No photos, no cloud, ever.', href: '/how-to/back-up-your-seed' },
       { id: 'prove-recovery', t: 'Prove recovery works before funding', d: 'Wipe the device and restore from your backup with a tiny amount. A backup you haven’t tested is a hope.', href: '/how-to/recovery-rehearsal' },

@@ -397,6 +397,10 @@ export const badgeDefs = [
 // A device passes a property requirement unless its rating is 'no' — a 'partial'
 // still counts, but its badge shows the caveat.
 export const chooserFilters = [
+  // 'coldTier' is special-cased in the chooser script: it filters on the tier
+  // system (only "built for cold storage" devices pass) rather than a rating
+  // field. It leads the list because it's the guide's own headline judgement.
+  { key: 'coldTier',       label: 'Cold-storage tier' },
   { key: 'btcOnly',        label: 'Bitcoin-only' },
   { key: 'airgap',         label: 'Air-gapped' },
   { key: 'openSource',     label: 'Open-source' },
@@ -490,7 +494,7 @@ export const ownableCatalog = [
     { slug: 'ledger-nano-s', name: 'Ledger Nano S' },
   ] },
   { brand: 'BitBox', models: [
-    { slug: 'bitbox02', name: 'BitBox02 (Bitcoin-only)', current: true },
+    { slug: 'bitbox02', name: 'BitBox02 (BTC-only)', current: true },
     { slug: 'bitbox02-multi', name: 'BitBox02 (Multi edition)' },
     { slug: 'bitbox01', name: 'BitBox01 (Digital Bitbox)' },
   ] },

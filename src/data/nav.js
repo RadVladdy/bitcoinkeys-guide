@@ -18,6 +18,7 @@ export const navGroups = [
     title: 'Learn',
     links: [
       { href: '/how-it-works', label: 'How Bitcoin works' },
+      { href: '/risks', label: 'How people lose Bitcoin' },
       { href: '/principles', label: 'Security principles' },
       { href: '/how-to', label: 'How-to guides' },
       { href: '/deep-dive', label: 'Deep dives' },

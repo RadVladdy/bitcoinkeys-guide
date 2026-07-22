@@ -13,7 +13,7 @@ export const setups = [
   { slug: 'single-sig',    step: 1, label: 'One key on a hardware wallet, one seed backup' },
   { slug: 'passphrase',    step: 2, label: 'One key + a passphrase (a secret "25th word")' },
   { slug: 'multisig',      step: 3, label: 'Multisig I run entirely myself (2-of-3 or 3-of-5, all my own keys)' },
-  { slug: 'collaborative', step: 4, label: 'Multisig where a service holds one key (Unchained, Casa, Nunchuk…)' },
+  { slug: 'collaborative', step: 4, label: 'Multisig where a service holds one key (Unchained, Nunchuk…)' },
 ];
 
 // Gap-fillers: content ladder.js doesn't carry (rung 1 has a bespoke page, and "pre" isn't a rung).
