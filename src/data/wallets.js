@@ -71,10 +71,11 @@ export const wallets = [
   },
   {
     name: 'Foundation Passport Prime',
-    belowBar: {
+    tier: 'spending',
+    tierNote: {
       fails: ['minimal-os'],
-      summary: 'A general-purpose platform — it runs apps (including altcoin apps), stores files, 2FA and passkeys — rather than a minimal Bitcoin-only signer.',
-      detail: 'We rate Foundation highly, and the Passport Prime is open-source, has an air-gap mode, and ships a Bitcoin-only first-party wallet — so this is not a knock on its security engineering. It falls below the bar on one criterion: it is no longer a minimal, single-purpose signer. The Prime is a general-purpose secure platform that also stores 2FA codes, passkeys and files, adds Bluetooth and NFC, and can run third-party (including altcoin) apps. That is more surface, and more to trust, than a device whose only job is to hold Bitcoin keys. If Foundation ships a stripped Bitcoin-only signer again — as the older $199 Passport was — it would clear the bar. For now we cover it fully but keep it below the line, and would point a first-time buyer at a simpler signer.',
+      summary: 'A capable, secure device — but a general-purpose platform (it runs apps, stores files, 2FA and passkeys) is more surface than a long-term savings vault needs.',
+      detail: 'The Passport Prime is well-engineered — open-source, air-gap-capable, with a secure element and a Bitcoin-only first-party wallet — so this is not a security knock. It sits here because it is no longer a minimal signer: it is a general-purpose secure platform that also stores 2FA codes, passkeys and files, adds Bluetooth and NFC, and can run third-party apps. That is more code and more surface than you want on a device whose entire job should be guarding keys for a decade. As a do-more device or an active-use signer it is genuinely capable; for a set-and-forget cold vault we would reach for something simpler from the tier above. If Foundation ships a stripped Bitcoin-only signer again — as the older $199 Passport was — it moves up.',
     },
     image: '/devices/passport-prime.webp',
     ladderReach: { s: 'strong', p: 'strong', m: 'strong', note: 'Full ladder; a built-in keyboard makes passphrase entry easy, and it signs multisig up to 15 keys.' },
@@ -233,7 +234,12 @@ export const wallets = [
   },
   {
     name: 'Bitkey',
-    barCaveat: 'Clears the bar on the letter of every rule — Bitcoin-only, open-source, your device key never leaves it. Know the trade-off it makes: it is a 2-of-3 where Block holds one key on its servers and recovery runs through Block’s app, rather than a lone seed phrase you control. That is a deliberate, well-built design for non-technical holders, but it leans on a company staying online in a way the other in-standard signers do not.',
+    tier: 'spending',
+    tierNote: {
+      fails: ['self-sovereign'],
+      summary: 'Clever and secure — a 2-of-3 with no single seed to steal, and Block can’t spend alone — but recovery and daily use lean on Block’s living servers and app, with no seed you hold on steel.',
+      detail: 'Bitkey is the most interesting device here, and it clears the security floor cleanly: there is no single master seed to steal, it is a 2-of-3 across three independent keys, and the one key Block holds on its servers cannot move your coins on its own. Architecturally that is stronger against seed theft than a single-seed device. What keeps it out of the cold-storage tier is dependence, not danger. Everyday recovery and setup run through Block’s app and servers; the firmware is source-available but not independently reproducible; there is no 24-word seed you can stamp on steel and walk away with; and while you can export a watch-only descriptor, a clean exit still leans on Block’s own tooling. For an active, phone-first holder or a smaller balance, that trade is often worth it — the experience is excellent and it is real self-custody. For a decade-long vault we would rather not have a company’s servers anywhere in the recovery path. That is exactly the line between it and Ledger: Bitkey splits trust and stays open enough to read; Ledger concentrates a single secret behind firmware you can’t.',
+    },
     image: '/devices/bitkey.webp',
     ladderReach: { s: 'na', p: 'na', m: 'na', note: 'Its own built-in 2-of-3 — a great first setup, but a DIY passphrase or multisig means different hardware.' },
     vendor: 'Block, Inc.',
@@ -256,10 +262,11 @@ export const wallets = [
   },
   {
     name: 'Ledger Nano family',
-    belowBar: {
-      fails: ['btc-only', 'key-export', 'minimal-os', 'open-source'],
-      summary: 'No Bitcoin-only firmware, closed-source, and the 2023 Recover feature proved the firmware can shard your seed to third parties over the internet.',
-      detail: 'Ledger is the clearest miss against every version of this bar. There is no Bitcoin-only firmware — the device is built around a multi-coin app store running on a closed-source operating system you cannot inspect. Most seriously, the 2023 “Ledger Recover” feature revealed that the firmware is capable of extracting your seed, splitting it into shares, and sending those shares to outside companies over the internet — the exact thing a hardware wallet exists to make impossible. Ledger notes it is opt-in; the problem is that the capability now lives in the firmware at all. Add the 2020 customer-data breach and it falls below the bar on Bitcoin-only, keys-never-leave, minimal-signer, and open-source alike.',
+    tier: 'disqualified',
+    tierNote: {
+      fails: ['key-export', 'verifiable'],
+      summary: 'Its closed firmware has proven it can ship your single master seed off the device over the internet — so your safety reduces to trusting an unauditable black box.',
+      detail: 'By default a Ledger keeps its seed on the device and cannot spend your coins — that part is genuine self-custody, and worth stating plainly. What disqualifies it is what the 2023 “Ledger Recover” service revealed: the closed firmware is capable of extracting your 24-word seed, encrypting it, splitting it, and sending the pieces to third-party custodians over the internet — a capability Ledger had previously told customers was impossible. Recover is opt-in and paid, so this is not a default backdoor or a proven theft. But because the secure-element firmware is closed and unauditable, you cannot verify which code your device is running, so your security collapses to trusting one company not to export your single master secret — now, under a future update, or under a subpoena. A lone seed guarded by an unverifiable black box is exactly the model the security floor exists to reject. (The 2020 leak of around a million customers’ names, addresses and phone numbers, which fuelled phishing and physical-threat campaigns, doesn’t help its case.)',
     },
     image: '/devices/ledger.webp',
     ladderReach: { s: 'ok', p: 'ok', m: 'ok', note: 'Covers the ladder, but closed firmware and the 2023 Recover episode are the real caveats.' },
@@ -283,52 +290,85 @@ export const wallets = [
   },
 ];
 
-// ── The published selection standard ("the bar") ────────────────────────────
-// A device must clear ALL of these hard gates to sit in-standard on this guide.
-// Miss even one and it moves to the penalty box: still covered and compared in
-// full, but marked below the bar with the reason. This is a deliberate,
-// opinionated stance from a Bitcoin-only point of view — see /standard.
-// A device fails a gate when its `belowBar.fails` array lists that gate's key.
+// ── The published selection standard: two gates, three tiers ────────────────
+// We judge every device on two separate things, and it matters which is which:
+//
+//   • A hard SECURITY FLOOR — non-negotiables. Miss one and the device is
+//     Disqualified ("doesn't clear our bar"), full stop. This is about the
+//     security MODEL being sound, not about fit.
+//   • SAVINGS-GRADE criteria — what we want on a device guarding a decade of
+//     cold savings. A secure device that misses one of these isn't unsafe; it
+//     just carries extra surface or dependence we wouldn't want on a vault. It
+//     lands in "Built for spending" — fine for active or smaller balances.
+//
+// Every device is covered in full regardless of tier. A device's tier and
+// reasoning live on the device itself (`tier` + `tierNote`); everything the
+// pages show is derived from that, so the standard and the list cannot drift.
 export const standardGates = [
+  // ---- The security floor (miss one → Disqualified) ----
   {
-    key: 'btc-only',
+    key: 'key-export', level: 'floor',
+    title: 'Your keys can never leave over the internet',
+    short: 'No feature — vendor or firmware — can copy, shard, or ship your secret off the device to a server.',
+    why: 'The whole reason to own cold storage is that the secret never touches an online system. A device whose firmware is capable of exporting your seed — even encrypted, even opt-in — has put back exactly the risk you paid to remove. Capability is the fail, not just use.',
+  },
+  {
+    key: 'verifiable', level: 'floor',
+    title: 'Verifiable — not a closed black box',
+    short: 'The code that touches your keys is open enough to inspect, so you are not simply trusting one company’s secret firmware.',
+    why: 'Principle number ten: verify, don’t trust. If the security-critical firmware is closed and unauditable, your safety reduces to a company’s word — and words have been broken before. Source you can read (ideally rebuild and match) clears this; a sealed operating system does not.',
+  },
+  // ---- Savings-grade (miss one → Built for spending, still secure) ----
+  {
+    key: 'btc-only', level: 'savings',
     title: 'Bitcoin-only firmware',
-    short: 'A firmware that runs only Bitcoin must exist for the device.',
-    why: 'A signer juggling dozens of other coins carries code you will never use — and every line of code is attack surface. A Bitcoin-only build does one thing, so there is less that can go wrong and less to audit. We only require that a Bitcoin-only firmware is available, not that the device can never run anything else.',
+    short: 'A firmware that runs only Bitcoin is available for the device.',
+    why: 'A signer juggling dozens of other coins carries code you will never use, and every line is attack surface. For money you are locking away, less code doing one job is the safer bet. We only ask that a Bitcoin-only build exists, not that the device can never do anything else.',
   },
   {
-    key: 'key-export',
-    title: 'Keys can never leave over the internet',
-    short: 'The seed is made on the device and no feature can copy, shard, or back it up to a server.',
-    why: 'The whole reason to own cold storage is that the secret never touches an online system. A feature that can send your seed out — even encrypted, even opt-in — puts back exactly the risk you paid to remove. If the firmware is capable of it at all, the device fails here.',
-  },
-  {
-    key: 'minimal-os',
+    key: 'minimal-os', level: 'savings',
     title: 'A minimal, single-purpose signer',
-    short: 'Lean firmware built to hold keys and sign — not a general-purpose gadget that installs apps or stays wirelessly connected.',
-    why: 'Every extra app, file store, and radio is another door. A device you cannot turn into a little internet computer is a smaller target. Bluetooth alone is a caveat we will note, not an automatic fail; a general-purpose app platform is a fail.',
+    short: 'Lean firmware built to hold keys and sign — not a general-purpose gadget that installs apps, stores files, or stays wirelessly connected.',
+    why: 'Every extra app, file store, and radio is another door and another thing that can break. A device you cannot turn into a little internet computer is a smaller target — exactly what you want standing guard for years. Great for a daily gadget; more than a vault needs.',
   },
   {
-    key: 'open-source',
-    title: 'Open-source and verifiable',
-    short: 'The firmware source is public so anyone can inspect it — ideally reproducibly buildable.',
-    why: 'Principle number ten: verify, don’t trust. You cannot check a black box. Source-available-and-reproducible firmware (you can rebuild it and confirm the match) clears this even if the licence is stricter than OSI open-source; a fully closed operating system does not.',
-  },
-  {
-    key: 'portable-recovery',
-    title: 'Portable, self-custodial recovery',
-    short: 'A standard seed phrase you can restore in independent wallet software if the maker disappears.',
-    why: 'Self-custody means no permission slips. Your recovery must not depend on a company staying alive, online, or willing. A proprietary format or a server standing between you and your coins is lock-in wearing a security costume.',
+    key: 'self-sovereign', level: 'savings',
+    title: 'Self-sovereign, portable recovery',
+    short: 'A backup you hold — a standard seed you can restore in independent software — with no dependence on a company’s servers or app to get your coins back.',
+    why: 'Self-custody means no permission slips and no expiry date. If your recovery leans on a company staying alive, online, and willing, then your ten-year plan is really their business plan. A seed you can stamp on steel and restore anywhere is the opposite of lock-in.',
   },
 ];
 
-// Derived membership — nothing here is hand-maintained, so the bar and the
-// device list can never drift. A device is in-standard unless it declares a
-// `belowBar` block; the penalty box is everything that does.
-export const meetsBar = (w) => !w.belowBar;
-export const inStandardWallets = wallets.filter(meetsBar);
-export const belowBarWallets = wallets.filter((w) => w.belowBar);
+// The three tiers, in order. A device with no `tier` is 'cold' (recommended).
+export const tiers = [
+  {
+    key: 'cold',
+    label: 'Built for cold storage',
+    tagline: 'What we’d trust with long-term savings.',
+    blurb: 'Clears the security floor and every savings-grade criterion: minimal, verifiable, self-sovereign, Bitcoin-only. A dumb, offline, checkable lump of metal whose only job is to guard your keys for years.',
+  },
+  {
+    key: 'spending',
+    label: 'Built for spending',
+    tagline: 'Secure — but suited to active or smaller balances, not a savings vault.',
+    blurb: 'These clear the security floor: no one can steal your coins, and they are honest self-custody. They miss a savings-grade criterion — a general-purpose OS, or a dependence on a living company’s servers — that adds surface or a lifeline you would not want on money you are locking away for a decade. For everyday use or smaller amounts, they are genuinely good.',
+  },
+  {
+    key: 'disqualified',
+    label: 'Doesn’t clear our bar',
+    tagline: 'Fails a security non-negotiable.',
+    blurb: 'These miss the hard security floor — not a matter of fit or taste. We still cover them in full, because pretending they don’t exist wouldn’t help you, but we would not put your keys on one.',
+  },
+];
+
+// Derived groupings — nothing here is hand-maintained.
+export const tierOf = (w) => w.tier || 'cold';
 export const gateByKey = Object.fromEntries(standardGates.map((g) => [g.key, g]));
+export const tierByKey = Object.fromEntries(tiers.map((t) => [t.key, t]));
+export const walletsInTier = (key) => wallets.filter((w) => tierOf(w) === key);
+export const coldWallets = walletsInTier('cold');
+export const spendingWallets = walletsInTier('spending');
+export const disqualifiedWallets = walletsInTier('disqualified');
 
 export const compareCriteria = [
   { key: 'price', label: 'Price', type: 'text' },

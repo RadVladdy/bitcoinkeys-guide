@@ -1,30 +1,80 @@
 ---
 import Base from '../layouts/Base.astro';
-import { standardGates, inStandardWallets, belowBarWallets, gateByKey, wallets, walletsVerified } from '../data/wallets.js';
+import { standardGates, tiers, coldWallets, spendingWallets, disqualifiedWallets, gateByKey, wallets, walletsVerified } from '../data/wallets.js';
 
-const caveated = wallets.filter((w) => w.barCaveat && !w.belowBar);
-const nIn = inStandardWallets.length;
-const nTotal = wallets.length;
+const floorGates = standardGates.filter((g) => g.level === 'floor');
+const savingsGates = standardGates.filter((g) => g.level === 'savings');
+const caveated = wallets.filter((w) => w.barCaveat && (w.tier || 'cold') === 'cold');
+const countByTier = { cold: coldWallets.length, spending: spendingWallets.length, disqualified: disqualifiedWallets.length };
+const tierClass = { cold: 't-cold', spending: 't-spend', disqualified: 't-dq' };
+const tierWallets = { cold: coldWallets, spending: spendingWallets, disqualified: disqualifiedWallets };
 ---
 <Base
-  title="The bar every hardware wallet has to clear · BitcoinKeys.guide"
-  description="Our published, opinionated selection standard for Bitcoin hardware wallets: five hard rules a device must clear to sit in-standard — Bitcoin-only firmware, keys that can never leave over the internet, a minimal single-purpose signer, open-source firmware, and portable self-custodial recovery. Devices that miss are covered honestly in a penalty box with the reasons."
+  title="How we rate hardware wallets — our selection standard · BitcoinKeys.guide"
+  description="Our published, opinionated standard for Bitcoin hardware wallets. Two separate judgements: a hard security floor a device must clear at all, and savings-grade criteria that decide whether it's built for cold storage or just for spending. Three tiers — Built for cold storage, Built for spending, and Doesn't clear our bar — with the reasoning for every device, including why Bitkey and Ledger land in different places."
   verified={walletsVerified}
 >
   <section class="prose">
     <p class="eyebrow">Our selection standard</p>
-    <h1>The bar every wallet has to <span class="accent">clear</span></h1>
-    <p class="lead">Most comparison sites pretend every device is fine and let affiliate links do the talking. We don’t. This is a Bitcoin-only guide with an opinion: a hardware wallet has to clear five hard rules to earn a place on our in-standard list. Miss even one and it drops to the <a href="#penalty-box">penalty box</a> — still covered and compared in full, but marked below the bar with the reason spelled out.</p>
-    <p>Right now <strong>{nIn} of {nTotal}</strong> devices we cover clear the bar. We would rather tell you plainly why we’d steer you away from the rest than bury it.</p>
+    <h1>How we decide what’s <span class="accent">worth trusting</span></h1>
+    <p class="lead">Most comparison sites pretend every device is fine and let affiliate links do the talking. We don’t. This is a Bitcoin-only guide with an opinion — but a careful one. We judge every device on <strong>two separate things</strong>, and keeping them separate is the whole point.</p>
+    <div class="axes">
+      <div class="axis floor">
+        <p class="ax-h">A hard security floor</p>
+        <p>Non-negotiables about whether the security <em>model</em> is sound. Miss one and the device is <strong>disqualified</strong> — not a matter of taste.</p>
+      </div>
+      <div class="axis savings">
+        <p class="ax-h">Savings-grade criteria</p>
+        <p>What we want on a device guarding a decade of cold savings. A secure device that misses one isn’t unsafe — it’s just <strong>built for spending</strong>, not for a vault.</p>
+      </div>
+    </div>
+    <p>That gives three tiers. Every device is covered in full no matter where it lands.</p>
   </section>
 
+  <section class="tiers">
+    {tiers.map((t) => (
+      <article class:list={['tier', tierClass[t.key]]}>
+        <header>
+          <h2>{t.label}</h2>
+          <span class="tcount">{countByTier[t.key]}</span>
+        </header>
+        <p class="tagline">{t.tagline}</p>
+        <p class="blurb">{t.blurb}</p>
+        <ul class="tdevices">
+          {tierWallets[t.key].map((w) => <li>{w.name}</li>)}
+        </ul>
+      </article>
+    ))}
+  </section>
+
+  <section class="prose">
+    <h2>How we judge</h2>
+    <h3 class="gate-h floor-h">The security floor — miss one and it’s disqualified</h3>
+  </section>
   <section>
-    <ol class="gates">
-      {standardGates.map((g, i) => (
+    <ol class="gates floor-gates">
+      {floorGates.map((g) => (
         <li class="gate">
-          <span class="gn num">{String(i + 1).padStart(2, '0')}</span>
+          <span class="gicon" aria-hidden="true">⛔</span>
           <div class="gbody">
-            <h3>{g.title}</h3>
+            <h4>{g.title}</h4>
+            <p class="gshort">{g.short}</p>
+            <p class="gwhy"><span class="wl">Why:</span> {g.why}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
+  </section>
+  <section class="prose">
+    <h3 class="gate-h savings-h">Savings-grade — miss one and it’s “built for spending,” not disqualified</h3>
+  </section>
+  <section>
+    <ol class="gates savings-gates">
+      {savingsGates.map((g) => (
+        <li class="gate">
+          <span class="gicon" aria-hidden="true">❄️</span>
+          <div class="gbody">
+            <h4>{g.title}</h4>
             <p class="gshort">{g.short}</p>
             <p class="gwhy"><span class="wl">Why:</span> {g.why}</p>
           </div>
@@ -33,34 +83,66 @@ const nTotal = wallets.length;
     </ol>
   </section>
 
-  <section id="penalty-box" class="prose">
-    <h2>The penalty box <span class="pb-count">{belowBarWallets.length} below the bar</span></h2>
-    <p>These are covered everywhere else on the site — specs, reasoning, the comparison table — because pretending they don’t exist wouldn’t help you. But they miss the bar, so we say so, here and on every list.</p>
-  </section>
-  <section>
-    <div class="pbcards">
-      {belowBarWallets.map((w) => (
-        <article class="pbcard">
-          <header class="pbhead">
-            <div class="pbtitle"><h3>{w.name}</h3><span class="vendor mono">{w.vendor}</span></div>
-            {w.image && <img class="pbimg" src={w.image} alt={w.name} loading="lazy" />}
-          </header>
-          <p class="pbfails-label">Misses:</p>
-          <ul class="pbfails">
-            {w.belowBar.fails.map((k) => (
-              <li>{(gateByKey[k] && gateByKey[k].title) || k}</li>
-            ))}
-          </ul>
-          <p class="pbdetail">{w.belowBar.detail}</p>
-        </article>
-      ))}
+  <section class="prose">
+    <div class="callout">
+      <span class="label">Why “more” is a problem for savings</span>
+      <p>It sounds backwards: how can a device that does <em>more</em> — more apps, a helpful phone app, a company that can help you recover — be a worse choice? Because long-term savings and daily spending want opposite things.</p>
+      <p>Spending money should be <strong>easy</strong>: reachable, forgiving, quick to recover if you fumble. A little complexity buys real convenience. But savings you’re locking away for a decade should be <strong>boring</strong>: a dumb, offline, verifiable lump of metal with almost nothing that can go wrong and no lifeline you don’t control. Every extra feature is another line of code that can carry a bug; every radio is another way in; every dependence on a company is a bet that they’ll still be alive, online, and willing in ten years. None of that makes a device <em>insecure</em> today — it makes it the wrong tool for the one job where simplicity <em>is</em> the security. It’s our third principle in practice: <a href="/principles">more complexity isn’t more security</a>.</p>
     </div>
   </section>
 
+  {disqualifiedWallets.length > 0 && (
+    <section class="prose">
+      <h2 id="penalty-box">Disqualified — and exactly why</h2>
+      <p>Fails the hard floor above. Still covered everywhere else on the site, because pretending it doesn’t exist wouldn’t help you — but we wouldn’t put your keys on one.</p>
+    </section>
+    <section>
+      <div class="dcards">
+        {disqualifiedWallets.map((w) => (
+          <article class="dcard dq">
+            <header class="dhead">
+              <div class="dtitle"><h3>{w.name}</h3><span class="vendor mono">{w.vendor}</span></div>
+              {w.image && <img class="dimg" src={w.image} alt={w.name} loading="lazy" />}
+            </header>
+            <p class="dfails-label">Fails:</p>
+            <ul class="dfails dq">
+              {w.tierNote.fails.map((k) => <li>{(gateByKey[k] && gateByKey[k].title) || k}</li>)}
+            </ul>
+            <p class="ddetail">{w.tierNote.detail}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  )}
+
+  {spendingWallets.length > 0 && (
+    <section class="prose">
+      <h2 id="built-for-spending">Built for spending — secure, but not a vault</h2>
+      <p>These clear the floor: honest self-custody, no one can steal your coins. They miss a savings-grade criterion, so we’d reach for the tier above for money you’re locking away — while happily using these for day-to-day or smaller balances.</p>
+    </section>
+    <section>
+      <div class="dcards">
+        {spendingWallets.map((w) => (
+          <article class="dcard spend">
+            <header class="dhead">
+              <div class="dtitle"><h3>{w.name}</h3><span class="vendor mono">{w.vendor}</span></div>
+              {w.image && <img class="dimg" src={w.image} alt={w.name} loading="lazy" />}
+            </header>
+            <p class="dfails-label spend">Misses (savings-grade):</p>
+            <ul class="dfails spend">
+              {w.tierNote.fails.map((k) => <li>{(gateByKey[k] && gateByKey[k].title) || k}</li>)}
+            </ul>
+            <p class="ddetail">{w.tierNote.detail}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  )}
+
   {caveated.length > 0 && (
     <section class="prose">
-      <h2>Clears the bar — with a caveat worth knowing</h2>
-      <p>These sit in-standard, but honesty cuts both ways: each makes a trade-off you should understand before you buy.</p>
+      <h2>Built for cold storage — with a caveat worth knowing</h2>
+      <p>These top-tier devices earn a place for savings. Honesty cuts both ways, though: each makes a trade-off you should understand before you buy.</p>
     </section>
     <section>
       <ul class="caveats">
@@ -76,39 +158,73 @@ const nTotal = wallets.length;
 
   <section class="prose">
     <div class="callout safe">
-      <span class="label">The one rule behind all five</span>
-      <p><strong>Verify, don’t trust.</strong> Every gate here is one expression of it — you can only truly hold your own keys on a device that’s Bitcoin-only, can’t leak your seed, does one job, can be inspected, and hands you a backup no company controls. See how each device measures up in the <a href="/wallets">full comparison</a>.</p>
+      <span class="label">The one rule behind all of it</span>
+      <p><strong>Verify, don’t trust.</strong> A device earns the top tier by being something you can actually check and actually hold — Bitcoin-only, unable to leak your seed, open to inspect, doing one job, with a backup no company controls. See how each device measures up in the <a href="/wallets">full comparison</a>.</p>
     </div>
   </section>
 </Base>
 
 <style>
-  .gates { list-style: none; margin: 1.4rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.7rem; }
-  .gate { display: grid; grid-template-columns: 3rem 1fr; gap: 1.1rem; align-items: start;
-    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.15rem 1.35rem; }
-  .gn { font-family: var(--mono); font-size: 1.4rem; font-weight: 800; color: var(--accent); line-height: 1; }
-  .gbody h3 { margin: 0.1rem 0 0.35rem; color: var(--text); }
-  .gshort { margin: 0 0 0.5rem; color: var(--text); font-weight: 550; }
-  .gwhy { margin: 0; color: var(--muted); font-size: 0.95rem; }
+  .axes { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin: 1.3rem 0; }
+  @media (max-width: 620px) { .axes { grid-template-columns: 1fr; } }
+  .axis { border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem 1.15rem; background: var(--surface); }
+  .axis.floor { border-left: 3px solid var(--danger); }
+  .axis.savings { border-left: 3px solid var(--accent); }
+  .ax-h { margin: 0 0 0.35rem; font-weight: 700; color: var(--text); }
+  .axis.floor .ax-h { color: var(--danger); }
+  .axis.savings .ax-h { color: var(--accent); }
+  .axis p { margin: 0; color: var(--muted); font-size: 0.92rem; }
+
+  .tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.9rem; margin: 1.5rem 0 0.5rem; }
+  @media (max-width: 820px) { .tiers { grid-template-columns: 1fr; } }
+  .tier { border: 1px solid var(--line); border-top: 4px solid var(--line); border-radius: var(--radius);
+    padding: 1.15rem 1.25rem; background: var(--surface); }
+  .tier.t-cold { border-top-color: var(--safe); }
+  .tier.t-spend { border-top-color: var(--warn); }
+  .tier.t-dq { border-top-color: var(--danger); }
+  .tier header { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+  .tier h2 { margin: 0; font-size: 1.1rem; }
+  .tcount { font-family: var(--mono); font-weight: 800; font-size: 1.1rem; }
+  .t-cold .tcount { color: var(--safe); }
+  .t-spend .tcount { color: var(--warn); }
+  .t-dq .tcount { color: var(--danger); }
+  .tagline { margin: 0.5rem 0 0.6rem; font-weight: 600; color: var(--text); font-size: 0.92rem; }
+  .blurb { margin: 0 0 0.8rem; color: var(--muted); font-size: 0.88rem; line-height: 1.55; }
+  .tdevices { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 0.35rem; }
+  .tdevices li { font-size: 0.78rem; color: var(--text); background: var(--raise);
+    border: 1px solid var(--line); border-radius: 0.4rem; padding: 0.2rem 0.5rem; }
+
+  .gate-h { margin-top: 1.4rem; padding-bottom: 0.3rem; border-bottom: 2px solid var(--line); }
+  .floor-h { color: var(--danger); }
+  .savings-h { color: var(--accent); }
+
+  .gates { list-style: none; margin: 1rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.65rem; }
+  .gate { display: grid; grid-template-columns: 2rem 1fr; gap: 0.9rem; align-items: start;
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 1.05rem 1.25rem; }
+  .floor-gates .gate { border-left: 3px solid var(--danger); }
+  .savings-gates .gate { border-left: 3px solid var(--accent); }
+  .gicon { font-size: 1.15rem; line-height: 1.3; }
+  .gbody h4 { margin: 0.1rem 0 0.3rem; color: var(--text); font-size: 1rem; }
+  .gshort { margin: 0 0 0.5rem; color: var(--text); font-weight: 550; font-size: 0.94rem; }
+  .gwhy { margin: 0; color: var(--muted); font-size: 0.92rem; }
   .gwhy .wl { color: var(--accent); font-weight: 700; }
 
-  .pb-count { display: inline-block; margin-left: 0.5rem; vertical-align: middle; font-family: var(--mono);
-    font-size: 0.7rem; letter-spacing: 0.04em; text-transform: uppercase; color: var(--danger);
-    background: var(--danger-dim); border: 1px solid var(--danger); border-radius: 999px; padding: 0.2rem 0.6rem; }
-
-  .pbcards { display: flex; flex-direction: column; gap: 0.9rem; margin-top: 1.1rem; }
-  .pbcard { border: 1px solid var(--danger); border-radius: var(--radius);
-    background: var(--danger-dim); padding: 1.15rem 1.35rem; }
-  .pbhead { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
-  .pbtitle h3 { margin: 0 0 0.1rem; color: var(--text); }
-  .pbtitle .vendor { color: var(--faint); font-size: 0.8rem; }
-  .pbimg { flex: 0 0 auto; width: 64px; height: 64px; object-fit: contain; }
-  .pbfails-label { margin: 0.7rem 0 0.3rem; font-family: var(--mono); font-size: 0.7rem;
+  .dcards { display: flex; flex-direction: column; gap: 0.9rem; margin-top: 1.1rem; }
+  .dcard { border: 1px solid var(--line); border-radius: var(--radius); padding: 1.15rem 1.35rem; }
+  .dcard.dq { border-color: var(--danger); background: var(--danger-dim); }
+  .dcard.spend { border-color: var(--warn); background: var(--warn-dim); }
+  .dhead { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+  .dtitle h3 { margin: 0 0 0.1rem; color: var(--text); }
+  .dtitle .vendor { color: var(--faint); font-size: 0.8rem; }
+  .dimg { flex: 0 0 auto; width: 60px; height: 60px; object-fit: contain; }
+  .dfails-label { margin: 0.7rem 0 0.3rem; font-family: var(--mono); font-size: 0.68rem;
     letter-spacing: 0.1em; text-transform: uppercase; color: var(--danger); }
-  .pbfails { list-style: none; margin: 0 0 0.7rem; padding: 0; display: flex; flex-wrap: wrap; gap: 0.4rem; }
-  .pbfails li { font-size: 0.82rem; color: var(--danger); border: 1px solid var(--danger);
-    border-radius: 0.4rem; padding: 0.2rem 0.55rem; background: color-mix(in srgb, var(--danger) 8%, transparent); }
-  .pbdetail { margin: 0; color: var(--text); font-size: 0.95rem; line-height: 1.6; }
+  .dfails-label.spend { color: var(--warn); }
+  .dfails { list-style: none; margin: 0 0 0.7rem; padding: 0; display: flex; flex-wrap: wrap; gap: 0.4rem; }
+  .dfails li { font-size: 0.8rem; border-radius: 0.4rem; padding: 0.2rem 0.55rem; }
+  .dfails.dq li { color: var(--danger); border: 1px solid var(--danger); background: color-mix(in srgb, var(--danger) 8%, transparent); }
+  .dfails.spend li { color: var(--warn); border: 1px solid var(--warn); background: color-mix(in srgb, var(--warn) 8%, transparent); }
+  .ddetail { margin: 0; color: var(--text); font-size: 0.95rem; line-height: 1.6; }
 
   .caveats { list-style: none; margin: 1.1rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
   .caveat { border: 1px solid var(--line); border-left: 3px solid var(--warn); border-radius: var(--radius);
@@ -117,7 +233,6 @@ const nTotal = wallets.length;
   .cvtext { color: var(--muted); font-size: 0.92rem; line-height: 1.6; }
 
   @media (max-width: 560px) {
-    .gate { grid-template-columns: 2.2rem 1fr; gap: 0.8rem; padding: 1rem 1.05rem; }
-    .pbimg { width: 48px; height: 48px; }
+    .dimg { width: 46px; height: 46px; }
   }
 </style>
