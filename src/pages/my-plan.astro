@@ -270,11 +270,14 @@ import Base from '../layouts/Base.astro';
   // the status card carries the ladder position — so rowsHtml is just the checklist.
   function rowsHtml(plan) {
     const rows = [];
-    const done = plan.checklist ? Object.keys(plan.checklist).length : 0;
+    // Count only ids that still exist in the checklist data — an imported or
+    // old plan may carry renamed/retired ids, and the count must match the
+    // visible list below (which filters the same way).
+    const doneIds = plan.checklist ? Object.keys(plan.checklist).filter((id) => checklistLabels[id]) : [];
+    const done = doneIds.length;
     if (done > 0) {
-      const items = Object.keys(plan.checklist)
+      const items = doneIds
         .map((id) => checklistLabels[id])
-        .filter(Boolean)
         .map((t) => `<li>${esc(t)}</li>`)
         .join('');
       rows.push([

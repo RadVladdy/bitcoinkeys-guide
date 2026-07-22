@@ -556,7 +556,10 @@ export const ownableDevices = ownableCatalog.flatMap((b) => b.models.map((m) => 
 export const ownableBySlug = Object.fromEntries(ownableDevices.map((d) => [d.slug, d]));
 // Display name for any owned slug, including current-lineup devices and free-text
 // ("x:<name>") entries the user typed for something not in the catalog.
+// Prefers the CANONICAL comparison-page name (deviceBySlug) so recommendation
+// and support lists match the /wallets cards — the ownable catalog's names are
+// picker-phrased (e.g. "Ledger Nano (unsure which)") and only fit legacy models.
 export function ownedName(slug) {
   if (typeof slug === 'string' && slug.startsWith('x:')) return slug.slice(2);
-  return (ownableBySlug[slug] && ownableBySlug[slug].name) || (deviceBySlug[slug] && deviceBySlug[slug].name) || slug;
+  return (deviceBySlug[slug] && deviceBySlug[slug].name) || (ownableBySlug[slug] && ownableBySlug[slug].name) || slug;
 }

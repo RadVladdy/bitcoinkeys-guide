@@ -84,17 +84,22 @@ export const questions = [
   },
 ];
 
-// Bitcoin-only collaborative-custody services (verified 2026-07-16). Shown when
-// a collaborative-custody setup is recommended. Neutral + informational — NOT
-// affiliate links, NOT ranked "best." Casa is deliberately omitted: it now
-// supports Ethereum too, so it falls outside this guide's Bitcoin-only rule.
-export const collaborativeVendors = [
-  { name: 'Unchained',   model: '2-of-3 — you hold 2 keys, they hold 1 recovery key', kyc: 'KYC required', price: 'Free tier / $250 a yr', hw: 'You bring a supported device (BitBox · Jade · Coldcard · Trezor · Ledger)', note: 'The longest track record and a full Bitcoin-only stack (vaults, IRA, inheritance). US-regulated.', url: 'https://unchained.com' },
-  { name: 'Nunchuk',     model: 'Self-sovereign or assisted multisig',                kyc: 'No KYC',        price: '~$120 a yr and up', hw: 'Supports a wide range of devices (incl. Coldcard, Tapsigner)', note: 'Open-source and privacy-friendly (no KYC), with on-chain timelock inheritance.', url: 'https://nunchuk.io' },
-  { name: 'Swan Vault',  model: '2-of-3 collaborative',                               kyc: '—',             price: 'Free',              hw: 'App-based key + a supported hardware wallet', note: 'Bitcoin-only; ties into Swan’s buying and inheritance planning.', url: 'https://www.swanbitcoin.com' },
-  { name: 'AnchorWatch', model: 'Insured multisig (Lloyd’s of London)',               kyc: 'KYC required', price: '0.55%+/yr · $250k min', hw: 'You hold your own 2-of-3 keys on supported hardware', note: 'The only one with real insurance — built for large holdings. US-only.', url: 'https://www.anchorwatch.com' },
-  { name: 'Bitkey',      model: '2-of-3 — a consumer device + app',                   kyc: 'No KYC',        price: 'One-time (~$250)',  hw: 'The device is included — Block ships you the Bitkey', note: 'The simplest, most non-technical option; recovery is built in, no subscription.', url: 'https://bitkey.world' },
-];
+// Bitcoin-only collaborative-custody services, derived LIVE from custodians.js
+// (the /collaborative page's single source of truth) so the quiz and the
+// comparison page can never disagree on fees, KYC, or the service list.
+// Neutral + informational — NOT affiliate links, NOT ranked "best." Casa is
+// deliberately omitted there (it supports other coins), so it's omitted here.
+import { custodians } from './custodians.js';
+const KYC_LABEL = { yes: 'No KYC', no: 'KYC required', partial: 'KYC varies' };
+export const collaborativeVendors = custodians.map((c) => ({
+  name: c.name,
+  url: c.url,
+  model: c.model,
+  kyc: KYC_LABEL[c.noKyc] || '—',
+  price: c.fee,
+  hw: c.devices,
+  note: c.bestFor,
+}));
 
 // Device options are always given as a PAIR of equal good fits — never a single
 // funnel. Rule of the guide: every device is rated in three tiers against the
@@ -297,6 +302,14 @@ function secondaryRec(a, primary) {
   const slug = primary.rungSlug;
   const S = (rungSlug, rungLabel, headline, when) => ({ rungSlug, rungLabel, headline, when });
 
+  // Learning-stakes users share the single-sig rung slug but their primary is
+  // "phone wallet, don't buy gear" — their step-up is graduating to cold
+  // storage, never a passphrase or multisig. Branch on tier BEFORE the slug.
+  if (primary.tier === 'Getting started') {
+    return S('single-sig', 'Single-signature cold storage', 'Graduate to cold storage',
+      'The moment your stack is more than pocket money, move it to a hardware wallet in single-sig cold storage — your first real self-custody setup.');
+  }
+
   // The multisig fork is already the top of the ladder — the step-up is more keys /
   // more resilience, kept self-sovereign by default (only mention insurance if they
   // didn't insist on pure self-custody).
@@ -305,7 +318,10 @@ function secondaryRec(a, primary) {
       return S('multisig', '3-of-5 multisig', 'Spread the keys wider (3-of-5)',
         'As holdings grow, a self-run 3-of-5 across separate locations tolerates more lost or stolen keys before anything is at risk — the same self-sovereign technology as your 2-of-3, just more keys and more resilience. No company required.');
     }
-    return S('multisig', '3-of-5 or an insured vault', 'Spread wider — or add insurance',
+    // Label deliberately avoids the literal "3-of-5": keysForSetup keys off that
+    // string, and this option may equally mean an insured 2-of-3 vault — so the
+    // plan shouldn't demand five devices from it.
+    return S('multisig', 'Wider multisig or an insured vault', 'Spread wider — or add insurance',
       'As holdings grow, a 3-of-5 across more locations adds resilience; or, if you leaned collaborative, an insured vault (AnchorWatch, backed by Lloyd’s of London) is a real backstop for large holdings. More protection, more to manage.');
   }
 
@@ -327,6 +343,10 @@ function secondaryRec(a, primary) {
     return S('multisig', '2-of-3 multisig', 'Step up to 2-of-3 multisig',
       'As the stakes climb, multisig beats a passphrase: two of three keys sign, so no single lost, stolen, or forgotten key is fatal — and a passphrase’s "forget it and it’s gone" risk disappears. Run it yourself for full sovereignty, or share one key with a Bitcoin service — your call.');
   }
+  // NOTE: currently unreachable — primaryRec never returns a non-fork
+  // 'collaborative' rung (collaborative only appears inside the multisig fork,
+  // which is handled above). Kept live in case a direct collaborative primary
+  // is ever added; verify this branch then.
   if (slug === 'collaborative') {
     if (a.tech === 'technical') {
       return S('multisig', 'Do-it-yourself multisig', 'Run your own multisig',
@@ -339,13 +359,16 @@ function secondaryRec(a, primary) {
     return S('multisig', '3-of-5 variant', 'Spread the risk wider (3-of-5)',
       'At the very top end, a 3-of-5 spread across separate locations tolerates more lost or compromised keys before anything is at risk — more resilience, more to manage. It’s the same technology as your 2-of-3, just more keys.');
   }
-  // learning → the graduation target
+  // Unreachable fallback — every primary rung is handled above; kept as a safe
+  // default so a future rung addition degrades gracefully instead of crashing.
   return S('single-sig', 'Single-signature cold storage', 'Graduate to cold storage',
     'The moment your stack is more than pocket money, move it to a hardware wallet in single-sig cold storage — your first real self-custody setup.');
 }
 
 function withVendors(rec) {
   // Forks carry their vendors inside the collaborative path, not at the top level.
+  // (The non-fork case is currently unreachable — see the note on secondaryRec's
+  // collaborative branch — but harmless and future-proof.)
   if (rec && !rec.fork && rec.rungSlug === 'collaborative') rec.vendors = collaborativeVendors;
   return rec;
 }
@@ -364,7 +387,10 @@ const STEP_LABEL = {
 };
 
 function targetStepOf(primary) {
-  if (primary.fork) return 3;                    // the multisig fork = reaching 2-of-3
+  // The multisig fork's destination follows its LEAD path — collaborative-led
+  // forks target collaborative custody (step 4), not self-run 2-of-3, so the
+  // journey framing matches the card above it.
+  if (primary.fork) return SETUP_STEP[primary.rungSlug] ?? 3;
   return SETUP_STEP[primary.rungSlug] ?? 1;
 }
 
