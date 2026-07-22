@@ -140,7 +140,9 @@ const _support = {
   nunchuk: { supports: ['coldcard-q', 'coldcard-mk5', 'passport-prime', 'trezor-safe-3', 'trezor-safe-5', 'trezor-safe-7', 'bitbox02', 'jade-core', 'jade-plus', 'ledger'], recommends: ['coldcard-q', 'bitbox02'] },
   unchained: { supports: ['coldcard-q', 'coldcard-mk5', 'trezor-safe-3', 'trezor-safe-5', 'trezor-safe-7', 'ledger', 'bitbox02', 'jade-core', 'jade-plus', 'passport-prime'], recommends: ['coldcard-q', 'trezor-safe-5'] },
   'swan-vault': { supports: ['jade-core', 'jade-plus'], recommends: ['jade-plus'] },
-  anchorwatch: { supports: ['coldcard-q', 'ledger'], recommends: ['coldcard-q', 'ledger'] },
+  // AnchorWatch also supports Ledger, but we never *recommend* a device that
+  // doesn't clear our standard — the renderer flags DQ'd devices in `supports`.
+  anchorwatch: { supports: ['coldcard-q', 'ledger'], recommends: ['coldcard-q'] },
   'bitcoin-adviser': { supports: ['coldcard-q', 'coldcard-mk5', 'jade-core', 'jade-plus', 'ledger', 'trezor-safe-3', 'trezor-safe-5', 'trezor-safe-7', 'bitbox02', 'passport-prime'], recommends: ['coldcard-q', 'bitbox02'] },
   bitkey: { supports: [], recommends: [] },
 };

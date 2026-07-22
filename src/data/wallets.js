@@ -17,7 +17,9 @@
 // 2026-07-19: Trezor Safe 3 repriced $79 → $59 at trezor.io (browser-verified: buy price "USD 59",
 //   no strikethrough, offer valid to 2031 — a permanent cut, not a sale). Ladder cost-floor cascaded
 //   to $59. Freshness runner caught it via the new headless-render deterministic (JSON-LD) price read.
-// Rule of the guide: there is no "best" device, only fit-to-purpose.
+// Rule of the guide: every device is rated in three tiers against the published
+// standard (standardGates/tiers below, rendered at /standard). Within a tier,
+// fit decides — there is still no single "best" device, but there IS a bar.
 
 export const walletsVerified = '2026-07-19';
 
@@ -281,7 +283,7 @@ export const wallets = [
     reproducible: 'no',
     recoverability: 'yes',
     useCases: [],
-    bestFor: 'Wide ecosystem support; fine for a holder who already owns one and has read the caveats. (Range spans Nano S Plus to the touchscreen Flex and Stax.)',
+    bestFor: 'Wide ecosystem support — the reason many people already own one. If that’s you, read the standard’s reasoning before relying on it for savings; your BIP-39 seed moves cleanly to a device that clears the bar. (Range spans Nano S Plus to the touchscreen Flex and Stax.)',
     watch: 'Closed-source firmware; the 2023 Recover controversy and 2020 customer-data leak. Engage those before choosing it.',
     notes: {
       reproducible: 'The security-critical Secure Element firmware is closed-source — it can’t be reproduced or independently verified.',
@@ -426,6 +428,7 @@ export const deviceCatalog = wallets.map((w) => ({
   name: w.name,
   price: w.price,
   priceNum: w.priceNum,
+  tier: w.tier || 'cold',
 }));
 export const deviceBySlug = Object.fromEntries(deviceCatalog.map((d) => [d.slug, d]));
 export function deviceName(slug) { return (deviceBySlug[slug] && deviceBySlug[slug].name) || slug; }

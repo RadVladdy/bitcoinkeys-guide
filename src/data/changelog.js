@@ -9,6 +9,12 @@
 // Entry types: 'price' | 'device' | 'spec' | 'security' | 'feature' | 'content'
 export const changelog = [
   {
+    date: '2026-07-22',
+    type: 'security',
+    title: 'New: our published selection standard — every wallet now rated in three tiers',
+    detail: 'The biggest editorial change since launch. The guide no longer pretends every device is equal: a new “Our selection standard” page (/standard) publishes the bar we hold every hardware wallet to, and every device now carries a tier. Two separate judgements: a hard security floor (your keys can never leave over the internet; the firmware must be verifiable, not a closed black box) and savings-grade criteria (Bitcoin-only firmware available; a minimal single-purpose signer; self-sovereign, portable recovery). That yields three tiers — “Built for cold storage” (8 devices we’d trust with long-term savings), “Built for spending” (Bitkey and the Foundation Passport Prime: secure and genuinely good for active use, but with extra surface or company-dependence we wouldn’t want on a decade-long vault), and “Doesn’t clear our bar” (the Ledger Nano family: its closed firmware proved, via 2023’s Recover service, that it can ship your seed off the device over the internet — so your safety reduces to trusting an unauditable black box). Every device is still covered in full, with the reasoning spelled out; the comparison page, quiz, and how-to guides now all reflect the tiers.',
+  },
+  {
     date: '2026-07-20',
     type: 'content',
     title: 'Sharper risk defenses + a quick way back to your plan',

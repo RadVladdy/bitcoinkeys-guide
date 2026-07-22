@@ -97,14 +97,16 @@ export const collaborativeVendors = [
 ];
 
 // Device options are always given as a PAIR of equal good fits — never a single
-// funnel. "No best device, only fit-to-purpose." Prices render from wallets.js.
+// funnel. Rule of the guide: every device is rated in three tiers against the
+// published standard (/standard); savings recommendations draw from the
+// cold-storage tier, and spending-tier devices are labeled as such when they
+// appear. Within a tier, fit decides. Prices render from wallets.js.
 const DEV = {
   jade:     { name: 'Blockstream Jade', why: 'genuinely good on a budget, simple, Bitcoin-only (connects by USB/Bluetooth — no on-device camera)' },
-  passport: { name: 'Foundation Passport Prime', why: 'a polished, US-assembled, independently audited security platform — a big touchscreen with a keyboard for easy passphrase entry, and Bitcoin multisig up to 15 keys (it also stores 2FA codes, passkeys and files, so it’s more device than a pure Bitcoin signer, at $349)' },
   bitbox:   { name: 'BitBox02 (BTC-only)', why: 'Swiss, minimalist, fully open-source — an excellent multisig component' },
   coldcard: { name: 'Coldcard Q',          why: 'the physical keyboard and clear menus make it the friendliest to operate — and it’s buy-once: the same device covers single-sig, a passphrase, and multisig, so you never re-buy as you climb (Bitcoin-only; premium price)' },
   trezor:   { name: 'Trezor Safe 5',       why: 'colour touchscreen and mainstream UX — easy passphrase entry' },
-  bitkey:   { name: 'Bitkey',              why: 'phone-integrated and beginner-friendly — a 2-of-3 with recovery built in, so there’s no single seed to lose (a great first setup, especially if you live on your phone)',
+  bitkey:   { name: 'Bitkey',              why: 'phone-integrated and beginner-friendly — a 2-of-3 with recovery built in, so there’s no single seed to lose. A great first setup, especially if you live on your phone — note we rate it <a href="/standard#built-for-spending">built for spending</a>: when your stack becomes real savings, move it to a cold-storage-tier device',
     // Bitkey's onboarding is app-guided and unique — no manual seed to write down;
     // recovery is the built-in 2-of-3 (app key + hardware device + Block's server).
     checklist: [
@@ -127,7 +129,8 @@ function singleSigDevices(a) {
   if (a.tech === 'simple' && budgetTight) {
     return {
       devices: [DEV.bitkey, DEV.jade],
-      note: 'Bitkey is a phone-based 2-of-3 with recovery built in (a light collaborative setup) — an especially easy on-ramp; the Jade is a classic single-sig hardware wallet and great value. Both are solid, low-cost first setups.',
+      headline: 'Start with a simple, phone-friendly setup',
+      note: 'Bitkey is a phone-based 2-of-3 with recovery built in (a light collaborative setup) — an especially easy on-ramp, though we rate it built for spending, not a long-term vault; the Jade is a classic cold-storage-tier single-sig wallet and great value. Both are solid, low-cost first setups — as your stack becomes savings, make the Jade (or a step up) its cold home.',
     };
   }
   if (budgetTight) {
@@ -136,7 +139,7 @@ function singleSigDevices(a) {
   // Bigger stakes, budget not the deciding factor → lead with a buy-once device
   // that also carries you up the ladder (passphrase, multisig) without new hardware.
   if (a.tech === 'technical') {
-    return { devices: [DEV.coldcard, DEV.passport], note: 'Both are buy-once — the same hardware climbs from single-sig to a passphrase or full multisig, no re-buying. The Coldcard Q’s keyboard makes it the easiest to operate at every rung and stays a lean Bitcoin-only signer; the Passport Prime is a pricier, audited platform with a big touchscreen (it does more than Bitcoin, too).' };
+    return { devices: [DEV.coldcard, DEV.bitbox], note: 'Both are cold-storage-tier and climb the ladder without re-buying. The Coldcard Q’s keyboard makes it the easiest to operate at every rung and stays a lean Bitcoin-only signer; the BitBox02 is the minimalist Swiss alternative — fully open-source, and an excellent multisig key later.' };
   }
   return { devices: [DEV.coldcard, DEV.jade], note: 'The Coldcard Q is the friendliest to operate (a real keyboard, simple menus) and buy-once — it climbs to a passphrase or multisig later without new hardware, which is worth the premium if you expect to grow. The Jade is the budget alternative: spend less now, re-buy only if you ever climb.' };
 }
@@ -270,7 +273,7 @@ function primaryRec(a) {
   const ssd = singleSigDevices(a);
   return {
     tier: 'Tier 1', rungSlug: 'single-sig', rungLabel: 'Single-signature cold storage',
-    headline: 'Single-signature cold storage',
+    headline: ssd.headline || 'Single-signature cold storage',
     why: `${worry === 'self-loss'
         ? 'Since your real worry is losing access yourself, the win is a backup you can actually recover — not extra secrets or signers that add new ways to lose.'
         : 'For your stakes, one hardware wallet with a rock-solid, well-tested backup is genuinely enough.'} This is the simplest setup that isn’t negligent, and for most holders it’s the right home for a long time.`,

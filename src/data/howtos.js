@@ -18,7 +18,7 @@ export const howtos = [
         "body": "<p>Match the wallet to what the money is for:</p><ul><li><strong>Hot wallet</strong> — for spending. Small, day-to-day amounts. Routine payments. If you use the Lightning Network (a fast, cheap way to send small Bitcoin payments), those funds have to be hot by design.</li><li><strong>Cold wallet</strong> — for reserves. Money you're not spending this week but still want within reach. For most people, a single hardware wallet is the core of their setup.</li><li><strong>Deep cold storage</strong> — for long-term savings you won't touch for a long time. This uses a more advanced, higher-security setup and is mainly for larger amounts. If that's you, it's worth its own guide.</li></ul><p>The one rule that ties it together: <strong>never keep meaningful amounts in a phone wallet.</strong> Treat your phone as a spending wallet only — the walking-around cash in your pocket, not your savings account.</p>"
       },
       {
-        "h": "The simple three-tier pattern",
+        "h": "The simple hot-to-cold pattern",
         "body": "<p>Experienced Bitcoin holders rarely use one wallet for everything. They use a few, at different \"temperatures,\" and let money flow between them:</p><ul><li>A <strong>hot wallet</strong> holds a small amount for spending. You accept that if your phone is lost or compromised, this balance could be gone — but because it's small, that's survivable.</li><li>A <strong>cold wallet</strong> (a hardware wallet) holds a moderate balance you top the hot wallet up from.</li><li>A <strong>deep-cold savings setup</strong> holds the bulk, touched rarely.</li></ul><p>Money flows in one direction as your balance grows: income lands in the hot wallet, gets swept to the cold wallet, and — once your cold wallet holds more than you need soon — moves to deep cold. Spending reverses it: big needs come from the coldest tier, everyday spending from the hot one.</p><p>The payoff is that you're never <em>afraid to touch</em> your savings, because you haven't mixed them with your spending money. And you're never over-exposing your spending money, because the hot wallet only holds what you need.</p>"
       },
       {
@@ -46,9 +46,9 @@ export const howtos = [
     "slug": "choose-a-wallet",
     "short": "Choose a wallet",
     "verified": "2026-07-15",
-    "title": "How to choose a hardware wallet — think fit, not \"best\"",
-    "lead": "There is no single best hardware wallet. There is only the one that fits how you'll actually use it. This page walks you through how to think about the choice.",
-    "intro": "<p>A <strong>hardware wallet</strong> is a small dedicated device whose only job is to hold your Bitcoin keys offline and sign transactions without exposing those keys to your phone or computer. People shop for one the way they shop for a phone — hunting for the \"best.\" That's the wrong question. Every mainstream device is capable; they just fit different people and different jobs. Below is how to reason about the fit, and then a link to the side-by-side table so you can compare specifics.</p>",
+    "title": "How to choose a hardware wallet — tier first, then fit",
+    "lead": "There is no single best hardware wallet — but there is a bar every device has to clear. We rate them all against a published standard; within the tier that fits your job, choose on fit. This page walks you through the choice.",
+    "intro": "<p>A <strong>hardware wallet</strong> is a small dedicated device whose only job is to hold your Bitcoin keys offline and sign transactions without exposing those keys to your phone or computer. People shop for one the way they shop for a phone — hunting for the \"best.\" That's the wrong question &#8212; but so is pretending every device is equal. Most mainstream devices are genuinely secure, yet not all of them clear <a href=\"/standard\">our published standard</a>, and only some are built for long-term savings. Start with the tier that matches the job &#8212; cold storage for savings, spending for day-to-day &#8212; then choose on fit within it. Below is how to reason about both, and then a link to the side-by-side table so you can compare specifics.</p>",
     "sections": [
       {
         "h": "The one idea that changes everything: the device is not your wallet",
@@ -60,7 +60,7 @@ export const howtos = [
       },
       {
         "h": "Buy it right, and set it up yourself",
-        "body": "<p>How you buy and set up the device matters as much as which one you pick.</p><ul><li><strong>Buy direct from the maker</strong> (or an authorized seller), not from a random marketplace listing. This avoids tampered units and avoids creating a public record that ties \"owns a hardware wallet\" to your name and address.</li><li><strong>Check the tamper-evident packaging</strong> when it arrives. It's a 30-second look that catches whole categories of trouble.</li><li><strong>Generate your own seed on the device.</strong> Never use a wallet that came pre-loaded with words someone else could have seen. A trustworthy device makes fresh words in front of you — that's the whole point.</li><li><strong>Test before you trust.</strong> Send a small amount, then wipe the device and restore it from your written words. If the money reappears, your backup works. Do this <em>before</em> you move anything meaningful.</li></ul><p>If you already own a Ledger, it still works — just read its specific caveats before you lean on it, especially around its seed-backup service. The comparison table flags what to check.</p>"
+        "body": "<p>How you buy and set up the device matters as much as which one you pick.</p><ul><li><strong>Buy direct from the maker</strong> (or an authorized seller), not from a random marketplace listing. This avoids tampered units and avoids creating a public record that ties \"owns a hardware wallet\" to your name and address.</li><li><strong>Check the tamper-evident packaging</strong> when it arrives. It's a 30-second look that catches whole categories of trouble.</li><li><strong>Generate your own seed on the device.</strong> Never use a wallet that came pre-loaded with words someone else could have seen. A trustworthy device makes fresh words in front of you — that's the whole point.</li><li><strong>Test before you trust.</strong> Send a small amount, then wipe the device and restore it from your written words. If the money reappears, your backup works. Do this <em>before</em> you move anything meaningful.</li></ul><p>Already own a Ledger? Know that it doesn't clear <a href=\"/standard\">our standard</a>: its closed firmware has proven &#8212; via its 2023 seed-backup service &#8212; that it can send your seed off the device over the internet. It still functions, and your seed is a standard one, so moving to a device that clears the bar is cheap and easy. Read the reasoning before relying on it for savings.</p>"
       },
       {
         "h": "If you're going to use multisig, buy different brands",
@@ -68,7 +68,7 @@ export const howtos = [
       },
       {
         "h": "See the head-to-head",
-        "body": "<p>Now that you know <em>how</em> to weigh the choice, go compare the specifics. The <a href=\"/wallets\">wallet comparison table</a> lays the mainstream Bitcoin devices side by side — price, connection type, air-gap, open-source status, multisig strength, and who each one suits — so you can match the criteria above to real options.</p><p>Prices and features shift over time, so confirm current details on the maker's own site before you buy.</p>"
+        "body": "<p>Now that you know <em>how</em> to weigh the choice, go compare the specifics. The <a href=\"/wallets\">wallet comparison table</a> lays the mainstream Bitcoin devices side by side — price, connection type, air-gap, open-source status, multisig strength, and who each one suits — so you can match the criteria above to real options. Every device there is rated against <a href=\"/standard\">our selection standard</a> &#8212; built for cold storage, built for spending, or below the bar &#8212; so start from the tier that matches your job.</p><p>Prices and features shift over time, so confirm current details on the maker's own site before you buy.</p>"
       }
     ],
     "keyCallout": {
@@ -78,7 +78,7 @@ export const howtos = [
     },
     "checklist": [
       "Write down your seed phrase and back it up safely before moving any real money — the words are the wallet, not the device.",
-      "Pick for fit: score your shortlist on air-gap, open-source firmware, multisig quality, vendor track record, and a UX you'll genuinely use.",
+      "Pick from the tier that fits the job — cold-storage tier for savings — then score your shortlist on air-gap, open-source firmware, multisig quality, vendor track record, and a UX you'll genuinely use.",
       "Buy direct from the maker, check the tamper-evident seal, and generate a fresh seed on the device yourself.",
       "Test before you trust: send a small amount, wipe, and restore from your backup to confirm the words work.",
       "For multisig, use devices from different brands so no single maker's flaw can compromise more than one key.",

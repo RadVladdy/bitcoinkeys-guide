@@ -46,7 +46,7 @@ import Base from '../layouts/Base.astro';
     encryptPlanToEnvelope, decryptEnvelope, downloadEncryptedPlan, isEncryptedEnvelope,
   } from '../data/plan.js';
   import { getRung } from '../data/ladder.js';
-  import { ownedName } from '../data/wallets.js';
+  import { ownedName, deviceBySlug } from '../data/wallets.js';
   import { custodianName, custodianBySlug } from '../data/custodians.js';
   import { mountOwnedPicker } from '../data/owned-picker.js';
   import { checklistLabels, checklistCount } from '../data/checklist.js';
@@ -237,10 +237,17 @@ import Base from '../layouts/Base.astro';
           custAdviceHtml = `<p class="ps-recs"><span class="ps-recs-k mono">★ With ${esc(cust.name)}</span>
             <span class="ps-recs-note">${esc(cust.name)} includes its own device — there's no separate hardware wallet to choose for these keys. <a href="/collaborative">custodian details →</a></span></p>`;
         } else {
-          const supNames = supports.map((s) => ownedName(s));
+          // List cleared devices plainly; flag any supported device that doesn't
+          // clear our standard rather than presenting it as an equal option.
+          const cleared = supports.filter((s) => (deviceBySlug[s]?.tier ?? 'cold') !== 'disqualified');
+          const dq = supports.filter((s) => deviceBySlug[s]?.tier === 'disqualified');
+          const supNames = cleared.map((s) => ownedName(s));
           const supList = supNames.slice(0, 6).join(', ') + (supNames.length > 6 ? ', and more' : '');
+          const dqNote = dq.length
+            ? ` (it also supports ${dq.map((s) => esc(ownedName(s))).join(', ')}, which doesn't clear <a href="/standard">our standard</a>)`
+            : '';
           custAdviceHtml = `<p class="ps-recs"><span class="ps-recs-k mono">★ Devices for your ${esc(cust.name)} keys</span>
-            <span class="ps-recs-note">${esc(cust.name)} works with ${esc(supList)}.</span>
+            <span class="ps-recs-note">${esc(cust.name)} works with ${esc(supList)}${dqNote}.</span>
             ${recNames.length ? `<span class="ps-recs-note">Of those, we'd recommend ${recNames.map((n) => `<a class="ps-rec-chip" href="/wallets">${esc(n)}</a>`).join(' ')} for your keys${recNames.length > 1 ? ' — different brands, so one vendor’s bug can’t affect both' : ''}.</span>` : ''}
             <span class="ps-recs-note"><a href="/collaborative">See ${esc(cust.name)}’s device support →</a></span></p>`;
         }
