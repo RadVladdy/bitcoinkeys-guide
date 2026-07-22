@@ -4,7 +4,9 @@ import { standardGates, tiers, coldWallets, spendingWallets, disqualifiedWallets
 
 const floorGates = standardGates.filter((g) => g.level === 'floor');
 const savingsGates = standardGates.filter((g) => g.level === 'savings');
-const caveated = wallets.filter((w) => w.barCaveat && (w.tier || 'cold') === 'cold');
+const caveated = coldWallets.filter((w) => w.barCaveat);
+const cleanCold = coldWallets.filter((w) => !w.barCaveat);
+const cleanColdNames = cleanCold.map((w) => w.name).join(', ').replace(/, ([^,]*)$/, cleanCold.length > 1 ? ' and $1' : '$1');
 const countByTier = { cold: coldWallets.length, spending: spendingWallets.length, disqualified: disqualifiedWallets.length };
 const tierClass = { cold: 't-cold', spending: 't-spend', disqualified: 't-dq' };
 const tierWallets = { cold: coldWallets, spending: spendingWallets, disqualified: disqualifiedWallets };
@@ -141,8 +143,8 @@ const tierWallets = { cold: coldWallets, spending: spendingWallets, disqualified
 
   {caveated.length > 0 && (
     <section class="prose">
-      <h2>Built for cold storage — with a caveat worth knowing</h2>
-      <p>These top-tier devices earn a place for savings. Honesty cuts both ways, though: each makes a trade-off you should understand before you buy.</p>
+      <h2>Cold-storage picks — the caveats worth knowing</h2>
+      <p>All {coldWallets.length} devices above are built for cold storage. {cleanCold.length > 0 && (<>The cleanest picks — <strong>{cleanColdNames}</strong> — clear the bar with no caveat at all. The remaining {caveated.length} earn their place too, but honesty cuts both ways: each makes a trade-off worth understanding before you buy.</>)}</p>
     </section>
     <section>
       <ul class="caveats">
