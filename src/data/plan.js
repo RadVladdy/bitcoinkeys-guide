@@ -219,15 +219,6 @@ export function getRecommendedDevices() {
   const p = loadLocal();
   return p && p.quiz && Array.isArray(p.quiz.recommendedDevices) ? p.quiz.recommendedDevices : [];
 }
-// Assign/unassign a device to the plan. No-op if there is no planned setup yet.
-export function togglePlannedDevice(slug) {
-  const cur = loadLocal();
-  if (!cur || !cur.quiz) return cur;
-  const set = new Set(cur.quiz.plannedDevices || []);
-  if (set.has(slug)) set.delete(slug); else set.add(slug);
-  cur.quiz.plannedDevices = Array.from(set);
-  return saveLocal(cur);
-}
 export function hasPlannedSetup() {
   const p = loadLocal();
   return Boolean(p && p.quiz && (p.quiz.primaryLabel || p.quiz.rung));

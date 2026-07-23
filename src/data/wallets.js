@@ -21,7 +21,7 @@
 // standard (standardGates/tiers below, rendered at /standard). Within a tier,
 // fit decides — there is still no single "best" device, but there IS a bar.
 
-export const walletsVerified = '2026-07-19';
+export const walletsVerified = '2026-07-22';
 
 // rating scale used in the compare table + chooser badges: 'yes' | 'partial' | 'no'
 export const wallets = [
@@ -427,6 +427,10 @@ export const budgetBuckets = [
 // The plan feature (owned wallets · roadmap slots · "add to plan" on tiles) needs
 // a canonical id per device. We derive it from each device's image basename —
 // already unique and stable — so no hand-maintained id list can drift from `wallets`.
+// WARNING: these slugs are PERSISTED USER DATA — they live in saved plans
+// (localStorage / downloaded files / Nostr backups). Never rename one (even
+// when the slug reads oddly, e.g. jade-core = the original Jade) without a
+// migration in plan.js normalize().
 export const deviceCatalog = wallets.map((w) => ({
   slug: w.image.replace('/devices/', '').replace(/\.webp$/, ''),
   name: w.name,

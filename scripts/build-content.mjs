@@ -59,7 +59,7 @@ const rawHowtos = [
 ];
 const byslug = new Map(rawHowtos.map((h) => [h.slug, h]));
 const howtos = HOWTO_ORDER.map((s) => byslug.get(s)).filter(Boolean).map(walk);
-emit('src/data/howtos.js', 'howtos', howtos, `${howtos.length} how-to pages; content verified 2026-07-15.`);
+emit('src/data/howtos.js', 'howtos', howtos, `${howtos.length} how-to pages; content verified 2026-07-22.`);
 
 // ---- glossary ----
 const glossary = walk(readJson('glossary-raw.json')).terms;
