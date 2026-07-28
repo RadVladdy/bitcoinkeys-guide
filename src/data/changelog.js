@@ -9,6 +9,12 @@
 // Entry types: 'price' | 'device' | 'spec' | 'security' | 'feature' | 'content'
 export const changelog = [
   {
+    date: '2026-07-28',
+    type: 'feature',
+    title: 'The guide is reorganised — learn first, then act, and your checklist is now built for you',
+    detail: 'The biggest structural change since launch. The site had grown three separate ways to work out which setup you needed, which was confusing — and the configuration ladder, the idea the whole guide rests on, was filed as a tool rather than as something to learn. So the menu now leads with “Learn”: a proper syllabus of six chapters that build on each other, from what a Bitcoin key actually is, through how people really lose Bitcoin, to the ladder of real setups. “Start here” moved into it as chapter zero — the whole guide mapped out in the order it makes sense, with nothing to decide yet. “Take action” is now one straight line: take the quiz, get your plan, work your checklist. The quiz is the single place that tells you where you belong; the “where am I on the ladder?” tool moved to your plan page, where it makes more sense — for re-checking yourself when your situation changes. “Research” was renamed “Hardware & services,” which is what it actually is. And the checklist is now built from your plan: it hides every step that doesn’t apply to you, names the hardware you own, tracks your progress, and highlights one clear next action so you always know what to do next. Eleven new steps were added along the way — including backing up your passphrase separately from your seed (the most documented way passphrase users lose their coins), backing up a multisig descriptor, and confirming you could still recover without your collaborative-custody service. Nothing was removed: every page is still here at the same web address, and any checklist progress you had already saved is untouched.',
+  },
+  {
     date: '2026-07-22',
     type: 'security',
     title: 'New: our published selection standard — every wallet now rated in three tiers',
