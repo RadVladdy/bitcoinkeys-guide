@@ -20,8 +20,11 @@ const groupActive = (g) => g.links.some((l) => isActive(l.href));
             <svg class="chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
           </button>
           <div class="section-panel">
-            {g.links.map((l) => (
-              <a href={l.href} class:list={['section-link', { active: isActive(l.href) }]}>{l.label}</a>
+            {g.links.map((l, i) => (
+              <Fragment>
+                {l.ref && !g.links[i - 1]?.ref && <span class="section-div">Reference</span>}
+                <a href={l.href} class:list={['section-link', { active: isActive(l.href) }]}>{l.label}</a>
+              </Fragment>
             ))}
           </div>
         </div>
@@ -47,8 +50,11 @@ const groupActive = (g) => g.links.some((l) => isActive(l.href));
     {navGroups.map((g) => (
       <div class="mm-group">
         <p class="mm-title">{g.title}</p>
-        {g.links.map((l) => (
-          <a href={l.href} class:list={['mm-link', { active: isActive(l.href) }]}>{l.label}</a>
+        {g.links.map((l, i) => (
+          <Fragment>
+            {l.ref && !g.links[i - 1]?.ref && <p class="mm-div">Reference</p>}
+            <a href={l.href} class:list={['mm-link', { active: isActive(l.href) }]}>{l.label}</a>
+          </Fragment>
         ))}
       </div>
     ))}
@@ -197,6 +203,10 @@ const groupActive = (g) => g.links.some((l) => isActive(l.href));
     color: var(--text); font-size: 0.9rem; white-space: nowrap; }
   .section-link:hover { background: var(--surface); color: var(--accent); }
   .section-link.active { color: var(--accent); }
+  /* Splits a dropdown's teaching chapters from its lookup pages (nav.js `ref: true`). */
+  .section-div { display: block; margin: 0.4rem 0.7rem 0.15rem; padding-top: 0.4rem;
+    border-top: 1px solid var(--line-soft); font-family: var(--mono); font-size: 0.64rem;
+    letter-spacing: 0.13em; text-transform: uppercase; color: var(--faint); }
 
   .nav-right { display: flex; align-items: center; gap: 0.4rem; flex: 0 0 auto; }
   /* The sign-in control's dynamic bits (avatar img, menu contents) are injected by JS,
@@ -231,6 +241,8 @@ const groupActive = (g) => g.links.some((l) => isActive(l.href));
     .mm-group + .mm-group { border-top: 1px solid var(--line-soft); }
     .mm-title { margin: 0.35rem 0.6rem 0.2rem; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.12em;
       text-transform: uppercase; color: var(--faint); }
+    .mm-div { margin: 0.5rem 0.9rem 0.15rem; padding-top: 0.5rem; border-top: 1px solid var(--line-soft);
+      font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--faint); }
     .mm-link { display: block; padding: 0.7rem 0.9rem; border-radius: 0.5rem; text-decoration: none;
       color: var(--text); font-size: 1rem; font-weight: 550; }
     .mm-link:hover, .mm-link:active { background: var(--surface); }

@@ -12,7 +12,12 @@ const year = 2026;
       {navGroups.map((g) => (
         <div class="foot-col">
           <p class="foot-col-title">{g.title}</p>
-          {g.links.map((l) => <a href={l.href}>{l.label}</a>)}
+          {g.links.map((l, i) => (
+            <Fragment>
+              {l.ref && !g.links[i - 1]?.ref && <span class="foot-div"></span>}
+              <a href={l.href}>{l.label}</a>
+            </Fragment>
+          ))}
         </div>
       ))}
     </nav>
@@ -38,6 +43,8 @@ const year = 2026;
   .foot-col { display: flex; flex-direction: column; gap: 0.5rem; }
   .foot-col-title { margin: 0 0 0.15rem; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.12em;
     text-transform: uppercase; color: var(--faint); }
+  /* Marks the chapters/reference split inside a column (nav.js `ref: true`). */
+  .foot-div { display: block; height: 1px; margin: 0.25rem 0; width: 1.8rem; background: var(--line); }
   .foot-col a { color: var(--muted); text-decoration: none; font-size: 0.9rem; }
   .foot-col a:hover { color: var(--accent); }
   .foot-base { display: flex; align-items: center; justify-content: space-between; gap: 1rem 1.4rem; flex-wrap: wrap;

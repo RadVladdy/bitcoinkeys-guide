@@ -23,7 +23,7 @@ import Base from '../layouts/Base.astro';
     <div class="quiz-progress mono" id="q-progress"></div>
     <div id="q-card"></div>
     <div id="q-result" hidden></div>
-    <noscript><p class="ns">This quiz needs JavaScript. You can walk the same path by hand starting at the <a href="/start">Start here</a> page and the <a href="/ladder">configuration ladder</a>.</p></noscript>
+    <noscript><p class="ns">This quiz needs JavaScript. You can reach the same answer by hand: read <a href="/start">Start here</a> for the whole guide in order, then <a href="/ladder">the configuration ladder</a> to place yourself, then work <a href="/checklist">the checklist</a>.</p></noscript>
   </div>
 </Base>
 
@@ -304,9 +304,11 @@ import Base from '../layouts/Base.astro';
         ${saveControl(secondary.rungSlug, secondary.headline, secondary.rungLabel, 'quiz-secondary')}
       </div>` : ''}
       <div class="r-links">
-        <a class="btn-primary" href="/ladder/${esc(primary.rungSlug)}">Read the full ${esc(primary.rungLabel)} walkthrough →</a>
+        <a class="btn-primary" href="/checklist">Build it — my step-by-step checklist →</a>
+        <a class="btn-ghost" href="/ladder/${esc(primary.rungSlug)}">Read the full ${esc(primary.rungLabel)} walkthrough</a>
         <button class="btn-ghost" id="q-restart">Start over</button>
       </div>
+      <p class="r-foot mono">Save the setup above and your checklist trims itself to just the steps you need.</p>
       <p class="r-foot mono">This is guidance, not financial or legal advice — never act on a step you don't understand. When in doubt, choose the simpler setup.</p>`;
 
     // Per-setup save with replace-confirm. Only ONE planned setup at a time — saving one
@@ -320,7 +322,7 @@ import Base from '../layouts/Base.astro';
       const savedRung = plannedSetupRung();
       saveBands.forEach((b) => {
         if (savedRung && b.rung === savedRung) {
-          b.el.innerHTML = `<span class="r-saved">✓ This is your saved plan.</span> <a class="r-saved-link" href="/my-plan">View or download it →</a>`;
+          b.el.innerHTML = `<span class="r-saved">✓ This is your saved plan.</span> <a class="r-saved-link" href="/checklist">Your checklist is ready →</a> <a class="r-saved-link" href="/my-plan">or open your plan</a>`;
         } else {
           b.el.innerHTML = `<button class="btn-save js-save" type="button">＋ Save this setup to my plan</button>
             <span class="r-save-note">One setup at a time — kept only in your browser until you save it. <a href="/my-plan">your data, not ours</a>.</span>`;

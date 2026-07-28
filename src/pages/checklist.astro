@@ -2,23 +2,44 @@
 import Base from '../layouts/Base.astro';
 import { checklistGroups, checklistCount } from '../data/checklist.js';
 
+// GENERATED CHECKLIST (2026-07-28). Every item is server-rendered, so the page
+// works with no JavaScript and search engines see the whole list. When a saved plan
+// exists, the client HIDES the items that don't apply, names the visitor's own
+// devices, and highlights ONE next action — it never injects markup that wasn't
+// already here. That keeps a single source of truth for the content.
 const groups = checklistGroups;
 const total = checklistCount;
 ---
 <Base
-  title="The self-custody checklist · BitcoinKeys.guide"
-  description="A plain-English Bitcoin self-custody checklist: what to do first, what to do next, and what to review every year. Tick items off and your progress saves to your plan (in your browser) — device-neutral, nothing to sell you."
-  verified="2026-07-15"
+  title="Your self-custody checklist · BitcoinKeys.guide"
+  description="A plain-English Bitcoin self-custody checklist that adapts to your setup: what to do first, what to do next, and what to review every year. Take the quiz and it becomes yours — device-neutral, nothing to sell you."
+  verified="2026-07-28"
 >
   <section class="prose">
     <p class="eyebrow">Checklist</p>
-    <h1>The self-custody <span class="accent">checklist</span></h1>
-    <p class="lead">Everything that matters, in the order that matters — do-first, do-next, and review-yearly. Tick items as you go; your progress saves to your own plan automatically.</p>
+    <h1 id="cl-h1">The self-custody <span class="accent">checklist</span></h1>
+    <p class="lead" id="cl-lead">Everything that matters, in the order that matters. Tick items as you go; your progress saves to your own plan automatically.</p>
+
+    <!-- Shown only when NO plan is saved: the one door to a personalized list. -->
+    <div class="callout" id="cl-nudge">
+      <span class="label">Make this yours</span>
+      <p>This is the full list — everything that could matter to anyone. <strong>Take the <a href="/quiz">2-minute quiz</a> and this page becomes your checklist:</strong> only the steps your setup actually needs, in your order, with your own hardware named and one clear next action. Six plain questions, and we never ask how much Bitcoin you hold.</p>
+    </div>
+
+    <!-- Shown only when a plan IS saved: the header for a personalized list. -->
+    <div class="yours" id="cl-yours" hidden>
+      <p class="y-k mono">Your checklist</p>
+      <h2 class="y-h" id="cl-yours-h"></h2>
+      <p class="y-sub" id="cl-yours-sub"></p>
+      <div class="y-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" id="cl-bar-wrap"><span class="y-fill" id="cl-bar"></span></div>
+      <p class="y-count mono" id="cl-yours-count"></p>
+    </div>
+
     <p class="sub">Each item links to the full how-to. This is the map; the guides are the detail. Your ticks are kept <strong>only in your browser</strong> — nothing is ever sent anywhere, and you can clear them any time on <a href="/my-plan">your plan</a>.</p>
   </section>
 
   {groups.map((g) => (
-    <section>
+    <section class="cgroup" data-phase={g.key}>
       <div class="grouphead">
         <span class="gtag">{g.tag}</span>
         <h2>{g.title}</h2>
@@ -26,15 +47,23 @@ const total = checklistCount;
       </div>
       <ul class="clist">
         {g.items.map((it) => (
-          <li class="citem" data-id={it.id}>
+          <li
+            class="citem"
+            data-id={it.id}
+            data-only={it.only ? it.only.join(' ') : null}
+            data-needs={it.needs ?? null}
+            data-done={it.done ? 'true' : null}
+            data-device-slot={it.deviceSlot ? 'true' : null}
+          >
             <button class="box" type="button" role="checkbox" aria-checked="false" aria-label={it.t}>
               <svg class="tick" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
             </button>
             <div class="ctext">
-              <span class="ct-title">{it.t}</span>
+              <span class="ct-title">{it.t}<span class="ct-dev" hidden></span></span>
               <span class="ct-desc">{it.d}</span>
               {it.href && <a href={it.href} class="ct-link">Full how-to →</a>}
             </div>
+            <span class="ct-next mono" hidden>Next up</span>
           </li>
         ))}
       </ul>
@@ -43,7 +72,7 @@ const total = checklistCount;
 
   <section>
     <div class="savebar" id="savebar">
-      <div class="sb-count"><span id="sb-n">0</span> of {total} done <span class="sb-auto mono" id="sb-auto" hidden>· ✓ saved to your plan</span></div>
+      <div class="sb-count"><span id="sb-n">0</span> of <span id="sb-total">{total}</span> done <span class="sb-auto mono" id="sb-auto" hidden>· ✓ saved to your plan</span></div>
       <div class="sb-actions">
         <a class="sb-link" href="/my-plan">View your plan →</a>
       </div>
@@ -61,14 +90,130 @@ const total = checklistCount;
 
 <script>
   import { loadLocal, saveChecklistSlice } from '../data/plan.js';
+  import { itemApplies } from '../data/checklist.js';
+  import { getRung } from '../data/ladder.js';
+  import { ownedName } from '../data/wallets.js';
 
   const checked = {};
   const items = Array.from(document.querySelectorAll('.citem'));
   const elN = document.getElementById('sb-n');
+  const elTotal = document.getElementById('sb-total');
   const elAuto = document.getElementById('sb-auto');
 
-  function count() { return Object.keys(checked).length; }
-  function refresh() { if (elN) elN.textContent = String(count()); }
+  const plan = loadLocal();
+
+  // ── Read the plan into the small context the filter needs ──────────────────
+  // Target setup comes from the quiz; if there's no quiz result we fall back to
+  // wherever the ladder self-locator placed them. 'pre' means "not on the ladder
+  // yet", which is a starting point, not a destination — treat it as no target.
+  function planContext(p) {
+    if (!p) return null;
+    const quizRung = p.quiz && p.quiz.rung;
+    const ladderRung = p.ladder && p.ladder.rung;
+    const rung = quizRung || ladderRung || null;
+    if (!rung || rung === 'pre') return null;
+    const recovery = (p.quiz && p.quiz.answers && p.quiz.answers.recovery) || null;
+    return {
+      rung,
+      heirs: recovery === 'partner' || recovery === 'heirs',
+      custodian: Boolean(p.custodian) || rung === 'collaborative',
+      label: (p.quiz && p.quiz.primaryLabel) || null,
+      devices: (p.quiz && Array.isArray(p.quiz.plannedDevices) ? p.quiz.plannedDevices : []),
+      owned: Array.isArray(p.owned) ? p.owned : [],
+    };
+  }
+  const ctx = planContext(plan);
+
+  // ── Personalize: hide what doesn't apply, name the visitor's own hardware ───
+  function personalize() {
+    if (!ctx) return;
+
+    // Attributes → the same item shape itemApplies() expects, so page and data
+    // layer agree on who sees what.
+    items.forEach((li) => {
+      const only = li.getAttribute('data-only');
+      const item = {
+        only: only ? only.split(' ') : undefined,
+        needs: li.getAttribute('data-needs') || undefined,
+        done: li.getAttribute('data-done') === 'true',
+      };
+      const applies = itemApplies(item, ctx);
+      li.hidden = !applies;
+      if (!applies) delete checked[li.getAttribute('data-id')];
+    });
+
+    // Name the hardware they actually own/plan on the device step.
+    const devSlugs = (ctx.devices.length ? ctx.devices : ctx.owned).filter(Boolean);
+    if (devSlugs.length) {
+      const names = devSlugs.map((s) => ownedName(s)).filter(Boolean);
+      if (names.length) {
+        items.filter((li) => li.getAttribute('data-device-slot') === 'true').forEach((li) => {
+          const span = li.querySelector('.ct-dev');
+          if (span) { span.textContent = ' — you have ' + listOf(names); span.hidden = false; }
+        });
+      }
+    }
+
+    // Hide any phase whose every item is now hidden.
+    document.querySelectorAll('.cgroup').forEach((sec) => {
+      const any = Array.from(sec.querySelectorAll('.citem')).some((li) => !li.hidden);
+      sec.hidden = !any;
+    });
+
+    // Swap the generic intro for the personalized header.
+    const rung = getRung(ctx.rung);
+    const setupName = ctx.label || (rung && rung.name) || ctx.rung;
+    const nudge = document.getElementById('cl-nudge');
+    const yours = document.getElementById('cl-yours');
+    if (nudge) nudge.hidden = true;
+    if (yours) yours.hidden = false;
+    const h1 = document.getElementById('cl-h1');
+    if (h1) h1.innerHTML = 'Your self-custody <span class="accent">checklist</span>';
+    const lead = document.getElementById('cl-lead');
+    if (lead) lead.textContent = 'Built from your plan — these are the steps your setup actually needs, in the order to do them. Tick as you go; everything saves to your plan automatically.';
+    const yh = document.getElementById('cl-yours-h');
+    if (yh) yh.textContent = 'Getting you to ' + setupName;
+    const ys = document.getElementById('cl-yours-sub');
+    if (ys) ys.textContent = visible().length + ' steps, tailored to your setup. We’ve hidden everything that doesn’t apply to you — nothing here is filler.';
+  }
+
+  function listOf(names) {
+    if (names.length === 1) return names[0];
+    if (names.length === 2) return names[0] + ' and ' + names[1];
+    return names.slice(0, -1).join(', ') + ', and ' + names[names.length - 1];
+  }
+
+  const visible = () => items.filter((li) => !li.hidden);
+  function count() { return visible().filter((li) => checked[li.getAttribute('data-id')]).length; }
+
+  // ── "Next up" — exactly one open action at a time, top-down ────────────────
+  function markNext() {
+    items.forEach((li) => {
+      li.classList.remove('next');
+      const tag = li.querySelector('.ct-next');
+      if (tag) tag.hidden = true;
+    });
+    const next = visible().find((li) => !li.classList.contains('done'));
+    if (!next) return;
+    next.classList.add('next');
+    const tag = next.querySelector('.ct-next');
+    if (tag) tag.hidden = false;
+  }
+
+  function refresh() {
+    const n = count();
+    const tot = visible().length;
+    if (elN) elN.textContent = String(n);
+    if (elTotal) elTotal.textContent = String(tot);
+    const bar = document.getElementById('cl-bar');
+    const wrap = document.getElementById('cl-bar-wrap');
+    const pct = tot ? Math.round((n / tot) * 100) : 0;
+    if (bar) bar.style.width = pct + '%';
+    if (wrap) wrap.setAttribute('aria-valuenow', String(pct));
+    const c = document.getElementById('cl-yours-count');
+    if (c) c.textContent = n === tot && tot > 0 ? '✓ All ' + tot + ' done — that’s the whole thing.' : n + ' of ' + tot + ' done';
+    markNext();
+  }
 
   function toast(msg) {
     const t = document.createElement('div');
@@ -86,25 +231,40 @@ const total = checklistCount;
     if (box) box.setAttribute('aria-checked', on ? 'true' : 'false');
   }
 
-  // Restore ticks from a saved plan (reading the user's own saved data).
-  const plan = loadLocal();
+  // Order matters: filter first, THEN restore ticks, so counts and "next up" are
+  // computed against the visitor's own list rather than the generic one.
+  personalize();
+
   const saved = (plan && plan.checklist) || {};
-  items.forEach((li) => { if (saved[li.getAttribute('data-id')]) apply(li, true); });
+  items.forEach((li) => { if (saved[li.getAttribute('data-id')] && !li.hidden) apply(li, true); });
   refresh();
 
-  // Whole row is the tap target (≥44px) — not just the small box. Each tick AUTO-SAVES
-  // to the plan (browser-only) so nothing you check is ever lost.
+  // Whole row is the tap target (≥44px) — not just the small box. Each tick
+  // AUTO-SAVES to the plan (browser-only) so nothing you check is ever lost.
   items.forEach((li) => {
     li.addEventListener('click', (e) => {
       if (e.target.closest('a')) return;   // let inline links work
       const nowOn = !li.classList.contains('done');
       apply(li, nowOn);
       refresh();
-      saveChecklistSlice(checked);          // persist to the plan on every tick
+      // Merge, don't replace: hidden items may hold ticks from an earlier setup,
+      // and clobbering them would silently erase real progress.
+      saveChecklistSlice({ ...saved, ...checked, ...hiddenOff() });
       if (elAuto) elAuto.hidden = false;
       toast(nowOn ? '✓ Saved to your plan' : 'Updated your plan');
     });
   });
+
+  // Un-ticked visible items must win over a stale `true` in the saved map.
+  function hiddenOff() {
+    const off = {};
+    visible().forEach((li) => {
+      const id = li.getAttribute('data-id');
+      if (!checked[id]) off[id] = false;
+    });
+    return off;
+  }
+
   if (Object.keys(saved).length && elAuto) elAuto.hidden = false; // already have saved ticks
 </script>
 
@@ -115,11 +275,28 @@ const total = checklistCount;
   .grouphead h2 { margin-top: 0.9rem; margin-bottom: 0.3rem; }
   .grouphead .sub { margin: 0; max-width: 60ch; }
 
+  /* The personalized header — replaces the "make this yours" nudge once a plan exists. */
+  .yours { border: 1px solid var(--accent); border-radius: var(--radius); background: var(--accent-soft);
+    padding: 1.4rem 1.6rem; margin: 1.4rem 0 0.6rem; }
+  .yours .y-k { display: block; color: var(--accent); font-size: 0.74rem; letter-spacing: 0.08em;
+    text-transform: uppercase; margin: 0 0 0.4rem; }
+  .yours .y-h { margin: 0 0 0.4rem; font-size: 1.3rem; line-height: 1.2; }
+  .yours .y-sub { margin: 0 0 1rem; color: var(--muted); font-size: 0.95rem; }
+  .yours .y-bar { display: block; height: 7px; border-radius: 999px; background: var(--raise);
+    border: 1px solid var(--line); overflow: hidden; }
+  .yours .y-fill { display: block; height: 100%; width: 0; background: var(--safe); transition: width 0.3s ease; }
+  .yours .y-count { margin: 0.5rem 0 0; color: var(--muted); font-size: 0.82rem; }
+
   .clist { list-style: none; margin: 1.2rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.7rem; }
-  .citem { display: grid; grid-template-columns: 1.6rem 1fr; gap: 0.9rem; align-items: start; cursor: pointer;
+  .citem { display: grid; grid-template-columns: 1.6rem 1fr auto; gap: 0.9rem; align-items: start; cursor: pointer;
     background: var(--surface); border: 1px solid var(--line); border-radius: 0.7rem; padding: 1rem 1.2rem; transition: border-color 0.15s, background 0.15s; }
+  .citem[hidden] { display: none; }
   .citem:hover { border-color: color-mix(in srgb, var(--accent) 40%, var(--line)); }
   .citem.done { border-color: color-mix(in srgb, var(--safe) 45%, var(--line)); background: color-mix(in srgb, var(--safe) 7%, var(--surface)); }
+  /* Exactly one open action is highlighted at a time. */
+  .citem.next { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent-soft); background: color-mix(in srgb, var(--accent) 5%, var(--surface)); }
+  .ct-next { align-self: center; font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--accent-ink); background: var(--accent); border-radius: 999px; padding: 0.2rem 0.55rem; white-space: nowrap; }
   .box { width: 1.5rem; height: 1.5rem; border: 2px solid var(--accent); border-radius: 6px; margin-top: 0.1rem;
     background: var(--raise); cursor: pointer; display: inline-grid; place-items: center; color: var(--accent-ink); padding: 0; transition: background 0.15s; }
   .box:hover { background: var(--accent-soft); }
@@ -129,6 +306,7 @@ const total = checklistCount;
   .box:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .ctext { display: flex; flex-direction: column; gap: 0.2rem; }
   .ct-title { font-weight: 650; letter-spacing: -0.01em; }
+  .ct-dev { color: var(--accent); font-weight: 550; }
   .citem.done .ct-title { text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--safe) 60%, transparent); color: var(--muted); }
   .ct-desc { color: var(--muted); font-size: 0.93rem; }
   .ct-link { font-size: 0.84rem; font-weight: 600; margin-top: 0.2rem; }
@@ -138,9 +316,6 @@ const total = checklistCount;
   .sb-count { font-family: var(--mono); font-size: 0.85rem; color: var(--muted); }
   .sb-count #sb-n { color: var(--accent); font-weight: 700; }
   .sb-actions { display: flex; align-items: center; gap: 0.9rem; }
-  .btn-save { background: var(--accent); color: var(--accent-ink); border: none; font-family: var(--sans); font-weight: 600; font-size: 0.9rem;
-    cursor: pointer; padding: 0.6rem 1.1rem; border-radius: 0.55rem; }
-  .btn-save:hover { opacity: 0.9; }
   .sb-link { color: var(--accent); text-decoration: none; font-size: 0.88rem; font-weight: 600; }
   .sb-link:hover { text-decoration: underline; }
   .sb-status { color: var(--safe); font-size: 0.82rem; margin: 0.7rem 0 0; }
@@ -150,4 +325,8 @@ const total = checklistCount;
     padding: 0.6rem 1.05rem; font-size: 0.9rem; box-shadow: var(--shadow); opacity: 0; z-index: 50;
     transition: opacity 0.25s, transform 0.25s; }
   .cl-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  @media (max-width: 560px) {
+    .citem { grid-template-columns: 1.6rem 1fr; }
+    .ct-next { grid-column: 2; justify-self: start; margin-top: 0.3rem; }
+  }
 </style>

@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import WhereAmI from '../components/WhereAmI.astro';
 ---
 <Base
   title="My plan — your data, held by you · BitcoinKeys.guide"
@@ -21,6 +22,11 @@ import Base from '../layouts/Base.astro';
     <div id="plan-body"></div>
     <noscript><p class="ns">This page needs JavaScript to read your saved plan. Everything on this guide works fine without it — the plan feature is the one exception, because it runs entirely in your browser.</p></noscript>
   </div>
+
+  <!-- The ladder self-locator. Lives here (not on /ladder) since 2026-07-28: the
+       quiz is the one door IN, and this is the RE-CHECK for someone whose
+       situation has since changed. Auto-saves the rung it lands on. -->
+  <WhereAmI />
 
   <section class="prose sovereign" id="nostr-sec">
     <h2 id="nostr-h2">Save to your Nostr — encrypted, only you can read it</h2>
@@ -49,7 +55,7 @@ import Base from '../layouts/Base.astro';
   import { ownedName, deviceBySlug } from '../data/wallets.js';
   import { custodianName, custodianBySlug } from '../data/custodians.js';
   import { mountOwnedPicker } from '../data/owned-picker.js';
-  import { checklistLabels, checklistCount } from '../data/checklist.js';
+  import { checklistLabels, checklistCount, checklistItems, itemApplies } from '../data/checklist.js';
   import { getSession, setSession, clearSession } from '../data/nostr-session.js';
   import { confirmDialog, promptPassword, downloadDialog } from '../data/ui-dialog.js';
 
@@ -122,7 +128,7 @@ import Base from '../layouts/Base.astro';
   function statusHtml(plan) {
     const cur = currentSetupLabel(plan);
     const ladder = plan.ladder && plan.ladder.rung
-      ? `<p class="ps-cur">On the ladder: <strong>${esc(rungName(plan.ladder.rung))}</strong> <a class="ps-mini-link" href="/ladder#whereami">re-check →</a></p>` : '';
+      ? `<p class="ps-cur">On the ladder: <strong>${esc(rungName(plan.ladder.rung))}</strong> <a class="ps-mini-link" href="#whereami">re-check →</a></p>` : '';
     const owned = plan.owned || [];
     // Owned wallets are DISPLAY-ONLY here (they're gathered from the quiz + /wallets).
     // The full make→model picker is tucked behind an "add or edit" toggle; if none are
@@ -275,6 +281,16 @@ import Base from '../layouts/Base.astro';
     // visible list below (which filters the same way).
     const doneIds = plan.checklist ? Object.keys(plan.checklist).filter((id) => checklistLabels[id]) : [];
     const done = doneIds.length;
+
+    // How many steps this plan's checklist actually contains — the same filter the
+    // checklist page applies, so the two numbers can never disagree.
+    const rung = (plan.quiz && plan.quiz.rung) || (plan.ladder && plan.ladder.rung) || null;
+    const recovery = (plan.quiz && plan.quiz.answers && plan.quiz.answers.recovery) || null;
+    const ctx = rung && rung !== 'pre'
+      ? { rung, heirs: recovery === 'partner' || recovery === 'heirs', custodian: Boolean(plan.custodian) || rung === 'collaborative' }
+      : null;
+    const total = ctx ? checklistItems.filter((it) => itemApplies(it, ctx)).length : checklistCount;
+
     if (done > 0) {
       const items = doneIds
         .map((id) => checklistLabels[id])
@@ -282,8 +298,16 @@ import Base from '../layouts/Base.astro';
         .join('');
       rows.push([
         `Checklist progress`,
-        `<span class="p-count">${done} of ${checklistCount} done</span>${items ? `<ul class="p-mini">${items}</ul>` : ''}`,
+        `<span class="p-count">${done} of ${total} done</span>${items ? `<ul class="p-mini">${items}</ul>` : ''}`,
         '/checklist', 'Open the checklist',
+      ]);
+    } else if (ctx) {
+      // A setup is chosen but nothing ticked yet — this is the hand-off from
+      // "here's your plan" to "here's how to build it," so it must always show.
+      rows.push([
+        `Your next step`,
+        `<span class="p-count">Your checklist is ready — ${total} steps</span><p class="p-mini-note">Trimmed to just what your setup needs, in the order to do them. One clear next action at a time.</p>`,
+        '/checklist', 'Start the checklist',
       ]);
     }
     if (!rows.length) return '';
@@ -312,11 +336,10 @@ import Base from '../layouts/Base.astro';
       el.innerHTML = `
         <div class="p-empty">
           <p class="p-empty-h">Nothing saved yet — and that's the default.</p>
-          <p>Build a plan by using the guide, then save it here when you're ready:</p>
+          <p>The quiz builds your plan: it places you on the ladder, names the setup that fits, and turns it into a checklist. Two minutes, six questions, and it never asks how much you hold.</p>
           <div class="p-empty-links">
             <a class="btn-primary" href="/quiz">Take the setup quiz →</a>
-            <a class="btn-ghost" href="/ladder#whereami">Find your rung</a>
-            <a class="btn-ghost" href="/checklist">Work the checklist</a>
+            <a class="btn-ghost" href="/start">I'd rather learn it first</a>
           </div>
           <div class="p-import">
             <span class="p-k mono">Already have a plan file?</span>
@@ -794,6 +817,7 @@ import Base from '../layouts/Base.astro';
   #plan .p-count { color: var(--accent); font-weight: 600; }
   #plan .p-mini { margin: 0.4rem 0 0; padding-left: 1.1rem; display: grid; gap: 0.2rem; }
   #plan .p-mini li { color: var(--muted); font-size: 0.9rem; }
+  #plan .p-mini-note { margin: 0.3rem 0 0; color: var(--muted); font-size: 0.9rem; }
   #plan .p-cta { justify-self: start; color: var(--accent); text-decoration: none; font-size: 0.85rem; }
   #plan .p-cta:hover { text-decoration: underline; }
 
