@@ -349,8 +349,10 @@ const groupActive = (g) =>
        These carry more weight than on desktop: with no columns to separate the
        levels, the heading is the ONLY thing marking where one section ends and
        the next begins, so it gets a rule above it and real breathing room. */
-    .mm-lv { display: flex; align-items: center; gap: 0.5rem;
-      margin: 1.15rem 0.9rem 0.5rem; padding-top: 0.95rem; border-top: 1px solid var(--line); }
+    .mm-lv { display: flex; align-items: center; gap: 0.55rem;
+      margin: 1.15rem 0.5rem 0.45rem; padding: 0.55rem 0.65rem; border-radius: 0.5rem;
+      background: var(--accent-soft); border-left: 3px solid var(--accent); }
+    .mm-lv.opt { background: var(--safe-dim); border-left-color: var(--safe); }
     .mm-lv .n { font-family: var(--mono); font-size: 0.86rem; font-weight: 700;
       color: var(--accent-ink); background: var(--accent); border-radius: 0.4rem;
       padding: 0.2rem 0.55rem; letter-spacing: 0.02em; }
