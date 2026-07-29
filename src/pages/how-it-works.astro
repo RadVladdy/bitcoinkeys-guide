@@ -6,7 +6,7 @@ import Diagram from '../components/Diagram.astro';
 <Base
   title="How your Bitcoin actually works — keys, words, and signatures · BitcoinKeys.guide"
   description="An optional, plain-English look under the hood: why your Bitcoin is really a key, what the seed words are, what a 'wallet' actually is, and how signing proves you hold the key without ever revealing it."
-  verified="2026-07-17"
+  verified="2026-07-28"
 >
   <section class="prose">
     <p class="eyebrow">The big picture · optional</p>
@@ -48,9 +48,12 @@ import Diagram from '../components/Diagram.astro';
       phone. It’s a <strong>configuration of keys</strong> — how many keys exist, and how many of them it
       takes to approve a spend. One key on its own is <em>single-signature</em>. Add a secret word and it’s a
       <em>passphrase</em> wallet. Spread it across several keys where a few must agree, and it’s
-      <em>multi-signature</em>. The little hardware device is just a safe <strong>place to keep a key</strong> — the
-      wallet is the <em>arrangement</em> of keys itself. That distinction is exactly what
-      <a href="/ladder">the ladder</a> is about.
+      <em>multi-signature</em>. The little hardware device is a safe <strong>place to keep a key</strong> — and the
+      thing that <strong>puts that key to work</strong>: a payment goes <em>into</em> the device, you approve it on the
+      device’s own screen, and it comes back out <strong>signed</strong>, while the key itself never leaves. That’s why
+      these are called <em>signing devices</em> rather than storage — they’re not a USB stick holding your coins,
+      they’re a sealed room your key works inside (<a href="#signing">§5 shows exactly how</a>). The wallet is the
+      <em>arrangement</em> of keys itself. That distinction is exactly what <a href="/ladder">the ladder</a> is about.
     </p>
 
     <Diagram name="multisig" caption="One way to arrange keys — 2-of-3 multisig: three keys exist, any two together approve a spend, so no single key is a point of failure." />
@@ -78,7 +81,7 @@ import Diagram from '../components/Diagram.astro';
     <Diagram name="keys-mailbox" caption="Public key = the mail slot anyone can drop coins into (your address). Private key = the only thing that opens the box." />
     <p class="deeper"><strong>Deeper dive:</strong> <a href="/deep-dive/addresses">see the four address formats one key produces →</a> — why addresses start with <span class="mono">1</span>, <span class="mono">3</span>, <span class="mono">bc1q</span>, or <span class="mono">bc1p</span>. Or <a href="/deep-dive/hd-tree">watch one seed grow a whole tree of them →</a>.</p>
 
-    <h2>5 · Signing — proving it’s you without showing the key</h2>
+    <h2 id="signing">5 · Signing — proving it’s you without showing the key</h2>
     <p>
       So how do you spend without revealing your key? You <strong>sign</strong>. When you approve a payment,
       your device uses the private key to produce a one-of-a-kind <strong>signature</strong> for that exact
