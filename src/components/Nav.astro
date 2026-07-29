@@ -275,12 +275,19 @@ const groupActive = (g) =>
   .mega-inner { padding: 1.5rem 1.4rem 1.1rem; }
   .lv-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.4rem 1.3rem; }
   .lv { display: flex; flex-direction: column; gap: 0.05rem; min-width: 0; }
-  .lv-h { display: flex; align-items: baseline; gap: 0.42rem; margin: 0 0 0.4rem;
-    padding-bottom: 0.5rem; border-bottom: 1px solid var(--line-soft); }
-  .lv-n { font-family: var(--mono); font-size: 0.74rem; font-weight: 700; color: var(--accent); }
+  .lv-h { display: flex; align-items: center; gap: 0.45rem; margin: 0 0 0.5rem;
+    padding-bottom: 0.55rem; border-bottom: 1px solid var(--line); }
+  /* A level marker is a FILLED CHIP everywhere else on the site (/start's
+     syl-badge, /how-to's lvl-n) — the menu was the odd one out. It also fixes an
+     inverted hierarchy: the heading used to be smaller AND lighter than the
+     lessons inside it, so the container read as less important than its contents. */
+  .lv-n { font-family: var(--mono); font-size: 0.68rem; font-weight: 700;
+    color: var(--accent-ink); background: var(--accent); border-radius: 0.3rem;
+    padding: 0.13rem 0.4rem; letter-spacing: 0.02em; }
   /* 201 is a different KIND of material — optional. The token carries that. */
-  .lv.opt .lv-n { color: var(--safe); }
-  .lv-t { font-size: 0.79rem; font-weight: 650; letter-spacing: -0.01em; }
+  .lv.opt .lv-n { background: var(--safe); }
+  .lv-t { font-size: 0.72rem; font-weight: 750; letter-spacing: 0.09em;
+    text-transform: uppercase; color: var(--text); }
   .lv-link { display: block; padding: 0.34rem 0.45rem; margin-left: -0.45rem; border-radius: 0.4rem;
     text-decoration: none; color: var(--text); font-size: 0.855rem; line-height: 1.35; }
   .lv-link:hover { background: var(--accent-soft); color: var(--accent); }
@@ -338,11 +345,18 @@ const groupActive = (g) =>
       text-transform: uppercase; color: var(--faint); }
     .mm-div { margin: 0.5rem 0.9rem 0.15rem; padding-top: 0.5rem; border-top: 1px solid var(--line-soft);
       font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--faint); }
-    /* Level headings inside the hamburger — the mega-panel's structure, stacked. */
-    .mm-lv { display: flex; align-items: baseline; gap: 0.42rem; margin: 0.85rem 0.9rem 0.1rem; }
-    .mm-lv .n { font-family: var(--mono); font-size: 0.7rem; font-weight: 700; color: var(--accent); }
-    .mm-lv.opt .n { color: var(--safe); }
-    .mm-lv .t { font-size: 0.76rem; font-weight: 650; }
+    /* Level headings inside the hamburger — the mega-panel's structure, stacked.
+       These carry more weight than on desktop: with no columns to separate the
+       levels, the heading is the ONLY thing marking where one section ends and
+       the next begins, so it gets a rule above it and real breathing room. */
+    .mm-lv { display: flex; align-items: center; gap: 0.5rem;
+      margin: 1.15rem 0.9rem 0.5rem; padding-top: 0.95rem; border-top: 1px solid var(--line); }
+    .mm-lv .n { font-family: var(--mono); font-size: 0.72rem; font-weight: 700;
+      color: var(--accent-ink); background: var(--accent); border-radius: 0.35rem;
+      padding: 0.16rem 0.45rem; letter-spacing: 0.02em; }
+    .mm-lv.opt .n { background: var(--safe); }
+    .mm-lv .t { font-size: 0.76rem; font-weight: 750; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--text); }
     .mm-link { display: block; padding: 0.7rem 0.9rem; border-radius: 0.5rem; text-decoration: none;
       color: var(--text); font-size: 1rem; font-weight: 550; }
     .mm-link:hover, .mm-link:active { background: var(--surface); }
