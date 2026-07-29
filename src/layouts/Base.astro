@@ -25,7 +25,7 @@ export interface Props {
 
 const { title, description, verified, ogTitle, ogImage } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
-const ogImageUrl = new URL(ogImage ?? '/og-default.png', Astro.site).href;
+const ogImageUrl = new URL(ogImage ?? '/og-card.png', Astro.site).href;
 const verifiedLabel = verified
   ? new Date(verified + 'T00:00:00Z').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' })
   : null;
@@ -50,9 +50,12 @@ const verifiedLabel = verified
 <meta property="og:image:height" content="630" />
 <meta property="og:image:alt" content="BitcoinKeys.guide — hold your own Bitcoin keys" />
 <meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:site" content="@BTCKeysGuide" />
+<meta name="twitter:creator" content="@BTCKeysGuide" />
 <meta name="twitter:title" content={ogTitle ?? title} />
 <meta name="twitter:description" content={description} />
 <meta name="twitter:image" content={ogImageUrl} />
+<meta name="twitter:image:alt" content="BitcoinKeys.guide — hold your own Bitcoin keys" />
 <link rel="icon" type="image/x-icon" href="/favicon.ico?v=2" />
 <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png?v=2" />
 <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png?v=2" />
