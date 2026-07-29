@@ -8,22 +8,26 @@
 // EDUCATIONAL idea and so lives in Learn; nothing in Learn asks the reader to do
 // anything except read the next chapter.
 //
-// A link marked `ref: true` is lookup material, not a chapter — the menus render a
-// divider before the first one so the list reads as "chapters, then reference."
+// A link marked `ref: true` is lookup material, not a lesson — the menus set it
+// apart so the list reads as "the course, then reference."
+//
+// The Learn group is `mega: true`: its body is the CURRICULUM (see curriculum.js),
+// rendered as levels. /how-to deliberately has no menu slot — the mega-menu links
+// all twelve of its lessons directly, so an index of pages already in the menu
+// isn't earning a place there. It is linked from the foot of /start instead, so
+// the page keeps a navigation path and never becomes orphaned.
 
 export const navGroups = [
   {
     title: 'Learn',
-    // The syllabus, in teaching order. Chapter 1 (/start) is the overview of
-    // everything below it; each chapter assumes the one before it.
+    // The course. `mega: true` makes this render as a wide panel of LEVELS rather
+    // than a flat dropdown — every lesson is one click from the top of any page, so
+    // nobody has to open a category to find out what's inside it. The levels
+    // themselves live in curriculum.js; only the lead-in and the reference row are
+    // declared here.
+    mega: true,
+    lead: { href: '/start', label: 'The whole syllabus, in order', pin: 'Start here' },
     links: [
-      { href: '/start', label: 'Start here' },
-      { href: '/how-it-works', label: 'How your Bitcoin works' },
-      { href: '/risks', label: 'How people lose Bitcoin' },
-      { href: '/principles', label: 'Security principles' },
-      { href: '/ladder', label: 'The ladder' },
-      { href: '/how-to', label: 'How-to guides' },
-      { href: '/deep-dive', label: 'Deeper dives' },
       { href: '/glossary', label: 'Glossary', ref: true },
       { href: '/resources', label: 'Further reading', ref: true },
     ],

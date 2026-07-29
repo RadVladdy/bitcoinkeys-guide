@@ -1,74 +1,15 @@
 ---
 import Base from '../layouts/Base.astro';
-import { howtos } from '../data/howtos.js';
+import { levels, lessonCount } from '../data/curriculum.js';
 import { glossary } from '../data/glossary.js';
-import { deepDives } from '../data/deepdives.js';
 
-// RESTRUCTURED 2026-07-28. This page used to be an eight-step ACTION path
-// ("choose a device," "test before you fund"). Those action steps moved to the
-// generated checklist, where they belong; the teaching inside them stayed here.
-// /start is now chapter zero of the Learn shelf: the whole syllabus in one place,
-// in teaching order, so a newcomer can see the shape of what they're about to
-// learn before they learn it. Nothing on this page asks the reader to DO anything
-// except read the next chapter. The single hand-off to action sits at the bottom.
+// RESTRUCTURED 2026-07-28 (twice). First: this page stopped being an eight-step
+// ACTION path and became the syllabus — its action steps moved to the checklist,
+// its teaching prose stayed. Then: the syllabus became LEVELS, reading from
+// curriculum.js, so the mega-menu, this page, the prev/next footer, and the
+// /how-to index can never disagree about what the course contains.
 
-// Live counts so the chapter blurbs can never go stale.
-const NUM_WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen', 'twenty'];
-const numWord = (n) => NUM_WORDS[n] ?? String(n);
-const howtoCount = numWord(howtos.length);
-const demoCount = numWord(deepDives.length);
 const termCount = glossary.length;
-
-const chapters = [
-  {
-    n: 1,
-    title: 'How your Bitcoin actually works',
-    href: '/how-it-works',
-    hrefLabel: 'Read chapter 1',
-    why: 'Everything else rests on this one.',
-    body: 'Your Bitcoin isn’t a file or a coin — it’s a <strong>key</strong>, and the twelve or twenty-four words a wallet shows you <em>are</em> that key. The device isn’t the wallet; the words are. Two simple rules cover the whole thing: anyone who sees the words can take your Bitcoin, so keep them private — and if you lose them with no backup, they’re gone, so make a backup. It sounds daunting and it really comes down to “write it down and keep it safe.” This chapter shows you what a key, a seed, a public address, and a signature each are, in plain English.',
-  },
-  {
-    n: 2,
-    title: 'How people actually lose Bitcoin',
-    href: '/risks',
-    hrefLabel: 'Read chapter 2',
-    why: 'You can’t choose a setup until you know what you’re defending against.',
-    body: 'Not the dramatic version — the honest map of what really happens. For most new holders the top two risks are <strong>the exchange failing</strong> and <strong>their own simple mistakes</strong>, not a targeted attacker with a laptop. That matters enormously, because it points straight at the simplest setup rather than an elaborate one. Read this before you spend a cent on hardware.',
-  },
-  {
-    n: 3,
-    title: 'The security principles',
-    href: '/principles',
-    hrefLabel: 'Read chapter 3',
-    why: 'The ten rules that fall out of chapter 2.',
-    body: 'Once you know how people lose Bitcoin, the rules that prevent it almost write themselves. The most important one is the least intuitive: <strong>more security is not better.</strong> Complexity you don’t fully control is itself a risk — and it’s the single biggest cause of self-custodied Bitcoin being lost for good.',
-  },
-  {
-    n: 4,
-    title: 'The configuration ladder',
-    href: '/ladder',
-    hrefLabel: 'Read chapter 4',
-    why: 'Every real setup fits on one ladder.',
-    body: 'From one key on one device, up through a secret passphrase, multisig, and collaborative custody. Each rung solves a genuine problem — <em>and introduces new ways to fail</em>, which is why the chapter is honest about both. Almost everyone belongs on the first rung or two and shouldn’t rush past it. This is the spine of the whole guide.',
-  },
-  {
-    n: 5,
-    title: 'The hands-on skills',
-    href: '/how-to',
-    hrefLabel: 'Read chapter 5',
-    why: 'The practical craft, whatever rung you land on.',
-    body: `The ${howtoCount} short guides that cover the actual doing: keeping spending money <strong>hot</strong> and savings <strong>cold</strong>, choosing a device, getting your seed onto metal so fire and water can’t destroy it, proving your backup works before you trust it, sending without fumbling an address, and the day-to-day awareness that stops phishing and fake support. Jargon-free, one job each.`,
-  },
-  {
-    n: 6,
-    title: 'Deeper dives',
-    href: '/deep-dive',
-    hrefLabel: 'Read chapter 6',
-    why: 'Optional — for when you want to see it, not just be told it.',
-    body: `${demoCount.charAt(0).toUpperCase() + demoCount.slice(1)} interactive demos that run real cryptography in your browser on throwaway keys: watch a seed get born from raw randomness, watch a passphrase open a completely different wallet, tap through a live 2-of-3 multisig, tamper with a signature and watch it break. Skip it if you like — nothing later depends on it. But it’s the fastest way to stop taking any of this on faith.`,
-  },
-];
 ---
 <Base
   title="Start here — the whole guide, in order · BitcoinKeys.guide"
@@ -76,37 +17,40 @@ const chapters = [
   verified="2026-07-28"
 >
   <section class="prose">
-    <p class="eyebrow">Start here · chapter zero</p>
+    <p class="eyebrow">Start here · the whole course</p>
     <h1>The whole guide, <span class="accent">in the order it makes sense</span></h1>
-    <p class="lead">If you just bought Bitcoin and want to hold it yourself, you’re in the right place. This page is the map: six chapters that build on each other, from what a key actually <em>is</em> up to the setups real holders use. No jargon dumped on you, and nothing you have to decide yet.</p>
+    <p class="lead">If you just bought Bitcoin and want to hold it yourself, you’re in the right place. This is the map: {lessonCount} short lessons across five levels, each building on the one before. No jargon dumped on you, and nothing you have to decide yet.</p>
 
     <div class="callout">
       <span class="label">The one idea underneath all of it</span>
-      <p>Every custody choice trades off <strong>losing access yourself</strong> against <strong>someone else getting access</strong>. Almost every safeguard against one makes the other worse. You don’t need zero risk — you need risks you can <em>name</em>. That’s what these six chapters are for.</p>
+      <p>Every custody choice trades off <strong>losing access yourself</strong> against <strong>someone else getting access</strong>. Almost every safeguard against one makes the other worse. You don’t need zero risk — you need risks you can <em>name</em>. That’s what this course is for.</p>
     </div>
 
-    <p class="sub" style="margin-top:1.1rem">Read them in order if you can — each one assumes the one before it. It’s about an hour end to end, and you’ll understand your own setup better than most people who already have one.</p>
+    <p class="sub" style="margin-top:1.1rem">Read it in order if you can — each level assumes the one above it. It’s about an hour end to end, and you’ll understand your own setup better than most people who already have one. Every lesson points to the next, so you never have to find your place again.</p>
   </section>
 
   <section>
-    <ol class="path" aria-label="The guide, chapter by chapter">
-      {chapters.map((c) => (
-        <li class="path-step">
-          <span class="marker num">{c.n}</span>
-          <div class="step-body">
-            <h3>{c.title}</h3>
-            <p class="why">{c.why}</p>
-            <p set:html={c.body}></p>
-            <a href={c.href} class="step-link">{c.hrefLabel} →</a>
+    <div class="syl">
+      {levels.map((lv) => (
+        <div class:list={['syl-lv', { opt: lv.optional }]} id={lv.id}>
+          <span class="syl-badge">{lv.id}</span>
+          <div>
+            <h2 class="syl-h">{lv.title}{lv.optional && <span class="syl-opt">· optional</span>}</h2>
+            <p class="syl-why">{lv.why}</p>
+            <ol class="syl-list">
+              {lv.lessons.map((l) => (
+                <li><a href={l.href}>{l.label}</a>{l.note && <em>{l.note}</em>}</li>
+              ))}
+            </ol>
           </div>
-        </li>
+        </div>
       ))}
-    </ol>
+    </div>
   </section>
 
   <section>
     <h2>Two things to keep open beside you</h2>
-    <p class="sub prose" style="margin-bottom:1.2rem;">Not chapters — lookups. Reach for them any time a word stops you.</p>
+    <p class="sub prose" style="margin-bottom:1.2rem;">Not lessons — lookups. Reach for them any time a word stops you.</p>
     <div class="grid cols-2">
       <a href="/glossary" class="card">
         <h3>Glossary →</h3>
@@ -117,12 +61,13 @@ const chapters = [
         <p class="sub">The genuinely good outside material — books, tools, and references worth your time, with none of the noise.</p>
       </a>
     </div>
+    <p class="sub flat-note">Prefer one flat list instead of levels? <a href="/how-to">Every lesson on one page →</a></p>
   </section>
 
   <section class="prose">
     <div class="callout safe">
       <span class="label">Where this gets you</span>
-      <p>By the end of chapter 4 you’ll be able to say, in one sentence, which setup fits you and why — and just as importantly, which ones you <em>don’t</em> need. That’s the whole game. The simplest setup you fully understand and have tested beats an impressive one you don’t.</p>
+      <p>By the end of level 102 you’ll be able to say, in one sentence, which setup fits you and why — and just as importantly, which ones you <em>don’t</em> need. That’s the whole game. The simplest setup you fully understand and have tested beats an impressive one you don’t.</p>
     </div>
 
     <div class="handoff">
@@ -130,27 +75,36 @@ const chapters = [
       <p>The reading is the hard part; the doing is a checklist. When this all makes sense — or if you’d rather see where you’d land first — the quiz asks six plain questions and names the setup that fits you, then turns it into a step-by-step checklist. <strong>It never asks how much Bitcoin you hold</strong>, and it runs entirely in your browser.</p>
       <div class="cta-row">
         <a href="/quiz" class="btn btn-primary">Find your setup <span class="arw">→</span></a>
-        <a href="/how-it-works" class="btn btn-ghost">Start reading chapter 1</a>
+        <a href="/how-it-works" class="btn btn-ghost">Start level 101</a>
       </div>
     </div>
   </section>
 </Base>
 
 <style>
-  .path { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0; }
-  .path-step { display: grid; grid-template-columns: 2.6rem 1fr; gap: 1.1rem; padding-bottom: 1.8rem; position: relative; }
-  .path-step:not(:last-child)::before {
-    content: ""; position: absolute; left: 1.3rem; top: 2.6rem; bottom: 0; width: 2px;
-    background: var(--line); transform: translateX(-50%);
-  }
-  .marker { width: 2.6rem; height: 2.6rem; border-radius: 50%; display: grid; place-items: center;
-    background: var(--surface); border: 1px solid var(--accent); color: var(--accent); font-weight: 700;
-    font-size: 1.05rem; position: relative; z-index: 1; }
-  .step-body { padding-top: 0.15rem; max-width: var(--measure); }
-  .step-body h3 { margin: 0.2rem 0 0.2rem; }
-  .step-body p { margin: 0 0 0.5rem; color: var(--text); }
-  .step-body .why { color: var(--accent); font-size: 0.88rem; font-weight: 600; margin-bottom: 0.5rem; }
-  .step-link { font-size: 0.9rem; font-weight: 600; }
+  .syl { display: flex; flex-direction: column; gap: 0.9rem; }
+  .syl-lv { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface);
+    padding: 1.3rem 1.5rem; display: grid; grid-template-columns: 3.6rem 1fr; gap: 1.3rem;
+    scroll-margin-top: 4.5rem; }
+  /* 201 is optional — a dashed edge says "skippable" before you read a word. */
+  .syl-lv.opt { border-style: dashed; }
+  .syl-badge { font-family: var(--mono); font-weight: 700; font-size: 1rem; color: var(--accent-ink);
+    background: var(--accent); border-radius: 0.55rem; height: 2.3rem; display: grid; place-items: center; }
+  .syl-lv.opt .syl-badge { background: var(--safe); }
+  .syl-h { margin: 0 0 0.15rem; font-size: 1.14rem; letter-spacing: -0.015em; }
+  .syl-opt { font-family: var(--mono); font-size: 0.72rem; font-weight: 500; color: var(--safe);
+    margin-left: 0.5rem; letter-spacing: 0.06em; text-transform: uppercase; }
+  .syl-why { margin: 0 0 0.85rem; color: var(--muted); font-size: 0.93rem; max-width: 62ch; }
+  .syl-list { list-style: none; margin: 0; padding: 0; display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); gap: 0.35rem 1.2rem; counter-reset: none; }
+  .syl-list li { font-size: 0.92rem; display: flex; gap: 0.5rem; align-items: baseline; }
+  .syl-list li::before { content: "›"; color: var(--accent); flex: 0 0 auto; }
+  .syl-lv.opt .syl-list li::before { color: var(--safe); }
+  .syl-list a { text-decoration: none; color: var(--text); }
+  .syl-list a:hover { color: var(--accent); text-decoration: underline; }
+  .syl-list em { color: var(--faint); font-style: normal; font-size: 0.8rem; }
+
+  .flat-note { margin-top: 1.1rem; font-size: 0.9rem; }
 
   .handoff { border: 1px solid var(--accent); border-radius: var(--radius); background: var(--accent-soft);
     padding: 1.5rem 1.7rem; margin-top: 1.8rem; }
@@ -158,4 +112,9 @@ const chapters = [
     text-transform: uppercase; margin: 0 0 0.5rem; }
   .handoff p { margin: 0; }
   .cta-row { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.3rem; }
+
+  @media (max-width: 640px) {
+    .syl-lv { grid-template-columns: 1fr; gap: 0.7rem; }
+    .syl-badge { width: 3.2rem; }
+  }
 </style>

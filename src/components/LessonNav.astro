@@ -1,0 +1,107 @@
+---
+// The prev/next footer that turns loose pages into a course.
+//
+// ADDED 2026-07-28. The gap it fills: a guide used to just STOP, leaving the
+// reader stranded and forcing them back to the menu. With this, the whole course
+// reads front to back without ever opening the menu.
+//
+// It self-locates from the URL against curriculum.js, so a page only has to drop
+// <LessonNav /> in — no props to keep in sync. A page that isn't a lesson (a
+// ladder rung, /wallets, /quiz) returns null and renders nothing rather than
+// inventing a position for itself.
+import { lessonFor, levels } from '../data/curriculum.js';
+
+const lesson = lessonFor(Astro.url.pathname);
+---
+{lesson && (
+  <nav class="lesson-nav" aria-label="Course navigation">
+    <p class="ln-where">
+      <span class:list={['ln-lv', { opt: lesson.levelOptional }]}>{lesson.levelId}</span>
+      <span class="ln-lvt">{lesson.levelTitle}</span>
+      <span class="ln-sep">·</span>
+      <span class="ln-pos">Lesson {lesson.indexInLevel + 1} of {lesson.lessonsInLevel}</span>
+    </p>
+
+    <div class="ln-pair">
+      {lesson.prev ? (
+        <a href={lesson.prev.href} class="ln-card">
+          <span class="ln-k">← Previous · {lesson.prev.levelId}</span>
+          <span class="ln-t">{lesson.prev.short}</span>
+        </a>
+      ) : (
+        <a href="/start" class="ln-card">
+          <span class="ln-k">← Start here</span>
+          <span class="ln-t">The whole syllabus, in order</span>
+        </a>
+      )}
+      {lesson.next ? (
+        <a href={lesson.next.href} class="ln-card nx">
+          <span class="ln-k">Next · {lesson.next.levelId} →</span>
+          <span class="ln-t">{lesson.next.short}</span>
+        </a>
+      ) : (
+        <a href="/quiz" class="ln-card nx">
+          <span class="ln-k">That’s the course →</span>
+          <span class="ln-t">Find the setup that fits you</span>
+        </a>
+      )}
+    </div>
+
+    {/* Progress reads as orientation, not a scoreboard — no "you are behind". */}
+    <p class="ln-prog">
+      <span class="ln-count">Lesson {lesson.position} of {lesson.total}</span>
+      <span class="ln-dots">
+        {levels.map((lv) => (
+          <span class:list={['ln-grp', { opt: lv.optional }]}>
+            <span class="ln-gn">{lv.id}</span>
+            {lv.lessons.map((l) => (
+              <span class:list={['ln-dot', {
+                done: l.href !== lesson.href && lv.id <= lesson.levelId &&
+                      (lv.id < lesson.levelId || lv.lessons.indexOf(l) < lesson.indexInLevel),
+                here: l.href === lesson.href,
+              }]} aria-hidden="true"></span>
+            ))}
+          </span>
+        ))}
+      </span>
+    </p>
+  </nav>
+)}
+
+<style>
+  .lesson-nav { margin: 2.6rem 0 0; padding-top: 1.6rem; border-top: 1px solid var(--line-soft); }
+  .ln-where { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0.45rem;
+    margin: 0 0 0.9rem; font-family: var(--mono); font-size: 0.72rem;
+    letter-spacing: 0.1em; text-transform: uppercase; }
+  .ln-lv { color: var(--accent); font-weight: 700; }
+  .ln-lv.opt { color: var(--safe); }
+  .ln-lvt { color: var(--text); }
+  .ln-sep, .ln-pos { color: var(--faint); }
+
+  .ln-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; }
+  .ln-card { display: block; border: 1px solid var(--line); border-radius: 0.7rem;
+    background: var(--surface); padding: 0.85rem 1.1rem; text-decoration: none; color: var(--text); }
+  .ln-card:hover { border-color: var(--accent); }
+  .ln-card.nx { text-align: right; }
+  .ln-k { display: block; font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--faint); margin-bottom: 0.22rem; }
+  .ln-t { font-weight: 640; font-size: 0.94rem; letter-spacing: -0.01em; }
+  .ln-card.nx .ln-t { color: var(--accent); }
+
+  .ln-prog { display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem 1rem;
+    margin: 1rem 0 0; font-family: var(--mono); font-size: 0.72rem; color: var(--faint); }
+  .ln-dots { display: inline-flex; align-items: center; gap: 0.7rem; flex-wrap: wrap; }
+  .ln-grp { display: inline-flex; align-items: center; gap: 0.22rem; }
+  .ln-gn { font-size: 0.66rem; color: var(--faint); margin-right: 0.12rem; }
+  .ln-grp.opt .ln-gn { color: var(--safe); }
+  .ln-dot { width: 0.42rem; height: 0.42rem; border-radius: 50%;
+    border: 1px solid var(--line); background: transparent; }
+  .ln-dot.done { background: var(--line); border-color: var(--line); }
+  .ln-dot.here { background: var(--accent); border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-soft); }
+
+  @media (max-width: 560px) {
+    .ln-pair { grid-template-columns: 1fr; }
+    .ln-card.nx { text-align: left; }
+  }
+</style>

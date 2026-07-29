@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import LessonNav from '../components/LessonNav.astro';
 
 const principles = [
   { t: 'Not your keys, not your coins', d: 'Bitcoin on an exchange is really just a promise from the company to pay you back — not the actual coins. It’s only truly yours when you hold the keys.', href: '/start' },
@@ -45,6 +46,8 @@ const principles = [
       <p><strong>Verify. Don’t trust.</strong> Everything here is one expression of that idea — check your backup, check the address, check the rules, and don’t take anyone’s word for what’s yours.</p>
     </div>
   </section>
+
+  <LessonNav />
 </Base>
 
 <style>

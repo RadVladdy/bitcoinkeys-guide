@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import LessonNav from '../components/LessonNav.astro';
 
 // The five ways Bitcoin is lost. Each is plain-English, with the real
 // mechanisms, and links to the page in this guide that defends against it.
@@ -204,6 +205,8 @@ const buckets = [
       <a class="btn ghost" href="/start">New to all this? Start at chapter zero</a>
     </p>
   </section>
+
+  <LessonNav />
 </Base>
 
 <style>

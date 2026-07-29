@@ -1,6 +1,10 @@
 ---
 import { navGroups } from '../data/nav.js';
+import { levels } from '../data/curriculum.js';
 const year = 2026;
+
+// The Learn group is `mega` — its links live in the curriculum, not in nav.js.
+// The footer is a sitemap, so it lists every lesson, grouped by level.
 ---
 <footer class="foot">
   <div class="wrap foot-inner">
@@ -10,11 +14,25 @@ const year = 2026;
     </div>
     <nav class="foot-map" aria-label="Footer">
       {navGroups.map((g) => (
-        <div class="foot-col">
+        <div class:list={['foot-col', { wide: g.mega }]}>
           <p class="foot-col-title">{g.title}</p>
+          {g.mega && (
+            <Fragment>
+              {g.lead && <a href={g.lead.href}>{g.lead.pin}</a>}
+              <span class="foot-levels">
+                {levels.map((lv) => (
+                  <span class="foot-lvgrp">
+                    <span class="foot-lv">{lv.id} · {lv.title}</span>
+                    {lv.lessons.map((l) => <a href={l.href}>{l.label}</a>)}
+                  </span>
+                ))}
+              </span>
+              <span class="foot-div"></span>
+            </Fragment>
+          )}
           {g.links.map((l, i) => (
             <Fragment>
-              {l.ref && !g.links[i - 1]?.ref && <span class="foot-div"></span>}
+              {!g.mega && l.ref && !g.links[i - 1]?.ref && <span class="foot-div"></span>}
               <a href={l.href}>{l.label}</a>
             </Fragment>
           ))}
@@ -39,12 +57,19 @@ const year = 2026;
   .pledge { max-width: 42ch; }
   .pledge-line { font-size: 1.05rem; font-weight: 700; margin: 0 0 0.5rem; }
   .pledge .sub { margin: 0; font-size: 0.92rem; }
-  .foot-map { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.4rem 1.2rem; }
+  .foot-map { display: grid; grid-template-columns: 1.7fr 1fr 1fr 1fr; gap: 1.4rem 1.2rem; }
   .foot-col { display: flex; flex-direction: column; gap: 0.5rem; }
   .foot-col-title { margin: 0 0 0.15rem; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.12em;
     text-transform: uppercase; color: var(--faint); }
   /* Marks the chapters/reference split inside a column (nav.js `ref: true`). */
   .foot-div { display: block; height: 1px; margin: 0.25rem 0; width: 1.8rem; background: var(--line); }
+  .foot-lv { font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--faint); }
+  .foot-col.wide { display: block; columns: 2; column-gap: 1.2rem; }
+  .foot-col.wide a { display: block; margin-bottom: 0.5rem; }
+  .foot-col.wide .foot-lv { display: block; margin-bottom: 0.35rem; }
+  .foot-col.wide > * { break-inside: avoid; }
+  @media (max-width: 860px) { .foot-col.wide { columns: 1; } }
   .foot-col a { color: var(--muted); text-decoration: none; font-size: 0.9rem; }
   .foot-col a:hover { color: var(--accent); }
   .foot-base { display: flex; align-items: center; justify-content: space-between; gap: 1rem 1.4rem; flex-wrap: wrap;

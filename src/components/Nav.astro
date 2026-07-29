@@ -1,8 +1,13 @@
 ---
 import { navGroups } from '../data/nav.js';
+import { levels } from '../data/curriculum.js';
 const path = Astro.url.pathname.replace(/\/$/, '') || '/';
 const isActive = (href) => path === href || path.startsWith(href + '/');
-const groupActive = (g) => g.links.some((l) => isActive(l.href));
+// A mega group is "active" when the current page is any of its lessons, its
+// lead-in, or one of its reference pages — the curriculum is its real contents.
+const megaLinks = [...levels.flatMap((lv) => lv.lessons.map((l) => l.href)), '/start', '/how-to'];
+const groupActive = (g) =>
+  g.links.some((l) => isActive(l.href)) || (g.mega && megaLinks.some((h) => isActive(h)));
 ---
 <header class="nav">
   <div class="wrap nav-inner">
@@ -14,19 +19,52 @@ const groupActive = (g) => g.links.some((l) => isActive(l.href));
     <!-- Desktop: the four sections are the top-level menu; each opens a dropdown -->
     <nav class="sections" aria-label="Primary">
       {navGroups.map((g) => (
-        <div class="section">
+        <div class:list={['section', { 'has-mega': g.mega }]}>
           <button class="section-btn" type="button" aria-expanded="false" class:list={['section-btn', { on: groupActive(g) }]}>
             {g.title}
             <svg class="chev" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
           </button>
-          <div class="section-panel">
-            {g.links.map((l, i) => (
-              <Fragment>
-                {l.ref && !g.links[i - 1]?.ref && <span class="section-div">Reference</span>}
-                <a href={l.href} class:list={['section-link', { active: isActive(l.href) }]}>{l.label}</a>
-              </Fragment>
-            ))}
-          </div>
+          {g.mega ? (
+            <div class="mega-panel">
+              <div class="wrap mega-inner">
+                <div class="lv-grid">
+                  {levels.map((lv) => (
+                    <div class:list={['lv', { opt: lv.optional }]}>
+                      <p class="lv-h"><span class="lv-n">{lv.id}</span><span class="lv-t">{lv.title}</span></p>
+                      {lv.lessons.map((l) => (
+                        <a href={l.href} class:list={['lv-link', { active: isActive(l.href) }]}>
+                          {l.label}
+                          {l.note && <span class="lv-note">{l.note}</span>}
+                        </a>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+                <div class="mega-foot">
+                  {g.lead && (
+                    <a href={g.lead.href} class="mf-lead">
+                      <span class="pin">{g.lead.pin}</span>{g.lead.label}
+                    </a>
+                  )}
+                  <span class="mf-ref">
+                    <span class="mf-lbl">Reference</span>
+                    {g.links.map((l) => (
+                      <a href={l.href} class:list={[{ active: isActive(l.href) }]}>{l.label}</a>
+                    ))}
+                  </span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div class="section-panel">
+              {g.links.map((l, i) => (
+                <Fragment>
+                  {l.ref && !g.links[i - 1]?.ref && <span class="section-div">Reference</span>}
+                  <a href={l.href} class:list={['section-link', { active: isActive(l.href) }]}>{l.label}</a>
+                </Fragment>
+              ))}
+            </div>
+          )}
         </div>
       ))}
     </nav>
@@ -50,6 +88,23 @@ const groupActive = (g) => g.links.some((l) => isActive(l.href));
     {navGroups.map((g) => (
       <div class="mm-group">
         <p class="mm-title">{g.title}</p>
+        {/* A mega group has no flat link list — its body is the curriculum, which
+            becomes level headings here. Same lessons, same order, one scroll. */}
+        {g.mega && (
+          <Fragment>
+            {g.lead && <a href={g.lead.href} class:list={['mm-link', { active: isActive(g.lead.href) }]}>{g.lead.pin} — {g.lead.label}</a>}
+            {levels.map((lv) => (
+              <Fragment>
+                <p class:list={['mm-lv', { opt: lv.optional }]}>
+                  <span class="n">{lv.id}</span><span class="t">{lv.title}{lv.optional ? ' · optional' : ''}</span>
+                </p>
+                {lv.lessons.map((l) => (
+                  <a href={l.href} class:list={['mm-link', { active: isActive(l.href) }]}>{l.label}</a>
+                ))}
+              </Fragment>
+            ))}
+          </Fragment>
+        )}
         {g.links.map((l, i) => (
           <Fragment>
             {l.ref && !g.links[i - 1]?.ref && <p class="mm-div">Reference</p>}
@@ -188,6 +243,9 @@ const groupActive = (g) => g.links.some((l) => isActive(l.href));
   /* Desktop section menu */
   .sections { display: flex; align-items: center; gap: 0.15rem; margin-left: auto; }
   .section { position: relative; }
+  /* A full-bleed panel resolves against .nav (sticky = a containing block), so this
+     one must NOT be positioned itself, or it would clamp the panel to button width. */
+  .section.has-mega { position: static; }
   .section-btn { display: inline-flex; align-items: center; gap: 0.28rem; cursor: pointer;
     background: none; border: 0; font-family: var(--sans); font-size: 0.92rem; font-weight: 550; color: var(--muted);
     padding: 0.45rem 0.7rem; border-radius: 0.5rem; }
@@ -207,6 +265,43 @@ const groupActive = (g) => g.links.some((l) => isActive(l.href));
   .section-div { display: block; margin: 0.4rem 0.7rem 0.15rem; padding-top: 0.4rem;
     border-top: 1px solid var(--line-soft); font-family: var(--mono); font-size: 0.64rem;
     letter-spacing: 0.13em; text-transform: uppercase; color: var(--faint); }
+
+  /* ── The Learn mega-panel: the curriculum, five levels wide ──────────────
+     Full-bleed rather than anchored to the button, because it holds every lesson
+     on the site — a 12rem dropdown can't. */
+  .mega-panel { position: absolute; top: 100%; left: 0; right: 0; z-index: 30; display: none;
+    background: var(--bg); border-bottom: 1px solid var(--line); box-shadow: var(--shadow); }
+  .section:hover .mega-panel, .section:focus-within .mega-panel, .section.open .mega-panel { display: block; }
+  .mega-inner { padding: 1.5rem 1.4rem 1.1rem; }
+  .lv-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.4rem 1.3rem; }
+  .lv { display: flex; flex-direction: column; gap: 0.05rem; min-width: 0; }
+  .lv-h { display: flex; align-items: baseline; gap: 0.42rem; margin: 0 0 0.4rem;
+    padding-bottom: 0.5rem; border-bottom: 1px solid var(--line-soft); }
+  .lv-n { font-family: var(--mono); font-size: 0.74rem; font-weight: 700; color: var(--accent); }
+  /* 201 is a different KIND of material — optional. The token carries that. */
+  .lv.opt .lv-n { color: var(--safe); }
+  .lv-t { font-size: 0.79rem; font-weight: 650; letter-spacing: -0.01em; }
+  .lv-link { display: block; padding: 0.34rem 0.45rem; margin-left: -0.45rem; border-radius: 0.4rem;
+    text-decoration: none; color: var(--text); font-size: 0.855rem; line-height: 1.35; }
+  .lv-link:hover { background: var(--accent-soft); color: var(--accent); }
+  .lv-link.active { color: var(--accent); }
+  .lv-note { display: block; color: var(--faint); font-size: 0.72rem; }
+  .mega-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 1.4rem;
+    margin-top: 1.2rem; padding-top: 0.9rem; border-top: 1px solid var(--line-soft); }
+  .mf-lead { display: inline-flex; align-items: center; gap: 0.5rem; text-decoration: none;
+    color: var(--text); font-size: 0.87rem; font-weight: 600; }
+  .mf-lead .pin { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--accent-ink); background: var(--accent);
+    border-radius: 999px; padding: 0.16rem 0.5rem; }
+  .mf-lead:hover { color: var(--accent); }
+  .mf-ref { margin-left: auto; display: flex; align-items: center; gap: 0.9rem; font-size: 0.8rem; }
+  .mf-lbl { font-family: var(--mono); font-size: 0.65rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--faint); }
+  .mf-ref a { color: var(--muted); text-decoration: none; }
+  .mf-ref a:hover, .mf-ref a.active { color: var(--accent); }
+
+  /* Five columns need real width; step down before they get cramped. */
+  @media (max-width: 1150px) { .lv-grid { grid-template-columns: repeat(3, 1fr); } }
 
   .nav-right { display: flex; align-items: center; gap: 0.4rem; flex: 0 0 auto; }
   /* The sign-in control's dynamic bits (avatar img, menu contents) are injected by JS,
@@ -243,6 +338,11 @@ const groupActive = (g) => g.links.some((l) => isActive(l.href));
       text-transform: uppercase; color: var(--faint); }
     .mm-div { margin: 0.5rem 0.9rem 0.15rem; padding-top: 0.5rem; border-top: 1px solid var(--line-soft);
       font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--faint); }
+    /* Level headings inside the hamburger — the mega-panel's structure, stacked. */
+    .mm-lv { display: flex; align-items: baseline; gap: 0.42rem; margin: 0.85rem 0.9rem 0.1rem; }
+    .mm-lv .n { font-family: var(--mono); font-size: 0.7rem; font-weight: 700; color: var(--accent); }
+    .mm-lv.opt .n { color: var(--safe); }
+    .mm-lv .t { font-size: 0.76rem; font-weight: 650; }
     .mm-link { display: block; padding: 0.7rem 0.9rem; border-radius: 0.5rem; text-decoration: none;
       color: var(--text); font-size: 1rem; font-weight: 550; }
     .mm-link:hover, .mm-link:active { background: var(--surface); }

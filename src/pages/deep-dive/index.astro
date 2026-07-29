@@ -1,5 +1,6 @@
 ---
 import Base from '../../layouts/Base.astro';
+import LessonNav from '../../components/LessonNav.astro';
 import { deepDives as demos } from '../../data/deepdives.js';
 ---
 <Base
@@ -41,6 +42,8 @@ import { deepDives as demos } from '../../data/deepdives.js';
       <a class="btn ghost" href="/ladder">The ladder →</a>
     </p>
   </section>
+
+  <LessonNav />
 </Base>
 
 <style>

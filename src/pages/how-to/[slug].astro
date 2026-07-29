@@ -1,16 +1,17 @@
 ---
 import Base from '../../layouts/Base.astro';
+import LessonNav from '../../components/LessonNav.astro';
 import Diagram from '../../components/Diagram.astro';
 import { howtos } from '../../data/howtos.js';
 
 export function getStaticPaths() {
   return howtos.map((h, i) => ({
     params: { slug: h.slug },
-    props: { h, prev: howtos[i - 1] ?? null, next: howtos[i + 1] ?? null },
+    props: { h },
   }));
 }
 
-const { h, prev, next } = Astro.props;
+const { h } = Astro.props;
 const toneClass = { warn: 'warn', safe: 'safe', danger: 'danger' };
 // accent a keyword/phrase in the title (orange), leaving the rest plain
 const accentize = (title, phrase) => {
@@ -63,10 +64,10 @@ const accentize = (title, phrase) => {
     </section>
   )}
 
-  <nav class="ht-nav">
-    {prev && <a href={`/how-to/${prev.slug}`}>← {prev.title}</a>}
-    {next && <a class="fwd" href={`/how-to/${next.slug}`}>{next.title} →</a>}
-  </nav>
+  <!-- Prev/next now comes from <LessonNav />, which walks the whole course
+       (curriculum.js) rather than just the how-to list. -->
+
+  <LessonNav />
 </Base>
 
 <style>
@@ -84,7 +85,4 @@ const accentize = (title, phrase) => {
   .checklist li { position: relative; padding-left: 1.9rem; color: var(--text); }
   .checklist li::before { content: "✓"; position: absolute; left: 0; top: 0; color: var(--safe); font-weight: 700; font-family: var(--mono); }
 
-  .ht-nav { display: flex; justify-content: space-between; gap: 1rem; margin-top: 2.4rem; padding-top: 1.4rem; border-top: 1px solid var(--line-soft); flex-wrap: wrap; }
-  .ht-nav a { font-size: 0.92rem; font-weight: 600; text-decoration: none; max-width: 45%; }
-  .ht-nav .fwd { margin-left: auto; text-align: right; }
 </style>

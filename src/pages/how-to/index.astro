@@ -1,51 +1,72 @@
 ---
 import Base from '../../layouts/Base.astro';
-import { howtos } from '../../data/howtos.js';
+import { levels, lessonCount } from '../../data/curriculum.js';
+
+// The flat index — "every lesson on one page." Deliberately NOT in the menu
+// (2026-07-28): the Learn mega-menu links all of these directly, so an index of
+// pages already in the menu wasn't earning a slot. It stays linked from the foot
+// of /start so it keeps a navigation path and never becomes orphaned — and it
+// serves anyone who'd rather scan one list than browse by level.
+// Grouped by level, reading from curriculum.js, so it can't drift from the menu.
 ---
 <Base
-  title="How-to guides · BitcoinKeys.guide"
-  description="Plain-English how-to guides for holding your own Bitcoin: hot vs cold storage, choosing a hardware wallet, backing up your seed, testing your backup, and staying safe day to day."
-  verified="2026-07-15"
+  title="Every lesson — the whole self-custody course · BitcoinKeys.guide"
+  description="Every lesson in the BitcoinKeys self-custody course on one page, in reading order and grouped by level — from what a Bitcoin key actually is, through choosing a setup, to backing it up, testing it, and living with it."
+  verified="2026-07-28"
 >
   <section class="prose">
-    <p class="eyebrow">How-to</p>
-    <h1>The <span class="accent">how-to</span> guides</h1>
-    <p class="lead">The practical skills of holding your own Bitcoin, each in plain English. Read them in order if you’re new, or jump to what you need.</p>
+    <p class="eyebrow">Every lesson</p>
+    <h1>The whole course, <span class="accent">one flat list</span></h1>
+    <p class="lead">All {lessonCount} lessons in reading order, grouped by level. This is the index — if you’d rather be walked through it, <a href="/start">Start here</a> lays out the same course with a line on why each level comes where it does.</p>
   </section>
 
-  <section>
-    <ol class="ht-list">
-      {howtos.map((h, i) => (
-        <li>
-          <a href={`/how-to/${h.slug}`} class="ht-card">
-            <span class="idx num">{String(i + 1).padStart(2, '0')}</span>
-            <span class="ht-body">
-              <span class="ht-title">{h.title}</span>
-              <span class="ht-lead">{h.lead}</span>
-            </span>
-            <span class="arw" aria-hidden="true">→</span>
-          </a>
-        </li>
-      ))}
-    </ol>
-  </section>
+  {levels.map((lv) => (
+    <section class="lvl-block">
+      <p class="lvl-head">
+        <span class:list={['lvl-n', { opt: lv.optional }]}>{lv.id}</span>
+        <span class="lvl-t">{lv.title}</span>
+        <span class="lvl-why">{lv.blurb}</span>
+      </p>
+      <ol class="ht-list">
+        {lv.lessons.map((l, i) => (
+          <li>
+            <a href={l.href} class="ht-card">
+              <span class="idx num">{lv.id}.{i + 1}</span>
+              <span class="ht-body">
+                <span class="ht-title">{l.label}</span>
+                {l.note && <span class="ht-lead">{l.note}</span>}
+              </span>
+              <span class="arw" aria-hidden="true">→</span>
+            </a>
+          </li>
+        ))}
+      </ol>
+    </section>
+  ))}
 
   <section class="prose">
     <div class="callout">
       <span class="label">Not sure where to start?</span>
-      <p>These are chapter 5 of the guide. If you’ve never done any of this before, back up to <a href="/start">Start here</a> — it lays out all six chapters in order and shows where these fit. To see which <em>setup</em> you’re building toward, read <a href="/ladder">the ladder</a> (chapter 4), or let the <a href="/quiz">quiz</a> name it for you.</p>
+      <p>Level 101 from the top. If you’d rather skip to the setup that fits you, the <a href="/quiz">quiz</a> names it in six plain questions — then turns it into a <a href="/checklist">checklist</a> you can work through.</p>
     </div>
   </section>
 </Base>
 
 <style>
-  .ht-list { list-style: none; margin: 1.4rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.7rem; }
-  .ht-card { display: grid; grid-template-columns: 2.4rem 1fr auto; align-items: center; gap: 1rem;
+  .lvl-block { margin-bottom: 0.4rem; }
+  .lvl-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0.5rem 0.7rem; margin: 0 0 0.2rem; }
+  .lvl-n { font-family: var(--mono); font-size: 0.95rem; font-weight: 700; color: var(--accent-ink);
+    background: var(--accent); border-radius: 0.4rem; padding: 0.1rem 0.5rem; }
+  .lvl-n.opt { background: var(--safe); }
+  .lvl-t { font-size: 1.15rem; font-weight: 680; letter-spacing: -0.015em; }
+  .lvl-why { color: var(--muted); font-size: 0.9rem; flex: 1 1 20rem; }
+  .ht-list { list-style: none; margin: 1.1rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.7rem; }
+  .ht-card { display: grid; grid-template-columns: 3.1rem 1fr auto; align-items: center; gap: 1rem;
     background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
     padding: 1.1rem 1.3rem; text-decoration: none; color: var(--text);
     transition: border-color .14s ease, transform .14s ease; }
   .ht-card:hover { border-color: var(--accent); transform: translateX(3px); }
-  .idx { font-family: var(--mono); color: var(--accent); font-weight: 700; }
+  .idx { font-family: var(--mono); color: var(--accent); font-weight: 700; font-size: 0.8rem; white-space: nowrap; }
   .ht-body { display: flex; flex-direction: column; gap: 0.2rem; min-width: 0; }
   .ht-title { font-weight: 650; letter-spacing: -0.01em; }
   .ht-lead { font-size: 0.88rem; color: var(--muted); line-height: 1.45; }
