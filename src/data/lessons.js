@@ -93,7 +93,7 @@ export const lessons = [
       },
       {
         "h": "Spread your backups across separate locations",
-        "body": "<p>One backup is one accident away from being gone. Two backups in the same house are really just one backup — the same fire or flood takes both. So the rule is <strong>at least two copies, in two genuinely separate places</strong>.</p><ul><li><strong>Home safe</strong> — fire-resistant and bolted down, as your primary copy. A safe you can carry is a safe a burglar can carry.</li><li><strong>A second, distant location</strong> — a bank safe deposit box, or a trusted family member in another city.</li><li>For larger holdings, spread across three or more places, even different regions, so no single disaster reaches all of them.</li></ul><p>The guiding idea: your backup should survive a catastrophe at any one location. And write down, in your estate documents, where each copy lives — \"I put it somewhere safe\" that you can't recall years later is a real and common way people lose coins.</p>"
+        "body": "<p>One backup is one accident away from being gone. Two backups in the same house are really just one backup — the same fire or flood takes both. So the rule is <strong>at least two copies, each in a genuinely separate place</strong>.</p><ul><li><strong>Home safe</strong> — fire-resistant and bolted down, as your primary copy. A safe you can carry is a safe a burglar can carry.</li><li><strong>A second, distant location</strong> — a bank safe deposit box, or a trusted family member in another city.</li><li>For larger holdings, spread across three or more places, even different regions, so no single disaster reaches all of them.</li></ul><p>The guiding idea: your backup should survive a catastrophe at any one location. And write down, in your estate documents, where each copy lives — \"I put it somewhere safe\" that you can't recall years later is a real and common way people lose coins.</p>"
       },
       {
         "h": "If you use a passphrase, back it up too",
@@ -113,7 +113,7 @@ export const lessons = [
       "Write the seed by hand and double-check every word against your device — never photograph it, type it, or store it in the cloud.",
       "Transfer the words to a stamped stainless steel backup that stress tests show actually survives fire, water, and crushing.",
       "Practice on a throwaway seed first, then destroy the paper once the metal copy is verified.",
-      "Keep at least two copies in two genuinely separate locations, so no single fire, flood, or theft reaches both.",
+      "Keep at least two copies, each in a genuinely separate location, so no single fire, flood, or theft reaches both.",
       "If you use a passphrase, back it up separately, in a different place from the seed.",
       "Do a wipe-and-restore test before funding the wallet — prove you can rebuild it from the backup alone.",
       "Write down where each backup lives for your heirs, and re-check everything about once a year."
