@@ -23,13 +23,27 @@
 // generate a new address"). Anything that was merely a true observation is not a
 // rule and was cut or rewritten. Three removals, all redundancy the owner caught:
 //
-//   · "Your Bitcoin is a key, hold the key hold the coins" — this WAS rule 04 ("not
+// RE-HOMED 2026-07-29 (later 2) — the hot/cold rule ("never keep long-term savings
+// on an internet-connected device") used to be rule 01, on the keys lesson. Two
+// things were wrong with that. It opened the whole course on a storage directive
+// before the reader had any reason to care, and it sat on the lesson that DEFINES
+// hot and cold rather than the one where temperature becomes a decision. It now
+// lives on the ladder, beside the "how much belongs at each temperature" section,
+// which is that rule in its decision form. The keys lesson keeps teaching the
+// concept and simply owns no rule — same as the rules page itself.
+//
+// The section did NOT move. Moving it to choose-a-wallet was considered and
+// rejected: the ladder is 102 lesson 1 and choose-a-wallet is 102 lesson 2, and
+// the ladder's tiering section builds on hot/cold explicitly — so the move would
+// have created exactly the forward reference this whole restructure removed.
+//
+//   · "Your Bitcoin is a key, hold the key hold the coins" — this WAS "not
 //     your keys, not your coins") wearing different words, and "understand your
 //     keys" is a premise of the course rather than something you can follow or
 //     break. Cut. The lesson keeps teaching it; it just isn't a rule.
 //   · "The simplest setup wins" + "more complexity isn't more security" were one
-//     idea split in two. Merged into rule 04.
-//   · "The device is replaceable, the words are the money" restated the cut rule 01
+//     idea split in two. Merged into one.
+//   · "The device is replaceable, the words are the money" restated the cut key rule
 //     from the other side. Its slot on the hardware-wallet lesson now carries a
 //     rule that lesson actually needs and nothing else covered: buy it new, direct,
 //     and set it up yourself (the supply-chain attack).
@@ -47,15 +61,7 @@ export const rules = [
   // ---- 101 · Foundations ----
   {
     n: 1,
-    short: 'Savings never go online',
-    rule: 'Never keep long-term savings on an internet-connected device.',
-    body: 'A wallet is <strong>hot</strong> when its keys sit on something that goes online, and <strong>cold</strong> when they don’t. Phone and desktop wallets are hot: fine for walking-around money, wrong for savings. Anything you are actually saving belongs on a device that stays offline — and writing your words into a note, a photo or a password manager puts them straight back online.',
-    href: '/learn/bitcoin-keys',
-    level: '101',
-    lesson: 'What are Bitcoin keys',
-  },
-  {
-    n: 2,
+    key: 'self-inflicted',
     short: 'You are the main risk',
     rule: 'You’re more likely to lose access to your Bitcoin than have it stolen.',
     body: 'The mental picture is a hacker. The reality is a house fire, a single backup nobody copied, a word miscopied and never checked, or an owner who died without leaving instructions. Thieves are real and worth defending against — but they are not the main thing standing between you and your Bitcoin. You are.',
@@ -64,7 +70,8 @@ export const rules = [
     lesson: 'How people lose Bitcoin',
   },
   {
-    n: 3,
+    n: 2,
+    key: 'not-your-keys',
     short: 'Not your keys, not your coins',
     rule: 'Not your keys, not your coins.',
     body: 'Bitcoin sitting on an exchange isn’t really your Bitcoin. It’s a promise from a company to give you some later — and companies go bankrupt, get hacked, and freeze accounts. Mt. Gox lost roughly 850,000 coins. FTX vaporised about $8 billion. Move your coins off the exchange after you buy. That one step is what this whole guide is about.',
@@ -75,7 +82,8 @@ export const rules = [
 
   // ---- 102 · Your setup ----
   {
-    n: 4,
+    n: 3,
+    key: 'simplest-setup',
     short: 'Simplest setup that covers you',
     rule: 'Choose the simplest setup that covers you.',
     body: 'Not the most impressive one, and not the one a vendor is selling — the simplest one that defends against risks you can name out loud. Climbing higher is never free: more keys, more devices and more clever schemes are the single biggest cause of lost Bitcoin, so complexity you don’t fully control is itself a threat. But <strong>“covers you” changes as your situation does</strong>. When the amount you’re securing has outgrown the rung you’re on — when thinking about it starts to make you uneasy — that is a real reason to move up, and one you can say in a single sentence. Climb for that. Don’t climb for the sake of it.',
@@ -84,7 +92,18 @@ export const rules = [
     lesson: 'The wallet configuration ladder',
   },
   {
+    n: 4,
+    key: 'savings-offline',
+    short: 'Savings never go online',
+    rule: 'Never keep long-term savings on an internet-connected device.',
+    body: 'A wallet is <strong>hot</strong> when its keys sit on something that goes online, and <strong>cold</strong> when they don’t. Phone and desktop wallets are hot: fine for walking-around money, wrong for savings. Anything you are actually saving belongs on a device that stays offline — and writing your words into a note, a photo or a password manager puts them straight back online.',
+    href: '/learn/ladder',
+    level: '102',
+    lesson: 'The wallet configuration ladder',
+  },
+  {
     n: 5,
+    key: 'buy-direct',
     short: 'Buy it new and direct',
     rule: 'Buy your hardware wallet new, direct from the maker, and set it up yourself.',
     body: 'A device bought second-hand, or from a marketplace reseller, can reach you already loaded with someone else’s keys — and you would not find out until your coins left. Order from the manufacturer’s own website, check the tamper seal when it arrives, and make the device generate a brand-new seed phrase in front of you. If one ever arrives already showing you a seed phrase, it is compromised. Don’t use it.',
@@ -96,6 +115,7 @@ export const rules = [
   // ---- 103 · The build ----
   {
     n: 6,
+    key: 'never-digital',
     short: 'Never digital',
     rule: 'Never let your seed words touch anything digital.',
     body: 'No photo. No cloud note. No password manager. No typing them into a phone or a computer, not even for a second, not even to “check” them. A digital copy of your words is a hot wallet holding everything you own, and it can leak years later when some account you forgot about gets breached. Paper, or better, metal.',
@@ -105,6 +125,7 @@ export const rules = [
   },
   {
     n: 7,
+    key: 'test-backup',
     short: 'Test before you fund',
     rule: 'Fully test your backup before you send any significant Bitcoin to your wallet.',
     body: 'One miscopied word makes a backup worthless, and you find that out on the day you need it — the worst possible day there is. Wipe the device and restore from your written words with a trivial amount first. Only once you have watched it work should real money go in. Then prove it again about once a year.',
@@ -114,6 +135,7 @@ export const rules = [
   },
   {
     n: 8,
+    key: 'verify-address',
     short: 'Verify on the device screen',
     rule: 'When sending Bitcoin, verify the address on the device’s own screen.',
     body: 'Malware exists that silently swaps the address you copied for an attacker’s, and your computer will show you the swap without blinking. The hardware wallet’s own little screen cannot be faked that way. Read the address there, confirm it matches where you meant to send, and only then approve. Every single time.',
@@ -125,6 +147,7 @@ export const rules = [
   // ---- 104 · The long haul ----
   {
     n: 9,
+    key: 'seed-words-scam',
     short: 'Asking for your words = scam',
     rule: 'If someone asks for your seed words, they’re a scammer.',
     body: 'Not your wallet maker, not your exchange, not support, not a “migration,” not a security check, not an urgent message about suspicious activity. There is no legitimate reason for anyone to ever ask — so there is no judgement call to make. The request itself is the proof. Phishing is the number-one real-world attack, and this one sentence defeats nearly all of it.',
@@ -134,6 +157,7 @@ export const rules = [
   },
   {
     n: 10,
+    key: 'never-talk',
     short: 'Never talk about your Bitcoin',
     rule: 'Never talk about your Bitcoin.',
     body: 'Physical attacks are almost never random. They start with a leaked customer list, get cross-referenced against anything you have said publicly about owning Bitcoin, and end at your door. Talk about Bitcoin the idea as loudly as you like — the technology, the economics, the freedom. Just never attach your own name to the fact that you hold it, and never attach a number.',
@@ -143,6 +167,7 @@ export const rules = [
   },
   {
     n: 11,
+    key: 'fresh-address',
     short: 'A fresh address every time',
     rule: 'Every time you receive Bitcoin, generate a new address.',
     body: 'Reusing one address publishes your whole financial history to anyone who looks — the ledger is public, and every payment to that address is permanently linked to every other. Your wallet makes fresh addresses for free, endlessly, and usually offers a new one by default. Let it. This single free habit does most of the privacy work there is.',
@@ -152,6 +177,7 @@ export const rules = [
   },
   {
     n: 12,
+    key: 'leave-a-plan',
     short: 'Leave a plan they can follow',
     rule: 'Leave your family a plan they can actually follow.',
     body: 'Most Bitcoin that vanishes forever wasn’t stolen — it was left behind with no instructions. Your family finds a metal plate and a strange gadget, has no idea what either is, and bins them. Write down what you have, where it is, and how to reach it, in language a grieving non-technical person can follow. Then rehearse it with them while you still can.',
@@ -186,6 +212,13 @@ export const ruleCountWord = WORDS[ruleCount] ?? String(ruleCount);
 export const ruleCountWordCap = ruleCountWord.charAt(0).toUpperCase() + ruleCountWord.slice(1);
 
 const normalize = (p) => (p || '').replace(/\/+$/, '') || '/';
+
+/**
+ * Cite a rule from prose by its stable key rather than its number — e.g.
+ * ruleByKey('never-digital'). Numbers shift whenever a rule is added, cut or
+ * re-homed; keys don't. Use this (or <RuleRef>) anywhere a page names a rule.
+ */
+export const ruleByKey = (key) => rules.find((r) => r.key === key) || null;
 
 /** Every rule a given lesson is responsible for teaching (some lessons own two). */
 export function rulesFor(pathname) {

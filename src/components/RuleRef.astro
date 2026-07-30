@@ -1,0 +1,14 @@
+---
+// Cite a rule from prose: <RuleRef key="never-digital" />
+//
+// Prose used to hardcode "rule 08" with a "#rule-8" link. The first time a rule
+// was cut and the rest renumbered, two such references silently started pointing
+// at the wrong rule — which is worse than no reference, because it reads as
+// authoritative. Rules are now cited by stable key and the number is looked up
+// at build time, so a renumber can never desynchronise the prose again.
+import { ruleByKey } from '../data/rules.js';
+const { key, label } = Astro.props;
+const r = ruleByKey(key);
+if (!r) throw new Error(`RuleRef: no rule with key "${key}" — see src/data/rules.js`);
+---
+<a href={`/learn/rules#rule-${r.n}`}>{label ?? `rule ${String(r.n).padStart(2, '0')}`}</a>

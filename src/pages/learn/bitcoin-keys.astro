@@ -12,6 +12,7 @@ import RuleBand from '../../components/RuleBand.astro';
 // property of a wallet and belongs here beside "a wallet is a configuration of
 // keys," while the money-tiering advice went to the ladder, where tier decisions
 // actually get made.
+import RuleRef from '../../components/RuleRef.astro';
 ---
 <Base
   title="What Bitcoin keys are, and how they work · BitcoinKeys.guide"
@@ -133,7 +134,7 @@ import RuleBand from '../../components/RuleBand.astro';
     <p>
       One warning that catches people: writing your seed words into a note, a photo, or a password manager
       instantly makes your cold wallet hot again — you’ve just put the key back on an internet-connected
-      device. That’s rule 08, and it’s one of the most common ways people lose everything.
+      device. That’s <RuleRef key="never-digital" />, and it’s one of the most common ways people lose everything.
     </p>
     <p class="deeper"><strong>Where this goes next:</strong> how much of your money belongs at each temperature is a setup decision, and that’s what <a href="/learn/ladder">the ladder</a> is for in the next level.</p>
 

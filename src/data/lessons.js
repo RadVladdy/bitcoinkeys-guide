@@ -19,7 +19,7 @@
 //   · opsec-basics     RENAMED phishing-and-scams and emptied of three sections
 //                      that belonged to other lessons. What was left had no page
 //                      of its own despite being the number-one real attack.
-//   · custodial-risk   RENAMED not-your-keys, to match rule 04.
+//   · custodial-risk   RENAMED not-your-keys, to match its rule.
 //   · recovery-rehearsal RENAMED test-your-backup.
 //   · inheritance      SPLIT into inheritance (the problem) + recovery-kit (the
 //                      build). At 1,613 words it was the heaviest page here.
