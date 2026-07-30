@@ -9,7 +9,11 @@ import RuleBand from '../../components/RuleBand.astro';
 // labelled OPTIONAL, and it opened by telling the reader they didn't need to read
 // it. That was true when it was a side-trip off an action-first site. It is now
 // lesson 2 of a linear course — the page the site is named after — so the optional
-// framing had to go. It also absorbed hot-vs-cold (§6): what hot and cold MEAN is a
+// framing had to go. It briefly absorbed hot-vs-cold as §6 (2026-07-29) — that left
+// again on 2026-07-30 to /learn/hot-and-cold, which reunites the definition with the
+// decision it exists for. This page defines what a KEY is; temperature is a property
+// of where the key LIVES, which is a 102 setup question.
+// (old note) what hot and cold MEAN is a
 // property of a wallet and belongs here beside "a wallet is a configuration of
 // keys," while the money-tiering advice went to the ladder, where tier decisions
 // actually get made.
@@ -113,44 +117,7 @@ import RuleRef from '../../components/RuleRef.astro';
     <Diagram name="signing" caption="You never send your key. The device signs inside itself and sends out a signature — proof anyone can check, but no one can reverse into the key." />
     <p class="deeper"><strong>Deeper dive:</strong> <a href="/deep-dive/signing">sign a payment yourself →</a> — then try to tamper with it and watch the signature break.</p>
 
-    <h2 id="hot-cold">6 · Hot and cold — where a key lives</h2>
-    <p>
-      One last property, and it’s the one that decides how exposed you are. A wallet is
-      <strong>hot</strong> when its keys sit on something connected to the internet, and <strong>cold</strong>
-      when they don’t. A phone app, a desktop app, a browser wallet — all hot. Your keys there may be
-      encrypted and locked behind a fingerprint, but the device is still online, so it’s reachable by
-      whatever reaches any online device: malicious apps, phishing, remote attacks.
-    </p>
-    <p>
-      A <strong>cold</strong> wallet keeps the keys on a device that stays offline — usually the hardware
-      wallet from §3. An attacker gets only a few narrow moments at it: when you first set it up, when you
-      sign a payment, and when you recover it. The rest of the time it is simply out of reach. That’s the
-      whole advantage, and it’s a big one.
-    </p>
-    <p>
-      Think of it as a spectrum rather than a switch. The real question for any wallet is: <em>at what
-      moments could someone get in, and what would that take?</em> Which is why the rule isn’t “cold is good,
-      hot is bad” — it’s <strong>match the wallet to the job</strong>. Keep walking-around money hot, where
-      losing it would sting but not hurt. Keep savings cold. Never let the two mix, and never keep meaningful
-      amounts in a phone wallet.
-    </p>
-    <p>
-      One warning that catches people: writing your seed words into a note, a photo, or a password manager
-      instantly makes your cold wallet hot again — you’ve just put the key back on an internet-connected
-      device. That’s <RuleRef key="never-digital" />, and it’s one of the most common ways people lose everything.
-    </p>
-    <p class="deeper"><strong>Where this goes next:</strong> how much of your money belongs at each temperature is a setup decision, and that’s the job of <strong>The wallet configuration ladder</strong>, the first lesson of the next level.</p>
-
-    <div class="callout safe">
-      <span class="label">The whole thing in one sentence</span>
-      <p style="margin:0">
-        Your bitcoin is a <strong>key</strong>; the <strong>words</strong> are a backup of that key; a
-        <strong>wallet</strong> is how your keys are arranged; <strong>signing</strong> proves you hold
-        the key without ever revealing it; and <strong>cold</strong> means that key stays offline.
-        Everything else in this guide is just how to keep that key safe.
-      </p>
-    </div>
-  </section>
+    </section>
 
   <!-- The old "Where to go from here" button row is gone (2026-07-29). It offered
        three ways to jump ahead — two of them into levels 102 and 103 — from a page

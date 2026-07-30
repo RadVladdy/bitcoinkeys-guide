@@ -43,7 +43,7 @@ export const checklistItems = [
   // ── Step 1 · Get set up ───────────────────────────────────────────────────
   { id: 'learn-hot-cold', phase: 'setup', t: 'Understand hot vs cold before you move anything',
     d: 'A hot wallet is connected to the internet — fine for spending money. A cold wallet keeps the keys offline — that’s where savings belong. Getting this straight first stops the most common beginner mistake.',
-    href: '/learn/bitcoin-keys', rule: 'savings-offline' },
+    href: '/learn/hot-and-cold', rule: 'savings-offline' },
   { id: 'get-device', phase: 'setup', t: 'Get a real hardware wallet',
     d: 'A device from our cold-storage tier — Bitcoin-only firmware available, its own screen, offline signing. Buy direct from the maker and check the tamper seal.',
     href: '/wallets', deviceSlot: true, rule: 'buy-direct' },

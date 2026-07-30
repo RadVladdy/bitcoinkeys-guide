@@ -73,11 +73,13 @@ export const levels = [
   {
     id: '102',
     title: 'Your setup',
-    why: 'Now that you know the risks, pick the simplest setup that covers them.',
+    why: 'Now that you know the risks, decide where your money lives — then pick the simplest setup that covers it.',
     blurb: 'Every real setup fits on one ladder. Find the lowest rung that covers you, and move up only when your situation genuinely outgrows it.',
     lessons: [
-      { href: '/learn/ladder',          label: 'The wallet configuration ladder', short: 'The wallet configuration ladder' },
-      { href: '/learn/choose-a-wallet', label: 'How to choose a hardware wallet', short: 'Choosing a hardware wallet' },
+      { href: '/learn/hot-and-cold',     label: 'Hot and cold — where your money lives', short: 'Hot and cold' },
+      { href: '/learn/ladder',           label: 'The wallet configuration ladder', short: 'The wallet configuration ladder' },
+      { href: '/learn/beyond-the-ladder', label: 'Beyond the ladder — BIP-85 and Shamir', short: 'Beyond the ladder', note: 'optional' },
+      { href: '/learn/choose-a-wallet',  label: 'How to choose a hardware wallet', short: 'Choosing a hardware wallet' },
     ],
   },
   {

@@ -1,0 +1,93 @@
+---
+import Base from '../../layouts/Base.astro';
+import LessonNav from '../../components/LessonNav.astro';
+import LessonEyebrow from '../../components/LessonEyebrow.astro';
+import Diagram from '../../components/Diagram.astro';
+import { shamirNote, bip85 } from '../../data/ladder.js';
+
+// ADDED 2026-07-30. Both of these used to be callouts on the ladder page, which was
+// wrong twice over: they are not rungs (neither changes how many keys sign), and a
+// two-sentence callout can't carry a real trade-off. the owner: "I do want a page just
+// explaining what those are in this section... and then, of course, on that page we
+// can link out to the demonstrations."
+//
+// BIP-85 first, Shamir second — the owner's order, and it is the right one: BIP-85 makes
+// backups FEWER, Shamir makes one backup SPLIT. Fewer-then-split reads as a widening
+// of the same question ("how many pieces should my backup be in?"), where the reverse
+// reads as two unrelated tricks.
+//
+// It sits BEFORE choose-a-wallet on purpose, not after: Shamir needs device support
+// (Trezor implements SLIP-39 natively, others vary), so a reader who cares about it
+// needs to know before they spend money, not after.
+//
+// The explanation lives HERE, not on the demos. It briefly lived on /deep-dive/shamir
+// (earlier the same day, when the ladder merge had nowhere else to put it) — that is
+// undone: 102 explains, 201 demonstrates, and the demo pages link back here.
+const s = shamirNote;
+---
+<Base
+  title="Beyond the ladder — BIP-85 and Shamir backup · BitcoinKeys.guide"
+  description="Two optional refinements that aren't rungs on the ladder: BIP-85 derives many seeds from one master so you keep fewer backups, and Shamir (SLIP-39) splits one backup into shares where any few rebuild it. What each buys you, and what each costs."
+  verified="2026-07-30"
+>
+  <section class="prose">
+    <LessonEyebrow />
+    <h1>Beyond the ladder — <span class="accent">two refinements that aren’t rungs</span></h1>
+    <p class="lead">The ladder is about <em>how many keys sign</em>. These two are about something else entirely: <strong>how your backups are shaped</strong>. Neither adds a signer, so neither is a rung — you can bolt either onto any rung, or skip both and lose nothing important.</p>
+
+    <div class="callout">
+      <span class="label">You can skip this lesson</span>
+      <p style="margin:0">Nothing here is required to hold Bitcoin safely, and most holders never use either. It’s here because you <em>will</em> hear both names, and it’s better to know what they are — and why you probably don’t need them — than to wonder.</p>
+    </div>
+  </section>
+
+  <section class="prose">
+    <h2>BIP-85 — one master seed, many child seeds</h2>
+    <p><strong>The problem it solves:</strong> backups multiply. A wallet here, a passphrase wallet there, a multisig key somewhere else — and each one is another set of words to write down, store, and keep track of for decades.</p>
+    <p set:html={bip85.note.replace(/ <a href="[^"]*">[^<]*<\/a>/, '')}></p>
+    <p>
+      In practice: you keep <strong>one</strong> master seed backed up properly, and derive every other wallet
+      you need from it, on demand, by index — child number 1, child number 2, and so on. The children are
+      ordinary seed phrases; nothing about them looks unusual, and they work in any wallet.
+    </p>
+    <div class="callout warn">
+      <span class="label">What it costs you</span>
+      <p style="margin:0">You have concentrated everything onto one seed. That master now deserves the care you would otherwise have spread across all of them — because it is no longer <em>a</em> backup, it is <em>every</em> backup. And you must remember which child index was which, which is a new note to keep, though not a secret one.</p>
+    </div>
+    <p class="deeper"><strong>See it work:</strong> <a href="/deep-dive/bip85">watch one master spawn child seeds →</a> — verified against the BIP-85 spec test vectors, on throwaway keys.</p>
+  </section>
+
+  <section class="prose">
+    <h2>Shamir backup (SLIP-39) — one backup, split into shares</h2>
+    <p><strong>The problem it solves:</strong> a single seed backup has to be in one place, and that place can burn down, flood, or be found.</p>
+    <p set:html={s.whatItIs.replace(/ <a href="[^"]*">[^<]*<\/a>/, '')}></p>
+
+    <Diagram name="shamir" caption="Any three of the five shares rebuild the seed. Any two reveal nothing at all." />
+
+    <h3>What it’s good at</h3>
+    <ul>{(s.gains ?? []).map((g) => <li set:html={g}></li>)}</ul>
+
+    <h3>What it costs you</h3>
+    <ul>{(s.costs ?? []).map((c) => <li set:html={c}></li>)}</ul>
+
+    {s.keyRisk && (
+      <div class="callout warn">
+        <span class="label">{s.keyRisk.label}</span>
+        <p set:html={s.keyRisk.body}></p>
+      </div>
+    )}
+
+    <h3>Who should use it</h3>
+    <p set:html={s.whoShould}></p>
+    <p class="deeper"><strong>See it work:</strong> <a href="/deep-dive/shamir">split a throwaway secret into shares →</a> — then try to rebuild it with too few and watch it fail.</p>
+  </section>
+
+  <section class="prose">
+    <div class="callout safe">
+      <span class="label">Choosing between them — and whether to bother</span>
+      <p style="margin:0">They pull in opposite directions. <strong>BIP-85 gives you fewer things to protect</strong> and concentrates the risk; <strong>Shamir gives you more things to protect</strong> and spreads it. If keeping track of several backups is what worries you, BIP-85 is the one to look at. If one backup sitting in one place is what worries you, Shamir is — though the next lesson’s advice applies first: <strong>two ordinary copies in two separate places solves that same problem with no new machinery at all</strong>, and for most holders that is the better answer.</p>
+    </div>
+  </section>
+
+  <LessonNav />
+</Base>

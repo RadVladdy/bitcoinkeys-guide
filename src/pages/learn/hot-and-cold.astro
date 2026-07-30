@@ -1,0 +1,106 @@
+---
+import Base from '../../layouts/Base.astro';
+import LessonNav from '../../components/LessonNav.astro';
+import LessonEyebrow from '../../components/LessonEyebrow.astro';
+import RuleBand from '../../components/RuleBand.astro';
+import RuleRef from '../../components/RuleRef.astro';
+import Diagram from '../../components/Diagram.astro';
+
+// ADDED 2026-07-30, and it is a REUNION rather than a new topic. The 7/29 pass split
+// hot-vs-cold in two — what the words MEAN went to /learn/bitcoin-keys §6 (a property
+// of a wallet), how much money sits at each temperature went to the ladder (a setup
+// decision). Both halves were correctly placed under that logic, and the result still
+// read wrong: the ladder is about how KEYS ARE ARRANGED, and a section about how much
+// MONEY sits where was visibly foreign to it. the owner: "I really don't feel like how
+// much belongs at each temperature belongs in this ladder page at all."
+//
+// So the two halves are one lesson again, and it opens 102: before you can choose a
+// configuration you have to know which money you are configuring FOR. Checked before
+// moving it — the four rungs do not depend on the temperature idea at all (only rung
+// 4's closing "when to climb" mentions a tiered portfolio, which now reads backwards,
+// correctly). The 7/29 note that "the ladder's tiering section builds on hot/cold" was
+// true of the SECTION, which is exactly what left.
+//
+// It also carries rule 04, which used to make the ladder the one lesson on the site
+// holding two rules (rule 12's pair is the deliberate exception). Now each holds one.
+---
+<Base
+  title="Hot and cold — where your money lives · BitcoinKeys.guide"
+  description="Hot wallets are connected to the internet; cold wallets aren't. Which matters less than the decision that follows from it: how much of your Bitcoin sits at each temperature, and how money moves between them."
+  verified="2026-07-30"
+>
+  <section class="prose">
+    <LessonEyebrow />
+    <h1>Hot and cold — <span class="accent">where your money lives</span></h1>
+    <p class="lead">Before you choose how your keys are arranged, decide which money you are arranging them for. Everything in this level follows from one distinction — whether a wallet’s keys are reachable from the internet — and from the decision that distinction forces: how much of your Bitcoin sits on each side of it.</p>
+    <RuleBand />
+  </section>
+
+  <section class="prose">
+    <h2 id="hot-cold">What hot and cold actually mean</h2>
+    <p>
+      A wallet is <strong>hot</strong> when its keys sit on something connected to the internet, and
+      <strong>cold</strong> when they don’t. A phone app, a desktop app, a browser wallet — all hot. Your keys
+      there may be encrypted and locked behind a fingerprint, but the device is still online, so it’s
+      reachable by whatever reaches any online device: malicious apps, phishing, remote attacks.
+    </p>
+    <p>
+      A <strong>cold</strong> wallet keeps the keys on a device that stays offline — usually a hardware
+      wallet. An attacker gets only a few narrow moments at it: when you first set it up, when you sign a
+      payment, and when you recover it. The rest of the time it is simply out of reach. That’s the whole
+      advantage, and it’s a big one.
+    </p>
+
+    <Diagram name="hot-cold" caption="Hot keys are reachable from the internet. Cold keys aren’t — which is why savings belong there." />
+
+    <p>
+      Think of it as a spectrum rather than a switch. The real question for any wallet is: <em>at what
+      moments could someone get in, and what would that take?</em> Which is why the rule isn’t “cold is good,
+      hot is bad” — it’s <strong>match the wallet to the job</strong>.
+    </p>
+    <p>
+      One warning that catches people: writing your seed words into a note, a photo, or a password manager
+      instantly makes your cold wallet hot again — you’ve just put the key back on an internet-connected
+      device. That’s <RuleRef key="never-digital" />, and it’s one of the most common ways people lose everything.
+    </p>
+  </section>
+
+  <section class="prose">
+    <h2>How much belongs at each temperature</h2>
+    <p>
+      That’s the definition. This is the part that’s actually a decision. Experienced holders rarely use one
+      wallet for everything — they run a few, at different temperatures, and let money flow between them.
+    </p>
+    <ul>
+      <li><strong>A hot wallet</strong> holds a small amount for spending. If your phone is lost or
+        compromised this balance could go with it — but because it’s small, that’s survivable. If you use
+        Lightning for everyday payments, those funds have to be hot by design.</li>
+      <li><strong>A cold wallet</strong> — a hardware wallet — holds the balance you’re not spending this
+        week but still want within reach. For most people this single device is the core of the whole setup.</li>
+      <li><strong>Deep cold storage</strong> holds the bulk, touched rarely. This is where the more involved
+        setups in the next lesson earn their keep, and it only becomes worth the extra effort once you’re
+        holding a substantial amount.</li>
+    </ul>
+    <p>
+      Money flows one way as your balance grows: income lands hot, gets swept to cold, and — once cold holds
+      more than you need soon — moves to deep cold. Spending reverses it: big needs come from the coldest
+      tier, everyday spending from the hot one. The payoff is that you’re never <em>afraid to touch</em> your
+      savings, because you haven’t mixed them with your spending money.
+    </p>
+    <p>
+      Match the effort to the amount. Starting small? A phone wallet is fine — the best wallet is the one
+      you’ll actually use and understand. Past pocket money, add a hardware wallet and keep only spending
+      money on the phone. You may also hear people insist on strict <strong>air-gapping</strong> — a device
+      that never plugs in and communicates only by scanned QR codes. It’s the most isolated form of cold
+      storage, but for most people a well-managed hardware wallet that plugs in by USB is already strong
+      enough. The discipline you bring matters more than the air gap.
+    </p>
+
+    <div class="callout safe">
+      <span class="label">The one line to take from this lesson</span>
+      <p style="margin:0">Spending money can be hot. <strong>Savings are cold, and they stay cold.</strong> Never let the two mix, and never keep a meaningful amount in a phone wallet. Everything in the rest of this level is about how to arrange the keys that hold the cold side.</p>
+    </div>
+  </section>
+
+  <LessonNav />
+</Base>

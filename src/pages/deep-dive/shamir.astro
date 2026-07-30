@@ -1,14 +1,11 @@
 ---
 import Base from '../../layouts/Base.astro';
 import '../../styles/demo.css';
-import { shamirNote } from '../../data/ladder.js';
 
-// GAINED the written explanation 2026-07-30. It used to live at /learn/ladder/shamir
-// — a rung-style page in 102, while the demonstration sat here in 201, the tier that
-// calls itself "optional, skippable, see it for yourself." Shamir is not a rung (it's
-// a BACKUP METHOD, not a signing configuration), so the explanation belonged with the
-// demo rather than beside the four rungs. The ladder lesson now names it in plain text.
-const s = shamirNote;
+// The written explanation lived here for about an hour on 2026-07-30, when the ladder
+// merge had nowhere else to put it. It now has somewhere: /learn/beyond-the-ladder, a
+// 102 lesson covering BIP-85 and Shamir together. 102 explains, 201 demonstrates — so
+// this page is the demo plus its caveat, and it links back to the lesson.
 ---
 <Base
   title="Split a secret into shares — the Shamir math behind SLIP-39 · BitcoinKeys.guide"
@@ -62,25 +59,6 @@ const s = shamirNote;
   </section>
 
   <section class="prose">
-    <h2>What Shamir backup actually is</h2>
-    <p set:html={s.whatItIs}></p>
-
-    <h3>What it’s good at</h3>
-    <ul>{(s.gains ?? []).map((g) => <li set:html={g}></li>)}</ul>
-
-    <h3>What it costs you</h3>
-    <ul>{(s.costs ?? []).map((c) => <li set:html={c}></li>)}</ul>
-
-    {s.keyRisk && (
-      <div class="callout warn">
-        <span class="label">{s.keyRisk.label}</span>
-        <p set:html={s.keyRisk.body}></p>
-      </div>
-    )}
-
-    <h3>Who should use it</h3>
-    <p set:html={s.whoShould}></p>
-
     <div class="callout">
       <span class="label">The honest caveat</span>
       <p style="margin:0">Splitting adds moving parts: more pieces to track, and a wrong threshold can lock <em>you</em> out. Most people are
@@ -88,7 +66,7 @@ const s = shamirNote;
         specifically want a <em>backup</em> spread across places without any one being enough.</p>
     </div>
     <p class="cta-row">
-      <a class="btn" href="/learn/ladder">← The configuration ladder</a>
+      <a class="btn" href="/learn/beyond-the-ladder">← Read the lesson on Shamir</a>
       <a class="btn ghost" href="/deep-dive/multisig">Multisig vs. this →</a>
       <a class="btn ghost" href="/deep-dive">All deeper dives →</a>
     </p>

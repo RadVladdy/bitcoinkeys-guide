@@ -2,10 +2,9 @@
 import Base from '../../../layouts/Base.astro';
 import LessonNav from '../../../components/LessonNav.astro';
 import LessonEyebrow from '../../../components/LessonEyebrow.astro';
-import Ladder from '../../../components/Ladder.astro';
 import Diagram from '../../../components/Diagram.astro';
 import RuleBand from '../../../components/RuleBand.astro';
-import { ladder, bip85 } from '../../../data/ladder.js';
+import { ladder } from '../../../data/ladder.js';
 import { questionCountWord } from '../../../data/quiz.js';
 
 // GAINED 2026-07-29: the "how much money at which temperature" material from the
@@ -54,38 +53,7 @@ const rungs = ladder;
     <p class="sub">New to keys, seed words, and what “signing” means? <a href="/learn/bitcoin-keys">Go back to what a key actually is →</a></p>
   </section>
 
-  <section>
-    <p class="config-head"><span class="config-eyebrow">Wallet configuration</span><span class="config-sub">how your keys are arranged — the ladder proper</span></p>
-    <Ladder here />
-  </section>
 
-  <section class="prose">
-    <h2>How much belongs at each temperature</h2>
-    <p>
-      Level 101 covered what <strong>hot</strong> and <strong>cold</strong> mean. This is the part
-      that’s actually a decision: how much of your money sits at each temperature. Experienced holders
-      rarely use one wallet for everything — they run a few, at different temperatures, and let money flow
-      between them.
-    </p>
-    <ul>
-      <li><strong>A hot wallet</strong> holds a small amount for spending. If your phone is lost or
-        compromised this balance could go with it — but because it’s small, that’s survivable. If you use
-        Lightning for everyday payments, those funds have to be hot by design.</li>
-      <li><strong>A cold wallet</strong> — a hardware wallet — holds the balance you’re not spending this
-        week but still want within reach. For most people this single device is the core of the whole setup.</li>
-      <li><strong>Deep cold storage</strong> holds the bulk, touched rarely. This is where the higher rungs
-        below earn their keep, and it only becomes worth the extra effort once you’re holding
-        a substantial amount.</li>
-    </ul>
-    <p>
-      Money flows one way as your balance grows: income lands hot, gets swept to cold, and — once cold holds
-      more than you need soon — moves to deep cold. Spending reverses it: big needs come from the coldest
-      tier, everyday spending from the hot one. The payoff is that you’re never <em>afraid to touch</em> your
-      savings, because you haven’t mixed them with your spending money. Match the effort to the amount:
-      starting small, a phone wallet is fine; past pocket money, add a hardware wallet and keep only spending
-      money on the phone.
-    </p>
-  </section>
 
   <section class="prose">
     <h2>The four rungs at a glance</h2>
@@ -153,10 +121,6 @@ const rungs = ladder;
       <li>Jumping straight to the top introduces complexity you’re not yet equipped to manage. That complexity is a bigger risk than the ones it’s meant to solve.</li>
     </ul>
 
-    <div class="callout">
-      <span class="label">Optional, and beside the ladder — not on it</span>
-      <p><strong>Shamir backup</strong> (SLIP-39) splits a single seed’s backup into shares, where any few rebuild it and no one share reveals anything. <span set:html={bip85.name.replace(/ — .*/, '')}></span> derives many child seeds from one master, cutting how many backups you keep. Neither is a signing configuration, so neither is a rung — they’re optional refinements you can add at any rung, and both concentrate risk somewhere new in exchange for what they give you. <strong>Both are explained and demonstrated in 201 · Under the hood</strong>, where you can watch them work on throwaway keys.</p>
-    </div>
 
     <div class="callout">
       <span class="label">Which rung is yours?</span>

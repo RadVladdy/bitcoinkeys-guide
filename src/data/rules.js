@@ -104,9 +104,9 @@ export const rules = [
     short: 'Savings never go online',
     rule: 'Never keep long-term savings on an internet-connected device.',
     body: 'A wallet is <strong>hot</strong> when its keys sit on something that goes online, and <strong>cold</strong> when they don’t. Phone and desktop wallets are hot: fine for walking-around money, wrong for savings. Anything you are actually saving belongs on a device that stays offline — and writing your words into a note, a photo or a password manager puts them straight back online.',
-    href: '/learn/ladder',
+    href: '/learn/hot-and-cold',
     level: '102',
-    lesson: 'The wallet configuration ladder',
+    lesson: 'Hot and cold — where your money lives',
   },
   {
     n: 5,
