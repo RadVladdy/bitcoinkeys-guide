@@ -66,7 +66,10 @@ import { questionCountWord, questionCountWordCap } from '../data/quiz.js';
     <h2>The ladder</h2>
     <p class="sub prose" style="margin-bottom:1.4rem;">Every setup fits on one ladder of rising complexity. <strong>Almost everyone belongs on the first rung or two</strong> — the names get technical as you climb, but you only move up if a real risk pushes you there. Find the lowest rung that covers you — and move up later only if your situation outgrows it.</p>
     <Ladder />
-    <p class="sub" style="margin-top:1.2rem; font-size:0.9rem;">Each rung links to a full walkthrough. <a href="/learn/ladder">Read the full ladder →</a></p>
+    <!-- The rungs stopped being pages on 2026-07-30 — they are sections of the one
+         ladder lesson, and the build walkthroughs moved to /checklist. This line
+         promised "a full walkthrough" behind each rung for both of those reasons. -->
+    <p class="sub" style="margin-top:1.2rem; font-size:0.9rem;">Each rung opens out below — what it solves, what it costs you, and who it’s for. <a href="/learn/ladder">Read the full ladder →</a></p>
   </section>
 
   <section>
@@ -85,7 +88,7 @@ import { questionCountWord, questionCountWordCap } from '../data/quiz.js';
 
   <section>
     <h2>The skills, in plain English</h2>
-    <p class="sub prose" style="margin-bottom:1.4rem;">Whatever setup you land on, these are the hands-on skills of holding your own Bitcoin. Each is a short, jargon-free how-to.</p>
+    <p class="sub prose" style="margin-bottom:1.4rem;">Whatever setup you land on, these are the hands-on skills of holding your own Bitcoin. Each is a short, jargon-free lesson.</p>
     <div class="grid cols-2">
       {lessons.map((h) => (
         <a href={`/learn/${h.slug}`} class="card">

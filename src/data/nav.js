@@ -6,7 +6,7 @@
 // TAKE ACTION. There is exactly ONE door into action — the quiz — which places you
 // on the ladder and produces your plan and your checklist. The ladder itself is an
 // EDUCATIONAL idea and so lives in Learn; nothing in Learn asks the reader to do
-// anything except read the next chapter.
+// anything except read the next lesson.
 //
 // A link marked `ref: true` is lookup material, not a lesson — the menus set it
 // apart so the list reads as "the course, then reference."

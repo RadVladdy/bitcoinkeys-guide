@@ -80,7 +80,7 @@ export const lessons = [
     "intro": "<p>When you set up a self-custody wallet, it shows you a list of 12 or 24 words. That list is your <strong>seed phrase</strong> — the one thing that can rebuild your wallet if your device is lost, stolen, or destroyed. Anyone who has those words can take your Bitcoin; anyone who loses them loses the coins for good. So the goal of a backup is simple: keep those words safe from fire, water, and time, keep them away from prying eyes, and make sure you (or your heirs) can still find and read them years from now. This page walks you through it, step by step.</p>",
     "sections": [
       {
-        "h": "Rule one: never keep it digital",
+        "h": "Never keep it digital",
         "body": "<p>The fastest way to lose your Bitcoin is to put your seed phrase into anything with a screen or a battery. A photo, a note in your phone, a password manager, a text file, an email to yourself — all of it eventually reaches the internet, and once it does, the words are exposed forever.</p><ul><li><strong>No photos.</strong> A quick picture of the words silently syncs to iCloud or Google Photos, and now your seed lives on a server you don't control.</li><li><strong>No typing it in.</strong> Not into a computer, a phone, a cloud drive, or a password app — not even \"just for a minute\" while you find your metal backup. That minute is the exposure.</li><li><strong>No cloud, ever.</strong> Treat any digital copy as if the coins are already gone.</li></ul><p>Your seed phrase should only ever exist in two places: written by hand on a physical object, and — for a moment during setup — on your hardware wallet's own screen.</p>"
       },
       {

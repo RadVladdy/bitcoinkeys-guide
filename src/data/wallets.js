@@ -320,7 +320,11 @@ export const standardGates = [
     key: 'verifiable', level: 'floor',
     title: 'Verifiable — not a closed black box',
     short: 'The code that touches your keys is open enough to inspect, so you are not simply trusting one company’s secret firmware.',
-    why: 'Principle number ten: verify, don’t trust. If the security-critical firmware is closed and unauditable, your safety reduces to a company’s word — and words have been broken before. Source you can read (ideally rebuild and match) clears this; a sealed operating system does not.',
+    // NOT "principle number ten" (which this read until 2026-07-30). "Verify, don't
+    // trust" is the UMBRELLA in rules.js — deliberately unnumbered — and rule 10 is
+    // "Talk about Bitcoin. Never talk about your Bitcoin." A typed number here also
+    // escaped the spine's citation grep, which only scans *.astro.
+    why: 'Verify, don’t trust — the idea every rule in this guide is an instance of. If the security-critical firmware is closed and unauditable, your safety reduces to a company’s word — and words have been broken before. Source you can read (ideally rebuild and match) clears this; a sealed operating system does not.',
   },
   // ---- Savings-grade (miss one → Built for spending, still secure) ----
   {
