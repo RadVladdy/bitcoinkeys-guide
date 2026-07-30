@@ -11,6 +11,8 @@
 // covers your threat model — it holds you back from needless complexity as
 // readily as it steps you up.
 
+import { numberWord, numberWordCap } from './numbers.js';
+
 export const questions = [
   {
     id: 'current',
@@ -100,11 +102,8 @@ export const questions = [
  * between Q1 and Q2, shown conditionally, and the copy promises plain questions.
  */
 export const questionCount = questions.length;
-const NUMBER_WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven',
-  'eight', 'nine', 'ten', 'eleven', 'twelve'];
-export const questionCountWord = NUMBER_WORDS[questionCount] ?? String(questionCount);
-export const questionCountWordCap =
-  questionCountWord.charAt(0).toUpperCase() + questionCountWord.slice(1);
+export const questionCountWord = numberWord(questionCount);
+export const questionCountWordCap = numberWordCap(questionCount);
 
 // Bitcoin-only collaborative-custody services, derived LIVE from custodians.js
 // (the /collaborative page's single source of truth) so the quiz and the

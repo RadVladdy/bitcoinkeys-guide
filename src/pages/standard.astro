@@ -1,6 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
-import { standardGates, tiers, coldWallets, spendingWallets, disqualifiedWallets, gateByKey, wallets, walletsVerified } from '../data/wallets.js';
+import { standardGates, tiers, tierCountWord, coldWallets, spendingWallets, disqualifiedWallets, gateByKey, wallets, walletsVerified } from '../data/wallets.js';
 
 const floorGates = standardGates.filter((g) => g.level === 'floor');
 const savingsGates = standardGates.filter((g) => g.level === 'savings');
@@ -31,7 +31,7 @@ import RuleRef from '../components/RuleRef.astro';
         <p>What we want on a device guarding a decade of cold savings. A secure device that misses one isn’t unsafe — it’s just <strong>built for spending</strong>, not for a vault.</p>
       </div>
     </div>
-    <p>That gives three tiers. Every device is covered in full no matter where it lands.</p>
+    <p>That gives {tierCountWord} tiers. Every device is covered in full no matter where it lands.</p>
   </section>
 
   <section class="tiers">

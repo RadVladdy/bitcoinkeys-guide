@@ -55,15 +55,16 @@
 // rather than the accent.
 
 import { deepDives } from './deepdives.js';
+import { ruleCountWord, ruleCountWordCap } from './rules.js';
 
 export const levels = [
   {
     id: '101',
     title: 'Foundations',
     why: 'The rules first, then what this all actually is — before you touch anything or spend a cent.',
-    blurb: 'Twelve rules hold up everything here. Meet them, then learn what a key is, how people lose Bitcoin, and why an exchange isn’t custody.',
+    blurb: `${ruleCountWordCap} rules hold up everything here. Meet them, then learn what a key is, how people lose Bitcoin, and why an exchange isn’t custody.`,
     lessons: [
-      { href: '/learn/rules',              label: 'The twelve rules',                  short: 'The twelve rules', note: 'read first' },
+      { href: '/learn/rules',              label: `The ${ruleCountWord} rules`,        short: `The ${ruleCountWord} rules`, note: 'read first' },
       { href: '/learn/bitcoin-keys',       label: 'What are Bitcoin keys',           short: 'What are Bitcoin keys' },
       { href: '/learn/how-bitcoin-is-lost', label: 'How people lose Bitcoin',           short: 'How people lose Bitcoin' },
       { href: '/learn/not-your-keys',      label: 'Not your keys, not your coins',      short: 'Not your keys, not your coins' },

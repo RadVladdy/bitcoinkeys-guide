@@ -3,6 +3,7 @@ import Base from '../../layouts/Base.astro';
 import LessonNav from '../../components/LessonNav.astro';
 import LessonEyebrow from '../../components/LessonEyebrow.astro';
 import { questionCountWord } from '../../data/quiz.js';
+import { numberWord } from '../../data/numbers.js';
 import RuleBand from '../../components/RuleBand.astro';
 
 // The five ways Bitcoin is lost, in plain English, each with the defence.
@@ -94,7 +95,7 @@ const buckets = [
 ---
 <Base
   title="How people actually lose Bitcoin · BitcoinKeys.guide"
-  description="The plain-English map of how Bitcoin is really lost — mostly mistakes, not hackers. Learn the five ways it happens so you can see each one coming, with the exact page in this guide that defends against each."
+  description={`The plain-English map of how Bitcoin is really lost — mostly mistakes, not hackers. Learn the ${numberWord(buckets.length)} ways it happens so you can see each one coming, with the exact page in this guide that defends against each.`}
   verified="2026-07-17"
 >
   <section class="risk-intro">
@@ -200,7 +201,7 @@ const buckets = [
   <section class="prose next">
     <h2>Now — which of these do <em>you</em> most need to defend?</h2>
     <p>
-      You don’t need to defend against all five equally. The right setup is the simplest one that
+      You don’t need to defend against all {numberWord(buckets.length)} equally. The right setup is the simplest one that
       covers <em>your</em> real risks. Answer {questionCountWord} plain questions and we’ll point you to it.
     </p>
     <p class="cta-row">

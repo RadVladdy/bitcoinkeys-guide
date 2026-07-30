@@ -1,6 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
-import { wallets, compareCriteria, walletsVerified, badgeDefs, chooserFilters, useCaseChips, budgetBuckets, coldWallets, spendingWallets, disqualifiedWallets, tierOf } from '../data/wallets.js';
+import { wallets, compareCriteria, walletsVerified, badgeDefs, chooserFilters, useCaseChips, budgetBuckets, coldWallets, spendingWallets, disqualifiedWallets, tierOf, tierCountWord } from '../data/wallets.js';
 
 const ratingMark = { yes: '✓', partial: '~', no: '✗' };
 const ratingClass = { yes: 'r-yes', partial: 'r-partial', no: 'r-no' };
@@ -19,7 +19,7 @@ const tableGroups = [
 ---
 <Base
   title="Compare Bitcoin hardware wallets · BitcoinKeys.guide"
-  description="An honest, independent comparison of the 2026 Bitcoin hardware wallets — Coldcard, Passport, Trezor, BitBox, Jade, Bitkey, Ledger. We rate every device in three tiers against a published standard — built for cold storage, built for spending, and one that doesn't clear our bar — with the reasoning for each. No affiliate links, no house brand."
+  description={`An honest, independent comparison of the 2026 Bitcoin hardware wallets — Coldcard, Passport, Trezor, BitBox, Jade, Bitkey, Ledger. We rate every device in ${tierCountWord} tiers against a published standard — built for cold storage, built for spending, and one that doesn't clear our bar — with the reasoning for each. No affiliate links, no house brand.`}
   verified={walletsVerified}
 >
   <section class="prose">
@@ -32,8 +32,8 @@ const tableGroups = [
       <p><a href="/learn/bitcoin-keys">How Bitcoin keys and wallets work →</a></p>
     </div>
     <div class="callout warn">
-      <span class="label">We rate every device in three tiers</span>
-      <p>Fit matters — but so does what a device is <em>for</em>. We sort all {wallets.length} into three tiers against a published, Bitcoin-only standard: <strong class="ti-cold">{coldWallets.length} built for cold storage</strong> (what we’d trust with long-term savings), <strong class="ti-spend">{spendingWallets.length} built for spending</strong> (secure, but suited to daily use or smaller balances), and <strong class="ti-dq">{disqualifiedWallets.length} that {disqualifiedWallets.length === 1 ? 'doesn’t' : 'don’t'} clear our bar</strong>. Every one is covered in full, with the reasoning. <a href="/standard">Read the standard →</a></p>
+      <span class="label">We rate every device in {tierCountWord} tiers</span>
+      <p>Fit matters — but so does what a device is <em>for</em>. We sort all {wallets.length} into {tierCountWord} tiers against a published, Bitcoin-only standard: <strong class="ti-cold">{coldWallets.length} built for cold storage</strong> (what we’d trust with long-term savings), <strong class="ti-spend">{spendingWallets.length} built for spending</strong> (secure, but suited to daily use or smaller balances), and <strong class="ti-dq">{disqualifiedWallets.length} that {disqualifiedWallets.length === 1 ? 'doesn’t' : 'don’t'} clear our bar</strong>. Every one is covered in full, with the reasoning. <a href="/standard">Read the standard →</a></p>
     </div>
   </section>
 

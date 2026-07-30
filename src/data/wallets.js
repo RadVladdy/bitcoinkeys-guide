@@ -21,6 +21,8 @@
 // standard (standardGates/tiers below, rendered at /standard). Within a tier,
 // fit decides — there is still no single "best" device, but there IS a bar.
 
+import { numberWord } from './numbers.js';
+
 export const walletsVerified = '2026-07-22';
 
 // rating scale used in the compare table + chooser badges: 'yes' | 'partial' | 'no'
@@ -571,3 +573,12 @@ export function ownedName(slug) {
   if (typeof slug === 'string' && slug.startsWith('x:')) return slug.slice(2);
   return (deviceBySlug[slug] && deviceBySlug[slug].name) || (ownableBySlug[slug] && ownableBySlug[slug].name) || slug;
 }
+
+/**
+ * How many tiers the standard defines, in words — so "three tiers" in page copy
+ * derives instead of being typed. Invariant #10. It was typed on four spots
+ * (/wallets description + callout label + callout body, /standard), one of them
+ * mid-sentence between two ALREADY-derived numbers.
+ */
+export const tierCount = tiers.length;
+export const tierCountWord = numberWord(tierCount);

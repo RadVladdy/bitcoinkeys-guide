@@ -57,6 +57,8 @@
 // `href` is here so the LESSONS can find their own rule. The rules page
 // deliberately ignores it — see above.
 
+import { numberWord, numberWordCap } from './numbers.js';
+
 export const rules = [
   // ---- 101 · Foundations ----
   {
@@ -206,10 +208,8 @@ export const ruleCount = rules.length;
  * The count as an English word, so page copy ("Twelve rules. That's the whole
  * thing.") can never drift from the array the way a hardcoded numeral would.
  */
-const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight',
-  'nine', 'ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen'];
-export const ruleCountWord = WORDS[ruleCount] ?? String(ruleCount);
-export const ruleCountWordCap = ruleCountWord.charAt(0).toUpperCase() + ruleCountWord.slice(1);
+export const ruleCountWord = numberWord(ruleCount);
+export const ruleCountWordCap = numberWordCap(ruleCount);
 
 const normalize = (p) => (p || '').replace(/\/+$/, '') || '/';
 
