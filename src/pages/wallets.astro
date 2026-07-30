@@ -26,11 +26,12 @@ const tableGroups = [
     <p class="eyebrow">Choose a device</p>
     <h1>Bitcoin hardware wallets, compared <span class="accent">honestly</span></h1>
     <p class="lead">There’s no one “best” hardware wallet — but there is a bar, and not every device clears it. We rate all of them against a <a href="/standard">published standard</a>, then help you pick on fit within your tier. Because we sell no device and take no affiliate money, we can say so plainly.</p>
-    <div class="callout">
-      <span class="label">The right mental model</span>
-      <p>The device is <strong>not</strong> your wallet — your <a href="/glossary#seed-phrase">seed phrase</a> is. (That’s the list of 12–24 words the device shows you at setup; written down, those words <em>are</em> your Bitcoin.) The hardware wallet is just a safe little screen for approving payments. Lose or break it and you restore from your written words onto a new one. So don’t agonise over the device; get the backup right.</p>
-      <p><a href="/learn/bitcoin-keys">How Bitcoin keys and wallets work →</a></p>
-    </div>
+    {/* "The right mental model" callout removed 2026-07-30 (the owner). It taught what a
+        wallet is versus what the device is — 101 material, and /learn/bitcoin-keys now
+        teaches it properly after the 7/30 rewrite (the one-way key chain, then the
+        wallet as both questions, then why the device is a signing device). Repeating
+        it here pushed the filter and the comparison table — the reason anyone opens
+        this page — a long way down. This is a tool page; the course does the teaching. */}
     <div class="callout warn">
       <span class="label">We rate every device in {tierCountWord} tiers</span>
       <p>Fit matters — but so does what a device is <em>for</em>. We sort all {wallets.length} into {tierCountWord} tiers against a published, Bitcoin-only standard: <strong class="ti-cold">{coldWallets.length} built for cold storage</strong> (what we’d trust with long-term savings), <strong class="ti-spend">{spendingWallets.length} built for spending</strong> (secure, but suited to daily use or smaller balances), and <strong class="ti-dq">{disqualifiedWallets.length} that {disqualifiedWallets.length === 1 ? 'doesn’t' : 'don’t'} clear our bar</strong>. Every one is covered in full, with the reasoning. <a href="/standard">Read the standard →</a></p>
