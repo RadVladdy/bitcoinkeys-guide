@@ -76,9 +76,9 @@ export const rules = [
   // ---- 102 · Your setup ----
   {
     n: 4,
-    short: 'Simplest setup, then stop',
-    rule: 'Choose the simplest setup that covers you, then stop climbing.',
-    body: 'Not the most impressive one, and not the one a vendor is selling — the simplest one that defends against risks you can name out loud. Climbing higher is never free: more keys, more devices and more clever schemes are the single biggest cause of lost Bitcoin. Complexity you don’t fully control is itself a threat, so climb only for a reason you can say in one sentence.',
+    short: 'Simplest setup that covers you',
+    rule: 'Choose the simplest setup that covers you.',
+    body: 'Not the most impressive one, and not the one a vendor is selling — the simplest one that defends against risks you can name out loud. Climbing higher is never free: more keys, more devices and more clever schemes are the single biggest cause of lost Bitcoin, so complexity you don’t fully control is itself a threat. But <strong>“covers you” changes as your situation does</strong>. When the amount you’re securing has outgrown the rung you’re on — when thinking about it starts to make you uneasy — that is a real reason to move up, and one you can say in a single sentence. Climb for that. Don’t climb for the sake of it.',
     href: '/learn/ladder',
     level: '102',
     lesson: 'The wallet configuration ladder',

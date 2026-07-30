@@ -71,7 +71,7 @@ export const levels = [
     id: '102',
     title: 'Your setup',
     why: 'Now that you know the risks, pick the simplest setup that covers them.',
-    blurb: 'Every real setup fits on one ladder. Find the lowest rung that covers you — then stop.',
+    blurb: 'Every real setup fits on one ladder. Find the lowest rung that covers you, and move up only when your situation genuinely outgrows it.',
     lessons: [
       { href: '/learn/ladder',          label: 'The wallet configuration ladder', short: 'The wallet configuration ladder' },
       { href: '/learn/choose-a-wallet', label: 'How to choose a hardware wallet', short: 'Choosing a hardware wallet' },
