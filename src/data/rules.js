@@ -88,7 +88,12 @@ export const rules = [
     key: 'simplest-setup',
     short: 'Simplest setup that covers you',
     rule: 'Choose the simplest setup that covers you.',
-    body: 'Not the most impressive one, and not the one a vendor is selling — the simplest one that defends against risks you can name out loud. Climbing higher is never free: more keys, more devices and more clever schemes are the single biggest cause of lost Bitcoin, so complexity you don’t fully control is itself a threat. But <strong>“covers you” changes as your situation does</strong>. When the amount you’re securing has outgrown the rung you’re on — when thinking about it starts to make you uneasy — that is a real reason to move up, and one you can say in a single sentence. Climb for that. Don’t climb for the sake of it.',
+    body: 'Not the most impressive one, and not the one a vendor is selling — the simplest one that defends against risks you can name out loud. <strong>No setup is simply “right”: every choice here trades one risk for another.</strong> What makes it harder for a thief to reach your Bitcoin usually makes it easier for you to lock yourself out, and what makes recovery easy for you makes it easier for someone else too. There is no arrangement without a downside — only the one whose downsides you chose on purpose.',
+    // Rule 03 is the only rule with a second paragraph, and it earns it: the first
+    // states the PRINCIPLE (every choice is a trade), the second the DIRECTIVE that
+    // follows from it. Run together they were 187 words against a 96-word longest,
+    // a wall on the one page whose whole job is twelve scannable lines.
+    body2: 'Which is why climbing higher is never free: more keys, more devices and more clever schemes are the single biggest cause of lost Bitcoin, so complexity you don’t fully control is itself a threat. But <strong>“covers you” changes as your situation does</strong>: when the amount you’re securing has outgrown the rung you’re on — when thinking about it starts to make you uneasy — that is a real reason to move up. Climb for that. Don’t climb for the sake of it.',
     href: '/learn/ladder',
     level: '102',
     lesson: 'The wallet configuration ladder',

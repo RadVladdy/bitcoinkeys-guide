@@ -61,6 +61,7 @@ import { rules, umbrella, ruleCount, ruleCountWord, ruleCountWordCap } from '../
           <div class="r-body">
             <h2>{r.rule}</h2>
             <p set:html={r.body}></p>
+            {r.body2 && <p class="r-more" set:html={r.body2}></p>}
             <p class="r-where">In full: <span class="mono">{r.level}</span> · {r.lesson}</p>
           </div>
         </li>
@@ -107,6 +108,7 @@ import { rules, umbrella, ruleCount, ruleCountWord, ruleCountWordCap } from '../
   .r-body h2 { margin: 0.05rem 0 0.4rem; color: var(--text); font-size: 1.08rem; letter-spacing: -0.01em;
     border: 0; padding: 0; }
   .r-body p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+  .r-more { margin-top: 0.55rem !important; }
   .r-where { margin-top: 0.6rem !important; font-family: var(--mono); font-size: 0.73rem;
     letter-spacing: 0.03em; color: var(--faint) !important; text-transform: uppercase; }
   .r-where .mono { color: var(--accent); font-weight: 700; }
