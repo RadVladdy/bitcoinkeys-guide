@@ -50,6 +50,11 @@ const optional = levels.filter((lv) => lv.optional);
   <section class="hero prose">
     <h1>Hold your own Bitcoin —<br><span class="accent">and understand every step.</span></h1>
     <p class="lead">Your Bitcoin isn’t really yours until you hold the <a href="/glossary#private-key">keys</a> — the secret that actually controls the coins. This is the plain-English guide to doing that safely, from your first wallet to storage solid enough to pass on to your family.</p>
+    <!-- Added 2026-07-30 (the owner): the pledge below says we have nothing to SELL, which
+         is a claim about us. It does not answer the question a first-time visitor is
+         actually asking — "is this going to hit a paywall?" That gets said here, in
+         the first thing they read, and stays one line. -->
+    <p class="free"><strong>All of it is free.</strong> The whole course, the setup finder, the checklist — no signup, no paywall, nothing to buy.</p>
     <div class="cta-row">
       <a href="/start" class="btn btn-primary">Start the course <span class="arw">→</span></a>
       <a href="/find-your-setup" class="btn btn-ghost">Find your setup</a>
@@ -179,6 +184,8 @@ const optional = levels.filter((lv) => lv.optional);
   .hero { padding: 1.5rem 0 2.2rem; }
   .hero h1 { margin-bottom: 1rem; }
   .cta-row { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.8rem; }
+  .free { margin: 1rem 0 0; color: var(--text); font-size: 1rem; }
+  .free strong { color: var(--safe); }
 
   /* ── Pledge ─────────────────────────────────────────────────────────────── */
   .trust { border: 1px solid var(--accent); border-radius: var(--radius);
