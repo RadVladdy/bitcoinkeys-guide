@@ -1,0 +1,159 @@
+---
+// The end-of-lesson knowledge check. See src/data/checks.js for the design rules;
+// the ones that constrain THIS file:
+//
+//   · Nothing is saved. No localStorage, no plan write, no fetch. State lives in
+//     the DOM for as long as the tab is open and dies with it. There is therefore
+//     no "clear on next visit" problem to solve — a reload IS the clear.
+//   · No outbound links, anywhere, including in explanations (invariant #9).
+//   · Renders NOTHING when the lesson owns no rule, or its rule has no check yet —
+//     the same self-locating, silent-when-absent behaviour as RuleBand.
+//
+// Self-locates from the URL exactly like RuleBand / LessonEyebrow / LessonNav.
+// `href` is accepted explicitly so the dynamic [slug] route can pass its own path.
+import { rulesFor } from '../data/rules.js';
+import { checksFor } from '../data/checks.js';
+
+const { href } = Astro.props;
+const mine = rulesFor(href ?? Astro.url.pathname)
+  .map((r) => ({ rule: r, qs: checksFor(r.key) }))
+  .filter((x) => x.qs);
+const total = mine.reduce((n, x) => n + x.qs.length, 0);
+---
+{total > 0 && (
+  <section class="lcheck" data-total={total}>
+    <div class="lc-head">
+      <p class="lc-k mono">Check yourself</p>
+      <p class="lc-sub">
+        {total === 1 ? 'One question' : `${total} questions`} on what this lesson just covered.
+        Nothing is scored, recorded or saved — it isn’t sent anywhere and it’s gone when you close the tab.
+      </p>
+    </div>
+
+    {mine.map(({ rule, qs }) => qs.map((c, i) => (
+      <div class="lc-q" data-q>
+        <p class="lc-qt"><span class="lc-n mono">{i + 1}</span> {c.q}</p>
+        <div class="lc-opts">
+          {c.options.map((o) => (
+            <button class="lc-opt" type="button" data-c={o.c ? '1' : null}>{o.t}</button>
+          ))}
+        </div>
+        <p class="lc-why" hidden>{c.why}</p>
+      </div>
+    )))}
+
+    <div class="lc-foot">
+      <p class="lc-score mono" data-score hidden></p>
+      <button class="lc-reset" type="button" data-reset hidden>Clear answers</button>
+    </div>
+    <noscript><p class="lc-ns">The check needs JavaScript. The lesson above stands on its own without it.</p></noscript>
+  </section>
+)}
+
+<script>
+  // Grading is entirely local: click → mark → reveal the explanation on a miss.
+  // Deliberately no storage of any kind (see checks.js). Each question is answered
+  // once; re-answering is what "Clear answers" is for, so a reader can't grind to a
+  // green score and mistake that for having learned it.
+  document.querySelectorAll('.lcheck').forEach((box) => {
+    const qs = Array.from(box.querySelectorAll('[data-q]'));
+    const scoreEl = box.querySelector('[data-score]');
+    const resetEl = box.querySelector('[data-reset]');
+    const total = Number(box.dataset.total || qs.length);
+    let answered = 0, right = 0;
+
+    const paint = () => {
+      resetEl.hidden = answered === 0;
+      scoreEl.hidden = answered === 0;
+      if (!answered) return;
+      scoreEl.textContent = answered < total
+        ? `${right} of ${answered} so far`
+        : right === total
+          ? `${right} of ${total} — all correct`
+          : `${right} of ${total} — read the notes above`;
+      scoreEl.classList.toggle('ok', answered === total && right === total);
+    };
+
+    qs.forEach((q) => {
+      const opts = Array.from(q.querySelectorAll('.lc-opt'));
+      const why = q.querySelector('.lc-why');
+      opts.forEach((btn) => btn.addEventListener('click', () => {
+        if (q.dataset.done) return;
+        q.dataset.done = '1';
+        const correct = btn.dataset.c === '1';
+        answered++; if (correct) right++;
+        opts.forEach((o) => {
+          o.disabled = true;
+          if (o.dataset.c === '1') o.classList.add('is-right');
+          else if (o === btn) o.classList.add('is-wrong');
+        });
+        // The explanation is the teaching, so it shows on a miss. On a correct
+        // answer it stays folded away — the reader already has the point, and
+        // printing it anyway trains people to stop reading these.
+        if (!correct) why.hidden = false;
+        paint();
+      }));
+    });
+
+    resetEl.addEventListener('click', () => {
+      answered = 0; right = 0;
+      qs.forEach((q) => {
+        delete q.dataset.done;
+        q.querySelector('.lc-why').hidden = true;
+        q.querySelectorAll('.lc-opt').forEach((o) => {
+          o.disabled = false;
+          o.classList.remove('is-right', 'is-wrong');
+        });
+      });
+      paint();
+    });
+  });
+</script>
+
+<style>
+  .lcheck { border: 1px solid var(--line); border-left: 3px solid var(--safe);
+    border-radius: var(--radius); background: var(--surface); padding: 1.4rem 1.5rem; margin-top: 1.6rem; }
+  .lc-head { margin-bottom: 1.2rem; }
+  .lc-k { margin: 0 0 0.3rem; color: var(--safe); font-size: 0.74rem; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase; }
+  .lc-sub { margin: 0; color: var(--muted); font-size: 0.9rem; line-height: 1.55; }
+
+  .lc-q { padding-top: 1.1rem; border-top: 1px solid var(--line-soft); }
+  .lc-q:first-of-type { padding-top: 0; border-top: 0; }
+  .lc-q + .lc-q { margin-top: 1.1rem; }
+  .lc-qt { margin: 0 0 0.8rem; color: var(--text); font-weight: 600; line-height: 1.45; }
+  .lc-n { color: var(--safe); font-weight: 800; margin-right: 0.4rem; }
+
+  .lc-opts { display: grid; gap: 0.5rem; }
+  .lc-opt { text-align: left; width: 100%; font-family: var(--sans); font-size: 0.95rem;
+    color: var(--text); cursor: pointer; background: var(--raise); border: 1px solid var(--line);
+    border-radius: 0.6rem; padding: 0.75rem 1rem; line-height: 1.45;
+    transition: border-color .14s ease, background .14s ease; }
+  .lc-opt:hover:not(:disabled) { border-color: var(--accent); background: var(--accent-soft); }
+  .lc-opt:disabled { cursor: default; }
+  .lc-opt.is-right { border-color: var(--safe); background: var(--safe-dim); color: var(--text); font-weight: 600; }
+  .lc-opt.is-right::before { content: "✓ "; color: var(--safe); font-weight: 800; }
+  .lc-opt.is-wrong { border-color: var(--warn); background: var(--warn-dim); }
+  .lc-opt.is-wrong::before { content: "✗ "; color: var(--warn); font-weight: 800; }
+  /* A disabled button that was neither picked nor correct should recede, not look
+     interactive — otherwise an answered question still reads as answerable. */
+  .lc-opt:disabled:not(.is-right):not(.is-wrong) { opacity: 0.55; }
+
+  .lc-why { margin: 0.75rem 0 0; padding: 0.85rem 1rem; border-left: 3px solid var(--warn);
+    background: var(--warn-dim); border-radius: 0.5rem; color: var(--text);
+    font-size: 0.92rem; line-height: 1.6; }
+
+  .lc-foot { display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+    margin-top: 1.2rem; min-height: 1.2rem; }
+  .lc-score { margin: 0; color: var(--muted); font-size: 0.82rem; }
+  .lc-score.ok { color: var(--safe); font-weight: 700; }
+  .lc-reset { background: none; border: none; color: var(--muted); font-size: 0.85rem;
+    cursor: pointer; padding: 0; text-decoration: underline; font-family: var(--sans); }
+  .lc-reset:hover { color: var(--accent); }
+  .lc-ns { margin: 0; color: var(--muted); font-size: 0.9rem; }
+
+  @media (max-width: 560px) {
+    .lcheck { padding: 1.2rem 1.1rem; }
+    .lc-opt { font-size: 0.92rem; }
+  }
+</style>

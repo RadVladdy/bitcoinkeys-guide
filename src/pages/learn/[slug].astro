@@ -5,6 +5,7 @@ import Diagram from '../../components/Diagram.astro';
 import { lessons } from '../../data/lessons.js';
 import RuleBand from '../../components/RuleBand.astro';
 import LessonEyebrow from '../../components/LessonEyebrow.astro';
+import LessonCheck from '../../components/LessonCheck.astro';
 
 export function getStaticPaths() {
   return lessons.map((h, i) => ({
@@ -71,6 +72,11 @@ const accentize = (title, phrase) => {
       </div>
     </section>
   )}
+
+  <!-- The knowledge check sits AFTER the lesson and BEFORE prev/next: you read,
+       you check it landed, then you move on. It self-locates by rule and renders
+       nothing on a lesson whose rule has no check yet. -->
+  <LessonCheck href={`/learn/${h.slug}`} />
 
   <!-- Prev/next now comes from <LessonNav />, which walks the whole course
        (curriculum.js) rather than just the how-to list. -->
