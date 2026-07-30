@@ -74,7 +74,7 @@ export const ladder = [
     cost: '$300–$800 (three devices)',
     tier: 'Tier 2 ($50K–$1M+) · high discipline',
     solves: 'Removes the single point of failure entirely. One key can be lost OR stolen and you’re still safe.',
-    introduces: 'Six-plus items to manage, the wallet descriptor to protect, and real operational complexity.',
+    introduces: 'Six-plus items to manage, the <a href="/glossary#wallet-descriptor">wallet descriptor</a> to protect, and real operational complexity.',
     built: true,
     whatItIs: 'A wallet made of several keys where more than one is needed to sign — most commonly <strong>2-of-3</strong>: three keys, any two together can spend. Each key ideally lives on its own hardware device, from a <em>different</em> manufacturer, all held by you. The keys live in different places (a common split: home, a bank safe-deposit box, and a trusted family member or second property). This is the first rung that genuinely removes single points of failure for personal-scale holdings. <a href="/deep-dive/multisig">Tap through a live 2-of-3 wallet →</a>',
     gains: [
@@ -83,7 +83,7 @@ export const ladder = [
       '<strong>Recoverable.</strong> Lose one key and you simply sign with the other two, move funds to a fresh 2-of-3, and you’re whole again.',
     ],
     costs: [
-      '<strong>Complexity — the top cause of lost Bitcoin.</strong> You now manage six sensitive items (three keys, three seed backups), plus the wallet descriptor and coordinator software.',
+      '<strong>Complexity — the top cause of lost Bitcoin.</strong> You now manage six sensitive items (three keys, three seed backups), plus the <a href="/glossary#wallet-descriptor">wallet descriptor</a> and coordinator software.',
       '<strong>Geographic coordination.</strong> To spend you need to reach two of three locations — manageable normally, hard during a crisis.',
       '<strong>Harder inheritance.</strong> “Just give them the seed” no longer works (see below).',
       '<strong>Arduous re-keying.</strong> A lost key means sweeping everything to a fresh setup and paying on-chain fees.',
@@ -102,7 +102,7 @@ export const ladder = [
       body: 'You’ll hear about <strong>3-of-5</strong> — five keys, any three sign. It’s the <em>same technology</em> as 2-of-3, just with more keys, so there’s nothing new to learn here. What changes is the trade-off: a 3-of-5 survives losing <em>two</em> keys (a 2-of-3 can’t), at the cost of six-to-eight secure locations and much heavier re-keying. For almost everyone that’s the wrong trade — the extra protection is small, the extra self-inflicted loss risk is large. 3-of-5 earns its keep only for a genuine multi-party or multi-jurisdiction need (family offices, distributed trustees, institutional custody with explicit inheritance planning). If that’s not you, stay at 2-of-3.',
     },
     whoShould: 'Holders with material Bitcoin exposure, the discipline to manage six distributed items, and a real plan for how the setup gets recovered if you’re unavailable. Everyone agrees it’s overkill for small balances, and a mistake to adopt before you’re confident with single-sig.',
-    inheritance: 'Your heirs need to locate three keys or seed backups, hold the wallet descriptor, know which software coordinates a spend, and understand the signing flow. That’s a high bar for a grieving non-technical person — which is exactly why many holders with substantial stacks choose the collaborative version (rung 4), where a professional partner carries that knowledge for your heirs.',
+    inheritance: 'Your heirs need to locate three keys or seed backups, hold the <a href="/glossary#wallet-descriptor">wallet descriptor</a>, know which software coordinates a spend, and understand the signing flow. That’s a high bar for a grieving non-technical person — which is exactly why many holders with substantial stacks choose the collaborative version (rung 4), where a professional partner carries that knowledge for your heirs.',
     whenToClimb: 'If managing the whole thing yourself — and especially handing it to your heirs — feels like too much, <a href="/learn/ladder/collaborative">collaborative custody (rung 4)</a> keeps the same multisig security while a partner carries the complexity. Adding more keys (3-of-5, above) is rarely the right move for an individual.',
   },
 
@@ -125,7 +125,7 @@ export const ladder = [
       '<strong>Much less to manage.</strong> Typically five items instead of seven — for many holders, the difference between “manageable” and “overwhelming.”',
       '<strong>Convenient spending.</strong> Sign with one key, ask the partner to co-sign; your second key stays untouched in its secure spot.',
       '<strong>A safety net.</strong> Lose a key and the partner can help you recover to a fresh setup — they can only help when asked, never spend alone.',
-      '<strong>Inheritance gets dramatically simpler.</strong> Your heirs contact the partner, prove who they are, and get help — no PSBT wrangling.',
+      '<strong>Inheritance gets dramatically simpler.</strong> Your heirs contact the partner, prove who they are, and get help — no <a href="/glossary#psbt">PSBT</a> wrangling.',
     ],
     costs: [
       '<strong>A partner is now in the loop.</strong> You’ve disclosed that you hold Bitcoin, and usually a rough amount — a privacy trade-off.',
@@ -135,7 +135,7 @@ export const ladder = [
     keyNote: {
       tone: 'safe',
       label: 'Sovereign recovery is the make-or-break test',
-      body: 'The one criterion that matters most when choosing a partner: can you still spend using your two keys plus the wallet descriptor <strong>if the partner vanishes tomorrow</strong>? Reputable partners publish open-source recovery tools that prove yes. Verify this before you commit — it’s the difference between a helper and a dependency.',
+      body: 'The one criterion that matters most when choosing a partner: can you still spend using your two keys plus the <a href="/glossary#wallet-descriptor">wallet descriptor</a> <strong>if the partner vanishes tomorrow</strong>? Reputable partners publish open-source recovery tools that prove yes. Verify this before you commit — it’s the difference between a helper and a dependency.',
     },
     providers: [
       { name: 'Unchained', note: 'White-glove partnership; documented inheritance protocols; attorney coordination.' },

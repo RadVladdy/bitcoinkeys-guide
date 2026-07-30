@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import LessonNav from '../../components/LessonNav.astro';
+import LessonEyebrow from '../../components/LessonEyebrow.astro';
 import { rules, umbrella, ruleCount, ruleCountWord, ruleCountWordCap } from '../../data/rules.js';
 
 // Lesson 1 of the whole course, and the only page on the site that deliberately
@@ -32,7 +33,7 @@ import { rules, umbrella, ruleCount, ruleCountWord, ruleCountWordCap } from '../
   verified="2026-07-29"
 >
   <section class="prose">
-    <p class="eyebrow">101 · Foundations · lesson 1</p>
+    <LessonEyebrow />
     <h1>{ruleCountWordCap} rules. <span class="accent">That’s the whole thing.</span></h1>
     <p class="lead">
       Everything on this site compresses into the rules below. Follow them and your Bitcoin is safe —

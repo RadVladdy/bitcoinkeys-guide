@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import LessonNav from '../../components/LessonNav.astro';
+import LessonEyebrow from '../../components/LessonEyebrow.astro';
 import Diagram from '../../components/Diagram.astro';
 import RuleBand from '../../components/RuleBand.astro';
 
@@ -20,7 +21,7 @@ import RuleRef from '../../components/RuleRef.astro';
   verified="2026-07-29"
 >
   <section class="prose">
-    <p class="eyebrow">101 · Foundations · lesson 2 of 4</p>
+    <LessonEyebrow />
     <h1>What Bitcoin keys are, <span class="accent">and how they work</span></h1>
     <p class="lead">
       This is the ground floor. What a “key” actually is, why 12 or 24 ordinary words can <em>be</em> that
@@ -67,7 +68,7 @@ import RuleRef from '../../components/RuleRef.astro';
       device’s own screen, and it comes back out <strong>signed</strong>, while the key itself never leaves. That’s why
       these are called <em>signing devices</em> rather than storage — they’re not a USB stick holding your coins,
       they’re a sealed room your key works inside (<a href="#signing">§5 shows exactly how</a>). The wallet is the
-      <em>arrangement</em> of keys itself. That distinction is exactly what <a href="/learn/ladder">the ladder</a> is about.
+      <em>arrangement</em> of keys itself — which is exactly what the next level, <strong>102 · Your setup</strong>, is about.
     </p>
 
     <Diagram name="multisig" caption="One way to arrange keys — 2-of-3 multisig: three keys exist, any two together approve a spend, so no single key is a point of failure." />
@@ -138,7 +139,7 @@ import RuleRef from '../../components/RuleRef.astro';
       instantly makes your cold wallet hot again — you’ve just put the key back on an internet-connected
       device. That’s <RuleRef key="never-digital" />, and it’s one of the most common ways people lose everything.
     </p>
-    <p class="deeper"><strong>Where this goes next:</strong> how much of your money belongs at each temperature is a setup decision, and that’s what <a href="/learn/ladder">the ladder</a> is for in the next level.</p>
+    <p class="deeper"><strong>Where this goes next:</strong> how much of your money belongs at each temperature is a setup decision, and that’s the job of <strong>The wallet configuration ladder</strong>, the first lesson of the next level.</p>
 
     <div class="callout safe">
       <span class="label">The whole thing in one sentence</span>

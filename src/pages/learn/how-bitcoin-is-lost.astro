@@ -1,10 +1,21 @@
 ---
 import Base from '../../layouts/Base.astro';
 import LessonNav from '../../components/LessonNav.astro';
+import LessonEyebrow from '../../components/LessonEyebrow.astro';
 import RuleBand from '../../components/RuleBand.astro';
 
-// The five ways Bitcoin is lost. Each is plain-English, with the real
-// mechanisms, and links to the page in this guide that defends against it.
+// The five ways Bitcoin is lost, in plain English, each with the defence.
+//
+// DE-FORWARD-LINKED 2026-07-30. Every bucket used to end in a row of links to
+// "the page in this guide that defends against it" — and this is lesson 3 of 15,
+// so eight of those nine links pointed at material the reader had not reached.
+// That is exactly what the old /principles page was doing at position 5, and it
+// is what invariant #9 exists to prevent: on this site links point backwards.
+//
+// The defence lines were never the problem — they're the reason the page works.
+// So they stay, and `covered` now NAMES the level and lesson in plain text, the
+// same device /learn/rules uses. Findable in the menu, nobody yanked out of
+// sequence. `links` survives only for genuinely backward targets.
 const buckets = [
   {
     n: 1,
@@ -17,11 +28,8 @@ const buckets = [
       { h: 'You die without leaving a plan.', d: 'Your family finds a metal plate or a hardware wallet and has no idea what it is or how to use it — so they bin it. The most common version: a hidden passphrase nobody knew about, so heirs restore the words, see an empty wallet, and assume there was nothing there.' },
     ],
     defense: 'Back up your words on metal, keep two copies in two places, test the restore before you fund it, and leave a plan your family can follow.',
-    links: [
-      { label: 'Back up your seed', href: '/learn/back-up-your-seed' },
-      { label: 'Test your recovery', href: '/learn/test-your-backup' },
-      { label: 'Plan for inheritance', href: '/learn/inheritance' },
-    ],
+    covered: 'Three lessons take this apart: <strong>Back up your seed phrase</strong> and <strong>Test your backup</strong> in 103 · The build, then <strong>Why Bitcoin doesn’t inherit like money</strong> in 104 · The long haul.',
+    links: [],
   },
   {
     n: 2,
@@ -34,10 +42,9 @@ const buckets = [
       { h: 'The seed you typed or photographed.', d: 'The moment your recovery words touch an internet-connected device — a photo that auto-uploads to the cloud, words typed into a phone — they can leak, sometimes years later when that cloud account is breached. Keep the words off anything digital, full stop.' },
     ],
     defense: 'Never type or photograph your recovery words. Verify every address on the hardware wallet’s screen. Assume any “support” message that wants your words is a scam.',
+    covered: 'The scams themselves get a whole lesson — <strong>Phishing and everyday safety</strong>, in 104 · The long haul. The address check is <strong>Send Bitcoin safely</strong>, in 103 · The build.',
     links: [
-      { label: 'Everyday safety habits', href: '/learn/phishing-and-scams' },
-      { label: 'Send Bitcoin safely', href: '/learn/send-bitcoin-safely' },
-      { label: 'Hot vs cold storage', href: '/learn/bitcoin-keys' },
+      { label: 'What a key really is', href: '/learn/bitcoin-keys' },
     ],
   },
   {
@@ -49,11 +56,9 @@ const buckets = [
       { h: 'The “$5 wrench.”', d: 'The blunt truth: cryptography can’t protect you from someone willing to threaten you until you hand it over. If they know you hold Bitcoin and can reach you, the strong encryption doesn’t matter.' },
       { h: 'Being picked as a target.', d: 'These attacks are almost never random. It usually starts with a data leak — an exchange gets breached and your name and home address end up on a list — which gets cross-referenced with anything you’ve posted publicly about holding Bitcoin. That’s the pipeline: leak → list → your door.' },
     ],
-    defense: 'The best physical protection is not being known as a holder — don’t broadcast that you own Bitcoin. Then keep backups out of obvious places, and split things up so no single location holds enough to spend. For a targeted threat, a <strong>passphrase</strong> turns your base seed into a <strong>decoy wallet</strong>: the recovery words alone open only a small, believable stash, while your real coins sit behind a passphrase that lives nowhere but in your head — so what a searcher (or a coercer) can find still isn’t the real thing.',
-    links: [
-      { label: 'Privacy and a low profile', href: '/learn/privacy' },
-      { label: 'Passphrase & decoy wallet', href: '/learn/ladder/passphrase' },
-    ],
+    defense: 'The best physical protection is not being known as a holder — don’t broadcast that you own Bitcoin. Then keep backups out of obvious places, and split things up so no single location holds enough to spend. For a targeted threat, a <strong>passphrase</strong> turns your base seed into a <strong>decoy wallet</strong>: the recovery words alone open only a small, believable stash, while the real coins sit behind a passphrase stored somewhere the words are not — so what a searcher finds still isn’t the real thing. <strong>Back that passphrase up as carefully as the seed, and keep it in a separate place.</strong> A passphrase living only in your memory is not a clever extra layer; it is the single most documented way this setup loses people their Bitcoin, and it’s the first item in this list wearing a disguise.',
+    covered: 'The habits that keep you off the list are <strong>Privacy and a low profile</strong>, in 104 · The long haul. The decoy setup itself is a rung on the ladder, in 102 · Your setup.',
+    links: [],
   },
   {
     n: 4,
@@ -64,10 +69,10 @@ const buckets = [
       { h: 'Your account gets frozen.', d: 'Even a healthy exchange can lock your withdrawals — during a hack, a legal order, or a “review” — and there’s nothing you can do but wait, sometimes forever.' },
     ],
     defense: 'Move your Bitcoin off the exchange and into your own custody after you buy — that single step is what this whole guide is about. And buy from a reputable <strong>Bitcoin-only</strong> service (River, Swan, Strike) rather than a multi-coin “crypto casino”: fewer distractions and gimmicks, a straightforward path to withdrawing to your own wallet, and a company whose entire business is Bitcoin.',
+    covered: 'The very next lesson — <strong>Not your keys, not your coins</strong> — is this one in full.',
     links: [
-      { label: 'When the exchange blows up', href: '/learn/not-your-keys' },
-      { label: 'Start here — the whole guide in order', href: '/start' },
       { label: 'The twelve rules', href: '/learn/rules' },
+      { label: 'Start here — the whole guide in order', href: '/start' },
     ],
   },
   {
@@ -80,10 +85,8 @@ const buckets = [
       { h: 'You send it over the “wrong network.”', d: 'Some exchanges and apps let you send “Bitcoin” out as a look-alike copy on another blockchain, or ask you to pick a “network” before you withdraw. Choose the wrong one and your coins land somewhere your normal wallet can’t see. The fix is simple: only ever send real, native Bitcoin, and at any network menu choose “Bitcoin.”' },
     ],
     defense: 'Verify the address on the hardware wallet’s screen, send a tiny test amount first, confirm it arrives, then send the rest — and never do it in a hurry. When withdrawing, make sure you’re sending real Bitcoin on the Bitcoin network.',
-    links: [
-      { label: 'Send Bitcoin safely', href: '/learn/send-bitcoin-safely' },
-      { label: 'Avoid the “wrong network”', href: '/learn/send-bitcoin-safely' },
-    ],
+    covered: 'All of it lands in one lesson: <strong>Send Bitcoin safely</strong>, in 103 · The build.',
+    links: [],
   },
 ];
 ---
@@ -94,7 +97,7 @@ const buckets = [
 >
   <section class="risk-intro">
    <div class="prose intro-main">
-    <p class="eyebrow">101 · Foundations · lesson 3 of 4</p>
+    <LessonEyebrow />
     <h1>How people actually lose <span class="accent">Bitcoin</span></h1>
     <p class="lead">
       Before you decide how to protect your Bitcoin, it helps to know what you’re protecting it
@@ -147,8 +150,8 @@ const buckets = [
       <p style="margin-bottom:0">
         Add a secret passphrase to stop a thief, and you’ve added a new way to lock <em>yourself</em>
         out. Spread your backup across three cities to survive a fire, and you’ve made it harder for
-        <em>you</em> to put it back together. That trade-off is why this guide is built as a
-        <a href="/learn/ladder">ladder</a> — you climb only as far as your real risks require, and no further.
+        <em>you</em> to put it back together. That trade-off is why the next level builds your setup
+        as a <strong>ladder</strong> — you climb only as far as your real risks require, and no further.
       </p>
     </div>
   </section>
@@ -172,11 +175,14 @@ const buckets = [
           <div class="defense">
             <span class="dlabel">How this guide defends it</span>
             <p set:html={b.defense}></p>
-            <div class="dlinks">
-              {b.links.map((l) => (
-                <a href={l.href}>{l.label} →</a>
-              ))}
-            </div>
+            {b.covered && <p class="dcovered" set:html={b.covered}></p>}
+            {b.links.length > 0 && (
+              <div class="dlinks">
+                {b.links.map((l) => (
+                  <a href={l.href}>{l.label} →</a>
+                ))}
+              </div>
+            )}
           </div>
         </li>
       ))}
@@ -190,7 +196,8 @@ const buckets = [
         Most defences trade one risk for another — but <strong>testing your recovery</strong> is the
         rare win-win. Wipe your wallet and restore it from your written words with a tiny amount, before
         you trust it with savings. You catch a broken backup while it’s still harmless, and you’ll never
-        have to improvise a recovery in a panic. <a href="/learn/test-your-backup">Here’s how →</a>
+        have to improvise a recovery in a panic. <strong>Test your backup</strong>, in 103 · The build,
+        walks the whole rehearsal.
       </p>
     </div>
   </section>
@@ -237,6 +244,10 @@ const buckets = [
   .defense { margin-top: 1.2rem; border-top: 1px solid var(--line-soft); padding-top: 1rem; }
   .dlabel { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
   .defense p { margin: 0.4rem 0 0.7rem; color: var(--muted); font-size: 0.95rem; }
+  /* Where the course teaches this, named in plain text — no forward links (invariant #9). */
+  .dcovered { font-size: 0.88rem !important; color: var(--faint) !important; border-left: 2px solid var(--line);
+    padding-left: 0.75rem; margin: 0.7rem 0 0 !important; }
+  .dcovered strong { color: var(--muted); font-weight: 600; }
   .dlinks { display: flex; flex-wrap: wrap; gap: 0.3rem 1.1rem; }
   .dlinks a { font-family: var(--mono); font-size: 0.85rem; color: var(--text); text-decoration: none; }
   .dlinks a:hover { color: var(--accent); }

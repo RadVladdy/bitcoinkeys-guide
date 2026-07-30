@@ -1,0 +1,21 @@
+---
+// The "101 · Foundations · lesson 3 of 4" line at the top of every lesson.
+//
+// ADDED 2026-07-30. It existed in five places before this: derived from
+// curriculum.js in learn/[slug].astro, and HAND-TYPED on the four lessons that are
+// their own .astro page (rules, bitcoin-keys, how-bitcoin-is-lost, ladder/index).
+// Inserting one lesson into 101 would have silently falsified three of them at
+// once — invariant #10, "no count is ever typed," on the one line whose entire job
+// is to state a count.
+//
+// Self-locates from the URL exactly like LessonNav and RuleBand, and renders
+// nothing on a page that isn't a lesson, so it can't invent a position.
+import { lessonFor } from '../data/curriculum.js';
+
+const lesson = lessonFor(Astro.url.pathname);
+---
+{lesson && (
+  <p class="eyebrow">
+    {lesson.levelId} · {lesson.levelTitle} · lesson {lesson.indexInLevel + 1} of {lesson.lessonsInLevel}
+  </p>
+)}

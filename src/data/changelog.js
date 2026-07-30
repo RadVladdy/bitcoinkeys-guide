@@ -9,6 +9,12 @@
 // Entry types: 'price' | 'device' | 'spec' | 'security' | 'feature' | 'content'
 export const changelog = [
   {
+    date: '2026-07-30',
+    type: 'security',
+    title: 'Correction: a passphrase kept only in your head is not a defence',
+    detail: 'We got one wrong and we are fixing it in the open. On “how people actually lose Bitcoin,” the defence against a physical attack described keeping your real coins behind a passphrase that “lives nowhere but in your head.” That contradicted the rest of this guide, which says — correctly, on the ladder, in the inheritance lesson, on your checklist and in your plan — that a passphrase living only in your memory is the single most documented way people lose passphrase-protected Bitcoin. It also contradicted the same page four items earlier, where “I’ll just remember it” is listed as a way Bitcoin gets lost. The decoy-wallet idea is sound and it stays: your recovery words alone open a small believable stash, while the real coins sit behind a passphrase. What changed is where that passphrase lives — backed up as carefully as the seed, and stored somewhere the seed is not. That still defeats a searcher who finds your words, and it does not lose your family the coins when you are gone. In the same pass, the “run your own node” lesson was missing the air-gapped-signing section its heading promised — the wrong text had been pasted under it — so the explanation of signing by QR code or memory card, and of what a PSBT actually is, is back where it belongs.',
+  },
+  {
     date: '2026-07-29',
     type: 'content',
     title: 'The course now opens with twelve rules — and every lesson teaches one of them',
@@ -36,7 +42,7 @@ export const changelog = [
     date: '2026-07-20',
     type: 'content',
     title: 'Sharper risk defenses + a quick way back to your plan',
-    detail: 'On “how people lose Bitcoin,” the physical-attack defense now covers the passphrase / decoy-wallet trick (your recovery words alone open only a believable decoy, while the real coins sit behind a passphrase in your head), and the exchange-failure defense now points you at reputable Bitcoin-only services (River, Swan, Strike) rather than multi-coin “crypto casinos.” And on the wallet comparison, once you add a device to your plan you’ll see a “↩ back to your plan” link so you can jump straight back.',
+    detail: 'On “how people lose Bitcoin,” the physical-attack defense now covers the passphrase / decoy-wallet trick (your recovery words alone open only a believable decoy, while the real coins sit behind a passphrase in your head) — the “in your head” part was wrong and was corrected on 30 July 2026, see that entry — and the exchange-failure defense now points you at reputable Bitcoin-only services (River, Swan, Strike) rather than multi-coin “crypto casinos.” And on the wallet comparison, once you add a device to your plan you’ll see a “↩ back to your plan” link so you can jump straight back.',
   },
   {
     date: '2026-07-20',

@@ -1,6 +1,7 @@
 ---
 import Base from '../../../layouts/Base.astro';
 import LessonNav from '../../../components/LessonNav.astro';
+import LessonEyebrow from '../../../components/LessonEyebrow.astro';
 import Ladder from '../../../components/Ladder.astro';
 import { bip85 } from '../../../data/ladder.js';
 import RuleBand from '../../../components/RuleBand.astro';
@@ -16,7 +17,7 @@ import RuleBand from '../../../components/RuleBand.astro';
   verified="2026-07-15"
 >
   <section class="prose">
-    <p class="eyebrow">102 · Your setup · lesson 1 of 2</p>
+    <LessonEyebrow />
     <h1>The wallet configuration <span class="accent">ladder</span></h1>
     <p class="lead">The major self-custody setups arrange themselves into a ladder of rising complexity. Each rung solves a real problem — and introduces new ways to fail.</p>
     <div class="callout">
