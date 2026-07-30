@@ -249,4 +249,12 @@ const markCls = { yes: 'y', partial: 'p', no: 'n' };
     border: 1px solid var(--safe); background: var(--safe-dim); border-radius: 0.6rem; padding: 0.7rem 1rem; font-size: 0.9rem; color: var(--muted); }
   .plan-nudge a { color: var(--accent); text-decoration: none; font-weight: 600; }
   .plan-nudge a:hover { text-decoration: underline; }
+
+  /* An author `display:` beats the UA rule for [hidden], so a class that sets one
+     renders an EMPTY BOX while the attribute says hidden. #plan-nudge did exactly
+     that on /wallets and /collaborative — a stray green pill every first-time
+     visitor saw, since the nudge only un-hides once you have a plan. The same trap
+     was already guarded for #chooser/#cmp-table in this file; it just was not
+     applied to the rest. (the owner spotted the pill, 2026-07-30.) */
+  .plan-nudge[hidden], .wc-plan[hidden], .wtabs[hidden] { display: none !important; }
 </style>
