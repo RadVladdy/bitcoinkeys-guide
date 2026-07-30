@@ -19,7 +19,9 @@ const linkify = (def) => def.replace(/<em>([^<]+)<\/em>/g, (m, inner) => {
     <p class="eyebrow">Glossary</p>
     <h1>Every term, in <span class="accent">plain English</span></h1>
     <p class="lead">No jargon left unexplained. Each term is one or two sentences, with a note on why it matters when you’re holding your own Bitcoin.</p>
-    <p class="sub">Prefer the big picture first? <a href="/learn/bitcoin-keys">How Bitcoin actually works →</a></p>
+    {/* Labelled with the lesson's own title. It read "How Bitcoin actually works"
+        until 2026-07-30, which promised a broader page than the one it opens. */}
+    <p class="sub">Prefer the big picture first? <a href="/learn/bitcoin-keys">What are Bitcoin keys →</a></p>
   </section>
 
   <section>

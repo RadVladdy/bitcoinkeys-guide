@@ -23,7 +23,12 @@ const termCount = glossary.length;
     <p class="lead">If you just bought Bitcoin and want to hold it yourself, you’re in the right place. This is the map: {lessonCount} short lessons across {levels.length} levels, each building on the one before. No jargon dumped on you, and nothing you have to decide yet.</p>
 
     <div class="callout">
-      <span class="label">The one idea underneath all of it</span>
+      {/* NOT "the one idea underneath all of it" (until 2026-07-30). That slot
+          belongs to the umbrella in rules.js — "Verify. Don't trust." — and the
+          home page was claiming it for rule 03 at the same time. This callout is
+          the invitation into the course, not a competing foundation: it states
+          the trade-off, rule 03 states the directive that follows from it. */}
+      <span class="label">The trade-off in every choice</span>
       <p>Every custody choice trades off <strong>losing access yourself</strong> against <strong>someone else getting access</strong>. Almost every safeguard against one makes the other worse. You don’t need zero risk — you need risks you can <em>name</em>. That’s what this course is for.</p>
     </div>
 
@@ -76,7 +81,10 @@ const termCount = glossary.length;
       <p>The reading is the hard part; the doing is a checklist. When this all makes sense — or if you’d rather see where you’d land first — the quiz asks {questionCountWord} plain questions and names the setup that fits you, then turns it into a step-by-step checklist. <strong>It never asks how much Bitcoin you hold</strong>, and it runs entirely in your browser.</p>
       <div class="cta-row">
         <a href="/quiz" class="btn btn-primary">Find your setup <span class="arw">→</span></a>
-        <a href="/learn/bitcoin-keys" class="btn btn-ghost">Start level 101</a>
+        {/* /learn/rules, not /learn/bitcoin-keys — the syllabus above lists the
+            rules as lesson 1 and tags them "read first"; this button used to
+            start the reader at lesson 2. */}
+        <a href="/learn/rules" class="btn btn-ghost">Start level 101</a>
       </div>
     </div>
   </section>

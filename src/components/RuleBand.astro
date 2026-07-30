@@ -53,9 +53,13 @@ const mine = rulesFor(href ?? Astro.url.pathname);
     letter-spacing: 0.14em; text-transform: uppercase; }
   .rb-n { font-weight: 800; }
   .rb-part { color: var(--faint); font-weight: 600; }
-  .rb-t { margin: 0; color: var(--text); font-weight: 650; font-size: 1.02rem; line-height: 1.35; }
+  /* The rule is the loudest thing in the band — it outranks the surrounding body
+     copy rather than matching it. Sized 2026-07-30 (the owner) to read as a statement.
+     Kept in step with the rules page's own list (.r-body h2) so the same sentence
+     is the same size wherever the guide states a rule. */
+  .rb-t { margin: 0; color: var(--text); font-weight: 650; font-size: 1.18rem; line-height: 1.38; }
 
   @media (max-width: 640px) {
-    .rb-t { font-size: 0.97rem; }
+    .rb-t { font-size: 1.08rem; }
   }
 </style>

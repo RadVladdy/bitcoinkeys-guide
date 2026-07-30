@@ -201,7 +201,11 @@ export const rules = [
 /** The one idea the other rules are all expressions of. Deliberately unnumbered. */
 export const umbrella = {
   rule: 'Verify. Don’t trust.',
-  body: 'Check your backup instead of assuming it. Check the address on the screen instead of trusting the computer. Check the rules yourself, with your own node, instead of taking a company’s word for what’s yours. Every rule above is one instance of this one.',
+  // The closing sentence — "Every rule above is one instance of this one." — was cut
+  // 2026-07-30. The callout's own label already says it contains all twelve, forty
+  // words earlier. Same redundancy the rule band's footer had, same fix: keep the
+  // label that frames it, drop the prose that restates the label.
+  body: 'Check your backup instead of assuming it. Check the address on the screen instead of trusting the computer. Check the rules yourself, with your own node, instead of taking a company’s word for what’s yours.',
   href: '/learn/run-a-node',
   level: '201',
   lesson: 'Run your own node',

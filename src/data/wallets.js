@@ -25,6 +25,14 @@ import { numberWord } from './numbers.js';
 
 export const walletsVerified = '2026-07-22';
 
+// `barCaveat` is the cold tier's honesty layer, and it must AGREE WITH THE BADGES.
+// Until 2026-07-30 the Trezor Safe 3 and Safe 5 carried none, so /standard called
+// them caveat-free while /wallets showed each of them an amber `~` on Bitcoin-only
+// AND on portable recovery — and their own sibling, the Safe 7, carried a caveat
+// written about the multi-coin default all three share. If a device shows a
+// `partial` on any field a standardGate depends on (btcOnly · openSource ·
+// reproducible · recoverability), it needs a caveat saying so in words.
+
 // rating scale used in the compare table + chooser badges: 'yes' | 'partial' | 'no'
 export const wallets = [
   {
@@ -65,7 +73,9 @@ export const wallets = [
     secureElement: 'yes',  // dual secure elements
     reproducible: 'yes',
     recoverability: 'yes',
-    useCases: ['multisig', 'budget'],
+    // NOT 'budget': at $170 it sits above every budget bucket the chooser offers
+    // ($150 / $100), so the chip surfaced it to readers who had asked for cheap.
+    useCases: ['multisig'],
     bestFor: 'The pocket-sized, lower-cost Coldcard — the same dual secure element, air-gapped MicroSD signing, and Bitcoin-only open-source firmware as the Q, in a credit-card form factor. An excellent affordable multisig signer or travel key; USB-C + NFC for tap-to-sign.',
     watch: 'A numeric keypad (not a full keyboard) makes typing a passphrase more of a chore than the Q, and there’s no built-in QR scanner (it air-gaps via MicroSD). Firmware is source-available rather than OSI open-source — verifiable, but a licensing caveat for purists.',
     notes: {
@@ -103,6 +113,7 @@ export const wallets = [
   },
   {
     name: 'Trezor Safe 3',
+    barCaveat: 'Clears the bar — open-source, reproducibly buildable, with a Bitcoin-only firmware available. Two things worth knowing first: it ships multi-coin by default, so the Bitcoin-only build is something you have to choose; and its Shamir (SLIP-39) backup only restores in SLIP-39-aware wallets, so take the plain BIP-39 seed if you want a backup that restores anywhere.',
     image: '/devices/trezor-safe-3.webp',
     ladderReach: { s: 'strong', p: 'ok', m: 'ok', note: 'Two-button entry makes a passphrase a chore; multisig is only adequate. A fine hold-and-forget starter.' },
     vendor: 'SatoshiLabs',
@@ -125,6 +136,7 @@ export const wallets = [
   },
   {
     name: 'Trezor Safe 5',
+    barCaveat: 'Clears the bar — the same open-source, reproducible firmware and available Bitcoin-only build as the rest of the Safe line. Two caveats: it ships multi-coin by default, and it defaults to a Shamir (SLIP-39) backup, which only restores in SLIP-39-aware wallets. Choose the plain BIP-39 seed at setup unless you specifically want the split.',
     image: '/devices/trezor-safe-5.webp',
     ladderReach: { s: 'strong', p: 'strong', m: 'ok', note: 'Single-sig and passphrase are easy on the touchscreen; multisig is only adequate (and it’s multi-coin).' },
     vendor: 'SatoshiLabs',
@@ -147,7 +159,7 @@ export const wallets = [
   },
   {
     name: 'Trezor Safe 7',
-    barCaveat: 'A Bitcoin-only firmware is available and the source is open, so it clears the bar — but note it is a multi-coin device by default, and this model adds a Bluetooth radio a USB-only or air-gapped signer does not have. Every spend still needs on-device approval, so we treat the radio as a caveat, not a disqualifier.',
+    barCaveat: 'A Bitcoin-only firmware is available and the source is open, so it clears the bar — but note it is a multi-coin device by default, and this model adds a Bluetooth radio a USB-only or air-gapped signer does not have. Every spend still needs on-device approval, so we treat the radio as a caveat, not a disqualifier. Its Shamir (SLIP-39) backup, like the rest of the Safe line, only restores in SLIP-39-aware wallets — take the plain BIP-39 seed if you want one that restores anywhere.',
     image: '/devices/trezor-safe-7.webp',
     ladderReach: { s: 'strong', p: 'strong', m: 'ok', note: 'The big touchscreen makes single-sig and passphrase easy; multisig is only adequate (and it’s multi-coin).' },
     vendor: 'SatoshiLabs',
@@ -359,7 +371,7 @@ export const tiers = [
     key: 'spending',
     label: 'Built for spending',
     tagline: 'Secure — but suited to active or smaller balances, not a savings vault.',
-    blurb: 'These clear the security floor: no one can steal your coins, and they are honest self-custody. They miss a savings-grade criterion — a general-purpose OS, or a dependence on a living company’s servers — that adds surface or a lifeline you would not want on money you are locking away for a decade. For everyday use or smaller amounts, they are genuinely good.',
+    blurb: 'These clear the security floor: the maker cannot take your coins and no firmware feature can ship your keys off the device, so they are honest self-custody. They miss a savings-grade criterion — a general-purpose OS, or a dependence on a living company’s servers — that adds surface or a lifeline you would not want on money you are locking away for a decade. For everyday use or smaller amounts, they are genuinely good.',
   },
   {
     key: 'disqualified',

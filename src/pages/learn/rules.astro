@@ -105,7 +105,8 @@ import { rules, umbrella, ruleCount, ruleCountWord, ruleCountWordCap } from '../
   .r-n { font-family: var(--mono); font-size: 1.4rem; font-weight: 800; color: var(--accent); line-height: 1; }
   /* h2 inside the list: these ARE the page's structure now that the level
      headings are gone, so they carry the heading semantics rather than h3. */
-  .r-body h2 { margin: 0.05rem 0 0.4rem; color: var(--text); font-size: 1.08rem; letter-spacing: -0.01em;
+  /* In step with RuleBand's .rb-t — a rule reads the same size wherever it appears. */
+  .r-body h2 { margin: 0.05rem 0 0.45rem; color: var(--text); font-size: 1.18rem; letter-spacing: -0.01em;
     border: 0; padding: 0; }
   .r-body p { margin: 0; color: var(--muted); font-size: 0.95rem; }
   .r-more { margin-top: 0.55rem !important; }
@@ -114,12 +115,13 @@ import { rules, umbrella, ruleCount, ruleCountWord, ruleCountWordCap } from '../
   .r-where .mono { color: var(--accent); font-weight: 700; }
 
   .umb { margin-top: 2.4rem; }
-  .umb h3 { margin: 0.2rem 0 0.4rem; font-size: 1.14rem; }
+  /* A step above the numbered rules — it contains them. */
+  .umb h3 { margin: 0.2rem 0 0.45rem; font-size: 1.28rem; }
   .plain { margin-top: 2.2rem; }
 
   @media (max-width: 640px) {
     .rule { grid-template-columns: 2.3rem 1fr; gap: 0.8rem; padding: 1rem 1.05rem; }
     .r-n { font-size: 1.2rem; }
-    .r-body h2 { font-size: 1.02rem; }
+    .r-body h2 { font-size: 1.08rem; }
   }
 </style>

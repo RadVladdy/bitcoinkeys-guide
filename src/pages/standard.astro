@@ -94,6 +94,55 @@ import RuleRef from '../components/RuleRef.astro';
     </div>
   </section>
 
+  {/* ── Tier detail, BEST FIRST ──────────────────────────────────────────────
+      The three detail sections used to run disqualified → spending → cold, while
+      the tier cards at the top of the page ran cold → spending → disqualified.
+      One page, two orders — and the cold-tier caveats landed last, where "all N
+      devices above" pointed at the disqualified and spending devices instead of
+      the cold ones. Reordered 2026-07-30 to match the cards (and /wallets' table,
+      which also groups best first). The positional reference is gone with it. */}
+
+  {caveated.length > 0 && (
+    <section class="prose">
+      <h2 id="built-for-cold-storage">Built for cold storage — and the caveats worth knowing</h2>
+      <p>All {coldWallets.length} devices in this tier clear the floor and every savings-grade criterion. {cleanCold.length > 0 && (<>The cleanest {cleanCold.length === 1 ? 'pick' : 'picks'} — <strong>{cleanColdNames}</strong> — {cleanCold.length === 1 ? 'clears' : 'clear'} the bar with no caveat at all. The other {caveated.length} earn their place too, but honesty cuts both ways: each makes a trade-off worth understanding before you buy.</>)}</p>
+    </section>
+    <section>
+      <ul class="caveats">
+        {caveated.map((w) => (
+          <li class="caveat">
+            <span class="cvname">{w.name}</span>
+            <span class="cvtext">{w.barCaveat}</span>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {spendingWallets.length > 0 && (
+    <section class="prose">
+      <h2 id="built-for-spending">Built for spending — secure, but not a vault</h2>
+      <p>These clear the floor: honest self-custody, where the maker can’t take your coins and no firmware feature can ship your keys off the device. They miss a savings-grade criterion, so we’d reach for the tier above for money you’re locking away — while happily using these for day-to-day or smaller balances.</p>
+    </section>
+    <section>
+      <div class="dcards">
+        {spendingWallets.map((w) => (
+          <article class="dcard spend">
+            <header class="dhead">
+              <div class="dtitle"><h3>{w.name}</h3><span class="vendor mono">{w.vendor}</span></div>
+              {w.image && <img class="dimg" src={w.image} alt={w.name} loading="lazy" />}
+            </header>
+            <p class="dfails-label spend">Misses (savings-grade):</p>
+            <ul class="dfails spend">
+              {w.tierNote.fails.map((k) => <li>{(gateByKey[k] && gateByKey[k].title) || k}</li>)}
+            </ul>
+            <p class="ddetail">{w.tierNote.detail}</p>
+          </article>
+        ))}
+      </div>
+    </section>
+  )}
+
   {disqualifiedWallets.length > 0 && (
     <section class="prose">
       <h2 id="doesnt-clear-our-bar">Doesn’t clear our bar — and exactly why</h2>
@@ -115,47 +164,6 @@ import RuleRef from '../components/RuleRef.astro';
           </article>
         ))}
       </div>
-    </section>
-  )}
-
-  {spendingWallets.length > 0 && (
-    <section class="prose">
-      <h2 id="built-for-spending">Built for spending — secure, but not a vault</h2>
-      <p>These clear the floor: honest self-custody, no one can steal your coins. They miss a savings-grade criterion, so we’d reach for the tier above for money you’re locking away — while happily using these for day-to-day or smaller balances.</p>
-    </section>
-    <section>
-      <div class="dcards">
-        {spendingWallets.map((w) => (
-          <article class="dcard spend">
-            <header class="dhead">
-              <div class="dtitle"><h3>{w.name}</h3><span class="vendor mono">{w.vendor}</span></div>
-              {w.image && <img class="dimg" src={w.image} alt={w.name} loading="lazy" />}
-            </header>
-            <p class="dfails-label spend">Misses (savings-grade):</p>
-            <ul class="dfails spend">
-              {w.tierNote.fails.map((k) => <li>{(gateByKey[k] && gateByKey[k].title) || k}</li>)}
-            </ul>
-            <p class="ddetail">{w.tierNote.detail}</p>
-          </article>
-        ))}
-      </div>
-    </section>
-  )}
-
-  {caveated.length > 0 && (
-    <section class="prose">
-      <h2>Cold-storage picks — the caveats worth knowing</h2>
-      <p>All {coldWallets.length} devices above are built for cold storage. {cleanCold.length > 0 && (<>The cleanest picks — <strong>{cleanColdNames}</strong> — clear the bar with no caveat at all. The remaining {caveated.length} earn their place too, but honesty cuts both ways: each makes a trade-off worth understanding before you buy.</>)}</p>
-    </section>
-    <section>
-      <ul class="caveats">
-        {caveated.map((w) => (
-          <li class="caveat">
-            <span class="cvname">{w.name}</span>
-            <span class="cvtext">{w.barCaveat}</span>
-          </li>
-        ))}
-      </ul>
     </section>
   )}
 

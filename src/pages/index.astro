@@ -4,6 +4,10 @@ import Ladder from '../components/Ladder.astro';
 import { lessons } from '../data/lessons.js';
 import { lessonCount, levels } from '../data/curriculum.js';
 import { questionCountWord, questionCountWordCap } from '../data/quiz.js';
+import { ruleByKey, ruleCountWord } from '../data/rules.js';
+
+// The governing rule is PULLED, never restated — same contract as /about.
+const simplest = ruleByKey('simplest-setup');
 ---
 <Base
   title="BitcoinKeys.guide — hold your own Bitcoin, and understand every step"
@@ -50,15 +54,24 @@ import { questionCountWord, questionCountWordCap } from '../data/quiz.js';
     </div>
   </section>
 
+  <!-- This section used to be headed "The one idea the whole guide is built on"
+       and RESTATED rule 03 in its own words ("adequately covers your threat model"
+       — jargon the rules deliberately avoid). Two problems, both fixed 2026-07-30:
+       the rule is now PULLED from rules.js like /about does, so a reworded rule
+       can't leave the front door arguing for the old one; and "the one idea" is
+       the umbrella's slot ("Verify. Don't trust.", deliberately unnumbered), which
+       /standard already honours. Three surfaces were each claiming to be the one
+       idea, and none of them was the one rules.js designates. -->
   <section>
-    <h2>The one idea the whole guide is built on</h2>
+    <h2>The rule the whole guide rests on</h2>
     <div class="prose">
       <div class="callout">
-        <span class="label">The rule</span>
-        <p>The best self-custody setup is <strong>the simplest one that adequately covers your threat model</strong> — the risks you can actually name. Not the most impressive, not the one a vendor recommends. The simplest one that defends against what can really go wrong, that your future self can recover, that your family can inherit, and that you have <em>actually tested</em>.</p>
+        <span class="label">Rule {String(simplest.n).padStart(2, '0')} of {ruleCountWord}</span>
+        <p class="rule-line">{simplest.rule}</p>
+        <p set:html={simplest.body}></p>
       </div>
+      <p class="sub">It’s one of <a href="/learn/rules">{ruleCountWord} rules</a> that hold up everything here — the first lesson of the course, and two minutes to read. Every lesson after it is one rule in full.</p>
       <p class="sub">Not sure what those risks even are? Start with the honest map: <a href="/learn/how-bitcoin-is-lost">how people actually lose Bitcoin →</a></p>
-      <p class="sub">More security isn’t better. Complexity is the single biggest cause of lost Bitcoin. Most people belong on the lower rungs and should stay there until a real reason pushes them up.</p>
     </div>
   </section>
 
@@ -123,5 +136,10 @@ import { questionCountWord, questionCountWordCap } from '../data/quiz.js';
   .pledge-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.6rem; }
   .pledge-grid .k { font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); display: block; margin-bottom: 0.4rem; }
   .pledge-grid p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+
+  /* The rule states itself at the same size it does in the band and on the rules
+     page — one sentence, one size, everywhere the guide states a rule. */
+  .rule-line { font-size: 1.18rem; font-weight: 650; line-height: 1.38; color: var(--text); margin-bottom: 0.6rem; }
+  @media (max-width: 640px) { .rule-line { font-size: 1.08rem; } }
   @media (max-width: 720px) { .pledge-grid { grid-template-columns: 1fr; gap: 1.1rem; } }
 </style>

@@ -42,7 +42,11 @@ export const custodians = [
     devices: 'Device included (Block’s own hardware + app — single vendor)',
     jurisdiction: 'Global (US + ~95 countries)',
     bestFor: 'The cheapest, simplest, no-KYC way into a 2-of-3 — recovery is built in (no seed phrase to lose), so it’s an especially good first collaborative setup for non-technical holders.',
-    watch: 'A closed, single-vendor stack: the code is source-available but under a Commons-Clause licence (not fully open-source), and recovery leans on Block’s app rather than open multisig tools.',
+    // Cross-surface note added 2026-07-30: Bitkey is the only entry here that is
+    // ALSO a device on /wallets, where our standard rates it "built for spending"
+    // rather than cold storage. Neither page acknowledged the other's verdict on
+    // the same vendor. Same underlying fact (the dependence on Block), two jobs.
+    watch: 'A closed, single-vendor stack: the code is source-available but under a Commons-Clause licence (not fully open-source), and recovery leans on Block’s app rather than open multisig tools. As a device we rate it built for spending rather than cold storage, for the same reason — see how we rate hardware.',
     notes: { openRecovery: 'You can move funds to any wallet anytime and there’s an Emergency Exit Kit — but the everyday recovery flows depend on Block’s app/infrastructure, so it earns a partial, not a clean check.' },
   },
   {
