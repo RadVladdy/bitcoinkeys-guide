@@ -169,7 +169,7 @@ export const lessons = [
     "intro": "<p>When you send Bitcoin, you type in a destination and approve the payment. That sounds routine, and it usually is. But Bitcoin payments cannot be reversed once they confirm, so a slip here is permanent. The good news: the risks are well understood, and each one has a plain, repeatable defence. Learn them once and sending becomes second nature.</p><p>A quick vocabulary note before we start. An <strong>address</strong> is the string of letters and numbers that says where your Bitcoin should go — think of it like an account number for a single payment. A <strong>network</strong> is the system your Bitcoin travels over; the real Bitcoin network is the one you want, and there are look-alikes. A <strong>hardware wallet</strong> is a small dedicated device that holds your keys and has its own little screen. Everything below builds on those three ideas.</p>",
     "sections": [
       {
-        "h": "The golden rule: verify the address on the device's own screen",
+        "h": "The golden rule: verify the address on the hardware wallet’s own screen",
         "body": "Before you approve any send, check the destination address on your hardware wallet's <strong>own screen</strong> — not just on your computer or phone.<br><br>Here's why this matters. There is a common type of malware that watches your clipboard. The moment you copy a Bitcoin address, it silently swaps in the attacker's address instead. The one you pasted looks almost identical, so you don't notice, and your coins go to a stranger. Your computer screen can lie to you. Your hardware wallet cannot — it shows the exact address it is about to send to, no matter what the computer claims.<br><br>So the habit is simple: when your hardware wallet displays the destination, read it against the address the recipient actually gave you. Check the first few characters and the last few characters, and for a large amount, read the whole thing. Only then press approve. This one step defeats clipboard malware and a compromised computer in a single motion. Never skip it for convenience — it is the step doing most of the work."
       },
       {
@@ -204,7 +204,7 @@ export const lessons = [
     "keyCallout": {
       "tone": "safe",
       "label": "Two habits, and this page is handled",
-      "body": "<strong>Read the address on the device’s own screen, and send a small test first.</strong> Malware can change what your computer shows you; it cannot change what the hardware wallet shows you. And a test send turns an irreversible mistake into a cheap one. At any “network” menu, the answer is always <strong>Bitcoin</strong>."
+      "body": "<strong>Read the address on the hardware wallet’s own screen, and send a small test first.</strong> Malware can change what your computer shows you; it cannot change what that little screen shows you. And a test send turns an irreversible mistake into a cheap one. At any “network” menu, the answer is always <strong>Bitcoin</strong>."
     },
     "checklist": [
       "Verify the destination address on the hardware wallet’s own screen, not just on your computer or phone.",

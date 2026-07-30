@@ -83,7 +83,7 @@ export const checklistItems = [
 
   // ── Step 4 · Live with it ─────────────────────────────────────────────────
   { id: 'daily-safety', phase: 'live', t: 'Learn the daily-safety habits',
-    d: 'Verify addresses on the device screen, treat unexpected messages as scams, and keep your Bitcoin off your public identity.',
+    d: 'Verify addresses on the hardware wallet’s screen, treat unexpected messages as scams, and keep your Bitcoin off your public identity.',
     href: '/learn/phishing-and-scams' },
   { id: 'low-profile', phase: 'live', t: 'Keep a low physical profile',
     d: 'Don’t advertise that you hold Bitcoin. Keep amounts vague, skip the branded gear, and reduce where your name is tied to it.',

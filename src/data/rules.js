@@ -136,8 +136,8 @@ export const rules = [
   {
     n: 8,
     key: 'verify-address',
-    short: 'Verify on the device screen',
-    rule: 'When sending Bitcoin, verify the address on the device’s own screen.',
+    short: 'Verify on the hardware wallet',
+    rule: 'When sending Bitcoin, verify the address on the hardware wallet’s own screen.',
     body: 'Malware exists that silently swaps the address you copied for an attacker’s, and your computer will show you the swap without blinking. The hardware wallet’s own little screen cannot be faked that way. Read the address there, confirm it matches where you meant to send, and only then approve. Every single time.',
     href: '/learn/send-bitcoin-safely',
     level: '103',
