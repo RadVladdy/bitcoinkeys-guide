@@ -221,11 +221,11 @@ function multisigFork(a, sharedNeed) {
       ? 'A fully self-custodied inheritance plan is entirely achievable here — your heirs recover from the keys plus a plain-English guide, with no company in the loop. It takes deliberate planning, but sovereignty and a real estate plan are not a trade-off you have to make.'
       : null,
     checklist: [
-      { text: 'Read the multisig walkthrough end-to-end before buying anything', howto: 'ladder/multisig' },
+      { text: 'Read the multisig walkthrough end-to-end before buying anything', howto: '/learn/ladder#rung-3' },
       { text: 'Buy 2–3 devices from TWO different vendors (directly from each)', howto: 'choose-a-wallet' },
       STEP.offline,
       { text: 'Back up EACH key’s seed on metal, stored in separate locations', howto: 'back-up-your-seed' },
-      { text: 'Back up the wallet descriptor (the map of your keys) — without it the keys can’t be reassembled', howto: 'ladder/multisig' },
+      { text: 'Back up the wallet descriptor (the map of your keys) — without it the keys can’t be reassembled', howto: '/learn/ladder#rung-3' },
       STEP.testRecover,
       ...(sharedNeed ? [{ text: 'Write your heirs a plain-English recovery guide and store it with the estate documents', howto: 'recovery-kit' }] : []),
       STEP.smallFirst,
@@ -244,7 +244,7 @@ function multisigFork(a, sharedNeed) {
       { text: 'Get your hardware key(s) from the service’s supported list — some (like Bitkey) send you the device', howto: 'choose-a-wallet' },
       STEP.offline,
       { text: 'Back up each key you control on metal, in separate locations', howto: 'back-up-your-seed' },
-      { text: 'Back up the wallet descriptor (the map of your keys) somewhere safe', howto: 'ladder/collaborative' },
+      { text: 'Back up the wallet descriptor (the map of your keys) somewhere safe', howto: '/learn/ladder#rung-4' },
       STEP.testRecover,
       { text: 'Document the recovery plainly for whoever needs it — partner or heirs', howto: 'recovery-kit' },
       STEP.smallFirst,
@@ -322,7 +322,7 @@ function primaryRec(a) {
       walletNote: 'Both of these make a passphrase easy to live with — the Coldcard Q has a full keyboard, the Trezor Safe 5 a touchscreen. You type a strong passphrase painlessly, with no on-screen fiddling and nothing typed into a computer.',
       checklist: [
         STEP.buy, STEP.offline, STEP.metal,
-        { text: 'Choose a strong passphrase — long and unguessable; it can’t be reset or recovered', howto: 'ladder/passphrase' },
+        { text: 'Choose a strong passphrase — long and unguessable; it can’t be reset or recovered', howto: '/learn/ladder#rung-2' },
         { text: 'BACK UP THE PASSPHRASE separately from the seed, in a different place — a passphrase only in your head is the #1 way people lose passphrase-protected Bitcoin', howto: 'back-up-your-seed' },
         { text: 'Test recovery with BOTH the seed and the passphrase before funding', howto: 'test-your-backup' },
         STEP.smallFirst,

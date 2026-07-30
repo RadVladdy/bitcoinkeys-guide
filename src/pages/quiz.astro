@@ -31,6 +31,7 @@ import { questionCountWordCap } from '../data/quiz.js';
 <script>
   import { questions, recommend } from '../data/quiz.js';
   import { wallets, keysForSetup, slugForName } from '../data/wallets.js';
+  import { rungAnchor } from '../data/ladder.js';
   import { savePlannedSetup, plannedSetupRung, plannedSetupLabel, loadLocal } from '../data/plan.js';
   import { mountOwnedPicker } from '../data/owned-picker.js';
   import { confirmDialog } from '../data/ui-dialog.js';
@@ -244,7 +245,7 @@ import { questionCountWordCap } from '../data/quiz.js';
         ${walletCard(p, false, 0)}
         <div class="r-checklist">${checklistHtml(p, null)}</div>
         ${p.vendors ? vendorsBlock(p.vendors) : ''}
-        <a class="r-how2" href="/learn/ladder/${esc(p.rungSlug)}">Read the ${esc(p.rungLabel)} walkthrough →</a>
+        <a class="r-how2" href="${rungAnchor(p.rungSlug)}">Read the ${esc(p.rungLabel)} walkthrough →</a>
         ${saveControl(p.rungSlug, p.label, tier, 'quiz-fork-' + p.key, recSlugsFrom(p.wallets))}
       </div>`;
     }).join('<div class="r-or mono">— or —</div>');
@@ -304,12 +305,12 @@ import { questionCountWordCap } from '../data/quiz.js';
         <h2 class="r-headline sm">${esc(secondary.headline)}</h2>
         <p class="r-why">${esc(secondary.when)}</p>
         ${(!primaryHasVendors && secondary.vendors) ? vendorsBlock(secondary.vendors) : ''}
-        <a class="r-how2" href="/learn/ladder/${esc(secondary.rungSlug)}">Read the ${esc(secondary.rungLabel)} walkthrough →</a>
+        <a class="r-how2" href="${rungAnchor(secondary.rungSlug)}">Read the ${esc(secondary.rungLabel)} walkthrough →</a>
         ${saveControl(secondary.rungSlug, secondary.headline, secondary.rungLabel, 'quiz-secondary')}
       </div>` : ''}
       <div class="r-links">
         <a class="btn-primary" href="/checklist">Build it — my step-by-step checklist →</a>
-        <a class="btn-ghost" href="/learn/ladder/${esc(primary.rungSlug)}">Read the full ${esc(primary.rungLabel)} walkthrough</a>
+        <a class="btn-ghost" href="${rungAnchor(primary.rungSlug)}">Read the full ${esc(primary.rungLabel)} walkthrough</a>
         <button class="btn-ghost" id="q-restart">Start over</button>
       </div>
       <p class="r-foot mono">Save the setup above and your checklist trims itself to just the steps you need.</p>

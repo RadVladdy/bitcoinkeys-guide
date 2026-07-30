@@ -24,13 +24,13 @@
     <div id="wa-locate"></div>
     <div id="wa-result" hidden></div>
     <noscript>
-      <p class="wa-ns">This tool needs JavaScript. You can place yourself by reading <a href="/learn/ladder">the ladder</a> — or <a href="/learn/ladder/single-sig">start at rung one</a> if you're new.</p>
+      <p class="wa-ns">This tool needs JavaScript. You can place yourself by reading <a href="/learn/ladder">the ladder</a> — or <a href="/learn/ladder#rung-1">start at rung one</a> if you're new.</p>
     </noscript>
   </div>
 </section>
 
 <script>
-  import { ladder, getRung } from '../data/ladder.js';
+  import { ladder, getRung, rungAnchor } from '../data/ladder.js';
   import { setups, extras, climbQuestions, assess } from '../data/whereami.js';
   import { saveLadderSlice } from '../data/plan.js';
 
@@ -94,7 +94,7 @@
         <h3>Get on the ladder — start at rung 1.</h3>
         <p>Bitcoin you don’t hold the keys to isn’t really yours. The first and biggest step is single-sig: your own hardware wallet, your own seed backup. Everything else on this ladder is a refinement of that.</p>
         <div class="wa-links">
-          <a class="btn-primary" href="/learn/ladder/single-sig">Read the rung-1 walkthrough →</a>
+          <a class="btn-primary" href="/learn/ladder#rung-1">Read the rung-1 section →</a>
           <a class="btn-ghost" href="/checklist">Walk me through it →</a>
         </div></div>`;
     }
@@ -103,7 +103,7 @@
         <p class="wa-vk mono">Verdict</p>
         <h3>Stay right where you are.</h3>
         <p><strong>${esc(c.name)}</strong> adequately covers what you’ve described. The single most common way people lose Bitcoin in self-custody is taking on complexity they don’t need — so staying put isn’t timidity, it’s the correct move. Come back and re-check when something real changes.</p>
-        <div class="wa-links"><a class="btn-ghost" href="/learn/ladder/${esc(slug)}">Re-read this rung →</a></div></div>`;
+        <div class="wa-links"><a class="btn-ghost" href="${rungAnchor(slug)}">Re-read this rung →</a></div></div>`;
     }
     // consider
     const trigList = triggers.map((t) => `<li>${esc(t)}</li>`).join('');
@@ -114,7 +114,7 @@
       <ul class="wa-trigs">${trigList}</ul>
       <div class="wa-climb"><span class="wa-vk mono">Where you’d go</span><p>${c.whenToClimb}</p></div>
       <p class="wa-hedge">This isn’t a push to climb. If none of the above is actually pressing for you, staying on <strong>${esc(c.name)}</strong> is still the right call — a higher rung you don’t fully control is its own risk.</p>
-      <div class="wa-links"><a class="btn-ghost" href="/learn/ladder/${esc(slug)}">Re-read this rung →</a></div></div>`;
+      <div class="wa-links"><a class="btn-ghost" href="${rungAnchor(slug)}">Re-read this rung →</a></div></div>`;
   }
 
   function renderResult() {

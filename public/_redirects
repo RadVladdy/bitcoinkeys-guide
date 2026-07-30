@@ -31,3 +31,12 @@
 /how-to/:slug              /learn/:slug               301
 /ladder                    /learn/ladder              301
 /ladder/:slug              /learn/ladder/:slug        301
+
+# The four rung pages + the Shamir page merged into the ladder lesson 2026-07-30.
+# Learn is a linear course; the rungs were outside curriculum.js, so clicking one
+# dropped the reader off it. Shamir/BIP-85 moved to 201, where the demos already were.
+/learn/ladder/single-sig     /learn/ladder#rung-1  301
+/learn/ladder/passphrase     /learn/ladder#rung-2  301
+/learn/ladder/multisig       /learn/ladder#rung-3  301
+/learn/ladder/collaborative  /learn/ladder#rung-4  301
+/learn/ladder/shamir         /deep-dive/shamir     301

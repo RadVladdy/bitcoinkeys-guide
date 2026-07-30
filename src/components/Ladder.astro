@@ -2,13 +2,17 @@
 import { ladder } from '../data/ladder.js';
 export interface Props { active?: string; linked?: boolean; }
 const { active, linked = true } = Astro.props;
+// Rung tiles anchor INTO the ladder lesson since the 2026-07-30 merge — the four
+// rung pages are gone. On the lesson itself that's a same-page jump; from the home
+// page it's a deep link. `here` is passed by the ladder lesson.
+const base = Astro.props.here ? '' : '/learn/ladder';
 ---
 <ol class="ladder" aria-label="The wallet configuration ladder">
   {ladder.map((r) => {
     const Tag = linked && r.built ? 'a' : 'div';
     return (
       <li class:list={['rung', { active: active === r.slug, ready: r.built, soon: !r.built }]} style={`--i:${r.step - 1}`}>
-        <Tag {...(linked && r.built ? { href: `/learn/ladder/${r.slug}` } : {})} class="rung-inner">
+        <Tag {...(linked && r.built ? { href: `${base}#rung-${r.step}` } : {})} class="rung-inner">
           <span class="step num">{r.step}</span>
           <span class="body">
             <span class="name">{r.name}</span>

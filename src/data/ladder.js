@@ -21,6 +21,25 @@ export const ladder = [
     short: 'Single-sig',
     tagline: 'One key, one seed, one backup — kept on a hardware device you control. The simplest self-custody that isn’t negligent.',
     forWho: 'Most newcomers · modest stack relative to net worth',
+    solves: 'Your coins leave someone else’s balance sheet and come under a key only you hold. That is the single biggest jump in safety on this whole ladder.',
+    introduces: 'One seed backup that must never be lost and never be seen. Everything now rests on that one thing.',
+    whatItIs: 'One hardware wallet holds a single seed. The device signs transactions; you confirm on its own screen and buttons. Your seed is backed up once or twice on metal, stored somewhere secure. That’s the whole setup — and for most people starting out, it’s the right one. This is the simplest setup that genuinely protects your coins, and there is a single mental model to learn.',
+    gains: [
+      '<strong>Simplicity.</strong> One device, one seed, one backup. Little to get wrong, little to forget.',
+      '<strong>Cost.</strong> A capable device runs $59–$249. No coordination software, no service fees.',
+      '<strong>Fast recovery.</strong> One seed phrase into one wallet and you’re back — no extra files or coordination to piece together.',
+      '<strong>Universal support.</strong> Every wallet app and every guide supports it.',
+    ],
+    costs: [
+      '<strong>No second layer.</strong> If someone gets the seed, they can spend the coins. Nothing else stands in the way.',
+      '<strong>Coercion exposure.</strong> With one seed, an attacker who forces you to hand it over sees the whole balance. A passphrase — the next rung — is the usual answer to that specific worry.',
+    ],
+    keyRisk: {
+      label: 'The single point of failure',
+      body: 'Everything rests on that one seed backup: it must <strong>never be lost</strong> and <strong>never be seen</strong>. Any single event that breaks one of those — a fire that takes an untested backup, a photo of the words, a nosy visitor — can take everything. Every rung above exists to remove exactly this weakness, at the cost of complexity.',
+    },
+    whoShould: 'Holders whose stack is modest relative to their net worth; anyone in their first year of self-custody; anyone whose main concern is exchange risk rather than a targeted physical attacker. The near-universal pattern across custody experts is <em>small balance on single-sig for convenience; large balance on multisig for security</em>. Leaping straight to a five-key setup adds complexity you’re not yet equipped to manage — and at this scale that complexity is a larger threat than the ones it defends against.',
+    whenToClimb: 'Worried that a found or photographed seed could be used against you? A passphrase — the next rung — answers that. Holdings large enough that a single point of failure is unacceptable? Multisig removes it. Want a professional safety net for your heirs? Collaborative custody is rung 4.',
     cost: '$59–$249',
     tier: 'Tier 1 ($1K–$50K)',
     built: true,
@@ -57,8 +76,7 @@ export const ladder = [
       body: 'The most common documented way people lose passphrase-protected Bitcoin: they pick a strong passphrase, memorise it, never write it down (“if someone finds it, the whole point is gone”), then forget it or die. The seed is backed up, so the wallet <em>looks</em> recoverable — it isn’t. If you use a passphrase, you must back it up as carefully as the seed, stored separately from it, in a different place.',
     },
     whoShould: 'Holders who want a second cryptographic layer without taking on the operational weight of multisig — especially when your realistic worry is “someone finds my seed backup” rather than a targeted attacker. Less useful if your real concern is sophisticated coercion, where the deniability argument gets shaky.',
-    inheritance: 'This rung lives or dies on making the passphrase inheritable. A passphrase only in your head is a plan that fails the moment you can’t answer the phone. The cleanest fix is to back up the passphrase separately from the seed, in a place your heirs can reach with instructions — or, for the disciplined, to split it into shares (see the optional <a href="/learn/ladder/shamir">Shamir backup</a>) so no single location holds the whole secret.',
-    whenToClimb: 'If your holdings grow to where a single seed backup — decoy or not — feels like too much resting on one thing, the answer is to remove the single point of failure entirely with <a href="/learn/ladder/multisig">multisig (rung 3)</a>. If you want split backups without full multisig, look at the optional <a href="/learn/ladder/shamir">Shamir backup</a>.',
+    whenToClimb: 'If your holdings grow to where a single seed backup — decoy or not — feels like too much resting on one thing, the answer is to remove the single point of failure entirely with multisig (rung 3). If you want split backups without full multisig, look at the optional Shamir backup.',
   },
 
   {
@@ -102,8 +120,7 @@ export const ladder = [
       body: 'You’ll hear about <strong>3-of-5</strong> — five keys, any three sign. It’s the <em>same technology</em> as 2-of-3, just with more keys, so there’s nothing new to learn here. What changes is the trade-off: a 3-of-5 survives losing <em>two</em> keys (a 2-of-3 can’t), at the cost of six-to-eight secure locations and much heavier re-keying. For almost everyone that’s the wrong trade — the extra protection is small, the extra self-inflicted loss risk is large. 3-of-5 earns its keep only for a genuine multi-party or multi-jurisdiction need (family offices, distributed trustees, institutional custody with explicit inheritance planning). If that’s not you, stay at 2-of-3.',
     },
     whoShould: 'Holders with material Bitcoin exposure, the discipline to manage six distributed items, and a real plan for how the setup gets recovered if you’re unavailable. Everyone agrees it’s overkill for small balances, and a mistake to adopt before you’re confident with single-sig.',
-    inheritance: 'Your heirs need to locate three keys or seed backups, hold the <a href="/glossary#wallet-descriptor">wallet descriptor</a>, know which software coordinates a spend, and understand the signing flow. That’s a high bar for a grieving non-technical person — which is exactly why many holders with substantial stacks choose the collaborative version (rung 4), where a professional partner carries that knowledge for your heirs.',
-    whenToClimb: 'If managing the whole thing yourself — and especially handing it to your heirs — feels like too much, <a href="/learn/ladder/collaborative">collaborative custody (rung 4)</a> keeps the same multisig security while a partner carries the complexity. Adding more keys (3-of-5, above) is rarely the right move for an individual.',
+    whenToClimb: 'If managing the whole thing yourself — and especially handing it to your heirs — feels like too much, collaborative custody (rung 4) keeps the same multisig security while a partner carries the complexity. Adding more keys (3-of-5, above) is rarely the right move for an individual.',
   },
 
   {
@@ -144,7 +161,6 @@ export const ladder = [
       { name: 'The Bitcoin Adviser', note: 'Estate-planning end; multisig as infrastructure for a broader inheritance plan.' },
     ],
     whoShould: 'Holders with substantial exposure who honestly recognise that <em>they themselves</em> are their own biggest risk — and who’d rather outsource complexity than build operational discipline from scratch. Especially attractive when your inheritance situation is non-trivial (substantial estate, multiple heirs, complex family), where the partner’s standing process adds real value.',
-    inheritance: 'This is the rung’s biggest strength. Your heirs contact the partner — who holds one key, the descriptor, and the expertise — prove their identity, and are walked through accessing one of your two keys. A far lower bar than DIY multisig, and the reason inheritance often tips a holder from rung 3 to rung 4.',
     whenToClimb: 'For nearly everyone, this is the practical ceiling. From here the work isn’t “more keys” — it’s a <strong>tiered portfolio</strong> (a hot wallet for spending, single-sig for near-term reserves, multisig for deep cold storage) and a rock-solid inheritance plan. Adding keys beyond this adds complexity, not safety.',
   },
 ];
@@ -182,8 +198,7 @@ export const shamirNote = {
     body: 'To recover, the shares must be combined <strong>on one device</strong> to rebuild the whole seed. At that instant, that device holds everything. If it’s compromised, or the process is watched, the entire point of splitting is undone. This is exactly why Casa and Lopp often prefer multisig — where the keys never have to meet — over Shamir for actively-used funds.',
   },
   whoShould: 'Holders who want their backups geographically distributed but don’t want the operational complexity of multisig, and whose main use is long-term cold storage rather than frequent spending. Shamir-split backup paired with an on-device passphrase is a reasonable option between plain single-sig and full multisig.',
-  inheritance: 'Shamir can help inheritance — hand shares to trusted parties with instructions — but it’s fragile if your heirs aren’t coordinated: a share treated as junk, a family fall-out, or a share that ends up in a phone photo can break it. For most people a documented plan (or a <a href="/learn/ladder/collaborative">collaborative partner</a>) is more robust than heirs holding shares.',
-  whenToClimb: 'If you find yourself wanting the keys to <em>never</em> have to come together in one place — the weakness above — that’s the case for <a href="/learn/ladder/multisig">multisig (rung 3)</a>, which solves the same distribution problem without a risky reassembly step.',
+  whenToClimb: 'If you find yourself wanting the keys to <em>never</em> have to come together in one place — the weakness above — that’s the case for multisig (rung 3), which solves the same distribution problem without a risky reassembly step.',
 };
 
 export const bip85 = {
@@ -194,4 +209,16 @@ export const bip85 = {
 export function getRung(slug) {
   if (slug === shamirNote.slug) return shamirNote;
   return ladder.find((r) => r.slug === slug);
+}
+
+/**
+ * Where a rung lives now. The four rung PAGES were merged into the ladder lesson
+ * on 2026-07-30, so every surface that used to link `/learn/ladder/<slug>` needs
+ * `/learn/ladder#rung-N` — and several of those surfaces build the URL at runtime
+ * from a saved plan. One function so the slug→anchor map exists once; an unknown
+ * slug degrades to the lesson itself rather than a 404.
+ */
+export function rungAnchor(slug) {
+  const r = ladder.find((x) => x.slug === slug);
+  return r ? `/learn/ladder#rung-${r.step}` : '/learn/ladder';
 }
