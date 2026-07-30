@@ -1,58 +1,61 @@
 ---
 // The rule (or rules) a lesson exists to teach, shown at the top of that lesson.
 //
-// This is the visible half of the 2026-07-29 restructure. Every lesson from 101
-// onward opens by naming its numbered rule and linking BACK to /learn/rules,
-// which the reader met as lesson 1. That back-link is the whole point: the old
-// /principles page pushed readers forward out of the sequence, and this pulls
-// them back to a page they've already read. Links point backwards.
+// This is the visible half of the 2026-07-29 restructure: every lesson from 101
+// onward opens by naming the numbered rule it exists to teach.
 //
-// Lessons that own no rule (the rules page itself, the two that set it up)
+// REWORKED 2026-07-30, the owner's call, and it removes two things:
+//
+//   1. THE BACK-LINK. The band used to be an <a> to /learn/rules#rule-N. That was
+//      built as the counterweight to the old /principles page, which pushed readers
+//      FORWARD out of the sequence — so pulling them back felt like the fix. But a
+//      reminder is not a destination: the reader met the rules as lesson 1 and does
+//      not need to be sent back to re-read one they are about to spend a whole
+//      lesson on. the owner: "I don't think we need to link back to the rule. We just
+//      want to display it as a reminder that this is a rule." The band is now inert.
+//      (`<RuleRef>` in prose still links — that is a CITATION mid-argument, where a
+//      reader genuinely might want to check the source. Different job.)
+//
+//   2. THE FOOTER. "This is rule 08 of the twelve. This lesson is that rule in full."
+//      restated, in a full sentence, what the eyebrow and the number already said.
+//      The eyebrow now carries it: RULE 08, then the rule. Nothing else.
+//
+// The `rb-n` class stays — the spine's rules-chain check finds placed rules by it.
+//
+// Lessons that own no rule (the rules page itself, and the two that set it up)
 // render nothing rather than inventing a number.
 // `href` is accepted explicitly so dynamic routes can pass their own path rather
 // than relying on Astro.url inside a [slug] page; static pages can just omit it.
-import { rulesFor, ruleCountWord } from '../data/rules.js';
+import { rulesFor } from '../data/rules.js';
 const { href } = Astro.props;
 const mine = rulesFor(href ?? Astro.url.pathname);
 ---
 {mine.length > 0 && (
   <aside class="ruleband" aria-label={mine.length > 1 ? 'The rules this lesson teaches' : 'The rule this lesson teaches'}>
     {mine.map((r) => (
-      <a class="rb-row" href={`/learn/rules#rule-${r.n}`}>
-        <span class="rb-n">{String(r.n).padStart(2, '0')}</span>
-        <span class="rb-t">{r.rule}</span>
-      </a>
+      <div class="rb-row">
+        <p class="rb-k mono">
+          Rule <span class="rb-n">{String(r.n).padStart(2, '0')}</span>
+          {r.isPartTwo && <span class="rb-part"> · part two</span>}
+        </p>
+        <p class="rb-t">{r.rule}</p>
+      </div>
     ))}
-    <p class="rb-foot">
-      {mine.length > 1 ? 'These are rules' : 'This is rule'}
-      {' '}
-      {mine.map((r, i) => (
-        <>{i > 0 && (i === mine.length - 1 ? ' and ' : ', ')}<strong>{String(r.n).padStart(2, '0')}</strong></>
-      ))}
-      {mine.some((r) => r.isPartTwo)
-        ? ` of the ${ruleCountWord} — this lesson is the second half of it.`
-        : mine.length > 1
-          ? ` of the ${ruleCountWord}. This lesson is those rules in full.`
-          : ` of the ${ruleCountWord}. This lesson is that rule in full.`}
-    </p>
   </aside>
 )}
 
 <style>
   .ruleband { border: 1px solid var(--line); border-left: 3px solid var(--accent);
     border-radius: var(--radius); background: var(--surface); padding: 1.05rem 1.3rem;
-    margin: 0 0 1.8rem; display: flex; flex-direction: column; gap: 0.55rem; }
-  .rb-row { display: grid; grid-template-columns: 2.4rem 1fr; gap: 0.9rem; align-items: baseline;
-    text-decoration: none; }
-  .rb-n { font-family: var(--mono); font-size: 1.05rem; font-weight: 800; color: var(--accent); line-height: 1.2; }
-  .rb-t { color: var(--text); font-weight: 650; font-size: 1.02rem; line-height: 1.35; }
-  .rb-row:hover .rb-t { color: var(--accent); }
-  .rb-foot { margin: 0.15rem 0 0; font-family: var(--mono); font-size: 0.74rem; letter-spacing: 0.04em;
-    text-transform: uppercase; color: var(--faint); }
-  .rb-foot strong { color: var(--muted); font-weight: 700; }
+    margin: 0 0 1.8rem; display: flex; flex-direction: column; gap: 1rem; }
+  .rb-row { display: block; }
+  .rb-k { margin: 0 0 0.3rem; color: var(--accent); font-size: 0.74rem; font-weight: 700;
+    letter-spacing: 0.14em; text-transform: uppercase; }
+  .rb-n { font-weight: 800; }
+  .rb-part { color: var(--faint); font-weight: 600; }
+  .rb-t { margin: 0; color: var(--text); font-weight: 650; font-size: 1.02rem; line-height: 1.35; }
 
   @media (max-width: 640px) {
-    .rb-row { grid-template-columns: 2rem 1fr; gap: 0.7rem; }
     .rb-t { font-size: 0.97rem; }
   }
 </style>
