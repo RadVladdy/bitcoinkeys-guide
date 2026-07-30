@@ -54,6 +54,8 @@
 // skippable, "see it for yourself"), which is why it renders in the `safe` token
 // rather than the accent.
 
+import { deepDives } from './deepdives.js';
+
 export const levels = [
   {
     id: '101',
@@ -108,7 +110,7 @@ export const levels = [
     blurb: 'Verify rather than trust — run the rules yourself, and watch the cryptography work on throwaway keys.',
     lessons: [
       { href: '/learn/run-a-node', label: 'Run your own node',   short: 'Run your own node' },
-      { href: '/deep-dive',        label: 'See it for yourself', short: 'The interactive demos', note: '11 interactive demos' },
+      { href: '/deep-dive',        label: 'See it for yourself', short: 'The interactive demos', note: `${deepDives.length} interactive demos` },
     ],
   },
 ];
