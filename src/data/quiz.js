@@ -53,9 +53,15 @@ export const questions = [
     type: 'rank',
     q: 'What worries you most? Rank them — tap in order, biggest worry first.',
     help: 'This shapes the setup more than anything else. Your top worry drives the recommendation; your second shapes the step-up option.',
+    // Ordered by WHO the reader is afraid of: me → a thief → a company → someone
+    // after me specifically → not sure. `exchange` was added 2026-07-30: a reader
+    // whose Bitcoin is still on an exchange had no honest answer here, and that
+    // fear is rule 02 and a whole lesson of this guide. They were picking
+    // 'self-loss', which means something else, or 'unsure'.
     options: [
       { value: 'self-loss', label: 'Losing access myself — forgetting something, losing a backup' },
       { value: 'theft',     label: 'Someone stealing it — a remote hack, or a thief finding my backup' },
+      { value: 'exchange',  label: 'A company losing it — my exchange going bust, freezing my account, or getting hacked' },
       { value: 'targeted',  label: 'Being personally targeted or coerced' },
       { value: 'unsure',    label: "Honestly, I'm not sure" },
     ],
@@ -133,7 +139,11 @@ const DEV = {
     checklist: [
       { text: 'Download the Bitkey app and order the Bitkey device (Block ships it to you)', howto: 'choose-a-wallet' },
       { text: 'Set up your wallet in the app — it pairs with the hardware device (those are your two everyday keys)', howto: 'bitcoin-keys' },
-      { text: 'Set up recovery: add a Trusted Contact and/or cloud backup so the 2-of-3 can restore you — there’s no seed phrase to write down or lose', howto: 'ladder/collaborative' },
+      // DELIBERATELY NO `howto`. Bitkey's recovery is app-guided and unlike anything
+      // else the guide teaches — there is no seed to write down, so every lesson we
+      // have would be a shoehorn, `back-up-your-seed` most of all. The step carries
+      // its own explanation instead of sending the reader somewhere inapplicable.
+      { text: 'Set up recovery in the app: add a Trusted Contact and/or a cloud backup. This is your third key — with it, any two of the three (app, device, Trusted Contact) can restore you, which is why there’s no seed phrase to write down or lose. Do it now, not later: until it’s done, a lost phone or a lost device is a real problem.' },
       { text: 'Send a small amount first, confirm it arrives, then move the rest', howto: 'send-bitcoin-safely' },
       { text: 'Keep the hardware device somewhere safe, separate from your phone', howto: 'privacy' },
     ],
@@ -257,6 +267,24 @@ function multisigFork(a, sharedNeed) {
   };
 }
 
+// The single-sig recommendation opens by naming the reader's own top worry back to
+// them, then says why this setup answers it. Keyed by worry so adding one is a copy
+// change, not a nest of ternaries.
+const WHY_LEAD = {
+  'self-loss': 'Since your real worry is losing access yourself, the win is a backup you can actually recover — not extra secrets or signers that add new ways to lose.',
+  exchange: 'Your worry is a company failing — and this setup answers it completely, on day one. The moment the keys are yours, no exchange can freeze your account, lose your coins, or take them down with it. What’s left after that is the part you control, which is exactly what the steps below are for.',
+  default: 'For your stakes, one hardware wallet with a rock-solid, well-tested backup is genuinely enough.',
+};
+
+// Why we're holding this reader BACK from a passphrase. Only set for worries a
+// passphrase doesn't actually answer — a passphrase defends against a found seed,
+// so for these three it buys nothing and adds a way to lose everything.
+const HOLDBACK_BECAUSE = {
+  'self-loss': 'since your risk is losing access yourself, it would add danger, not remove it.',
+  exchange: 'the risk you named is a company holding your coins — which moving to your own keys has already removed. A passphrase does nothing about it, and adds a secret that can be forgotten.',
+  unsure: 'until you can name the specific threat it defends against, it would add danger, not remove it.',
+};
+
 // ── PRIMARY recommendation (uses your TOP-ranked worry) ─────────────────────
 function primaryRec(a) {
   const { stakes, recovery, worry, tech } = a;
@@ -309,15 +337,13 @@ function primaryRec(a) {
   return {
     tier: 'Tier 1', rungSlug: 'single-sig', rungLabel: 'Single-signature cold storage',
     headline: ssd.headline || 'Single-signature cold storage',
-    why: `${worry === 'self-loss'
-        ? 'Since your real worry is losing access yourself, the win is a backup you can actually recover — not extra secrets or signers that add new ways to lose.'
-        : 'For your stakes, one hardware wallet with a rock-solid, well-tested backup is genuinely enough.'} This is the simplest setup that isn’t negligent, and for most holders it’s the right home for a long time.`,
+    why: `${WHY_LEAD[worry] || WHY_LEAD.default} This is the simplest setup that isn’t negligent, and for most holders it’s the right home for a long time.`,
     wallets: ssd.devices,
     walletNote: ssd.note,
     checklist: [ STEP.buy, STEP.offline, STEP.metal, STEP.testRecover, STEP.smallFirst, STEP.separate,
       ...(recovery !== 'just-me' ? [{ text: 'Leave your partner/heirs a plain-English guide to finding the backup and recovering the wallet', howto: 'recovery-kit' }] : []) ],
-    holdback: (worry === 'self-loss' || worry === 'unsure')
-      ? 'We deliberately did NOT add a passphrase. A passphrase mainly defends against a found seed — but it’s a new single point of failure, and since your risk is losing access yourself, it would add danger, not remove it. Don’t add complexity you don’t need.'
+    holdback: HOLDBACK_BECAUSE[worry]
+      ? `We deliberately did NOT add a passphrase. A passphrase mainly defends against a found seed — but it’s a new single point of failure, and ${HOLDBACK_BECAUSE[worry]} Don’t add complexity you don’t need.`
       : null,
   };
 }
@@ -366,8 +392,17 @@ function secondaryRec(a, primary) {
       return S('multisig', '2-of-3 multisig', 'Step up to 2-of-3 multisig',
         'When your stack grows or you want inheritance handled cleanly, 2-of-3 multisig means no single lost key is fatal. You can run it yourself — fully self-sovereign, no company — or let a Bitcoin service hold one key; the quiz lays out both, equally, when you get there.');
     }
-    return S('passphrase', 'Single-sig + passphrase', 'Add a passphrase (the "25th word")',
-      'The natural next layer as your stack grows: a passphrase means a found or photographed seed alone can’t spend your coins. Back it up as carefully as the seed.');
+    // Reached ONLY when nobody ranked theft or coercion and recovery is just-me —
+    // so the top worry is self-loss, exchange or unsure, which is exactly the set
+    // whose primary card carries the "we deliberately did NOT add a passphrase"
+    // holdback. This branch used to offer a passphrase anyway, as "the natural next
+    // layer as your stack grows": a step-up that contradicted the paragraph directly
+    // above it, on 135 of 6,480 answer paths (found 2026-07-30 by walking the whole
+    // answer space rather than reading the code). The holdback argues on threat
+    // model; a bigger stack doesn't change the threat model. Multisig is the honest
+    // step-up here because it answers the worry they actually named.
+    return S('multisig', '2-of-3 multisig', 'Step up to 2-of-3 multisig',
+      'The step-up that answers the worry you named: with 2-of-3, any two keys can move or recover your coins — so no single key that’s lost, damaged, destroyed or forgotten can strand you. That’s the opposite trade from a passphrase, which adds one more secret you could lose, and it’s why the card above holds you back from one. This is worth taking on when your stack has grown enough that a single point of failure keeps you up at night. You can run it entirely yourself — no company involved — or let a Bitcoin service hold one key.');
   }
   if (slug === 'passphrase') {
     return S('multisig', '2-of-3 multisig', 'Step up to 2-of-3 multisig',

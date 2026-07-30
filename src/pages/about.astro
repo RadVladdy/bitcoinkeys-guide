@@ -1,10 +1,16 @@
 ---
 import Base from '../layouts/Base.astro';
+import RuleRef from '../components/RuleRef.astro';
+import { ruleByKey, ruleCountWord } from '../data/rules.js';
+import { lessonCount, levels } from '../data/curriculum.js';
+// The guiding principle quoted below IS rule 03 — pulled from rules.js rather than
+// restated, so a reworded rule can never leave /about arguing for the old one.
+const simplest = ruleByKey('simplest-setup');
 ---
 <Base
   title="About — how this guide works · BitcoinKeys.guide"
   description="BitcoinKeys.guide is an independent, Bitcoin-only self-custody guide. We hold no keys, sell no device, and take no affiliate money. Here's how it works and why you can trust it."
-  verified="2026-07-15"
+  verified="2026-07-30"
 >
   <section class="prose">
     <p class="eyebrow">About</p>
@@ -36,7 +42,8 @@ import Base from '../layouts/Base.astro';
 
   <section class="prose">
     <h2>How we think about advice</h2>
-    <p>One principle runs through everything here: <strong>the best setup is the simplest one that adequately covers your threat model</strong> — not the most impressive, and not the one that sells the most gear. Most people are safest on the lower rungs of the <a href="/learn/ladder">ladder</a> and should stay there until a real reason moves them up. We’ll tell you when <em>not</em> to add complexity as often as when to.</p>
+    <p>The whole guide rests on <a href="/learn/rules">{ruleCountWord} rules</a>. They’re the first thing the course teaches, they take two minutes to read, and every lesson after that exists to explain one of them in full. Follow the {ruleCountWord} and you have done the important part.</p>
+    <p>The rule that shapes the <em>advice</em> most is <RuleRef key="simplest-setup" />: <strong>{simplest.rule}</strong> Not the most impressive setup, and not the one that sells the most gear. Most people are safest on the lower rungs of the <a href="/learn/ladder">ladder</a> and should stay there until a real reason moves them up. We’ll tell you when <em>not</em> to add complexity as often as when to — and the quiz is built the same way, so it will hold you back from a setup you don’t need.</p>
     <p>We’re confidently pro-self-custody. Holding your own keys is a skill worth learning, and the risks are manageable once you can name them. But this is your money and your responsibility — nothing here is financial or legal advice, and you should never act on a step you don’t understand. When something is safety-critical, we say so loudly.</p>
 
     <h2>Who’s behind it</h2>
@@ -47,7 +54,7 @@ import Base from '../layouts/Base.astro';
 
     <div class="callout">
       <span class="label">Kept current, in the open</span>
-      <p>The guide is complete and actively maintained — the full configuration ladder, the how-to guides, the wallet comparison, the interactive tools, and the “deeper dive” demonstrations are all live. Prices and specs get re-checked on a schedule, and every change is written down in the <a href="/changelog">what’s-changed log</a>. New here? <a href="/start">Start here</a> — the whole guide laid out in the order it makes sense.</p>
+      <p>The guide is complete and actively maintained — the {lessonCount}-lesson course across {levels.length} levels, the configuration ladder, the wallet comparison, the interactive tools, and the “deeper dive” demonstrations are all live. Prices and specs get re-checked on a schedule, and every change is written down in the <a href="/changelog">what’s-changed log</a>. New here? <a href="/start">Start here</a> — the whole guide laid out in the order it makes sense.</p>
     </div>
   </section>
 </Base>
