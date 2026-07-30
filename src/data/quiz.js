@@ -116,10 +116,10 @@ const DEV = {
     // recovery is the built-in 2-of-3 (app key + hardware device + Block's server).
     checklist: [
       { text: 'Download the Bitkey app and order the Bitkey device (Block ships it to you)', howto: 'choose-a-wallet' },
-      { text: 'Set up your wallet in the app — it pairs with the hardware device (those are your two everyday keys)', howto: 'hot-vs-cold' },
+      { text: 'Set up your wallet in the app — it pairs with the hardware device (those are your two everyday keys)', howto: 'bitcoin-keys' },
       { text: 'Set up recovery: add a Trusted Contact and/or cloud backup so the 2-of-3 can restore you — there’s no seed phrase to write down or lose', howto: 'back-up-your-seed' },
-      { text: 'Send a small amount first, confirm it arrives, then move the rest', howto: 'hot-vs-cold' },
-      { text: 'Keep the hardware device somewhere safe, separate from your phone', howto: 'physical-security' },
+      { text: 'Send a small amount first, confirm it arrives, then move the rest', howto: 'bitcoin-keys' },
+      { text: 'Keep the hardware device somewhere safe, separate from your phone', howto: 'privacy' },
     ],
   },
 };
@@ -151,11 +151,11 @@ function singleSigDevices(a) {
 
 const STEP = {
   buy:        { text: 'Buy the device from the vendor directly — never a marketplace or third-party seller', howto: 'choose-a-wallet' },
-  offline:    { text: 'Set it up offline and generate your seed on the device itself', howto: 'hot-vs-cold' },
+  offline:    { text: 'Set it up offline and generate your seed on the device itself', howto: 'bitcoin-keys' },
   metal:      { text: 'Back up the recovery seed on metal (fire/flood-proof), not just paper', howto: 'back-up-your-seed' },
-  testRecover:{ text: 'TEST RECOVERY before you fund it — wipe the device and restore from your backup', howto: 'recovery-rehearsal' },
-  smallFirst: { text: 'Send a small amount first, confirm it arrives, then move the rest', howto: 'hot-vs-cold' },
-  separate:   { text: 'Store the backup separate from the device — ideally a second location', howto: 'physical-security' },
+  testRecover:{ text: 'TEST RECOVERY before you fund it — wipe the device and restore from your backup', howto: 'test-your-backup' },
+  smallFirst: { text: 'Send a small amount first, confirm it arrives, then move the rest', howto: 'bitcoin-keys' },
+  separate:   { text: 'Store the backup separate from the device — ideally a second location', howto: 'privacy' },
 };
 
 // ── The multisig FORK ───────────────────────────────────────────────────────
@@ -241,9 +241,9 @@ function primaryRec(a) {
       walletNote: 'A reputable <strong>non-custodial phone wallet</strong> to learn on (you hold the keys — not an exchange app). When you graduate to cold storage, a simple ~$79 device like the Blockstream Jade is a great first hardware wallet.',
       checklist: [
         { text: 'Pick a non-custodial phone wallet — one where YOU hold the keys, not the company', howto: 'choose-a-wallet' },
-        { text: 'Move a small amount off the exchange and practice sending & receiving', howto: 'hot-vs-cold' },
+        { text: 'Move a small amount off the exchange and practice sending & receiving', howto: 'bitcoin-keys' },
         { text: 'Write the recovery phrase down and keep it offline — never a photo or cloud note', howto: 'back-up-your-seed' },
-        { text: 'As your stack grows, graduate to a hardware wallet and cold storage', howto: 'hot-vs-cold' },
+        { text: 'As your stack grows, graduate to a hardware wallet and cold storage', howto: 'bitcoin-keys' },
       ],
       holdback: null,
     };
@@ -265,9 +265,9 @@ function primaryRec(a) {
       walletNote: 'Both of these make a passphrase easy to live with — the Coldcard Q has a full keyboard, the Trezor Safe 5 a touchscreen. You type a strong passphrase painlessly, with no on-screen fiddling and nothing typed into a computer.',
       checklist: [
         STEP.buy, STEP.offline, STEP.metal,
-        { text: 'Choose a strong passphrase — long and unguessable; it can’t be reset or recovered', howto: 'opsec-basics' },
+        { text: 'Choose a strong passphrase — long and unguessable; it can’t be reset or recovered', howto: 'phishing-and-scams' },
         { text: 'BACK UP THE PASSPHRASE separately from the seed, in a different place — a passphrase only in your head is the #1 way people lose passphrase-protected Bitcoin', howto: 'back-up-your-seed' },
-        { text: 'Test recovery with BOTH the seed and the passphrase before funding', howto: 'recovery-rehearsal' },
+        { text: 'Test recovery with BOTH the seed and the passphrase before funding', howto: 'test-your-backup' },
         STEP.smallFirst,
         ...(sharedNeed ? [{ text: 'Make the passphrase inheritable — your heirs need it too, or the coins are lost', howto: 'inheritance' }] : []),
       ],

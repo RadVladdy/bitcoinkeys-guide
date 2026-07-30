@@ -1,0 +1,58 @@
+---
+// The rule (or rules) a lesson exists to teach, shown at the top of that lesson.
+//
+// This is the visible half of the 2026-07-29 restructure. Every lesson from 101
+// onward opens by naming its numbered rule and linking BACK to /learn/rules,
+// which the reader met as lesson 1. That back-link is the whole point: the old
+// /principles page pushed readers forward out of the sequence, and this pulls
+// them back to a page they've already read. Links point backwards.
+//
+// Lessons that own no rule (the rules page itself, the two that set it up)
+// render nothing rather than inventing a number.
+// `href` is accepted explicitly so dynamic routes can pass their own path rather
+// than relying on Astro.url inside a [slug] page; static pages can just omit it.
+import { rulesFor } from '../data/rules.js';
+const { href } = Astro.props;
+const mine = rulesFor(href ?? Astro.url.pathname);
+---
+{mine.length > 0 && (
+  <aside class="ruleband" aria-label={mine.length > 1 ? 'The rules this lesson teaches' : 'The rule this lesson teaches'}>
+    {mine.map((r) => (
+      <a class="rb-row" href={`/learn/rules#rule-${r.n}`}>
+        <span class="rb-n">{String(r.n).padStart(2, '0')}</span>
+        <span class="rb-t">{r.rule}</span>
+      </a>
+    ))}
+    <p class="rb-foot">
+      {mine.length > 1 ? 'These are rules' : 'This is rule'}
+      {' '}
+      {mine.map((r, i) => (
+        <>{i > 0 && (i === mine.length - 1 ? ' and ' : ', ')}<strong>{String(r.n).padStart(2, '0')}</strong></>
+      ))}
+      {mine.some((r) => r.isPartTwo)
+        ? ' of the fifteen — this lesson is the second half of it.'
+        : mine.length > 1
+          ? ' of the fifteen. This lesson is those rules in full.'
+          : ' of the fifteen. This lesson is that rule in full.'}
+    </p>
+  </aside>
+)}
+
+<style>
+  .ruleband { border: 1px solid var(--line); border-left: 3px solid var(--accent);
+    border-radius: var(--radius); background: var(--surface); padding: 1.05rem 1.3rem;
+    margin: 0 0 1.8rem; display: flex; flex-direction: column; gap: 0.55rem; }
+  .rb-row { display: grid; grid-template-columns: 2.4rem 1fr; gap: 0.9rem; align-items: baseline;
+    text-decoration: none; }
+  .rb-n { font-family: var(--mono); font-size: 1.05rem; font-weight: 800; color: var(--accent); line-height: 1.2; }
+  .rb-t { color: var(--text); font-weight: 650; font-size: 1.02rem; line-height: 1.35; }
+  .rb-row:hover .rb-t { color: var(--accent); }
+  .rb-foot { margin: 0.15rem 0 0; font-family: var(--mono); font-size: 0.74rem; letter-spacing: 0.04em;
+    text-transform: uppercase; color: var(--faint); }
+  .rb-foot strong { color: var(--muted); font-weight: 700; }
+
+  @media (max-width: 640px) {
+    .rb-row { grid-template-columns: 2rem 1fr; gap: 0.7rem; }
+    .rb-t { font-size: 0.97rem; }
+  }
+</style>

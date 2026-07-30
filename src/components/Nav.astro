@@ -5,7 +5,7 @@ const path = Astro.url.pathname.replace(/\/$/, '') || '/';
 const isActive = (href) => path === href || path.startsWith(href + '/');
 // A mega group is "active" when the current page is any of its lessons, its
 // lead-in, or one of its reference pages — the curriculum is its real contents.
-const megaLinks = [...levels.flatMap((lv) => lv.lessons.map((l) => l.href)), '/start', '/how-to'];
+const megaLinks = [...levels.flatMap((lv) => lv.lessons.map((l) => l.href)), '/start', '/learn'];
 const groupActive = (g) =>
   g.links.some((l) => isActive(l.href)) || (g.mega && megaLinks.some((h) => isActive(h)));
 ---
@@ -278,7 +278,7 @@ const groupActive = (g) =>
   .lv-h { display: flex; align-items: center; gap: 0.45rem; margin: 0 0 0.5rem;
     padding-bottom: 0.55rem; border-bottom: 1px solid var(--line); }
   /* A level marker is a FILLED CHIP everywhere else on the site (/start's
-     syl-badge, /how-to's lvl-n) — the menu was the odd one out. It also fixes an
+     syl-badge, /learn's lvl-n) — the menu was the odd one out. It also fixes an
      inverted hierarchy: the heading used to be smaller AND lighter than the
      lessons inside it, so the container read as less important than its contents. */
   .lv-n { font-family: var(--mono); font-size: 0.76rem; font-weight: 700;

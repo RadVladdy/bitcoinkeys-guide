@@ -10,7 +10,7 @@ import Base from '../layouts/Base.astro';
     <p class="eyebrow">Find your setup</p>
     <h1>Which self-custody setup <span class="accent">fits you</span>?</h1>
     <p class="lead">Six plain questions — then a setup that fits you, a <strong>roadmap from where you are today</strong>, and a checklist to get there. Tell us which wallets you already own and we build the plan around them, so it only ever points you at what you still need. No accounts, no jargon, no "best device" hand-waving.</p>
-    <p class="risks-hint">New to this? It helps to first skim <a href="/risks">how people actually lose Bitcoin</a> — the questions below are really asking which of those risks matters most to you.</p>
+    <p class="risks-hint">New to this? It helps to first skim <a href="/learn/how-bitcoin-is-lost">how people actually lose Bitcoin</a> — the questions below are really asking which of those risks matters most to you.</p>
 
     <div class="privacy-note">
       <span class="pn-label mono">🔒 Notice what we don't ask</span>
@@ -23,7 +23,7 @@ import Base from '../layouts/Base.astro';
     <div class="quiz-progress mono" id="q-progress"></div>
     <div id="q-card"></div>
     <div id="q-result" hidden></div>
-    <noscript><p class="ns">This quiz needs JavaScript. You can reach the same answer by hand: read <a href="/start">Start here</a> for the whole guide in order, then <a href="/ladder">the configuration ladder</a> to place yourself, then work <a href="/checklist">the checklist</a>.</p></noscript>
+    <noscript><p class="ns">This quiz needs JavaScript. You can reach the same answer by hand: read <a href="/start">Start here</a> for the whole guide in order, then <a href="/learn/ladder">the configuration ladder</a> to place yourself, then work <a href="/checklist">the checklist</a>.</p></noscript>
   </div>
 </Base>
 
@@ -204,7 +204,7 @@ import Base from '../layouts/Base.astro';
 
   function checklistHtml(rec, dev) {
     const list = (dev && dev.checklist) || rec.checklist;
-    const steps = list.map((s) => `<li>${esc(s.text)}${s.howto ? ` <a class="r-how" href="/how-to/${esc(s.howto)}">how →</a>` : ''}</li>`).join('');
+    const steps = list.map((s) => `<li>${esc(s.text)}${s.howto ? ` <a class="r-how" href="/learn/${esc(s.howto)}">how →</a>` : ''}</li>`).join('');
     const label = (dev && dev.checklist) ? `Your checklist — for ${esc(dev.name)}` : 'Your checklist';
     return `<span class="r-k mono">${label}</span><ol>${steps}</ol>`;
   }
@@ -240,7 +240,7 @@ import Base from '../layouts/Base.astro';
         ${walletCard(p, false, 0)}
         <div class="r-checklist">${checklistHtml(p, null)}</div>
         ${p.vendors ? vendorsBlock(p.vendors) : ''}
-        <a class="r-how2" href="/ladder/${esc(p.rungSlug)}">Read the ${esc(p.rungLabel)} walkthrough →</a>
+        <a class="r-how2" href="/learn/ladder/${esc(p.rungSlug)}">Read the ${esc(p.rungLabel)} walkthrough →</a>
         ${saveControl(p.rungSlug, p.label, tier, 'quiz-fork-' + p.key, recSlugsFrom(p.wallets))}
       </div>`;
     }).join('<div class="r-or mono">— or —</div>');
@@ -300,12 +300,12 @@ import Base from '../layouts/Base.astro';
         <h2 class="r-headline sm">${esc(secondary.headline)}</h2>
         <p class="r-why">${esc(secondary.when)}</p>
         ${(!primaryHasVendors && secondary.vendors) ? vendorsBlock(secondary.vendors) : ''}
-        <a class="r-how2" href="/ladder/${esc(secondary.rungSlug)}">Read the ${esc(secondary.rungLabel)} walkthrough →</a>
+        <a class="r-how2" href="/learn/ladder/${esc(secondary.rungSlug)}">Read the ${esc(secondary.rungLabel)} walkthrough →</a>
         ${saveControl(secondary.rungSlug, secondary.headline, secondary.rungLabel, 'quiz-secondary')}
       </div>` : ''}
       <div class="r-links">
         <a class="btn-primary" href="/checklist">Build it — my step-by-step checklist →</a>
-        <a class="btn-ghost" href="/ladder/${esc(primary.rungSlug)}">Read the full ${esc(primary.rungLabel)} walkthrough</a>
+        <a class="btn-ghost" href="/learn/ladder/${esc(primary.rungSlug)}">Read the full ${esc(primary.rungLabel)} walkthrough</a>
         <button class="btn-ghost" id="q-restart">Start over</button>
       </div>
       <p class="r-foot mono">Save the setup above and your checklist trims itself to just the steps you need.</p>

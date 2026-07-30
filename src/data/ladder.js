@@ -57,8 +57,8 @@ export const ladder = [
       body: 'The most common documented way people lose passphrase-protected Bitcoin: they pick a strong passphrase, memorise it, never write it down (“if someone finds it, the whole point is gone”), then forget it or die. The seed is backed up, so the wallet <em>looks</em> recoverable — it isn’t. If you use a passphrase, you must back it up as carefully as the seed, stored separately from it, in a different place.',
     },
     whoShould: 'Holders who want a second cryptographic layer without taking on the operational weight of multisig — especially when your realistic worry is “someone finds my seed backup” rather than a targeted attacker. Less useful if your real concern is sophisticated coercion, where the deniability argument gets shaky.',
-    inheritance: 'This rung lives or dies on making the passphrase inheritable. A passphrase only in your head is a plan that fails the moment you can’t answer the phone. The cleanest fix is to back up the passphrase separately from the seed, in a place your heirs can reach with instructions — or, for the disciplined, to split it into shares (see the optional <a href="/ladder/shamir">Shamir backup</a>) so no single location holds the whole secret.',
-    whenToClimb: 'If your holdings grow to where a single seed backup — decoy or not — feels like too much resting on one thing, the answer is to remove the single point of failure entirely with <a href="/ladder/multisig">multisig (rung 3)</a>. If you want split backups without full multisig, look at the optional <a href="/ladder/shamir">Shamir backup</a>.',
+    inheritance: 'This rung lives or dies on making the passphrase inheritable. A passphrase only in your head is a plan that fails the moment you can’t answer the phone. The cleanest fix is to back up the passphrase separately from the seed, in a place your heirs can reach with instructions — or, for the disciplined, to split it into shares (see the optional <a href="/learn/ladder/shamir">Shamir backup</a>) so no single location holds the whole secret.',
+    whenToClimb: 'If your holdings grow to where a single seed backup — decoy or not — feels like too much resting on one thing, the answer is to remove the single point of failure entirely with <a href="/learn/ladder/multisig">multisig (rung 3)</a>. If you want split backups without full multisig, look at the optional <a href="/learn/ladder/shamir">Shamir backup</a>.',
   },
 
   {
@@ -103,7 +103,7 @@ export const ladder = [
     },
     whoShould: 'Holders with material Bitcoin exposure, the discipline to manage six distributed items, and a real plan for how the setup gets recovered if you’re unavailable. Everyone agrees it’s overkill for small balances, and a mistake to adopt before you’re confident with single-sig.',
     inheritance: 'Your heirs need to locate three keys or seed backups, hold the wallet descriptor, know which software coordinates a spend, and understand the signing flow. That’s a high bar for a grieving non-technical person — which is exactly why many holders with substantial stacks choose the collaborative version (rung 4), where a professional partner carries that knowledge for your heirs.',
-    whenToClimb: 'If managing the whole thing yourself — and especially handing it to your heirs — feels like too much, <a href="/ladder/collaborative">collaborative custody (rung 4)</a> keeps the same multisig security while a partner carries the complexity. Adding more keys (3-of-5, above) is rarely the right move for an individual.',
+    whenToClimb: 'If managing the whole thing yourself — and especially handing it to your heirs — feels like too much, <a href="/learn/ladder/collaborative">collaborative custody (rung 4)</a> keeps the same multisig security while a partner carries the complexity. Adding more keys (3-of-5, above) is rarely the right move for an individual.',
   },
 
   {
@@ -182,8 +182,8 @@ export const shamirNote = {
     body: 'To recover, the shares must be combined <strong>on one device</strong> to rebuild the whole seed. At that instant, that device holds everything. If it’s compromised, or the process is watched, the entire point of splitting is undone. This is exactly why Casa and Lopp often prefer multisig — where the keys never have to meet — over Shamir for actively-used funds.',
   },
   whoShould: 'Holders who want their backups geographically distributed but don’t want the operational complexity of multisig, and whose main use is long-term cold storage rather than frequent spending. Shamir-split backup paired with an on-device passphrase is a reasonable option between plain single-sig and full multisig.',
-  inheritance: 'Shamir can help inheritance — hand shares to trusted parties with instructions — but it’s fragile if your heirs aren’t coordinated: a share treated as junk, a family fall-out, or a share that ends up in a phone photo can break it. For most people a documented plan (or a <a href="/ladder/collaborative">collaborative partner</a>) is more robust than heirs holding shares.',
-  whenToClimb: 'If you find yourself wanting the keys to <em>never</em> have to come together in one place — the weakness above — that’s the case for <a href="/ladder/multisig">multisig (rung 3)</a>, which solves the same distribution problem without a risky reassembly step.',
+  inheritance: 'Shamir can help inheritance — hand shares to trusted parties with instructions — but it’s fragile if your heirs aren’t coordinated: a share treated as junk, a family fall-out, or a share that ends up in a phone photo can break it. For most people a documented plan (or a <a href="/learn/ladder/collaborative">collaborative partner</a>) is more robust than heirs holding shares.',
+  whenToClimb: 'If you find yourself wanting the keys to <em>never</em> have to come together in one place — the weakness above — that’s the case for <a href="/learn/ladder/multisig">multisig (rung 3)</a>, which solves the same distribution problem without a risky reassembly step.',
 };
 
 export const bip85 = {

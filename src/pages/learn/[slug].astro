@@ -2,10 +2,12 @@
 import Base from '../../layouts/Base.astro';
 import LessonNav from '../../components/LessonNav.astro';
 import Diagram from '../../components/Diagram.astro';
-import { howtos } from '../../data/howtos.js';
+import { lessons } from '../../data/lessons.js';
+import RuleBand from '../../components/RuleBand.astro';
+import { lessonFor } from '../../data/curriculum.js';
 
 export function getStaticPaths() {
-  return howtos.map((h, i) => ({
+  return lessons.map((h, i) => ({
     params: { slug: h.slug },
     props: { h },
   }));
@@ -20,18 +22,25 @@ const accentize = (title, phrase) => {
   if (i < 0) return title;
   return title.slice(0, i) + `<span class="accent">${phrase}</span>` + title.slice(i + phrase.length);
 };
+// The eyebrow says where you are in the COURSE ("103 · The build · lesson 3 of 3")
+// rather than what format the page is ("How-to"). Grouping by format is the habit
+// this whole restructure removed; the eyebrow was the last place still doing it.
+const pos = lessonFor(`/learn/${h.slug}`);
 ---
 <Base
   title={`${h.title} · BitcoinKeys.guide`}
   description={h.lead}
   verified={h.verified ?? '2026-07-15'}
 >
-  <nav class="crumb"><a href="/how-to">How-to</a> <span aria-hidden="true">/</span> <span>{h.short ?? h.slug}</span></nav>
+  <nav class="crumb"><a href="/learn">The course</a> <span aria-hidden="true">/</span> <span>{h.short ?? h.slug}</span></nav>
 
   <section class="prose">
-    <p class="eyebrow">How-to</p>
+    <p class="eyebrow">
+      {pos ? `${pos.levelId} · ${pos.levelTitle} · lesson ${pos.indexInLevel + 1} of ${pos.lessonsInLevel}` : 'The course'}
+    </p>
     <h1 set:html={accentize(h.title, h.accent)}></h1>
     <p class="lead">{h.lead}</p>
+    <RuleBand href={`/learn/${h.slug}`} />
     {h.intro && <><hr class="lead-sep" /><p set:html={h.intro}></p></>}
   </section>
 

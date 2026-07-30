@@ -8,7 +8,7 @@ const { active, linked = true } = Astro.props;
     const Tag = linked && r.built ? 'a' : 'div';
     return (
       <li class:list={['rung', { active: active === r.slug, ready: r.built, soon: !r.built }]} style={`--i:${r.step - 1}`}>
-        <Tag {...(linked && r.built ? { href: `/ladder/${r.slug}` } : {})} class="rung-inner">
+        <Tag {...(linked && r.built ? { href: `/learn/ladder/${r.slug}` } : {})} class="rung-inner">
           <span class="step num">{r.step}</span>
           <span class="body">
             <span class="name">{r.name}</span>

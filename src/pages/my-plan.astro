@@ -23,7 +23,7 @@ import WhereAmI from '../components/WhereAmI.astro';
     <noscript><p class="ns">This page needs JavaScript to read your saved plan. Everything on this guide works fine without it — the plan feature is the one exception, because it runs entirely in your browser.</p></noscript>
   </div>
 
-  <!-- The ladder self-locator. Lives here (not on /ladder) since 2026-07-28: the
+  <!-- The ladder self-locator. Lives here (not on /learn/ladder) since 2026-07-28: the
        quiz is the one door IN, and this is the RE-CHECK for someone whose
        situation has since changed. Auto-saves the rung it lands on. -->
   <WhereAmI />
@@ -261,7 +261,7 @@ import WhereAmI from '../components/WhereAmI.astro';
     }
     return `
       <div class="ps-road-in">
-        <p class="ps-cur ps-plan-lead">Plan: <strong>${esc(planLabel)}</strong> <span class="ps-need mono">${needLabel}</span>${plan.quiz.rung ? ` <a class="ps-mini-link" href="/ladder/${esc(plan.quiz.rung)}">read the walkthrough →</a>` : ''}</p>
+        <p class="ps-cur ps-plan-lead">Plan: <strong>${esc(planLabel)}</strong> <span class="ps-need mono">${needLabel}</span>${plan.quiz.rung ? ` <a class="ps-mini-link" href="/learn/ladder/${esc(plan.quiz.rung)}">read the walkthrough →</a>` : ''}</p>
         <span class="ps-sub mono">Your key setup — the wallets in this plan</span>
         <div class="ps-slots">${slots}</div>
         ${sidelineHtml}

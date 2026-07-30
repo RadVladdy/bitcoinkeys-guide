@@ -1,8 +1,8 @@
 ---
-import Base from '../../layouts/Base.astro';
-import Diagram from '../../components/Diagram.astro';
-import SaveSetup from '../../components/SaveSetup.astro';
-import { ladder, shamirNote } from '../../data/ladder.js';
+import Base from '../../../layouts/Base.astro';
+import Diagram from '../../../components/Diagram.astro';
+import SaveSetup from '../../../components/SaveSetup.astro';
+import { ladder, shamirNote } from '../../../data/ladder.js';
 
 export function getStaticPaths() {
   // rung 1 (single-sig) has its own bespoke page; render rungs 2-4 + the
@@ -28,7 +28,7 @@ const accentize = (title, phrase) => {
   description={r.tagline}
   verified="2026-07-15"
 >
-  <nav class="crumb"><a href="/ladder">The ladder</a> <span aria-hidden="true">/</span> <span>{crumbLabel}</span></nav>
+  <nav class="crumb"><a href="/learn/ladder">The ladder</a> <span aria-hidden="true">/</span> <span>{crumbLabel}</span></nav>
 
   <section class="prose">
     <p class="eyebrow">{eyebrow}</p>
@@ -104,13 +104,13 @@ const accentize = (title, phrase) => {
   </section>
 
   <nav class="rung-nav">
-    {prev && <a href={`/ladder/${prev.slug}`}>← Rung {prev.step}: {prev.short}</a>}
-    {next && <a class="fwd" href={`/ladder/${next.slug}`}>Rung {next.step}: {next.short} →</a>}
+    {prev && <a href={`/learn/ladder/${prev.slug}`}>← Rung {prev.step}: {prev.short}</a>}
+    {next && <a class="fwd" href={`/learn/ladder/${next.slug}`}>Rung {next.step}: {next.short} →</a>}
   </nav>
 
   <div class="cta-row">
     <a href="/wallets" class="btn btn-primary">Compare devices <span class="arw">→</span></a>
-    <a href="/ladder" class="btn btn-ghost">Back to the ladder</a>
+    <a href="/learn/ladder" class="btn btn-ghost">Back to the ladder</a>
   </div>
 </Base>
 

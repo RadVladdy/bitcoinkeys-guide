@@ -46,20 +46,11 @@ function emit(rel, name, value, note) {
   writeFileSync(join(root, rel), out);
 }
 
-// ---- how-tos (two raw files, merged + ordered) ----
-const HOWTO_ORDER = [
-  'hot-vs-cold', 'choose-a-wallet', 'back-up-your-seed', 'recovery-rehearsal',
-  'send-bitcoin-safely', 'wrong-network', 'custodial-risk', 'opsec-basics',
-  'physical-security', 'privacy', 'inheritance', 'run-a-node',
-];
-const rawHowtos = [
-  ...readJson('howto-raw.json'),
-  ...readJson('howto-raw-2.json'),
-  ...readJson('howto-raw-3.json'),
-];
-const byslug = new Map(rawHowtos.map((h) => [h.slug, h]));
-const howtos = HOWTO_ORDER.map((s) => byslug.get(s)).filter(Boolean).map(walk);
-emit('src/data/howtos.js', 'howtos', howtos, `${howtos.length} how-to pages; content verified 2026-07-22.`);
+// The how-to branch was RETIRED 2026-07-29. Its output, src/data/howtos.js, is now
+// the hand-maintained src/data/lessons.js — the generator existed to unescape HTML
+// from the KB distillers, a job long finished, and a one-way importer made real
+// editorial work (merging two lessons, splitting one) impossible. The three
+// howto-raw*.json inputs are deleted; this script still builds glossary + resources.
 
 // ---- glossary ----
 const glossary = walk(readJson('glossary-raw.json')).terms;
@@ -69,4 +60,4 @@ emit('src/data/glossary.js', 'glossary', glossary, `${glossary.length} plain-Eng
 const resources = walk(readJson('resources-raw.json')).categories;
 emit('src/data/resources.js', 'resources', resources, `Curated self-custody resources.`);
 
-console.log(`Wrote howtos (${howtos.length}), glossary (${glossary.length} terms), resources (${resources.length} categories).`);
+console.log(`Wrote glossary (${glossary.length} terms), resources (${resources.length} categories).`);

@@ -1,21 +1,32 @@
 ---
-import Base from '../layouts/Base.astro';
-import LessonNav from '../components/LessonNav.astro';
-import Diagram from '../components/Diagram.astro';
+import Base from '../../layouts/Base.astro';
+import LessonNav from '../../components/LessonNav.astro';
+import Diagram from '../../components/Diagram.astro';
+import RuleBand from '../../components/RuleBand.astro';
+
+// RETITLED + RE-FRAMED 2026-07-29. This page was "How your Bitcoin actually works,"
+// labelled OPTIONAL, and it opened by telling the reader they didn't need to read
+// it. That was true when it was a side-trip off an action-first site. It is now
+// lesson 2 of a linear course — the page the site is named after — so the optional
+// framing had to go. It also absorbed hot-vs-cold (§6): what hot and cold MEAN is a
+// property of a wallet and belongs here beside "a wallet is a configuration of
+// keys," while the money-tiering advice went to the ladder, where tier decisions
+// actually get made.
 ---
 <Base
-  title="How your Bitcoin actually works — keys, words, and signatures · BitcoinKeys.guide"
-  description="An optional, plain-English look under the hood: why your Bitcoin is really a key, what the seed words are, what a 'wallet' actually is, and how signing proves you hold the key without ever revealing it."
-  verified="2026-07-28"
+  title="What Bitcoin keys are, and how they work · BitcoinKeys.guide"
+  description="Plain English, from the ground up: why your Bitcoin is really a key, what the seed words are, what a 'wallet' actually is, how signing proves you hold the key without revealing it, and what hot and cold storage mean."
+  verified="2026-07-29"
 >
   <section class="prose">
-    <p class="eyebrow">The big picture · optional</p>
-    <h1>How your Bitcoin <span class="accent">actually works</span></h1>
+    <p class="eyebrow">101 · Foundations · lesson 2 of 4</p>
+    <h1>What Bitcoin keys are, <span class="accent">and how they work</span></h1>
     <p class="lead">
-      You don’t need any of this to hold Bitcoin safely — the how-to guides work whether or not you read it.
-      But if you’re the kind of person who likes to know what’s <em>really</em> going on under the hood — what
-      the words are, what a “key” is, how “signing” works — here it is, in plain English.
+      This is the ground floor. What a “key” actually is, why 12 or 24 ordinary words can <em>be</em> that
+      key, what a “wallet” really means, how signing proves you hold the key without ever showing it — and
+      what people mean by hot and cold storage. Everything else on this site sits on top of this page.
     </p>
+    <RuleBand />
     <hr class="lead-sep" />
 
     <h2>1 · Your Bitcoin is really a key</h2>
@@ -53,7 +64,7 @@ import Diagram from '../components/Diagram.astro';
       device’s own screen, and it comes back out <strong>signed</strong>, while the key itself never leaves. That’s why
       these are called <em>signing devices</em> rather than storage — they’re not a USB stick holding your coins,
       they’re a sealed room your key works inside (<a href="#signing">§5 shows exactly how</a>). The wallet is the
-      <em>arrangement</em> of keys itself. That distinction is exactly what <a href="/ladder">the ladder</a> is about.
+      <em>arrangement</em> of keys itself. That distinction is exactly what <a href="/learn/ladder">the ladder</a> is about.
     </p>
 
     <Diagram name="multisig" caption="One way to arrange keys — 2-of-3 multisig: three keys exist, any two together approve a spend, so no single key is a point of failure." />
@@ -98,25 +109,49 @@ import Diagram from '../components/Diagram.astro';
     <Diagram name="signing" caption="You never send your key. The device signs inside itself and sends out a signature — proof anyone can check, but no one can reverse into the key." />
     <p class="deeper"><strong>Deeper dive:</strong> <a href="/deep-dive/signing">sign a payment yourself →</a> — then try to tamper with it and watch the signature break.</p>
 
+    <h2 id="hot-cold">6 · Hot and cold — where a key lives</h2>
+    <p>
+      One last property, and it’s the one that decides how exposed you are. A wallet is
+      <strong>hot</strong> when its keys sit on something connected to the internet, and <strong>cold</strong>
+      when they don’t. A phone app, a desktop app, a browser wallet — all hot. Your keys there may be
+      encrypted and locked behind a fingerprint, but the device is still online, so it’s reachable by
+      whatever reaches any online device: malicious apps, phishing, remote attacks.
+    </p>
+    <p>
+      A <strong>cold</strong> wallet keeps the keys on a device that stays offline — usually the hardware
+      wallet from §3. An attacker gets only a few narrow moments at it: when you first set it up, when you
+      sign a payment, and when you recover it. The rest of the time it is simply out of reach. That’s the
+      whole advantage, and it’s a big one.
+    </p>
+    <p>
+      Think of it as a spectrum rather than a switch. The real question for any wallet is: <em>at what
+      moments could someone get in, and what would that take?</em> Which is why the rule isn’t “cold is good,
+      hot is bad” — it’s <strong>match the wallet to the job</strong>. Keep walking-around money hot, where
+      losing it would sting but not hurt. Keep savings cold. Never let the two mix, and never keep meaningful
+      amounts in a phone wallet.
+    </p>
+    <p>
+      One warning that catches people: writing your seed words into a note, a photo, or a password manager
+      instantly makes your cold wallet hot again — you’ve just put the key back on an internet-connected
+      device. That’s rule 08, and it’s one of the most common ways people lose everything.
+    </p>
+    <p class="deeper"><strong>Where this goes next:</strong> how much of your money belongs at each temperature is a setup decision, and that’s what <a href="/learn/ladder">the ladder</a> is for in the next level.</p>
+
     <div class="callout safe">
       <span class="label">The whole thing in one sentence</span>
       <p style="margin:0">
         Your bitcoin is a <strong>key</strong>; the <strong>words</strong> are a backup of that key; a
-        <strong>wallet</strong> is how your keys are arranged; and <strong>signing</strong> proves you hold
-        the key without ever revealing it. Everything else in this guide is just how to keep that key safe.
+        <strong>wallet</strong> is how your keys are arranged; <strong>signing</strong> proves you hold
+        the key without ever revealing it; and <strong>cold</strong> means that key stays offline.
+        Everything else in this guide is just how to keep that key safe.
       </p>
     </div>
   </section>
 
-  <section class="prose next">
-    <h2>Where to go from here</h2>
-    <p class="cta-row">
-      <a class="btn" href="/ladder">See the wallet configurations →</a>
-      <a class="btn ghost" href="/how-to/back-up-your-seed">Protect your seed words →</a>
-      <a class="btn ghost" href="/glossary">Every term, defined →</a>
-    </p>
-  </section>
-
+  <!-- The old "Where to go from here" button row is gone (2026-07-29). It offered
+       three ways to jump ahead — two of them into levels 102 and 103 — from a page
+       that is now lesson 2 of a linear course. <LessonNav /> names the one next
+       lesson, which is the only onward step this page should be offering. -->
   <LessonNav />
 </Base>
 

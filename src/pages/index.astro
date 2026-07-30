@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import Ladder from '../components/Ladder.astro';
-import { howtos } from '../data/howtos.js';
+import { lessons } from '../data/lessons.js';
 ---
 <Base
   title="BitcoinKeys.guide — hold your own Bitcoin, and understand every step"
@@ -55,7 +55,7 @@ import { howtos } from '../data/howtos.js';
         <span class="label">The rule</span>
         <p>The best self-custody setup is <strong>the simplest one that adequately covers your threat model</strong> — the risks you can actually name. Not the most impressive, not the one a vendor recommends. The simplest one that defends against what can really go wrong, that your future self can recover, that your family can inherit, and that you have <em>actually tested</em>.</p>
       </div>
-      <p class="sub">Not sure what those risks even are? Start with the honest map: <a href="/risks">how people actually lose Bitcoin →</a></p>
+      <p class="sub">Not sure what those risks even are? Start with the honest map: <a href="/learn/how-bitcoin-is-lost">how people actually lose Bitcoin →</a></p>
       <p class="sub">More security isn’t better. Complexity is the single biggest cause of lost Bitcoin. Most people belong on the lower rungs and should stay there until a real reason pushes them up.</p>
     </div>
   </section>
@@ -64,7 +64,7 @@ import { howtos } from '../data/howtos.js';
     <h2>The ladder</h2>
     <p class="sub prose" style="margin-bottom:1.4rem;">Every setup fits on one ladder of rising complexity. <strong>Almost everyone belongs on the first rung or two</strong> — the names get technical as you climb, but you only move up if a real risk pushes you there. Find the lowest rung that covers you, then stop.</p>
     <Ladder />
-    <p class="sub" style="margin-top:1.2rem; font-size:0.9rem;">Each rung links to a full walkthrough. <a href="/ladder">Read the full ladder →</a></p>
+    <p class="sub" style="margin-top:1.2rem; font-size:0.9rem;">Each rung links to a full walkthrough. <a href="/learn/ladder">Read the full ladder →</a></p>
   </section>
 
   <section>
@@ -85,8 +85,8 @@ import { howtos } from '../data/howtos.js';
     <h2>The skills, in plain English</h2>
     <p class="sub prose" style="margin-bottom:1.4rem;">Whatever setup you land on, these are the hands-on skills of holding your own Bitcoin. Each is a short, jargon-free how-to.</p>
     <div class="grid cols-2">
-      {howtos.map((h) => (
-        <a href={`/how-to/${h.slug}`} class="card">
+      {lessons.map((h) => (
+        <a href={`/learn/${h.slug}`} class="card">
           <h3>{h.title.split('—')[0].trim()} →</h3>
           <p class="sub">{h.lead}</p>
         </a>

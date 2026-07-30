@@ -1,7 +1,7 @@
 ---
-import Base from '../../layouts/Base.astro';
-import SaveSetup from '../../components/SaveSetup.astro';
-import { getRung } from '../../data/ladder.js';
+import Base from '../../../layouts/Base.astro';
+import SaveSetup from '../../../components/SaveSetup.astro';
+import { getRung } from '../../../data/ladder.js';
 const r = getRung('single-sig');
 const accentize = (title, phrase) => {
   if (!phrase) return title;
@@ -24,7 +24,7 @@ const buildSteps = [
   description="The simplest real self-custody: one hardware wallet, one seed, one tested backup. What it protects, what it doesn't, who it's for, and how to set it up."
   verified="2026-07-15"
 >
-  <nav class="crumb"><a href="/ladder">The ladder</a> <span aria-hidden="true">/</span> <span>Rung 1</span></nav>
+  <nav class="crumb"><a href="/learn/ladder">The ladder</a> <span aria-hidden="true">/</span> <span>Rung 1</span></nav>
 
   <section class="prose">
     <p class="eyebrow">Rung {r.step} · {r.short}</p>
@@ -94,9 +94,9 @@ const buildSteps = [
     <h2>When to climb</h2>
     <p>Move up the ladder when a real reason appears, not for the feeling of more security:</p>
     <ul>
-      <li>Worried a found or photographed seed could be used against you? → <a href="/ladder/passphrase">Rung 2 — add a passphrase</a></li>
-      <li>Holdings large enough that a single point of failure is unacceptable? → <a href="/ladder/multisig">Rung 3 — multisig</a></li>
-      <li>Want a professional safety net for your heirs? → <a href="/ladder/collaborative">Rung 4 — collaborative custody</a></li>
+      <li>Worried a found or photographed seed could be used against you? → <a href="/learn/ladder/passphrase">Rung 2 — add a passphrase</a></li>
+      <li>Holdings large enough that a single point of failure is unacceptable? → <a href="/learn/ladder/multisig">Rung 3 — multisig</a></li>
+      <li>Want a professional safety net for your heirs? → <a href="/learn/ladder/collaborative">Rung 4 — collaborative custody</a></li>
     </ul>
     <p class="sub">Until one of those is genuinely true, a well-managed single-sig setup is not a compromise — it’s the correct answer.</p>
 
@@ -104,7 +104,7 @@ const buildSteps = [
 
     <div class="cta-row">
       <a href="/wallets" class="btn btn-primary">Choose your device <span class="arw">→</span></a>
-      <a href="/ladder" class="btn btn-ghost">Back to the ladder</a>
+      <a href="/learn/ladder" class="btn btn-ghost">Back to the ladder</a>
     </div>
   </section>
 </Base>

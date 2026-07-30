@@ -1,6 +1,7 @@
 ---
-import Base from '../layouts/Base.astro';
-import LessonNav from '../components/LessonNav.astro';
+import Base from '../../layouts/Base.astro';
+import LessonNav from '../../components/LessonNav.astro';
+import RuleBand from '../../components/RuleBand.astro';
 
 // The five ways Bitcoin is lost. Each is plain-English, with the real
 // mechanisms, and links to the page in this guide that defends against it.
@@ -17,9 +18,9 @@ const buckets = [
     ],
     defense: 'Back up your words on metal, keep two copies in two places, test the restore before you fund it, and leave a plan your family can follow.',
     links: [
-      { label: 'Back up your seed', href: '/how-to/back-up-your-seed' },
-      { label: 'Test your recovery', href: '/how-to/recovery-rehearsal' },
-      { label: 'Plan for inheritance', href: '/how-to/inheritance' },
+      { label: 'Back up your seed', href: '/learn/back-up-your-seed' },
+      { label: 'Test your recovery', href: '/learn/test-your-backup' },
+      { label: 'Plan for inheritance', href: '/learn/inheritance' },
     ],
   },
   {
@@ -34,9 +35,9 @@ const buckets = [
     ],
     defense: 'Never type or photograph your recovery words. Verify every address on the device screen. Assume any “support” message that wants your words is a scam.',
     links: [
-      { label: 'Everyday safety habits', href: '/how-to/opsec-basics' },
-      { label: 'Send Bitcoin safely', href: '/how-to/send-bitcoin-safely' },
-      { label: 'Hot vs cold storage', href: '/how-to/hot-vs-cold' },
+      { label: 'Everyday safety habits', href: '/learn/phishing-and-scams' },
+      { label: 'Send Bitcoin safely', href: '/learn/send-bitcoin-safely' },
+      { label: 'Hot vs cold storage', href: '/learn/bitcoin-keys' },
     ],
   },
   {
@@ -50,9 +51,9 @@ const buckets = [
     ],
     defense: 'The best physical protection is not being known as a holder — don’t broadcast that you own Bitcoin. Then keep backups out of obvious places, and split things up so no single location holds enough to spend. For a targeted threat, a <strong>passphrase</strong> turns your base seed into a <strong>decoy wallet</strong>: the recovery words alone open only a small, believable stash, while your real coins sit behind a passphrase that lives nowhere but in your head — so what a searcher (or a coercer) can find still isn’t the real thing.',
     links: [
-      { label: 'Physical security', href: '/how-to/physical-security' },
-      { label: 'Don’t talk about your Bitcoin', href: '/how-to/opsec-basics' },
-      { label: 'Passphrase & decoy wallet', href: '/ladder/passphrase' },
+      { label: 'Privacy and a low profile', href: '/learn/privacy' },
+      { label: 'Don’t talk about your Bitcoin', href: '/learn/phishing-and-scams' },
+      { label: 'Passphrase & decoy wallet', href: '/learn/ladder/passphrase' },
     ],
   },
   {
@@ -65,9 +66,9 @@ const buckets = [
     ],
     defense: 'Move your Bitcoin off the exchange and into your own custody after you buy — that single step is what this whole guide is about. And buy from a reputable <strong>Bitcoin-only</strong> service (River, Swan, Strike) rather than a multi-coin “crypto casino”: fewer distractions and gimmicks, a straightforward path to withdrawing to your own wallet, and a company whose entire business is Bitcoin.',
     links: [
-      { label: 'When the exchange blows up', href: '/how-to/custodial-risk' },
+      { label: 'When the exchange blows up', href: '/learn/not-your-keys' },
       { label: 'Start here — the whole guide in order', href: '/start' },
-      { label: 'The core principles', href: '/principles' },
+      { label: 'The fifteen rules', href: '/learn/rules' },
     ],
   },
   {
@@ -81,8 +82,8 @@ const buckets = [
     ],
     defense: 'Verify the address on the device screen, send a tiny test amount first, confirm it arrives, then send the rest — and never do it in a hurry. When withdrawing, make sure you’re sending real Bitcoin on the Bitcoin network.',
     links: [
-      { label: 'Send Bitcoin safely', href: '/how-to/send-bitcoin-safely' },
-      { label: 'Avoid the “wrong network”', href: '/how-to/wrong-network' },
+      { label: 'Send Bitcoin safely', href: '/learn/send-bitcoin-safely' },
+      { label: 'Avoid the “wrong network”', href: '/learn/send-bitcoin-safely' },
     ],
   },
 ];
@@ -94,7 +95,7 @@ const buckets = [
 >
   <section class="risk-intro">
    <div class="prose intro-main">
-    <p class="eyebrow">The threat map</p>
+    <p class="eyebrow">101 · Foundations · lesson 3 of 4</p>
     <h1>How people actually lose <span class="accent">Bitcoin</span></h1>
     <p class="lead">
       Before you decide how to protect your Bitcoin, it helps to know what you’re protecting it
@@ -117,6 +118,7 @@ const buckets = [
       holding.</strong> So read the list below not as what’s <em>likely</em> to happen to you, but as the
       short, knowable set of things to design around.
     </p>
+    <RuleBand />
    </div>
    <aside class="rail" aria-label="Key facts">
      <div class="stat">
@@ -147,7 +149,7 @@ const buckets = [
         Add a secret passphrase to stop a thief, and you’ve added a new way to lock <em>yourself</em>
         out. Spread your backup across three cities to survive a fire, and you’ve made it harder for
         <em>you</em> to put it back together. That trade-off is why this guide is built as a
-        <a href="/ladder">ladder</a> — you climb only as far as your real risks require, and no further.
+        <a href="/learn/ladder">ladder</a> — you climb only as far as your real risks require, and no further.
       </p>
     </div>
   </section>
@@ -189,7 +191,7 @@ const buckets = [
         Most defences trade one risk for another — but <strong>testing your recovery</strong> is the
         rare win-win. Wipe your wallet and restore it from your written words with a tiny amount, before
         you trust it with savings. You catch a broken backup while it’s still harmless, and you’ll never
-        have to improvise a recovery in a panic. <a href="/how-to/recovery-rehearsal">Here’s how →</a>
+        have to improvise a recovery in a panic. <a href="/learn/test-your-backup">Here’s how →</a>
       </p>
     </div>
   </section>

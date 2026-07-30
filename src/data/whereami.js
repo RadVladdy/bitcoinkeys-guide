@@ -27,7 +27,7 @@ export const extras = {
   'single-sig': {
     protects: 'You hold your own keys, offline — no exchange or third party can freeze or lose your coins.',
     weakness: 'One seed backup is the whole game: found, copied, or destroyed, it can mean total loss.',
-    whenToClimb: 'The lightest next step is a <a href="/ladder/passphrase">passphrase (rung 2)</a> — so a found seed backup alone can’t spend your coins. If your real worry is having a single point of failure at all, rather than a found seed, look at <a href="/ladder/multisig">multisig (rung 3)</a>, which removes it entirely.',
+    whenToClimb: 'The lightest next step is a <a href="/learn/ladder/passphrase">passphrase (rung 2)</a> — so a found seed backup alone can’t spend your coins. If your real worry is having a single point of failure at all, rather than a found seed, look at <a href="/learn/ladder/multisig">multisig (rung 3)</a>, which removes it entirely.',
   },
 };
 

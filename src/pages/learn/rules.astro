@@ -1,0 +1,132 @@
+---
+import Base from '../../layouts/Base.astro';
+import LessonNav from '../../components/LessonNav.astro';
+import { rules, umbrella, ruleCount } from '../../data/rules.js';
+import { levels } from '../../data/curriculum.js';
+
+// Lesson 1 of the whole course, and the only page on the site that deliberately
+// carries NO outbound links.
+//
+// It replaces /principles, which was lesson 5 of 101 and linked out to ten other
+// pages — seven of them further along the course. That made it a table of contents
+// wearing a lesson's clothes, and it was the most anti-linear thing here.
+//
+// Moving it to the FRONT is what lets the links go. At position 1 a link forward
+// would be a link to material the reader hasn't got to; instead each rule names its
+// level and its exact lesson title in plain text, so it's findable in the menu
+// without pulling anyone out of the sequence. The lessons then link BACK here (see
+// components/RuleBand.astro). Links point backwards.
+//
+// The primer exists because a reader arriving cold does not yet know what a seed
+// phrase is, and rule 08 is meaningless without it. Three sentences buys the whole
+// page its vocabulary.
+
+const levelTitle = (id) => levels.find((lv) => lv.id === id)?.title ?? '';
+const byLevel = ['101', '102', '103', '104'].map((id) => ({
+  id,
+  title: levelTitle(id),
+  items: rules.filter((r) => r.level === id),
+}));
+---
+<Base
+  title={`The ${ruleCount} rules of holding your own Bitcoin · BitcoinKeys.guide`}
+  description="The whole guide, compressed into fifteen plain-English rules. Follow them and your Bitcoin is safe. Every lesson that follows is one of these rules in full."
+  verified="2026-07-29"
+>
+  <section class="prose">
+    <p class="eyebrow">101 · Foundations · lesson 1</p>
+    <h1>Fifteen rules. <span class="accent">That’s the whole thing.</span></h1>
+    <p class="lead">
+      Everything on this site compresses into the rules below. Follow them and your Bitcoin is safe —
+      genuinely, that is the entire deal. You don’t have to understand all of them yet. That’s what the
+      rest of the course is for: every lesson after this one is a single rule, in full.
+    </p>
+    <hr class="lead-sep" />
+
+    <div class="callout">
+      <span class="label">Three words before you start</span>
+      <p style="margin:0">
+        Your Bitcoin is controlled by a secret <strong>key</strong>. That key is written down as a list of
+        12 or 24 ordinary words — your <strong>seed phrase</strong>, and whoever has those words has the
+        money. A <strong>hardware wallet</strong> is a small dedicated gadget that keeps the key offline and
+        signs payments without ever handing it over. That’s enough vocabulary for every rule below.
+      </p>
+    </div>
+  </section>
+
+  {byLevel.map((lv) => (
+    <section class="lvblock">
+      <div class="lv-head">
+        <span class="lv-badge">{lv.id}</span>
+        <h2>{lv.title}</h2>
+      </div>
+      <ol class="rules">
+        {lv.items.map((r) => (
+          <li class="rule" id={`rule-${r.n}`}>
+            <span class="r-n">{String(r.n).padStart(2, '0')}</span>
+            <div class="r-body">
+              <h3>{r.rule}</h3>
+              <p set:html={r.body}></p>
+              <p class="r-where">In full: <span class="mono">{r.level}</span> · {r.lesson}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
+  ))}
+
+  <section class="prose">
+    <div class="callout safe umb">
+      <span class="label">And the one that contains all fifteen</span>
+      <h3>{umbrella.rule}</h3>
+      <p set:html={umbrella.body}></p>
+      <p class="r-where">In full: <span class="mono">{umbrella.level}</span> · {umbrella.lesson} — optional, and last.</p>
+    </div>
+
+    <h2>What to do with this page</h2>
+    <p>
+      Don’t try to memorise it. Read it once now so the shape of the thing is in your head, then carry on
+      to the next lesson — the rules will make far more sense once you’ve met the ideas behind them. Come
+      back here whenever you want the whole guide in two minutes, and use it as a checklist before you move
+      any meaningful amount of Bitcoin.
+    </p>
+    <p class="sub">
+      Every lesson from here on opens by naming the rule it teaches, so you always know which of the fifteen
+      you’re working on.
+    </p>
+  </section>
+
+  <LessonNav />
+</Base>
+
+<style>
+  .lead-sep { border: 0; border-top: 1px solid var(--line-soft); max-width: 46ch; margin: 1.4rem 0 1.6rem; }
+
+  .lvblock { margin-top: 2.2rem; }
+  .lv-head { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.9rem;
+    padding-bottom: 0.6rem; border-bottom: 1px solid var(--line-soft); }
+  .lv-head h2 { margin: 0; font-size: 1.12rem; letter-spacing: -0.01em; }
+  .lv-badge { font-family: var(--mono); font-weight: 700; font-size: 0.82rem; color: var(--accent-ink);
+    background: var(--accent); border-radius: 0.45rem; padding: 0.22rem 0.5rem; }
+
+  .rules { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.7rem;
+    counter-reset: none; }
+  .rule { display: grid; grid-template-columns: 3rem 1fr; gap: 1.1rem; align-items: start;
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    padding: 1.1rem 1.3rem; scroll-margin-top: 5rem; }
+  .rule:target { border-color: var(--accent); }
+  .r-n { font-family: var(--mono); font-size: 1.4rem; font-weight: 800; color: var(--accent); line-height: 1; }
+  .r-body h3 { margin: 0.1rem 0 0.4rem; color: var(--text); font-size: 1.06rem; }
+  .r-body p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+  .r-where { margin-top: 0.6rem !important; font-family: var(--mono); font-size: 0.73rem;
+    letter-spacing: 0.03em; color: var(--faint) !important; text-transform: uppercase; }
+  .r-where .mono { color: var(--accent); font-weight: 700; }
+
+  .umb { margin-top: 2.4rem; }
+  .umb h3 { margin: 0.2rem 0 0.4rem; font-size: 1.14rem; }
+
+  @media (max-width: 640px) {
+    .rule { grid-template-columns: 2.3rem 1fr; gap: 0.8rem; padding: 1rem 1.05rem; }
+    .r-n { font-size: 1.2rem; }
+  }
+</style>

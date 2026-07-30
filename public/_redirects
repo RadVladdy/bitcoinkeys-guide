@@ -10,3 +10,24 @@
 # Ladder restructure 2026-07-17: DIY 2-of-3 renamed to "multisig"; 3-of-5 folded in.
 /ladder/diy-multisig  /ladder/multisig  301
 /ladder/3-of-5        /ladder/multisig  301
+
+# --- Linear restructure 2026-07-29 --------------------------------------------
+# The course moved to /learn/*. The old /how-to/ prefix grouped by FORMAT, which
+# is the habit this restructure removed, and several pages under it were not
+# how-tos at all. Five lessons also changed slug to match their new titles, and
+# three pages were merged away entirely (their content lives at the target).
+/how-it-works              /learn/bitcoin-keys        301
+/risks                     /learn/how-bitcoin-is-lost 301
+/principles                /learn/rules               301
+/rules                     /learn/rules               301
+/how-to                    /learn                     301
+/how-to/hot-vs-cold        /learn/bitcoin-keys        301
+/how-to/custodial-risk     /learn/not-your-keys       301
+/how-to/recovery-rehearsal /learn/test-your-backup    301
+/how-to/opsec-basics       /learn/phishing-and-scams  301
+/how-to/wrong-network      /learn/send-bitcoin-safely 301
+/how-to/physical-security  /learn/privacy             301
+/learn/physical-security   /learn/privacy             301
+/how-to/:slug              /learn/:slug               301
+/ladder                    /learn/ladder              301
+/ladder/:slug              /learn/ladder/:slug        301

@@ -3,14 +3,47 @@
 // ADDED 2026-07-28. Before this, the twelve how-to guides sat behind a single
 // "How-to guides" menu item: no visible order, and no way to tell it was a whole
 // second body of learning material. The fix isn't to consolidate them — it's to
-// stop grouping by FORMAT ("how-to") and start grouping by LEVEL. Four of the
-// guides turned out to be mis-shelved entirely: hot-vs-cold and custodial-risk
-// are foundational concepts (101), and choose-a-wallet belongs beside the ladder
-// (102). They were only filed under "how-to" because of the URL they live at.
+// stop grouping by FORMAT ("how-to") and start grouping by LEVEL.
+//
+// RESTRUCTURED 2026-07-29 — the linear pass. Five changes, all in service of one
+// idea: a reader should be able to start at the top and walk straight down.
+//
+//   1. THE RULES COME FIRST. /principles was lesson 5 of 101 and linked out to ten
+//      other pages, seven of them further along the course. It's now lesson 1, it
+//      carries no outbound links, and it frames everything after it. See rules.js.
+//   2. HOT VS COLD FOLDED IN. It was the shortest page on the site and it was
+//      really two ideas: what hot and cold MEAN (a property of a wallet — belongs
+//      in the keys lesson, beside "a wallet is a configuration of keys") and how to
+//      TIER money across them (a setup decision — belongs on the ladder).
+//   3. WRONG-NETWORK MERGED INTO SEND. Picking the right network is part of
+//      sending safely, not a separate discipline. The merge also flushed 254 words
+//      of air-gapped/PSBT material out of a beginner build lesson and up to 201.
+//   4. OPSEC EMPTIED, NOT SPLIT. Three of its six sections were duplicates of
+//      other lessons (verify-on-screen, don't-talk, the $5 wrench). Sent home; what
+//      remains is a tight page about phishing, which the risks page calls the
+//      number-one real-world attack and which had no lesson of its own.
+//   4b. PRIVACY + PHYSICAL-SECURITY MERGED. The two were one argument told twice
+//      from opposite ends — the giveaway being that BOTH wrote out the 2020 Ledger
+//      breach (270,000 names and home addresses) in full as their centrepiece. The
+//      chain is single and linear: a public ledger, plus address reuse, plus an ID
+//      check that leaks, puts your name and your holdings in one file, which
+//      becomes a target list, which ends at your door. On-chain habits and
+//      real-world habits are the same defence at the two ends of it. Coin control
+//      and the optional tools (PayJoin, Silent Payments, CoinJoin) went up to 201,
+//      where "optional and skippable" is already the level's stated identity.
+//   5. INHERITANCE SPLIT. At 1,613 words it was the heaviest page here, and it was
+//      cleanly two: why Bitcoin doesn't inherit like money, then how to build the
+//      Recovery Kit. One rule (15) across two parts.
+//
+// URLs moved to /learn/ in the same pass. The old /how-to/ prefix was the same
+// group-by-format habit the menu had already shed, and several pages under it were
+// not how-tos at all. /learn/* is now the course; everything else (/quiz, /wallets,
+// /glossary, /deep-dive…) is tools and reference. Old paths 301 in public/_redirects.
 //
 // This file is the ONE source for: the Learn mega-menu, the /start syllabus, the
-// prev/next lesson footer, and the /how-to index grouping. Add a lesson here and
-// every one of those surfaces picks it up.
+// prev/next lesson footer, and the /learn index. Add a lesson here and every one of
+// those surfaces picks it up. The RULE each lesson teaches lives in rules.js and is
+// matched by href.
 //
 // Levels are deliberately numbered. The numbering is a claim that this is a
 // SEQUENCE you progress through, not a flat map you browse — 100-level material
@@ -22,14 +55,13 @@ export const levels = [
   {
     id: '101',
     title: 'Foundations',
-    why: 'What this all is, before you touch anything or spend a cent.',
-    blurb: 'Your Bitcoin is a key; the words are that key. What can really go wrong, and the rules that follow from it.',
+    why: 'The rules first, then what this all actually is — before you touch anything or spend a cent.',
+    blurb: 'Fifteen rules hold up everything here. Meet them, then learn what a key is, how people lose Bitcoin, and why an exchange isn’t custody.',
     lessons: [
-      { href: '/how-it-works',           label: 'How your Bitcoin works',      short: 'How your Bitcoin works' },
-      { href: '/risks',                  label: 'How people lose Bitcoin',     short: 'How people lose Bitcoin' },
-      { href: '/how-to/custodial-risk',  label: 'When the exchange blows up',  short: 'When the exchange blows up' },
-      { href: '/how-to/hot-vs-cold',     label: 'Hot vs cold storage',         short: 'Hot vs cold storage' },
-      { href: '/principles',             label: 'The security principles',     short: 'The security principles' },
+      { href: '/learn/rules',              label: 'The fifteen rules',                 short: 'The fifteen rules', note: 'read first' },
+      { href: '/learn/bitcoin-keys',       label: 'What Bitcoin keys are, and how they work', short: 'What Bitcoin keys are' },
+      { href: '/learn/how-bitcoin-is-lost', label: 'How people lose Bitcoin',           short: 'How people lose Bitcoin' },
+      { href: '/learn/not-your-keys',      label: 'Not your keys, not your coins',      short: 'Not your keys, not your coins' },
     ],
   },
   {
@@ -38,8 +70,8 @@ export const levels = [
     why: 'Now that you know the risks, pick the simplest setup that covers them.',
     blurb: 'Every real setup fits on one ladder. Find the lowest rung that covers you — then stop.',
     lessons: [
-      { href: '/ladder',                 label: 'The configuration ladder',    short: 'The configuration ladder', note: '+ all 5 rungs' },
-      { href: '/how-to/choose-a-wallet', label: 'How to choose a hardware wallet', short: 'Choosing a hardware wallet' },
+      { href: '/learn/ladder',          label: 'The configuration ladder',        short: 'The configuration ladder', note: '+ all 5 rungs' },
+      { href: '/learn/choose-a-wallet', label: 'How to choose a hardware wallet', short: 'Choosing a hardware wallet' },
     ],
   },
   {
@@ -48,10 +80,9 @@ export const levels = [
     why: 'The hands-on build — the part where coins actually move.',
     blurb: 'Back it up so fire and water can’t destroy it, prove the backup works, and move coins without fumbling.',
     lessons: [
-      { href: '/how-to/back-up-your-seed',   label: 'Back up your seed phrase', short: 'Back up your seed phrase' },
-      { href: '/how-to/recovery-rehearsal',  label: 'Test your backup',         short: 'Test your backup' },
-      { href: '/how-to/send-bitcoin-safely', label: 'Send Bitcoin safely',      short: 'Send Bitcoin safely' },
-      { href: '/how-to/wrong-network',       label: 'The wrong-network trap',   short: 'The wrong-network trap' },
+      { href: '/learn/back-up-your-seed',   label: 'Back up your seed phrase', short: 'Back up your seed phrase' },
+      { href: '/learn/test-your-backup',    label: 'Test your backup',         short: 'Test your backup' },
+      { href: '/learn/send-bitcoin-safely', label: 'Send Bitcoin safely',      short: 'Send Bitcoin safely' },
     ],
   },
   {
@@ -60,10 +91,10 @@ export const levels = [
     why: 'Self-custody is a practice, not an event. These are the ongoing habits.',
     blurb: 'The human habits that stop most real losses — and the plan that lets your Bitcoin outlive you.',
     lessons: [
-      { href: '/how-to/opsec-basics',      label: 'Stay safe day to day',              short: 'Stay safe day to day' },
-      { href: '/how-to/physical-security', label: 'Physical safety & low profile',     short: 'Physical safety' },
-      { href: '/how-to/privacy',           label: 'Protect your privacy',              short: 'Protect your privacy' },
-      { href: '/how-to/inheritance',       label: 'Make sure your Bitcoin survives you', short: 'Inheritance' },
+      { href: '/learn/phishing-and-scams', label: 'Phishing and everyday safety',        short: 'Phishing and everyday safety' },
+      { href: '/learn/privacy',            label: 'Privacy and a low profile',           short: 'Privacy and a low profile' },
+      { href: '/learn/inheritance',        label: 'Why Bitcoin doesn’t inherit like money', short: 'Bitcoin and inheritance' },
+      { href: '/learn/recovery-kit',       label: 'Build the Recovery Kit',              short: 'Build the Recovery Kit' },
     ],
   },
   {
@@ -73,8 +104,8 @@ export const levels = [
     why: 'You don’t need any of this to hold Bitcoin safely. It’s here so you don’t have to take it on faith.',
     blurb: 'Verify rather than trust — run the rules yourself, and watch the cryptography work on throwaway keys.',
     lessons: [
-      { href: '/how-to/run-a-node', label: 'Run your own node',  short: 'Run your own node' },
-      { href: '/deep-dive',         label: 'See it for yourself', short: 'The interactive demos', note: '11 interactive demos' },
+      { href: '/learn/run-a-node', label: 'Run your own node',   short: 'Run your own node' },
+      { href: '/deep-dive',        label: 'See it for yourself', short: 'The interactive demos', note: '11 interactive demos' },
     ],
   },
 ];

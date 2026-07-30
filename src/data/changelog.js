@@ -9,6 +9,12 @@
 // Entry types: 'price' | 'device' | 'spec' | 'security' | 'feature' | 'content'
 export const changelog = [
   {
+    date: '2026-07-29',
+    type: 'content',
+    title: 'The course now opens with fifteen rules — and every lesson teaches one of them',
+    detail: 'The guide used to have a “core principles” page sitting fifth in the first level, listing ten rules that each linked out to the page explaining them. Seven of those ten links jumped forward to lessons you had not reached yet, so the one page meant to hold the guide together was also the page most likely to scatter you across it. It has been rebuilt as the opposite. “The fifteen rules” is now the very first thing you read, it is written as plain narrative, and it carries no outbound links at all — each rule simply names the level and lesson that expands it, so nothing pulls you out of order. Read it once and you have the whole guide in two minutes; everything after it is a single rule in full. Every lesson from there on opens by naming its numbered rule, linking back to the rules page you have already read. Five rules were added that the old ten missed, including the one that beats the most common real attack there is: nobody legitimate will ever ask for your seed words. Alongside that, the lessons themselves were consolidated. Hot vs cold storage folded into “What Bitcoin keys are” (what hot and cold mean) and the ladder (how much money belongs at each temperature). “The wrong-network trap” merged into “Send Bitcoin safely,” because choosing the right network is part of sending, not a separate skill. “Protect your privacy” and “Physical safety” became one lesson: both were telling the same story — a public ledger, plus an ID check that leaks, puts your name and your holdings in one file, and that file becomes a target list — and both had been printing the same 2020 breach of 270,000 customer records as their centrepiece. And the inheritance guide, by far the longest page here, split into the problem (why Bitcoin does not inherit like money) and the fix (building a Recovery Kit). Every lesson also moved to a clearer web address under /learn/, and every old address redirects, so nothing you have bookmarked breaks.',
+  },
+  {
     date: '2026-07-28',
     type: 'feature',
     title: 'Learn is now a course — five numbered levels, and every lesson points to the next',

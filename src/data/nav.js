@@ -12,8 +12,8 @@
 // apart so the list reads as "the course, then reference."
 //
 // The Learn group is `mega: true`: its body is the CURRICULUM (see curriculum.js),
-// rendered as levels. /how-to deliberately has no menu slot — the mega-menu links
-// all twelve of its lessons directly, so an index of pages already in the menu
+// rendered as levels. /learn deliberately has no menu slot — the mega-menu links
+// every one of its lessons directly, so an index of pages already in the menu
 // isn't earning a place there. It is linked from the foot of /start instead, so
 // the page keeps a navigation path and never becomes orphaned.
 
@@ -66,8 +66,8 @@ export const navGroups = [
 // surface that wants the short path rather than the full map.
 export const primaryNav = [
   { href: '/start', label: 'Start here' },
-  { href: '/how-it-works', label: 'How it works' },
-  { href: '/ladder', label: 'The ladder' },
+  { href: '/learn/bitcoin-keys', label: 'How it works' },
+  { href: '/learn/ladder', label: 'The ladder' },
   { href: '/quiz', label: 'Take the quiz' },
   { href: '/my-plan', label: 'Your plan' },
   { href: '/checklist', label: 'Your checklist' },
