@@ -10,6 +10,12 @@
 export const changelog = [
   {
     date: '2026-07-30',
+    type: 'content',
+    title: 'Rewritten: what a “wallet” actually is, and the one-way chain behind it',
+    detail: 'The lesson on Bitcoin keys used to define a wallet as “a configuration of keys” — and it did so before it had explained what public and private keys are. Both halves of that were wrong. A configuration of keys answers what it takes to move your coins; it never answers which coins are yours. So the page now runs in the order the ideas actually depend on each other. First the chain: your private key produces a public key, which produces an address, and each step runs one way only — nobody can work backwards from an address to a public key, or from a public key to a private key. That is why handing out an address costs you nothing, and it is arithmetic rather than a promise anyone is making. Then the wallet, defined as the answer to two questions: which coins are mine, and what does it take to move them. The first is the extended public key — the xpub — which lets software find every address you will ever receive at and add up your balance without being able to spend anything. The second is whether one key signs, or a key plus a passphrase, or several keys where a few must agree. Both together are the wallet, and written out as one line that is a wallet descriptor. And a caution that follows from it, which was nowhere on the site before: an address is safe to share, but an xpub is not — it cannot spend, but it reveals every address in the wallet, past and future, so anyone holding it can see your whole balance and history. Finally, the explanation of why a hardware wallet is called a signing device rather than storage moved down beside the section on signing, where it belongs.',
+  },
+  {
+    date: '2026-07-30',
     type: 'feature',
     title: 'The front page rebuilt — what we promise first, then what is actually here',
     detail: "The front page now leads with what this site promises — no device to sell, no keys held, Bitcoin only, and nothing logged — then shows what is actually here: the course laid out by level, the setup finder and the checklist it builds, the hardware comparison, and a first look at the interactive demos.",
