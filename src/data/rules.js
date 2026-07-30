@@ -52,7 +52,7 @@ export const rules = [
     body: 'A wallet is <strong>hot</strong> when its keys sit on something that goes online, and <strong>cold</strong> when they don’t. Phone and desktop wallets are hot: fine for walking-around money, wrong for savings. Anything you are actually saving belongs on a device that stays offline — and writing your words into a note, a photo or a password manager puts them straight back online.',
     href: '/learn/bitcoin-keys',
     level: '101',
-    lesson: 'What Bitcoin keys are, and how they work',
+    lesson: 'What Bitcoin keys are',
   },
   {
     n: 2,
@@ -81,7 +81,7 @@ export const rules = [
     body: 'Not the most impressive one, and not the one a vendor is selling — the simplest one that defends against risks you can name out loud. Climbing higher is never free: more keys, more devices and more clever schemes are the single biggest cause of lost Bitcoin. Complexity you don’t fully control is itself a threat, so climb only for a reason you can say in one sentence.',
     href: '/learn/ladder',
     level: '102',
-    lesson: 'The configuration ladder',
+    lesson: 'The wallet configuration ladder',
   },
   {
     n: 5,

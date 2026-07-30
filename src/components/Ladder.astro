@@ -3,7 +3,7 @@ import { ladder } from '../data/ladder.js';
 export interface Props { active?: string; linked?: boolean; }
 const { active, linked = true } = Astro.props;
 ---
-<ol class="ladder" aria-label="The self-custody configuration ladder">
+<ol class="ladder" aria-label="The wallet configuration ladder">
   {ladder.map((r) => {
     const Tag = linked && r.built ? 'a' : 'div';
     return (

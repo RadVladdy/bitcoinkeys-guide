@@ -62,7 +62,7 @@ export const levels = [
     blurb: 'Twelve rules hold up everything here. Meet them, then learn what a key is, how people lose Bitcoin, and why an exchange isn’t custody.',
     lessons: [
       { href: '/learn/rules',              label: 'The twelve rules',                  short: 'The twelve rules', note: 'read first' },
-      { href: '/learn/bitcoin-keys',       label: 'What Bitcoin keys are, and how they work', short: 'What Bitcoin keys are' },
+      { href: '/learn/bitcoin-keys',       label: 'What Bitcoin keys are',           short: 'What Bitcoin keys are' },
       { href: '/learn/how-bitcoin-is-lost', label: 'How people lose Bitcoin',           short: 'How people lose Bitcoin' },
       { href: '/learn/not-your-keys',      label: 'Not your keys, not your coins',      short: 'Not your keys, not your coins' },
     ],
@@ -73,7 +73,7 @@ export const levels = [
     why: 'Now that you know the risks, pick the simplest setup that covers them.',
     blurb: 'Every real setup fits on one ladder. Find the lowest rung that covers you — then stop.',
     lessons: [
-      { href: '/learn/ladder',          label: 'The configuration ladder',        short: 'The configuration ladder', note: '+ all 4 rungs' },
+      { href: '/learn/ladder',          label: 'The wallet configuration ladder', short: 'The wallet configuration ladder' },
       { href: '/learn/choose-a-wallet', label: 'How to choose a hardware wallet', short: 'Choosing a hardware wallet' },
     ],
   },
