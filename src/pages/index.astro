@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import Ladder from '../components/Ladder.astro';
 import { lessons } from '../data/lessons.js';
+import { lessonCount, levels } from '../data/curriculum.js';
 import { questionCountWord, questionCountWordCap } from '../data/quiz.js';
 ---
 <Base
@@ -73,7 +74,7 @@ import { questionCountWord, questionCountWordCap } from '../data/quiz.js';
     <div class="grid cols-2">
       <a href="/start" class="card">
         <h3>I want to understand it first →</h3>
-        <p class="sub">The whole guide in teaching order — six chapters, from what a key actually is to the ladder of real setups. Read it and you’ll understand your own setup better than most people who already have one.</p>
+        <p class="sub">The whole guide in teaching order — {lessonCount} lessons across {levels.length} levels, from what a key actually is to the ladder of real setups. Read it and you’ll understand your own setup better than most people who already have one.</p>
       </a>
       <a href="/quiz" class="card">
         <h3>Just tell me what to do →</h3>

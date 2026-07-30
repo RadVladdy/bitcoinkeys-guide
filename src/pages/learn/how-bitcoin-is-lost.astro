@@ -2,6 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import LessonNav from '../../components/LessonNav.astro';
 import LessonEyebrow from '../../components/LessonEyebrow.astro';
+import { questionCountWord } from '../../data/quiz.js';
 import RuleBand from '../../components/RuleBand.astro';
 
 // The five ways Bitcoin is lost, in plain English, each with the defence.
@@ -15,7 +16,18 @@ import RuleBand from '../../components/RuleBand.astro';
 // The defence lines were never the problem — they're the reason the page works.
 // So they stay, and `covered` now NAMES the level and lesson in plain text, the
 // same device /learn/rules uses. Findable in the menu, nobody yanked out of
-// sequence. `links` survives only for genuinely backward targets.
+// sequence.
+//
+// LINK ROWS REMOVED ENTIRELY 2026-07-30 (later). The de-forward-linking above cut
+// only the FORWARD links and kept three backward ones — passing invariant #9 by the
+// letter while missing its point. The result was a page running both devices at
+// once: a `covered` sentence naming lessons in plain text, then a link row naming
+// DIFFERENT ones. Bucket 2 offered "What a key really is," which its covered line
+// never mentions. Bucket 4 said "the very next lesson is this one in full" and then
+// offered "The twelve rules" and "Start here" — pulling the reader back to lesson 1
+// and out to the syllabus, at position 3 of 15, immediately after being told the
+// answer was one lesson away. Backward, and still exactly wrong. `covered` is the
+// device this page uses; there is no `links` field any more, so it cannot regrow.
 const buckets = [
   {
     n: 1,
@@ -29,7 +41,6 @@ const buckets = [
     ],
     defense: 'Back up your words on metal, keep a second copy somewhere else, test the restore before you fund it, and leave a plan your family can follow.',
     covered: 'Three lessons take this apart: <strong>Back up your seed phrase</strong> and <strong>Test your backup</strong> in 103 · The build, then <strong>Why Bitcoin doesn’t inherit like money</strong> in 104 · The long haul.',
-    links: [],
   },
   {
     n: 2,
@@ -43,9 +54,6 @@ const buckets = [
     ],
     defense: 'Never type or photograph your recovery words. Verify every address on the hardware wallet’s screen. Assume any “support” message that wants your words is a scam.',
     covered: 'The scams themselves get a whole lesson — <strong>Phishing and everyday safety</strong>, in 104 · The long haul. The address check is <strong>Send Bitcoin safely</strong>, in 103 · The build.',
-    links: [
-      { label: 'What a key really is', href: '/learn/bitcoin-keys' },
-    ],
   },
   {
     n: 3,
@@ -58,7 +66,6 @@ const buckets = [
     ],
     defense: 'The best physical protection isn’t a gadget, it’s a habit: <strong>talk about Bitcoin as loudly as you like — never about <em>your</em> Bitcoin.</strong> Don’t attach your own name to the fact that you hold and self-custody it, and never attach a number. That includes the people you trust, because they have people they trust too. Then keep backups out of obvious places, and split things up so no single location holds enough to spend. For a targeted threat, a <strong>passphrase</strong> turns your base seed into a <strong>decoy wallet</strong>: the recovery words alone open only a small, believable stash, while the real coins sit behind a passphrase stored somewhere the words are not — so what a searcher finds still isn’t the real thing. <strong>Back that passphrase up as carefully as the seed, and keep it in a separate place.</strong> A passphrase living only in your memory is not a clever extra layer; it is the single most documented way this setup loses people their Bitcoin, and it’s the first item in this list wearing a disguise.',
     covered: 'The habits that keep you off the list are <strong>Privacy and a low profile</strong>, in 104 · The long haul. The decoy setup itself is a rung on the ladder, in 102 · Your setup.',
-    links: [],
   },
   {
     n: 4,
@@ -70,10 +77,6 @@ const buckets = [
     ],
     defense: 'Move your Bitcoin off the exchange and into your own custody after you buy — that single step is what this whole guide is about. And buy from a reputable <strong>Bitcoin-only</strong> service (River, Swan, Strike) rather than a multi-coin “crypto casino”: fewer distractions and gimmicks, a straightforward path to withdrawing to your own wallet, and a company whose entire business is Bitcoin.',
     covered: 'The very next lesson — <strong>Not your keys, not your coins</strong> — is this one in full.',
-    links: [
-      { label: 'The twelve rules', href: '/learn/rules' },
-      { label: 'Start here — the whole guide in order', href: '/start' },
-    ],
   },
   {
     n: 5,
@@ -86,7 +89,6 @@ const buckets = [
     ],
     defense: 'Verify the address on the hardware wallet’s screen, send a tiny test amount first, confirm it arrives, then send the rest — and never do it in a hurry. When withdrawing, make sure you’re sending real Bitcoin on the Bitcoin network.',
     covered: 'All of it lands in one lesson: <strong>Send Bitcoin safely</strong>, in 103 · The build.',
-    links: [],
   },
 ];
 ---
@@ -176,13 +178,6 @@ const buckets = [
             <span class="dlabel">How this guide defends it</span>
             <p set:html={b.defense}></p>
             {b.covered && <p class="dcovered" set:html={b.covered}></p>}
-            {b.links.length > 0 && (
-              <div class="dlinks">
-                {b.links.map((l) => (
-                  <a href={l.href}>{l.label} →</a>
-                ))}
-              </div>
-            )}
           </div>
         </li>
       ))}
@@ -206,11 +201,10 @@ const buckets = [
     <h2>Now — which of these do <em>you</em> most need to defend?</h2>
     <p>
       You don’t need to defend against all five equally. The right setup is the simplest one that
-      covers <em>your</em> real risks. Answer a few questions and we’ll point you to it.
+      covers <em>your</em> real risks. Answer {questionCountWord} plain questions and we’ll point you to it.
     </p>
     <p class="cta-row">
-      <a class="btn" href="/quiz">Find your setup →</a>
-      <a class="btn ghost" href="/start">New to all this? Start at chapter zero</a>
+      <a class="btn" href="/quiz">Find your setup — take the quiz →</a>
     </p>
   </section>
 
@@ -248,9 +242,6 @@ const buckets = [
   .dcovered { font-size: 0.88rem !important; color: var(--faint) !important; border-left: 2px solid var(--line);
     padding-left: 0.75rem; margin: 0.7rem 0 0 !important; }
   .dcovered strong { color: var(--muted); font-weight: 600; }
-  .dlinks { display: flex; flex-wrap: wrap; gap: 0.3rem 1.1rem; }
-  .dlinks a { font-family: var(--mono); font-size: 0.85rem; color: var(--text); text-decoration: none; }
-  .dlinks a:hover { color: var(--accent); }
   .next h2 { margin-top: 0.5rem; }
   .cta-row { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1rem; }
   .btn { display: inline-flex; align-items: center; background: var(--accent); color: var(--accent-ink); font-weight: 700;
