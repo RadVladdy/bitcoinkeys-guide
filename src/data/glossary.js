@@ -3,7 +3,7 @@
 export const glossary = [
   {
     "term": "Address",
-    "def": "A string of letters and numbers you give someone so they can send you Bitcoin, like an email address for payments. You can share it freely, but for privacy it's best to use a fresh one each time (see <em>address reuse</em>)."
+    "def": "A string of letters and numbers you give someone so they can send you Bitcoin, like an email address for payments. Sharing one is normal and cannot cost you coins — but it is permanent and public, so use a fresh one for every payment (see <em>address reuse</em>)."
   },
   {
     "term": "Address reuse",
@@ -115,7 +115,7 @@ export const glossary = [
   },
   {
     "term": "Public key",
-    "def": "A number derived from your <em>private key</em> that is safe to share and is used to create your receiving <em>addresses</em>. It lets others send you Bitcoin without being able to spend it."
+    "def": "A number derived from your <em>private key</em> and used to create your receiving <em>addresses</em>. Nobody can spend your Bitcoin with it, and nobody can work backwards from it to your private key — but that is not the same as harmless: what you publish can be linked together. Share addresses when you need to be paid; don't publish more than you have to."
   },
   {
     "term": "Recovery kit",

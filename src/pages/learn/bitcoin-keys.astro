@@ -73,23 +73,33 @@ import RuleBand from '../../components/RuleBand.astro';
     </p>
     <ul>
       <li>
-        Your <strong>private key</strong> is the secret: the thing that can actually move coins. It never
-        leaves your device.
+        Your <strong>private key</strong> is the secret: the only thing that can move coins. It never leaves
+        your device.
       </li>
       <li>
-        From it, your wallet computes a <strong>public key</strong>. This one is safe to share.
+        From it, your wallet computes a <strong>public key</strong>. Nothing downstream of the private key can
+        spend — but “can’t spend” is not the same as “harmless to hand out.” The difference is privacy, and
+        it’s worth a moment.
       </li>
       <li>
         From that, it computes an <strong><a href="/glossary#address">address</a></strong> — the string you
-        hand someone so they can pay you.
+        give someone so they can pay you. Handing out an address is normal; that is what it’s for.
       </li>
     </ul>
     <p>
       Each step is easy to compute forwards and, as far as anyone knows, impossible to run backwards. Nobody
       can look at your address and work out the public key; nobody can look at a public key and work out the
-      private key. <strong>That isn’t a promise we’re making — it’s the arithmetic.</strong> It is why handing
-      out an address costs you nothing, and why the whole network can confirm your payment was authorised
-      without ever seeing the secret that authorised it.
+      private key. <strong>That isn’t a promise we’re making — it’s the arithmetic.</strong> It’s why the whole
+      network can confirm your payment was authorised without ever seeing the secret that authorised it, and
+      why nothing you hand out can be turned back into your key.
+    </p>
+    <p>
+      <strong>Theft and privacy come apart right here, and it’s worth separating them now.</strong> Nothing
+      below the private key can take your coins — that part really is safe. But everything below it is
+      <em>public and permanent</em> once it touches the chain, and whatever can be linked together eventually
+      is. So the honest version isn’t “this is safe to share,” it’s: <strong>share an address when you need to
+      be paid, share as little else as you can, and use a fresh address each time.</strong> The next section has
+      the case that catches people out.
     </p>
     <p>
       The easiest picture is a mailbox. The address is the slot in the front — anyone can drop something in.
@@ -101,7 +111,7 @@ import RuleBand from '../../components/RuleBand.astro';
       way to use Bitcoin.
     </p>
 
-    <Diagram name="keys-mailbox" caption="Public key = the mail slot anyone can drop coins into (your address). Private key = the only thing that opens the box." />
+    <Diagram name="keys-mailbox" caption="Your address is the mail slot — anyone can drop coins in, and it gives nothing away about the key. The private key is the only thing that opens the back." />
     <p class="deeper"><strong>Deeper dive:</strong> <a href="/deep-dive/addresses">see the four address formats one key produces →</a> — why addresses start with <span class="mono">1</span>, <span class="mono">3</span>, <span class="mono">bc1q</span>, or <span class="mono">bc1p</span>. Or <a href="/deep-dive/hd-tree">watch one seed grow a whole tree of them →</a>.</p>
 
     <h2>4 · So what is a “wallet”, then?</h2>
@@ -133,7 +143,7 @@ import RuleBand from '../../components/RuleBand.astro';
       <strong>102 · Your setup</strong>, is about.
     </p>
     <div class="callout warn">
-      <span class="label">An address is safe to share. An xpub is not.</span>
+      <span class="label">Hand out addresses. Don’t hand out an xpub.</span>
       <p style="margin:0">
         Neither one can spend your coins — but they leak very different amounts. An address reveals one payment.
         An <span class="mono">xpub</span> reveals <em>every</em> address in that wallet, past and future, so
