@@ -158,9 +158,9 @@ export const rules = [
   {
     n: 10,
     key: 'never-talk',
-    short: 'Never talk about your Bitcoin',
-    rule: 'Never talk about your Bitcoin.',
-    body: 'Physical attacks are almost never random. They start with a leaked customer list, get cross-referenced against anything you have said publicly about owning Bitcoin, and end at your door. Talk about Bitcoin the idea as loudly as you like — the technology, the economics, the freedom. Just never attach your own name to the fact that you hold it, and never attach a number.',
+    short: 'Talk about Bitcoin, not yours',
+    rule: 'Talk about Bitcoin. Never talk about your Bitcoin.',
+    body: 'Physical attacks are almost never random. They start with a leaked customer list, get cross-referenced against anything you have said publicly about owning Bitcoin, and end at your door. So talk about Bitcoin <em>the idea</em> as loudly as you like — the technology, the economics, the freedom. Just never attach your own name to the fact that you hold it, and never attach a number. <strong>That includes people you trust:</strong> they have people they trust too, and you don’t control the third telling.',
     href: '/learn/privacy',
     level: '104',
     lesson: 'Privacy and a low profile',
