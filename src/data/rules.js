@@ -52,7 +52,7 @@ export const rules = [
     body: 'A wallet is <strong>hot</strong> when its keys sit on something that goes online, and <strong>cold</strong> when they don’t. Phone and desktop wallets are hot: fine for walking-around money, wrong for savings. Anything you are actually saving belongs on a device that stays offline — and writing your words into a note, a photo or a password manager puts them straight back online.',
     href: '/learn/bitcoin-keys',
     level: '101',
-    lesson: 'What Bitcoin keys are',
+    lesson: 'What are Bitcoin keys',
   },
   {
     n: 2,
