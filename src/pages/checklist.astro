@@ -1,7 +1,8 @@
 ---
 import Base from '../layouts/Base.astro';
-import { checklistGroups, checklistCount } from '../data/checklist.js';
+import { checklistGroups, checklistCount, ruleForItem } from '../data/checklist.js';
 import { questionCountWordCap } from '../data/quiz.js';
+import { ruleCountWord } from '../data/rules.js';
 
 // GENERATED CHECKLIST (2026-07-28). Every item is server-rendered, so the page
 // works with no JavaScript and search engines see the whole list. When a saved plan
@@ -36,7 +37,7 @@ const total = checklistCount;
       <p class="y-count mono" id="cl-yours-count"></p>
     </div>
 
-    <p class="sub">Each item links to the full how-to. This is the map; the guides are the detail. Your ticks are kept <strong>only in your browser</strong> — nothing is ever sent anywhere, and you can clear them any time on <a href="/my-plan">your plan</a>.</p>
+    <p class="sub">Each item links to the full how-to. This is the map; the guides are the detail. Where a step <em>is</em> one of <a href="/learn/rules">the {ruleCountWord} rules</a>, it says which — so you can see the course and this list are the same advice, once as reading and once as doing. Your ticks are kept <strong>only in your browser</strong> — nothing is ever sent anywhere, and you can clear them any time on <a href="/my-plan">your plan</a>.</p>
   </section>
 
   {groups.map((g) => (
@@ -62,7 +63,14 @@ const total = checklistCount;
             <div class="ctext">
               <span class="ct-title">{it.t}<span class="ct-dev" hidden></span></span>
               <span class="ct-desc">{it.d}</span>
-              {it.href && <a href={it.href} class="ct-link">Full how-to →</a>}
+              <span class="ct-links">
+                {it.href && <a href={it.href} class="ct-link">Full how-to →</a>}
+                {ruleForItem(it) && (
+                  <a class="ct-rule mono" href={`/learn/rules#rule-${ruleForItem(it).n}`}>
+                    Rule {String(ruleForItem(it).n).padStart(2, '0')} · {ruleForItem(it).short}
+                  </a>
+                )}
+              </span>
             </div>
             <span class="ct-next mono" hidden>Next up</span>
           </li>
@@ -311,6 +319,12 @@ const total = checklistCount;
   .citem.done .ct-title { text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--safe) 60%, transparent); color: var(--muted); }
   .ct-desc { color: var(--muted); font-size: 0.93rem; }
   .ct-link { font-size: 0.84rem; font-weight: 600; margin-top: 0.2rem; }
+
+  .ct-links { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 0.9rem; }
+  .ct-rule { font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
+    border: 1px solid var(--line); border-radius: 0.35rem; padding: 0.12rem 0.45rem; text-decoration: none; white-space: nowrap; }
+  .ct-rule:hover { color: var(--accent); border-color: var(--accent); }
+  .citem.done .ct-rule { opacity: 0.55; }
 
   .savebar { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
     border: 1px solid var(--accent-dim); border-radius: 0.7rem; background: var(--surface-2); padding: 0.9rem 1.2rem; margin-top: 0.6rem; }
