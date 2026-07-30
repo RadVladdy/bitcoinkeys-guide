@@ -40,3 +40,10 @@
 /learn/ladder/multisig       /learn/ladder#rung-3  301
 /learn/ladder/collaborative  /learn/ladder#rung-4  301
 /learn/ladder/shamir         /deep-dive/shamir     301
+
+# /quiz became /find-your-setup 2026-07-30. It was never a quiz: a quiz tests what
+# you know, and this asks about your situation and returns a setup, a roadmap and a
+# checklist. The page's own <title> and eyebrow had said "Find your setup" all along.
+# Renamed now, while distribution is still held and nothing external links here —
+# and because the word is needed for the per-lesson knowledge checks.
+/quiz  /find-your-setup  301

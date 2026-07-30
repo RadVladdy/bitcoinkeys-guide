@@ -338,7 +338,7 @@ const tableGroups = [
     el.hidden = false;
     el.innerHTML = hasPlan
       ? `<span>✓ We’re keeping track — the wallets you mark here feed your plan.</span> <a href="/my-plan">View your plan →</a>`
-      : `<span>✓ Noted ${owned} wallet${owned !== 1 ? 's' : ''} you own${planned ? ` + ${planned} in mind` : ''}.</span> <a href="/quiz">Take the 2-min quiz to turn it into a plan →</a>`;
+      : `<span>✓ Noted ${owned} wallet${owned !== 1 ? 's' : ''} you own${planned ? ` + ${planned} in mind` : ''}.</span> <a href="/find-your-setup">Find your setup to turn it into a plan →</a>`;
   }
 
   function paintPlanControls() {
@@ -364,7 +364,7 @@ const tableGroups = [
         paintPlanControls();
       });
       el.querySelector('.wcp-plan').addEventListener('click', () => {
-        if (!hasPlan) { wtoast('Take the quiz to choose a setup first — then you can slot wallets into your plan.', 'err'); return; }
+        if (!hasPlan) { wtoast('Find your setup first — then you can slot wallets into your plan.', 'err'); return; }
         if (isPlanned) { removeFromPlan(slug); wtoast('Removed from your plan', 'ok'); }
         else {
           const r = assignToPlan(slug);

@@ -33,18 +33,18 @@ export const navGroups = [
     ],
   },
   {
-    title: 'Take action',
-    // One straight line, no branching: the quiz places you → your plan holds the
+    title: 'Your setup',
+    // One straight line, no branching: the setup finder places you → your plan holds the
     // roadmap → your checklist walks you through building it.
     links: [
-      { href: '/quiz', label: 'Take the quiz' },
+      { href: '/find-your-setup', label: 'Find your setup' },
       { href: '/my-plan', label: 'Your plan' },
       { href: '/checklist', label: 'Your checklist' },
     ],
   },
   {
     title: 'Hardware & services',
-    // The reference shelf you dip into once the quiz has told you what you need.
+    // The reference shelf you dip into once the setup finder has told you what you need.
     links: [
       { href: '/wallets', label: 'Hardware wallets' },
       { href: '/standard', label: 'How we rate them' },
@@ -68,7 +68,7 @@ export const primaryNav = [
   { href: '/start', label: 'Start here' },
   { href: '/learn/bitcoin-keys', label: 'How it works' },
   { href: '/learn/ladder', label: 'The ladder' },
-  { href: '/quiz', label: 'Take the quiz' },
+  { href: '/find-your-setup', label: 'Find your setup' },
   { href: '/my-plan', label: 'Your plan' },
   { href: '/checklist', label: 'Your checklist' },
 ];

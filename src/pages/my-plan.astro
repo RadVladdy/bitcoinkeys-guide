@@ -4,13 +4,13 @@ import WhereAmI from '../components/WhereAmI.astro';
 ---
 <Base
   title="Your plan — your data, held by you · BitcoinKeys.guide"
-  description="Save your quiz result, ladder rung, chosen device, and checklist progress — on infrastructure you own, never ours. By default this site keeps nothing; saving is always your explicit choice."
+  description="Save your setup result, ladder rung, chosen device, and checklist progress — on infrastructure you own, never ours. By default this site keeps nothing; saving is always your explicit choice."
   verified="2026-07-28"
 >
   <section class="prose">
     <p class="eyebrow">Your plan</p>
     <h1>Your plan — held by <span class="accent">you, not us</span></h1>
-    <p class="lead">The quiz, the ladder, and the checklist build one picture of your setup: <strong>where you are today, the hardware you own, the setup you're aiming for, and the roadmap between them</strong>. Save it if you want to pick up where you left off — but on your terms. This site is <strong>keyless and dataless</strong>: by default it keeps nothing.</p>
+    <p class="lead">The setup finder, the ladder, and the checklist build one picture of your setup: <strong>where you are today, the hardware you own, the setup you're aiming for, and the roadmap between them</strong>. Save it if you want to pick up where you left off — but on your terms. This site is <strong>keyless and dataless</strong>: by default it keeps nothing.</p>
 
     <div class="promise">
       <span class="pn-label mono">🔒 How this works</span>
@@ -155,7 +155,7 @@ import WhereAmI from '../components/WhereAmI.astro';
         <h2 class="ps-h2">Where you are — your current status</h2>
         ${cur
           ? `<p class="ps-cur">Your current setup: <strong>${esc(cur)}</strong></p>`
-          : `<p class="ps-cur ps-muted">No current setup recorded yet — <a href="/quiz">take the quiz</a> to set your starting point.</p>`}
+          : `<p class="ps-cur ps-muted">No current setup recorded yet — <a href="/find-your-setup">find your setup</a> to set your starting point.</p>`}
         ${ladder}
         <div class="ps-own">
           ${ownBlock}
@@ -339,7 +339,7 @@ import WhereAmI from '../components/WhereAmI.astro';
           <p class="p-empty-h">Nothing saved yet — and that's the default.</p>
           <p>The quiz builds your plan: it places you on the ladder, names the setup that fits, and turns it into a checklist. Two minutes, ${questionCountWord} questions, and it never asks how much you hold.</p>
           <div class="p-empty-links">
-            <a class="btn-primary" href="/quiz">Take the setup quiz →</a>
+            <a class="btn-primary" href="/find-your-setup">Find your setup →</a>
             <a class="btn-ghost" href="/start">I'd rather learn it first</a>
           </div>
           <div class="p-import">
@@ -576,7 +576,7 @@ import WhereAmI from '../components/WhereAmI.astro';
   async function doNostrSave(statusFn) {
     const say = statusFn || (() => {});
     const plan = loadLocal() || emptyPlan();
-    if (!planHasContent(plan)) { say('Nothing to save yet — build a plan first (take the quiz, tick the checklist).', true); return false; }
+    if (!planHasContent(plan)) { say('Nothing to save yet — build a plan first (find your setup, tick the checklist).', true); return false; }
     try {
       const signer = await ensureSigner();
       say('Encrypting and publishing to your relays…');
