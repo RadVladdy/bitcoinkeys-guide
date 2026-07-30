@@ -18,6 +18,14 @@
 //   done   — the quiz already settled this, so a personalized list hides it
 //
 // Everything with neither `only` nor `needs` shows to everyone, personalized or not.
+//
+// `href` MUST BE SCOPE-CHECKED, not merely resolved — a wrong-but-real page links
+// fine and no link checker catches it. Audited 2026-07-30 against the 7/29
+// restructure: three items pointed at `/learn/inheritance` (which now only states
+// the PROBLEM) when they instruct the reader to write or review the Recovery Kit,
+// whose lesson is `/learn/recovery-kit`. The same pass rewrote `daily-safety`'s
+// description, which still summarised the retired `opsec-basics` page — two of the
+// three habits it named moved to other lessons and already have their own items here.
 
 export const PHASES = [
   { key: 'setup',  tag: 'Step 1',    title: 'Get set up',        intro: 'The moves that get your Bitcoin out of someone else’s hands and into your own.' },
@@ -83,7 +91,7 @@ export const checklistItems = [
 
   // ── Step 4 · Live with it ─────────────────────────────────────────────────
   { id: 'daily-safety', phase: 'live', t: 'Learn the daily-safety habits',
-    d: 'Verify addresses on the hardware wallet’s screen, treat unexpected messages as scams, and keep your Bitcoin off your public identity.',
+    d: 'Treat every unexpected message, call, or “support” contact as a trap until proven otherwise. Nobody legitimate ever needs your seed words — the demand itself is the proof.',
     href: '/learn/phishing-and-scams' },
   { id: 'low-profile', phase: 'live', t: 'Keep a low physical profile',
     d: 'Don’t advertise that you hold Bitcoin. Keep amounts vague, skip the branded gear, and reduce where your name is tied to it.',
@@ -93,10 +101,10 @@ export const checklistItems = [
     href: '/learn/privacy' },
   { id: 'recovery-kit', phase: 'live', t: 'Write a recovery kit and inheritance plan',
     d: 'A plain-language document your future self and your heirs can follow — without ever writing the seed words in it.',
-    href: '/learn/inheritance' },
+    href: '/learn/recovery-kit' },
   { id: 'tell-heirs', phase: 'live', needs: 'heirs', t: 'Make sure the right person knows the kit exists',
     d: 'A perfect recovery kit nobody knows about is no plan at all. They don’t need the seed or the passphrase — only to know the kit exists and where to find it.',
-    href: '/learn/inheritance' },
+    href: '/learn/recovery-kit' },
   // The quiz right-sizes you, so a personalized list hides this — it's already done.
   { id: 'right-size', phase: 'live', done: true, t: 'Right-size your setup',
     d: 'Check where you belong on the ladder — our map of setups from simplest to most advanced. Most people are safest at the lower rungs; climb only for a real reason.',
@@ -111,10 +119,10 @@ export const checklistItems = [
     href: null },
   { id: 'review-kit', phase: 'yearly', t: 'Review your recovery kit and heirs',
     d: 'Are the instructions still accurate? Do the right people still know where to look?',
-    href: '/learn/inheritance' },
+    href: '/learn/recovery-kit' },
   { id: 'confirm-locations', phase: 'yearly', t: 'Confirm your backup locations',
     d: 'Has anything moved, flooded, or changed hands? Fix it while you remember.',
-    href: null },
+    href: '/learn/back-up-your-seed' },
   { id: 'reconsider-rung', phase: 'yearly', t: 'Reconsider your rung',
     d: 'If your holdings have grown a lot, re-check whether it’s time to move up the ladder.',
     href: '/learn/ladder' },

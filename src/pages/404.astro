@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import { questionCountWordCap } from '../data/quiz.js';
 ---
 <Base
   title="Page not found · BitcoinKeys.guide"
@@ -17,7 +18,7 @@ import Base from '../layouts/Base.astro';
       </a>
       <a href="/quiz" class="nf-card">
         <h3>Not sure what you need? Take the quiz →</h3>
-        <p>Six plain questions → a setup, a roadmap from where you are, and a checklist that fits you.</p>
+        <p>{questionCountWordCap} plain questions → a setup, a roadmap from where you are, and a checklist that fits you.</p>
       </a>
       <a href="/wallets" class="nf-card">
         <h3>Comparing devices? →</h3>

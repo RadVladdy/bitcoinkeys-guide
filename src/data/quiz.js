@@ -84,6 +84,22 @@ export const questions = [
   },
 ];
 
+/**
+ * How many questions the quiz asks, and the same figure as an English word, so
+ * page copy ("Six plain questions") derives instead of being typed. Invariant #10:
+ * a typed count is a bug even when it's right today — and this one was typed on
+ * eight surfaces (home ×2, /quiz ×2, /start, /checklist, /learn, /learn/ladder,
+ * /404, /my-plan), every one of which would have gone stale on a seventh question.
+ * The optional owned-wallets step is deliberately NOT counted: it's an interstitial
+ * between Q1 and Q2, shown conditionally, and the copy promises plain questions.
+ */
+export const questionCount = questions.length;
+const NUMBER_WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven',
+  'eight', 'nine', 'ten', 'eleven', 'twelve'];
+export const questionCountWord = NUMBER_WORDS[questionCount] ?? String(questionCount);
+export const questionCountWordCap =
+  questionCountWord.charAt(0).toUpperCase() + questionCountWord.slice(1);
+
 // Bitcoin-only collaborative-custody services, derived LIVE from custodians.js
 // (the /collaborative page's single source of truth) so the quiz and the
 // comparison page can never disagree on fees, KYC, or the service list.
@@ -117,8 +133,8 @@ const DEV = {
     checklist: [
       { text: 'Download the Bitkey app and order the Bitkey device (Block ships it to you)', howto: 'choose-a-wallet' },
       { text: 'Set up your wallet in the app — it pairs with the hardware device (those are your two everyday keys)', howto: 'bitcoin-keys' },
-      { text: 'Set up recovery: add a Trusted Contact and/or cloud backup so the 2-of-3 can restore you — there’s no seed phrase to write down or lose', howto: 'back-up-your-seed' },
-      { text: 'Send a small amount first, confirm it arrives, then move the rest', howto: 'bitcoin-keys' },
+      { text: 'Set up recovery: add a Trusted Contact and/or cloud backup so the 2-of-3 can restore you — there’s no seed phrase to write down or lose', howto: 'ladder/collaborative' },
+      { text: 'Send a small amount first, confirm it arrives, then move the rest', howto: 'send-bitcoin-safely' },
       { text: 'Keep the hardware device somewhere safe, separate from your phone', howto: 'privacy' },
     ],
   },
@@ -149,13 +165,27 @@ function singleSigDevices(a) {
   return { devices: [DEV.coldcard, DEV.jade], note: 'The Coldcard Q is the friendliest to operate (a real keyboard, simple menus) and buy-once — it climbs to a passphrase or multisig later without new hardware, which is worth the premium if you expect to grow. The Jade is the budget alternative: spend less now, re-buy only if you ever climb.' };
 }
 
+// `howto` is the "how →" link beside a checklist step. It renders as /learn/<value>
+// unless it starts with "/", in which case it's used verbatim (see quiz.astro).
+// EVERY VALUE MUST BE SCOPE-CHECKED, NOT JUST RESOLVED: a wrong-but-real slug
+// links fine and no checker catches it. Re-scoped 2026-07-30 — sixteen targets had
+// gone stale against the 7/29 restructure while every one of them still resolved.
+// The traps, all of them live at the time:
+//   · `bitcoin-keys` had become the catch-all (6 uses) for material that now has
+//     its own lesson — sending, and hot/cold tiering (rule 04 re-homed to /ladder).
+//   · `inheritance` split into the PROBLEM (findability) and `recovery-kit` (the
+//     document). Anything telling the reader to WRITE or REVIEW the kit is
+//     `recovery-kit`; only the why-it-goes-wrong argument is `inheritance`.
+//   · `choose-a-wallet` is about picking HARDWARE and says so in its title — it is
+//     not the home for phone wallets, multisig walkthroughs, or picking a custodian.
+//   · `back-up-your-seed` never mentions the wallet descriptor; the rung pages do.
 const STEP = {
-  buy:        { text: 'Buy the device from the vendor directly — never a marketplace or third-party seller', howto: 'choose-a-wallet' },
-  offline:    { text: 'Set it up offline and generate your seed on the device itself', howto: 'bitcoin-keys' },
+  buy:      { text: 'Buy the device from the vendor directly — never a marketplace or third-party seller', howto: 'choose-a-wallet' },
+  offline:    { text: 'Set it up offline and generate your seed on the device itself', howto: 'choose-a-wallet' },
   metal:      { text: 'Back up the recovery seed on metal (fire/flood-proof), not just paper', howto: 'back-up-your-seed' },
   testRecover:{ text: 'TEST RECOVERY before you fund it — wipe the device and restore from your backup', howto: 'test-your-backup' },
-  smallFirst: { text: 'Send a small amount first, confirm it arrives, then move the rest', howto: 'bitcoin-keys' },
-  separate:   { text: 'Store the backup separate from the device — ideally a second location', howto: 'privacy' },
+  smallFirst: { text: 'Send a small amount first, confirm it arrives, then move the rest', howto: 'send-bitcoin-safely' },
+  separate:   { text: 'Store the backup separate from the device — ideally a second location', howto: 'back-up-your-seed' },
 };
 
 // ── The multisig FORK ───────────────────────────────────────────────────────
@@ -182,13 +212,13 @@ function multisigFork(a, sharedNeed) {
       ? 'A fully self-custodied inheritance plan is entirely achievable here — your heirs recover from the keys plus a plain-English guide, with no company in the loop. It takes deliberate planning, but sovereignty and a real estate plan are not a trade-off you have to make.'
       : null,
     checklist: [
-      { text: 'Read the multisig walkthrough end-to-end before buying anything', howto: 'choose-a-wallet' },
+      { text: 'Read the multisig walkthrough end-to-end before buying anything', howto: 'ladder/multisig' },
       { text: 'Buy 2–3 devices from TWO different vendors (directly from each)', howto: 'choose-a-wallet' },
       STEP.offline,
       { text: 'Back up EACH key’s seed on metal, stored in separate locations', howto: 'back-up-your-seed' },
-      { text: 'Back up the wallet descriptor (the map of your keys) — without it the keys can’t be reassembled', howto: 'back-up-your-seed' },
+      { text: 'Back up the wallet descriptor (the map of your keys) — without it the keys can’t be reassembled', howto: 'ladder/multisig' },
       STEP.testRecover,
-      ...(sharedNeed ? [{ text: 'Write your heirs a plain-English recovery guide and store it with the estate documents', howto: 'inheritance' }] : []),
+      ...(sharedNeed ? [{ text: 'Write your heirs a plain-English recovery guide and store it with the estate documents', howto: 'recovery-kit' }] : []),
       STEP.smallFirst,
     ],
   };
@@ -201,13 +231,13 @@ function multisigFork(a, sharedNeed) {
     tradeoff: 'The trade-off is trust and privacy. You’re bringing an outside institution into your setup: most require ID verification (KYC), which ties your identity to your holdings, and most charge an ongoing fee. They can never move your coins alone — but they are now part of your plan, and can see it.',
     walletNote: '<strong>Choose your service first — it comes before the hardware.</strong> Each service lists the devices it supports, and some (like Bitkey) send you one.',
     checklist: [
-      { text: 'Choose your service or co-signer FIRST — a Bitcoin-only collaborative-custody service (see below) and/or a trusted partner', howto: 'choose-a-wallet' },
+      { text: 'Choose your service or co-signer FIRST — a Bitcoin-only collaborative-custody service (see below) and/or a trusted partner', howto: '/collaborative' },
       { text: 'Get your hardware key(s) from the service’s supported list — some (like Bitkey) send you the device', howto: 'choose-a-wallet' },
       STEP.offline,
       { text: 'Back up each key you control on metal, in separate locations', howto: 'back-up-your-seed' },
-      { text: 'Back up the wallet descriptor (the map of your keys) somewhere safe', howto: 'back-up-your-seed' },
+      { text: 'Back up the wallet descriptor (the map of your keys) somewhere safe', howto: 'ladder/collaborative' },
       STEP.testRecover,
-      { text: 'Document the recovery plainly for whoever needs it — partner or heirs', howto: 'inheritance' },
+      { text: 'Document the recovery plainly for whoever needs it — partner or heirs', howto: 'recovery-kit' },
       STEP.smallFirst,
     ],
     vendors: collaborativeVendors,
@@ -240,10 +270,10 @@ function primaryRec(a) {
       wallet: null,
       walletNote: 'A reputable <strong>non-custodial phone wallet</strong> to learn on (you hold the keys — not an exchange app). When you graduate to cold storage, a simple ~$79 device like the Blockstream Jade is a great first hardware wallet.',
       checklist: [
-        { text: 'Pick a non-custodial phone wallet — one where YOU hold the keys, not the company', howto: 'choose-a-wallet' },
-        { text: 'Move a small amount off the exchange and practice sending & receiving', howto: 'bitcoin-keys' },
+        { text: 'Pick a non-custodial phone wallet — one where YOU hold the keys, not the company', howto: 'not-your-keys' },
+        { text: 'Move a small amount off the exchange and practice sending & receiving', howto: 'send-bitcoin-safely' },
         { text: 'Write the recovery phrase down and keep it offline — never a photo or cloud note', howto: 'back-up-your-seed' },
-        { text: 'As your stack grows, graduate to a hardware wallet and cold storage', howto: 'bitcoin-keys' },
+        { text: 'As your stack grows, graduate to a hardware wallet and cold storage', howto: 'ladder' },
       ],
       holdback: null,
     };
@@ -265,7 +295,7 @@ function primaryRec(a) {
       walletNote: 'Both of these make a passphrase easy to live with — the Coldcard Q has a full keyboard, the Trezor Safe 5 a touchscreen. You type a strong passphrase painlessly, with no on-screen fiddling and nothing typed into a computer.',
       checklist: [
         STEP.buy, STEP.offline, STEP.metal,
-        { text: 'Choose a strong passphrase — long and unguessable; it can’t be reset or recovered', howto: 'phishing-and-scams' },
+        { text: 'Choose a strong passphrase — long and unguessable; it can’t be reset or recovered', howto: 'ladder/passphrase' },
         { text: 'BACK UP THE PASSPHRASE separately from the seed, in a different place — a passphrase only in your head is the #1 way people lose passphrase-protected Bitcoin', howto: 'back-up-your-seed' },
         { text: 'Test recovery with BOTH the seed and the passphrase before funding', howto: 'test-your-backup' },
         STEP.smallFirst,
@@ -285,7 +315,7 @@ function primaryRec(a) {
     wallets: ssd.devices,
     walletNote: ssd.note,
     checklist: [ STEP.buy, STEP.offline, STEP.metal, STEP.testRecover, STEP.smallFirst, STEP.separate,
-      ...(recovery !== 'just-me' ? [{ text: 'Leave your partner/heirs a plain-English guide to finding the backup and recovering the wallet', howto: 'inheritance' }] : []) ],
+      ...(recovery !== 'just-me' ? [{ text: 'Leave your partner/heirs a plain-English guide to finding the backup and recovering the wallet', howto: 'recovery-kit' }] : []) ],
     holdback: (worry === 'self-loss' || worry === 'unsure')
       ? 'We deliberately did NOT add a passphrase. A passphrase mainly defends against a found seed — but it’s a new single point of failure, and since your risk is losing access yourself, it would add danger, not remove it. Don’t add complexity you don’t need.'
       : null,

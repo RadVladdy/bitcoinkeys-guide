@@ -1,6 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import { levels, lessonCount } from '../../data/curriculum.js';
+import { questionCountWord } from '../../data/quiz.js';
 
 // The flat index — "every lesson on one page." Deliberately NOT in the menu
 // (2026-07-28): the Learn mega-menu links all of these directly, so an index of
@@ -47,7 +48,7 @@ import { levels, lessonCount } from '../../data/curriculum.js';
   <section class="prose">
     <div class="callout">
       <span class="label">Not sure where to start?</span>
-      <p>Level 101 from the top. If you’d rather skip to the setup that fits you, the <a href="/quiz">quiz</a> names it in six plain questions — then turns it into a <a href="/checklist">checklist</a> you can work through.</p>
+      <p>Level 101 from the top. If you’d rather skip to the setup that fits you, the <a href="/quiz">quiz</a> names it in {questionCountWord} plain questions — then turns it into a <a href="/checklist">checklist</a> you can work through.</p>
     </div>
   </section>
 </Base>

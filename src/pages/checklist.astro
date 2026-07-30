@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import { checklistGroups, checklistCount } from '../data/checklist.js';
+import { questionCountWordCap } from '../data/quiz.js';
 
 // GENERATED CHECKLIST (2026-07-28). Every item is server-rendered, so the page
 // works with no JavaScript and search engines see the whole list. When a saved plan
@@ -23,7 +24,7 @@ const total = checklistCount;
     <!-- Shown only when NO plan is saved: the one door to a personalized list. -->
     <div class="callout" id="cl-nudge">
       <span class="label">Make this yours</span>
-      <p>This is the full list — everything that could matter to anyone. <strong>Take the <a href="/quiz">2-minute quiz</a> and this page becomes your checklist:</strong> only the steps your setup actually needs, in your order, with your own hardware named and one clear next action. Six plain questions, and we never ask how much Bitcoin you hold.</p>
+      <p>This is the full list — everything that could matter to anyone. <strong>Take the <a href="/quiz">2-minute quiz</a> and this page becomes your checklist:</strong> only the steps your setup actually needs, in your order, with your own hardware named and one clear next action. {questionCountWordCap} plain questions, and we never ask how much Bitcoin you hold.</p>
     </div>
 
     <!-- Shown only when a plan IS saved: the header for a personalized list. -->

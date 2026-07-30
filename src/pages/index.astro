@@ -2,6 +2,7 @@
 import Base from '../layouts/Base.astro';
 import Ladder from '../components/Ladder.astro';
 import { lessons } from '../data/lessons.js';
+import { questionCountWord, questionCountWordCap } from '../data/quiz.js';
 ---
 <Base
   title="BitcoinKeys.guide — hold your own Bitcoin, and understand every step"
@@ -24,7 +25,7 @@ import { lessons } from '../data/lessons.js';
     <div class="qb-inner">
       <div>
         <p class="qb-kicker mono">The 2-minute setup finder</p>
-        <h2 class="qb-h">Not sure where you belong? Answer six questions.</h2>
+        <h2 class="qb-h">Not sure where you belong? Answer {questionCountWord} questions.</h2>
         <p class="qb-sub">Get a setup matched to what you're actually protecting against, a <strong>roadmap from where you are today</strong>, and a checklist — built around any hardware wallets you already own. <strong>We never ask how much Bitcoin you hold</strong>, and it all runs in your browser.</p>
       </div>
       <a href="/quiz" class="btn btn-primary qb-cta">Take the quiz <span class="arw">→</span></a>
@@ -76,7 +77,7 @@ import { lessons } from '../data/lessons.js';
       </a>
       <a href="/quiz" class="card">
         <h3>Just tell me what to do →</h3>
-        <p class="sub">Six plain questions, and we name the setup that fits what you’re actually protecting against — then turn it into a step-by-step checklist. We never ask how much Bitcoin you hold.</p>
+        <p class="sub">{questionCountWordCap} plain questions, and we name the setup that fits what you’re actually protecting against — then turn it into a step-by-step checklist. We never ask how much Bitcoin you hold.</p>
       </a>
     </div>
   </section>

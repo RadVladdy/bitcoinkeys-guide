@@ -56,6 +56,7 @@ import WhereAmI from '../components/WhereAmI.astro';
   import { custodianName, custodianBySlug } from '../data/custodians.js';
   import { mountOwnedPicker } from '../data/owned-picker.js';
   import { checklistLabels, checklistCount, checklistItems, itemApplies } from '../data/checklist.js';
+  import { questionCountWord } from '../data/quiz.js';
   import { getSession, setSession, clearSession } from '../data/nostr-session.js';
   import { confirmDialog, promptPassword, downloadDialog } from '../data/ui-dialog.js';
 
@@ -336,7 +337,7 @@ import WhereAmI from '../components/WhereAmI.astro';
       el.innerHTML = `
         <div class="p-empty">
           <p class="p-empty-h">Nothing saved yet — and that's the default.</p>
-          <p>The quiz builds your plan: it places you on the ladder, names the setup that fits, and turns it into a checklist. Two minutes, six questions, and it never asks how much you hold.</p>
+          <p>The quiz builds your plan: it places you on the ladder, names the setup that fits, and turns it into a checklist. Two minutes, ${questionCountWord} questions, and it never asks how much you hold.</p>
           <div class="p-empty-links">
             <a class="btn-primary" href="/quiz">Take the setup quiz →</a>
             <a class="btn-ghost" href="/start">I'd rather learn it first</a>
