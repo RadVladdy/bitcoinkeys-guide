@@ -11,7 +11,7 @@
 // render nothing rather than inventing a number.
 // `href` is accepted explicitly so dynamic routes can pass their own path rather
 // than relying on Astro.url inside a [slug] page; static pages can just omit it.
-import { rulesFor } from '../data/rules.js';
+import { rulesFor, ruleCountWord } from '../data/rules.js';
 const { href } = Astro.props;
 const mine = rulesFor(href ?? Astro.url.pathname);
 ---
@@ -30,10 +30,10 @@ const mine = rulesFor(href ?? Astro.url.pathname);
         <>{i > 0 && (i === mine.length - 1 ? ' and ' : ', ')}<strong>{String(r.n).padStart(2, '0')}</strong></>
       ))}
       {mine.some((r) => r.isPartTwo)
-        ? ' of the fifteen — this lesson is the second half of it.'
+        ? ` of the ${ruleCountWord} — this lesson is the second half of it.`
         : mine.length > 1
-          ? ' of the fifteen. This lesson is those rules in full.'
-          : ' of the fifteen. This lesson is that rule in full.'}
+          ? ` of the ${ruleCountWord}. This lesson is those rules in full.`
+          : ` of the ${ruleCountWord}. This lesson is that rule in full.`}
     </p>
   </aside>
 )}

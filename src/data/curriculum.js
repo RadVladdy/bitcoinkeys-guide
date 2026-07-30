@@ -11,6 +11,9 @@
 //   1. THE RULES COME FIRST. /principles was lesson 5 of 101 and linked out to ten
 //      other pages, seven of them further along the course. It's now lesson 1, it
 //      carries no outbound links, and it frames everything after it. See rules.js.
+//      (Revised later the same day: fifteen rules cut to TWELVE, each rewritten as
+//      either a meme-grade statement or a directive — the redundant ones collapsed
+//      and anything that was merely a true observation stopped being a rule.)
 //   2. HOT VS COLD FOLDED IN. It was the shortest page on the site and it was
 //      really two ideas: what hot and cold MEAN (a property of a wallet — belongs
 //      in the keys lesson, beside "a wallet is a configuration of keys") and how to
@@ -33,7 +36,7 @@
 //      where "optional and skippable" is already the level's stated identity.
 //   5. INHERITANCE SPLIT. At 1,613 words it was the heaviest page here, and it was
 //      cleanly two: why Bitcoin doesn't inherit like money, then how to build the
-//      Recovery Kit. One rule (15) across two parts.
+//      Recovery Kit. One rule (12) across two parts.
 //
 // URLs moved to /learn/ in the same pass. The old /how-to/ prefix was the same
 // group-by-format habit the menu had already shed, and several pages under it were
@@ -56,9 +59,9 @@ export const levels = [
     id: '101',
     title: 'Foundations',
     why: 'The rules first, then what this all actually is — before you touch anything or spend a cent.',
-    blurb: 'Fifteen rules hold up everything here. Meet them, then learn what a key is, how people lose Bitcoin, and why an exchange isn’t custody.',
+    blurb: 'Twelve rules hold up everything here. Meet them, then learn what a key is, how people lose Bitcoin, and why an exchange isn’t custody.',
     lessons: [
-      { href: '/learn/rules',              label: 'The fifteen rules',                 short: 'The fifteen rules', note: 'read first' },
+      { href: '/learn/rules',              label: 'The twelve rules',                  short: 'The twelve rules', note: 'read first' },
       { href: '/learn/bitcoin-keys',       label: 'What Bitcoin keys are, and how they work', short: 'What Bitcoin keys are' },
       { href: '/learn/how-bitcoin-is-lost', label: 'How people lose Bitcoin',           short: 'How people lose Bitcoin' },
       { href: '/learn/not-your-keys',      label: 'Not your keys, not your coins',      short: 'Not your keys, not your coins' },
@@ -70,7 +73,7 @@ export const levels = [
     why: 'Now that you know the risks, pick the simplest setup that covers them.',
     blurb: 'Every real setup fits on one ladder. Find the lowest rung that covers you — then stop.',
     lessons: [
-      { href: '/learn/ladder',          label: 'The configuration ladder',        short: 'The configuration ladder', note: '+ all 5 rungs' },
+      { href: '/learn/ladder',          label: 'The configuration ladder',        short: 'The configuration ladder', note: '+ all 4 rungs' },
       { href: '/learn/choose-a-wallet', label: 'How to choose a hardware wallet', short: 'Choosing a hardware wallet' },
     ],
   },

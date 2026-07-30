@@ -1,8 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import LessonNav from '../../components/LessonNav.astro';
-import { rules, umbrella, ruleCount } from '../../data/rules.js';
-import { levels } from '../../data/curriculum.js';
+import { rules, umbrella, ruleCount, ruleCountWord, ruleCountWordCap } from '../../data/rules.js';
 
 // Lesson 1 of the whole course, and the only page on the site that deliberately
 // carries NO outbound links.
@@ -17,25 +16,24 @@ import { levels } from '../../data/curriculum.js';
 // without pulling anyone out of the sequence. The lessons then link BACK here (see
 // components/RuleBand.astro). Links point backwards.
 //
+// FLATTENED 2026-07-29 (later): the rules used to render grouped under 101/102/103
+// /104 level headings. That reimposed the course's structure on a page whose whole
+// job is to be the short version — you had to parse five groups before you could
+// read twelve lines. It is now one unbroken numbered list. The level still appears,
+// once, in each rule's "in full" pointer, which is where it earns its place.
+//
 // The primer exists because a reader arriving cold does not yet know what a seed
-// phrase is, and rule 08 is meaningless without it. Three sentences buys the whole
+// phrase is, and rule 06 is meaningless without it. Three sentences buys the whole
 // page its vocabulary.
-
-const levelTitle = (id) => levels.find((lv) => lv.id === id)?.title ?? '';
-const byLevel = ['101', '102', '103', '104'].map((id) => ({
-  id,
-  title: levelTitle(id),
-  items: rules.filter((r) => r.level === id),
-}));
 ---
 <Base
   title={`The ${ruleCount} rules of holding your own Bitcoin · BitcoinKeys.guide`}
-  description="The whole guide, compressed into fifteen plain-English rules. Follow them and your Bitcoin is safe. Every lesson that follows is one of these rules in full."
+  description={`The whole guide, compressed into ${ruleCount} plain-English rules. Follow them and your Bitcoin is safe. Every lesson that follows is one of these rules in full.`}
   verified="2026-07-29"
 >
   <section class="prose">
     <p class="eyebrow">101 · Foundations · lesson 1</p>
-    <h1>Fifteen rules. <span class="accent">That’s the whole thing.</span></h1>
+    <h1>{ruleCountWordCap} rules. <span class="accent">That’s the whole thing.</span></h1>
     <p class="lead">
       Everything on this site compresses into the rules below. Follow them and your Bitcoin is safe —
       genuinely, that is the entire deal. You don’t have to understand all of them yet. That’s what the
@@ -54,36 +52,30 @@ const byLevel = ['101', '102', '103', '104'].map((id) => ({
     </div>
   </section>
 
-  {byLevel.map((lv) => (
-    <section class="lvblock">
-      <div class="lv-head">
-        <span class="lv-badge">{lv.id}</span>
-        <h2>{lv.title}</h2>
-      </div>
-      <ol class="rules">
-        {lv.items.map((r) => (
-          <li class="rule" id={`rule-${r.n}`}>
-            <span class="r-n">{String(r.n).padStart(2, '0')}</span>
-            <div class="r-body">
-              <h3>{r.rule}</h3>
-              <p set:html={r.body}></p>
-              <p class="r-where">In full: <span class="mono">{r.level}</span> · {r.lesson}</p>
-            </div>
-          </li>
-        ))}
-      </ol>
-    </section>
-  ))}
+  <section>
+    <ol class="rules">
+      {rules.map((r) => (
+        <li class="rule" id={`rule-${r.n}`}>
+          <span class="r-n">{String(r.n).padStart(2, '0')}</span>
+          <div class="r-body">
+            <h2>{r.rule}</h2>
+            <p set:html={r.body}></p>
+            <p class="r-where">In full: <span class="mono">{r.level}</span> · {r.lesson}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
+  </section>
 
   <section class="prose">
     <div class="callout safe umb">
-      <span class="label">And the one that contains all fifteen</span>
+      <span class="label">And the one that contains all {ruleCountWord}</span>
       <h3>{umbrella.rule}</h3>
       <p set:html={umbrella.body}></p>
       <p class="r-where">In full: <span class="mono">{umbrella.level}</span> · {umbrella.lesson} — optional, and last.</p>
     </div>
 
-    <h2>What to do with this page</h2>
+    <h2 class="plain">What to do with this page</h2>
     <p>
       Don’t try to memorise it. Read it once now so the shape of the thing is in your head, then carry on
       to the next lesson — the rules will make far more sense once you’ve met the ideas behind them. Come
@@ -91,7 +83,7 @@ const byLevel = ['101', '102', '103', '104'].map((id) => ({
       any meaningful amount of Bitcoin.
     </p>
     <p class="sub">
-      Every lesson from here on opens by naming the rule it teaches, so you always know which of the fifteen
+      Every lesson from here on opens by naming the rule it teaches, so you always know which of the {ruleCountWord}
       you’re working on.
     </p>
   </section>
@@ -102,21 +94,17 @@ const byLevel = ['101', '102', '103', '104'].map((id) => ({
 <style>
   .lead-sep { border: 0; border-top: 1px solid var(--line-soft); max-width: 46ch; margin: 1.4rem 0 1.6rem; }
 
-  .lvblock { margin-top: 2.2rem; }
-  .lv-head { display: flex; align-items: center; gap: 0.8rem; margin-bottom: 0.9rem;
-    padding-bottom: 0.6rem; border-bottom: 1px solid var(--line-soft); }
-  .lv-head h2 { margin: 0; font-size: 1.12rem; letter-spacing: -0.01em; }
-  .lv-badge { font-family: var(--mono); font-weight: 700; font-size: 0.82rem; color: var(--accent-ink);
-    background: var(--accent); border-radius: 0.45rem; padding: 0.22rem 0.5rem; }
-
-  .rules { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.7rem;
-    counter-reset: none; }
+  .rules { list-style: none; margin: 1.6rem 0 0; padding: 0; display: flex; flex-direction: column;
+    gap: 0.7rem; counter-reset: none; }
   .rule { display: grid; grid-template-columns: 3rem 1fr; gap: 1.1rem; align-items: start;
     background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
     padding: 1.1rem 1.3rem; scroll-margin-top: 5rem; }
   .rule:target { border-color: var(--accent); }
   .r-n { font-family: var(--mono); font-size: 1.4rem; font-weight: 800; color: var(--accent); line-height: 1; }
-  .r-body h3 { margin: 0.1rem 0 0.4rem; color: var(--text); font-size: 1.06rem; }
+  /* h2 inside the list: these ARE the page's structure now that the level
+     headings are gone, so they carry the heading semantics rather than h3. */
+  .r-body h2 { margin: 0.05rem 0 0.4rem; color: var(--text); font-size: 1.08rem; letter-spacing: -0.01em;
+    border: 0; padding: 0; }
   .r-body p { margin: 0; color: var(--muted); font-size: 0.95rem; }
   .r-where { margin-top: 0.6rem !important; font-family: var(--mono); font-size: 0.73rem;
     letter-spacing: 0.03em; color: var(--faint) !important; text-transform: uppercase; }
@@ -124,9 +112,11 @@ const byLevel = ['101', '102', '103', '104'].map((id) => ({
 
   .umb { margin-top: 2.4rem; }
   .umb h3 { margin: 0.2rem 0 0.4rem; font-size: 1.14rem; }
+  .plain { margin-top: 2.2rem; }
 
   @media (max-width: 640px) {
     .rule { grid-template-columns: 2.3rem 1fr; gap: 0.8rem; padding: 1rem 1.05rem; }
     .r-n { font-size: 1.2rem; }
+    .r-body h2 { font-size: 1.02rem; }
   }
 </style>
