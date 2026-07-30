@@ -1,67 +1,139 @@
 ---
 import Base from '../layouts/Base.astro';
 import Ladder from '../components/Ladder.astro';
-import { lessons } from '../data/lessons.js';
+import DemoMotif from '../components/DemoMotif.astro';
 import { lessonCount, levels } from '../data/curriculum.js';
-import { questionCountWord, questionCountWordCap } from '../data/quiz.js';
+import { questionCountWordCap } from '../data/quiz.js';
 import { ruleByKey, ruleCountWord } from '../data/rules.js';
+import { deepDives, featuredDives } from '../data/deepdives.js';
+import { custodians } from '../data/custodians.js';
+import { wallets, coldWallets, spendingWallets, disqualifiedWallets, tierCountWord } from '../data/wallets.js';
 
-// The governing rule is PULLED, never restated — same contract as /about.
+// RESTRUCTURED 2026-07-30 (the owner). The page it replaces had three problems, all of
+// them found by reading it against itself rather than top to bottom:
+//
+//   1. IT SAID THE PLEDGE THREE TIMES AND SHOWED IT ONCE, QUIETLY. The hero eyebrow
+//      ("Independent · Bitcoin-only · nothing to sell you"), the pledge band, and a
+//      closing "Why trust this one?" all made the same argument — and the one with
+//      any visual weight was a hairline strip in muted grey. The pledge is now the
+//      SECOND thing on the page, in the accent treatment the setup-finder band used
+//      to hold, and it is stated exactly once. "Why trust this one?" folded into it.
+//   2. "TWO DOORS IN" WAS A DUPLICATE OF THE HERO — the same two destinations with
+//      the same two framings, one scroll apart. Cut; the hero owns the doors.
+//   3. THE PAGE CONTRADICTED ITS OWN LOCKED DECISION. 2026-07-28 made the site
+//      education-forward — learning primary, the finder secondary — but the finder
+//      had THREE placements including the loudest element on the page, against the
+//      course's two. It now has one section and one quiet hero link.
+//
+// And the gap the owner named: the page never showed you the SITE. "What's here" is now
+// the three nav sections, so a first-time reader can see the shape of the thing —
+// with 201 broken out of the course visually, because it is optional and should look
+// it before a word is read (the same dashed-border + `safe` token /start uses).
+//
+// Also gone: "The skills, in plain English", which mapped over `lessons` — that is
+// whichever 10 lessons happen to live in lessons.js, not the curriculum, so an
+// implementation detail was rendering as if it were the course. The course now comes
+// from curriculum.js like every other surface.
+//
+// Every number below derives from its data file. There is no count on this page a
+// human maintains — invariant #10, and worth remembering that "six chapters" survived
+// four spine syncs on THIS page precisely because no data file ever held a "chapter".
 const simplest = ruleByKey('simplest-setup');
+const core = levels.filter((lv) => !lv.optional);
+const optional = levels.filter((lv) => lv.optional);
 ---
 <Base
   title="BitcoinKeys.guide — hold your own Bitcoin, and understand every step"
-  description="An independent, Bitcoin-only, plain-English guide to self-custody: choose a wallet, back up your keys, move to cold storage, and upgrade safely. We hold no keys and sell no device."
+  description={`An independent, Bitcoin-only, plain-English guide to self-custody — a ${lessonCount}-lesson course, an honest hardware-wallet comparison rated against a published standard, and a setup finder that never asks how much Bitcoin you hold. We sell no device, hold no keys, and log nothing.`}
   ogTitle="BitcoinKeys.guide — hold your own Bitcoin"
 >
   <section class="hero prose">
-    <p class="eyebrow">Independent · Bitcoin-only · nothing to sell you</p>
     <h1>Hold your own Bitcoin —<br><span class="accent">and understand every step.</span></h1>
     <p class="lead">Your Bitcoin isn’t really yours until you hold the <a href="/glossary#private-key">keys</a> — the secret that actually controls the coins. This is the plain-English guide to doing that safely, from your first wallet to storage solid enough to pass on to your family.</p>
-    <!-- Education-forward since 2026-07-28: learning is the primary action, the
-         setup finder the secondary. The band directly below still carries it. -->
     <div class="cta-row">
       <a href="/start" class="btn btn-primary">Start with the basics <span class="arw">→</span></a>
-      <a href="/find-your-setup" class="btn btn-ghost">Or find your setup — 2 minutes</a>
+      <a href="/find-your-setup" class="btn btn-ghost">Already holding? Find your setup</a>
     </div>
   </section>
 
-  <section class="quiz-band">
-    <div class="qb-inner">
-      <div>
-        <p class="qb-kicker mono">The 2-minute setup finder</p>
-        <h2 class="qb-h">Not sure where you belong? Answer {questionCountWord} questions.</h2>
-        <p class="qb-sub">Get a setup matched to what you're actually protecting against, a <strong>roadmap from where you are today</strong>, and a checklist — built around any hardware wallets you already own. <strong>We never ask how much Bitcoin you hold</strong>, and it all runs in your browser.</p>
+  <!-- ── The pledge — promoted 2026-07-30. This is the differentiator, so it comes
+       before anything asks the reader to do something. The fourth line is new and is
+       the one competitors structurally cannot copy, because they all run a beacon.
+       It is also a hard invariant here, verified against the BUILT OUTPUT after every
+       deploy — so it is a checkable fact rather than a marketing claim. ── -->
+  <section class="trust" aria-label="What this site promises">
+    <p class="pl-k mono">Why you can trust this one</p>
+    <div class="pl-grid">
+      <div class="pl-item">
+        <span class="pl-h">No device to sell</span>
+        <p>We don’t make or sell hardware and take no affiliate money, so we can rate every wallet honestly — including the ones we won’t recommend.</p>
       </div>
-      <a href="/find-your-setup" class="btn btn-primary qb-cta">Find your setup <span class="arw">→</span></a>
+      <div class="pl-item">
+        <span class="pl-h">No keys held</span>
+        <p>We never touch your coins, your seed, or your keys. This is a guide — not a wallet, not a custody service. You hold everything.</p>
+      </div>
+      <div class="pl-item">
+        <span class="pl-h">Bitcoin only</span>
+        <p>No altcoins, no “yield,” no DeFi. Those aren’t self-custody — they’re distractions that get people hurt. One subject, done properly.</p>
+      </div>
+      <div class="pl-item">
+        <span class="pl-h">Nothing logged</span>
+        <p>No analytics, no trackers, no cookies. Anything you save stays in your own browser unless you deliberately export it — we never see it, because there is nowhere for it to go.</p>
+      </div>
+    </div>
+    <p class="pl-foot sub">Every page carries the date its guidance was last checked, and every change is written down in the <a href="/changelog">what’s-changed log</a>. <a href="/about">More about how this works →</a></p>
+  </section>
+
+  <!-- ── What's here: the three sections of the site, mirroring the nav ── -->
+  <section class="whats">
+    <h2>What’s here</h2>
+    <div class="w-grid">
+      <div class="w-main">
+        <p class="w-k mono">Learn</p>
+        <h3>The course — {lessonCount} lessons in {levels.length} levels</h3>
+        <p class="w-sub">Read it in order and you’ll understand your own setup better than most people who already have one. About an hour end to end, and nothing asks you to decide anything yet.</p>
+        <ol class="lv-list">
+          {core.map((lv) => (
+            <li>
+              <span class="lv-n mono">{lv.id}</span>
+              <span class="lv-b">
+                <span class="lv-t">{lv.title}</span>
+                <span class="lv-w">{lv.why}</span>
+              </span>
+              <span class="lv-c mono">{lv.lessons.length} <span class="lv-cl">lessons</span></span>
+            </li>
+          ))}
+          {optional.map((lv) => (
+            <li class="opt">
+              <span class="lv-n mono">{lv.id}</span>
+              <span class="lv-b">
+                <span class="lv-t">{lv.title} <em>· optional</em></span>
+                <span class="lv-w">{lv.why}</span>
+              </span>
+              <span class="lv-c mono">{lv.lessons.length} <span class="lv-cl">lessons</span></span>
+            </li>
+          ))}
+        </ol>
+        <a href="/start" class="btn btn-primary w-cta">Start with the basics <span class="arw">→</span></a>
+      </div>
+
+      <div class="w-side">
+        <div class="w-card">
+          <p class="w-k mono">Your setup</p>
+          <h3>Find yours, then build it</h3>
+          <p class="w-sub">{questionCountWordCap} plain questions name the setup that fits what you’re actually protecting against — then it becomes a roadmap from where you are today, and a checklist you can work through. <strong>It never asks how much Bitcoin you hold.</strong></p>
+          <p class="w-links"><a href="/find-your-setup">Find your setup →</a> <a href="/checklist">The checklist →</a></p>
+        </div>
+        <div class="w-card">
+          <p class="w-k mono">Hardware &amp; services</p>
+          <h3>Rated against a published standard</h3>
+          <p class="w-sub">All {wallets.length} hardware wallets in {tierCountWord} tiers — {coldWallets.length} built for cold storage, {spendingWallets.length} built for spending, and {disqualifiedWallets.length} that {disqualifiedWallets.length === 1 ? 'doesn’t' : 'don’t'} clear our bar — with the reasoning for each. Plus {custodians.length} collaborative-custody services compared.</p>
+          <p class="w-links"><a href="/wallets">Compare wallets →</a> <a href="/standard">The standard →</a></p>
+        </div>
+      </div>
     </div>
   </section>
 
-  <section class="pledge-band">
-    <div class="pledge-grid">
-      <div>
-        <span class="k mono">no device to sell</span>
-        <p>We don’t make or sell hardware, so we can compare every wallet honestly.</p>
-      </div>
-      <div>
-        <span class="k mono">no keys held</span>
-        <p>We never touch your coins or your keys. This is a guide, not a service.</p>
-      </div>
-      <div>
-        <span class="k mono">Bitcoin only</span>
-        <p>No altcoins, no “yield,” no distractions. Just holding Bitcoin well.</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- This section used to be headed "The one idea the whole guide is built on"
-       and RESTATED rule 03 in its own words ("adequately covers your threat model"
-       — jargon the rules deliberately avoid). Two problems, both fixed 2026-07-30:
-       the rule is now PULLED from rules.js like /about does, so a reworded rule
-       can't leave the front door arguing for the old one; and "the one idea" is
-       the umbrella's slot ("Verify. Don't trust.", deliberately unnumbered), which
-       /standard already honours. Three surfaces were each claiming to be the one
-       idea, and none of them was the one rules.js designates. -->
   <section>
     <h2>The rule the whole guide rests on</h2>
     <div class="prose">
@@ -71,75 +143,117 @@ const simplest = ruleByKey('simplest-setup');
         <p set:html={simplest.body}></p>
       </div>
       <p class="sub">It’s one of <a href="/learn/rules">{ruleCountWord} rules</a> that hold up everything here — the first lesson of the course, and two minutes to read. Every lesson after it is one rule in full.</p>
-      <p class="sub">Not sure what those risks even are? Start with the honest map: <a href="/learn/how-bitcoin-is-lost">how people actually lose Bitcoin →</a></p>
     </div>
   </section>
 
   <section>
     <h2>The ladder</h2>
-    <p class="sub prose" style="margin-bottom:1.4rem;">Every setup fits on one ladder of rising complexity. <strong>Almost everyone belongs on the first rung or two</strong> — the names get technical as you climb, but you only move up if a real risk pushes you there. Find the lowest rung that covers you — and move up later only if your situation outgrows it.</p>
+    <p class="sub prose" style="margin-bottom:1.4rem;">Every setup fits on one ladder of rising complexity. <strong>Almost everyone belongs on the first rung or two</strong> — the names get technical as you climb, but you only move up if a real risk pushes you there. Find the lowest rung that covers you, and move up later only if your situation outgrows it.</p>
     <Ladder />
-    <!-- The rungs stopped being pages on 2026-07-30 — they are sections of the one
-         ladder lesson, and the build walkthroughs moved to /checklist. This line
-         promised "a full walkthrough" behind each rung for both of those reasons. -->
     <p class="sub" style="margin-top:1.2rem; font-size:0.9rem;">Each rung opens out below — what it solves, what it costs you, and who it’s for. <a href="/learn/ladder">Read the full ladder →</a></p>
   </section>
 
-  <section>
-    <h2>Two doors in</h2>
-    <div class="grid cols-2">
-      <a href="/start" class="card">
-        <h3>I want to understand it first →</h3>
-        <p class="sub">The whole guide in teaching order — {lessonCount} lessons across {levels.length} levels, from what a key actually is to the ladder of real setups. Read it and you’ll understand your own setup better than most people who already have one.</p>
-      </a>
-      <a href="/find-your-setup" class="card">
-        <h3>Just tell me what to do →</h3>
-        <p class="sub">{questionCountWordCap} plain questions, and we name the setup that fits what you’re actually protecting against — then turn it into a step-by-step checklist. We never ask how much Bitcoin you hold.</p>
-      </a>
-    </div>
-  </section>
-
-  <section>
-    <h2>The skills, in plain English</h2>
-    <p class="sub prose" style="margin-bottom:1.4rem;">Whatever setup you land on, these are the hands-on skills of holding your own Bitcoin. Each is a short, jargon-free lesson.</p>
-    <div class="grid cols-2">
-      {lessons.map((h) => (
-        <a href={`/learn/${h.slug}`} class="card">
-          <h3>{h.title.split('—')[0].trim()} →</h3>
-          <p class="sub">{h.lead}</p>
+  <!-- ── The 201 sampler. This tier is the most distinctive thing on the site and the
+       front page never mentioned it once. Real cryptography, in the reader's own
+       browser, on throwaway keys, with nothing sent anywhere. ── -->
+  <section class="dives">
+    <h2>Under the hood — see it for yourself</h2>
+    <p class="sub prose" style="margin-bottom:1.4rem;">You don’t need any of this to hold Bitcoin safely. It’s here so you don’t have to take it on faith: {deepDives.length} demos that run the real cryptography in your own browser, on throwaway keys, with nothing sent anywhere. <strong>None of them will ever ask for your seed words</strong> — that’s the whole point.</p>
+    <div class="d-rail">
+      {featuredDives.map((d) => (
+        <a href={d.href} class="d-card">
+          <span class="d-art"><DemoMotif motif={d.motif} /></span>
+          <span class="d-body">
+            <span class="d-t">{d.title}</span>
+            <span class="d-d">{d.desc}</span>
+          </span>
+          <span class="d-go mono">Open the demo →</span>
         </a>
       ))}
     </div>
-  </section>
-
-  <section class="prose">
-    <h2>Why trust this one?</h2>
-    <p>Almost every self-custody guide is written by someone with something to sell — a hardware brand, a custody service, an exchange, an affiliate link. That doesn’t make them wrong, but it bends the advice. We hold no keys and sell no device, so the only thing we’re steering you toward is the setup that actually fits you.</p>
-    <p>Every page carries the date it was last checked against reality, and the whole thing is built in the open. <a href="/about">More about how this works →</a></p>
+    <p class="sub" style="margin-top:1.2rem; font-size:0.9rem;"><a href="/deep-dive">All {deepDives.length} demos →</a></p>
   </section>
 </Base>
 
 <style>
-  .hero { padding: 1.5rem 0 2.4rem; }
+  .hero { padding: 1.5rem 0 2.2rem; }
   .hero h1 { margin-bottom: 1rem; }
   .cta-row { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.8rem; }
 
-  .quiz-band { margin: 0 0 2.5rem; border: 1px solid var(--accent); border-radius: var(--radius); background: var(--accent-soft); padding: 1.6rem 1.8rem; }
-  .qb-inner { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; flex-wrap: wrap; }
-  .qb-kicker { color: var(--accent); font-size: 0.74rem; letter-spacing: 0.08em; margin: 0 0 0.4rem; }
-  .qb-h { font-size: 1.3rem; margin: 0 0 0.5rem; line-height: 1.2; }
-  .qb-sub { margin: 0; color: var(--muted); font-size: 0.95rem; max-width: 54ch; }
-  .qb-cta { white-space: nowrap; }
-  @media (max-width: 640px) { .qb-inner { flex-direction: column; align-items: flex-start; } }
+  /* ── Pledge ─────────────────────────────────────────────────────────────── */
+  .trust { border: 1px solid var(--accent); border-radius: var(--radius);
+    background: var(--accent-soft); padding: 1.6rem 1.8rem; margin: 0 0 2.6rem; }
+  .pl-k { color: var(--accent); font-size: 0.74rem; letter-spacing: 0.12em;
+    text-transform: uppercase; margin: 0 0 1.1rem; font-weight: 700; }
+  .pl-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.4rem; }
+  @media (max-width: 900px) { .pl-grid { grid-template-columns: 1fr 1fr; gap: 1.2rem; } }
+  @media (max-width: 560px) { .pl-grid { grid-template-columns: 1fr; gap: 1.1rem; } }
+  .pl-h { display: block; color: var(--text); font-weight: 700; font-size: 1rem;
+    letter-spacing: -0.01em; margin-bottom: 0.35rem; }
+  .pl-item p { margin: 0; color: var(--muted); font-size: 0.9rem; line-height: 1.55; }
+  .pl-foot { margin: 1.4rem 0 0; padding-top: 1.1rem; border-top: 1px solid var(--accent-dim);
+    font-size: 0.88rem; }
 
-  .pledge-band { margin: 1rem 0 2.5rem; border-top: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); padding: 1.8rem 0; }
-  .pledge-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.6rem; }
-  .pledge-grid .k { font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); display: block; margin-bottom: 0.4rem; }
-  .pledge-grid p { margin: 0; color: var(--muted); font-size: 0.95rem; }
+  /* ── What's here ────────────────────────────────────────────────────────── */
+  .w-grid { display: grid; grid-template-columns: 1.35fr 1fr; gap: 1rem; align-items: start; }
+  @media (max-width: 860px) { .w-grid { grid-template-columns: 1fr; } }
+  .w-main, .w-card { border: 1px solid var(--line); border-radius: var(--radius);
+    background: var(--surface); padding: 1.4rem 1.6rem; }
+  .w-side { display: flex; flex-direction: column; gap: 1rem; }
+  .w-k { color: var(--accent); font-size: 0.7rem; letter-spacing: 0.12em;
+    text-transform: uppercase; margin: 0 0 0.4rem; font-weight: 700; }
+  .w-main h3, .w-card h3 { margin: 0 0 0.5rem; font-size: 1.12rem; letter-spacing: -0.015em; }
+  .w-sub { margin: 0; color: var(--muted); font-size: 0.92rem; line-height: 1.55; }
+  .w-links { margin: 0.9rem 0 0; display: flex; flex-wrap: wrap; gap: 0.9rem; font-size: 0.9rem; }
+  .w-links a { color: var(--accent); text-decoration: none; font-weight: 600; }
+  .w-links a:hover { text-decoration: underline; }
+
+  .lv-list { list-style: none; margin: 1.2rem 0 0; padding: 0;
+    display: flex; flex-direction: column; gap: 0.4rem; }
+  .lv-list li { display: grid; grid-template-columns: 2.6rem 1fr auto; gap: 0.8rem;
+    align-items: center; border: 1px solid var(--line); border-radius: 0.55rem;
+    background: var(--raise); padding: 0.6rem 0.8rem; }
+  /* 201 is optional and should LOOK it before a word is read — the same dashed edge
+     and `safe` token the /start syllabus already uses for it. */
+  .lv-list li.opt { border-style: dashed; }
+  .lv-n { font-weight: 700; font-size: 0.82rem; color: var(--accent-ink);
+    background: var(--accent); border-radius: 0.35rem; padding: 0.15rem 0; text-align: center; }
+  .lv-list li.opt .lv-n { background: var(--safe); }
+  .lv-b { display: flex; flex-direction: column; gap: 0.1rem; min-width: 0; }
+  .lv-t { font-weight: 650; font-size: 0.93rem; }
+  .lv-t em { font-style: normal; color: var(--safe); font-size: 0.78rem; font-weight: 500; }
+  .lv-w { color: var(--muted); font-size: 0.82rem; line-height: 1.4; }
+  .lv-c { color: var(--faint); font-size: 0.76rem; white-space: nowrap; }
+  /* The unit stays on wide screens; on a phone the number alone carries it, because
+     the level title is what deserves the width. */
+  @media (max-width: 520px) { .lv-cl { display: none; } }
+  .w-cta { margin-top: 1.3rem; display: inline-flex; }
+
+  /* ── 201 sampler ────────────────────────────────────────────────────────── */
+  .d-rail { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+  @media (max-width: 1000px) { .d-rail { grid-template-columns: 1fr 1fr; } }
+  /* On a phone it becomes a swipeable rail rather than a tall stack — these are a
+     sampler, so seeing that there ARE more matters more than reading all four. */
+  @media (max-width: 600px) {
+    .d-rail { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 78%;
+      overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 0.6rem;
+      margin-inline: -1rem; padding-inline: 1rem; }
+    .d-card { scroll-snap-align: start; }
+  }
+  .d-card { display: flex; flex-direction: column; text-decoration: none; color: var(--text);
+    border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface);
+    padding: 1.1rem 1.2rem 1rem; transition: border-color .14s ease, transform .14s ease; }
+  .d-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .d-art { display: block; background: var(--raise); border: 1px solid var(--line-soft);
+    border-radius: 0.55rem; padding: 0.7rem 0.8rem; margin-bottom: 0.9rem; }
+  .d-body { display: flex; flex-direction: column; gap: 0.3rem; flex: 1 1 auto; }
+  .d-t { font-weight: 650; font-size: 0.98rem; letter-spacing: -0.01em; line-height: 1.3; }
+  .d-d { color: var(--muted); font-size: 0.86rem; line-height: 1.5; }
+  .d-go { margin-top: 0.9rem; color: var(--accent); font-size: 0.74rem;
+    letter-spacing: 0.05em; font-weight: 700; }
 
   /* The rule states itself at the same size it does in the band and on the rules
      page — one sentence, one size, everywhere the guide states a rule. */
   .rule-line { font-size: 1.18rem; font-weight: 650; line-height: 1.38; color: var(--text); margin-bottom: 0.6rem; }
   @media (max-width: 640px) { .rule-line { font-size: 1.08rem; } }
-  @media (max-width: 720px) { .pledge-grid { grid-template-columns: 1fr; gap: 1.1rem; } }
 </style>
