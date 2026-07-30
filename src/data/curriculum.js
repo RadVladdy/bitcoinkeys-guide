@@ -100,8 +100,8 @@ export const levels = [
     blurb: 'The human habits that stop most real losses — and the plan that lets your Bitcoin outlive you.',
     lessons: [
       { href: '/learn/phishing-and-scams', label: 'Phishing and everyday safety',        short: 'Phishing and everyday safety' },
-      { href: '/learn/privacy',            label: 'Privacy and a low profile',           short: 'Privacy and a low profile' },
-      { href: '/learn/inheritance',        label: 'Why Bitcoin doesn’t inherit like money', short: 'Bitcoin and inheritance' },
+      { href: '/learn/privacy',            label: 'Privacy / OpSec',                     short: 'Privacy / OpSec' },
+      { href: '/learn/inheritance',        label: 'Bitcoin inheritance',                 short: 'Bitcoin inheritance' },
       { href: '/learn/recovery-kit',       label: 'Build the Recovery Kit',              short: 'Build the Recovery Kit' },
     ],
   },

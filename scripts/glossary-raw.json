@@ -89,6 +89,10 @@
       "def": "The software inside a device that anyone can inspect for hidden flaws or backdoors. It matters because independent experts can verify a wallet actually does what it claims with your keys."
     },
     {
+      "term": "OpSec (operational security)",
+      "def": "The everyday habits that stop information about you being collected and joined up: what you publish, who you tell, which details you hand over, and which ones you never create in the first place. In Bitcoin it covers both halves of one problem — keeping your coins from being linked to your name on the public ledger, and keeping your name away from the fact that you hold any. It is a practice, not a product; no tool sells it to you. See &lt;em&gt;threat model&lt;/em&gt;."
+    },
+    {
       "term": "Passphrase (25th word)",
       "def": "An extra secret word you add on top of your &amp;lt;em&amp;gt;seed phrase&amp;lt;/em&amp;gt; for another layer of protection. Even someone who finds your written seed can't reach your Bitcoin without it, but if you forget it your funds are gone forever."
     },

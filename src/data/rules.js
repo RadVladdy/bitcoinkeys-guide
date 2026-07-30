@@ -170,7 +170,7 @@ export const rules = [
     body: 'Physical attacks are almost never random. They start with a leaked customer list, get cross-referenced against anything you have said publicly about owning Bitcoin, and end at your door. So talk about Bitcoin <em>the idea</em> as loudly as you like — the technology, the economics, the freedom. Just never attach your own name to the fact that you hold it, and never attach a number. <strong>That includes people you trust:</strong> they have people they trust too, and you don’t control the third telling.',
     href: '/learn/privacy',
     level: '104',
-    lesson: 'Privacy and a low profile',
+    lesson: 'Privacy / OpSec',
   },
   {
     n: 11,
@@ -180,7 +180,7 @@ export const rules = [
     body: 'Reusing one address publishes your whole financial history to anyone who looks — the ledger is public, and every payment to that address is permanently linked to every other. Your wallet makes fresh addresses for free, endlessly, and usually offers a new one by default. Let it. This single free habit does most of the privacy work there is.',
     href: '/learn/privacy',
     level: '104',
-    lesson: 'Privacy and a low profile',
+    lesson: 'Privacy / OpSec',
   },
   {
     n: 12,
@@ -194,7 +194,7 @@ export const rules = [
     // rather than being the only lesson on the site without one.
     also: '/learn/recovery-kit',
     level: '104',
-    lesson: 'Why Bitcoin doesn’t inherit like money',
+    lesson: 'Bitcoin inheritance',
   },
 ];
 

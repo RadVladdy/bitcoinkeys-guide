@@ -309,11 +309,11 @@ export const lessons = [
   },
   {
     "slug": "privacy",
-    "short": "Privacy and a low profile",
+    "short": "Privacy / OpSec",
     "verified": "2026-07-15",
-    "title": "Privacy and a low profile — staying off the target list",
+    "title": "Privacy and operational security — staying off the target list",
     "lead": "Bitcoin is not anonymous: every payment sits on a public ledger forever. Keeping that ledger from being tied to your name is the same job as keeping yourself out of a burglar’s notebook — and most of it is free.",
-    "intro": "<p>Here is the honest picture. Bitcoin’s ledger — the shared record of every transaction — is completely public. Your name is not written on it, but the payments are, and companies exist whose whole business is connecting those payments back to real people.</p><p>This matters for more than principle. There is a single, well-documented pipeline that runs from a public ledger to a knock at your door: your coins are linkable on-chain, an ID check ties some of them to your legal name, that database leaks, and the leak gets cross-referenced against anything you have said publicly about owning Bitcoin. Privacy habits and physical-safety habits are not two subjects. They are the same defence, applied at the two ends of that chain — which is why they are one lesson.</p><p>Read it calmly. For most people the physical risk is small, and the habits that shrink it are free and quiet.</p>",
+    "intro": "<p>This lesson is about what security people call <strong>operational security</strong> — <a href=\"/glossary#opsec-operational-security\"><strong>OpSec</strong></a> for short. It is not a technology. It is the everyday habits that keep information about you from being collected and joined up: what you publish, who you tell, which details you hand over, and which ones you simply do not create. In Bitcoin it covers both halves of the same problem — keeping your coins from being linked to your name on a public ledger, and keeping your name from being linked to the fact that you hold any at all. You will see the term used everywhere once you notice it; this is what it means.</p><p>Here is the honest picture. Bitcoin’s ledger — the shared record of every transaction — is completely public. Your name is not written on it, but the payments are, and companies exist whose whole business is connecting those payments back to real people.</p><p>This matters for more than principle. There is a single, well-documented pipeline that runs from a public ledger to a knock at your door: your coins are linkable on-chain, an ID check ties some of them to your legal name, that database leaks, and the leak gets cross-referenced against anything you have said publicly about owning Bitcoin. Privacy habits and physical-safety habits are not two subjects. They are the same defence, applied at the two ends of that chain — which is why they are one lesson.</p><p>Read it calmly. For most people the physical risk is small, and the habits that shrink it are free and quiet.</p>",
     "sections": [
       {
         "h": "Why on-chain privacy matters",
@@ -363,7 +363,7 @@ export const lessons = [
   },
   {
     "slug": "inheritance",
-    "short": "Bitcoin and inheritance",
+    "short": "Bitcoin inheritance",
     "verified": "2026-07-15",
     "title": "Why Bitcoin doesn’t inherit like money",
     "lead": "Most Bitcoin that’s lost forever wasn’t stolen — it was left behind with no instructions. Before you can write a plan, you need to see the two things that actually go wrong: your family can’t find it, and the setup you chose decides how hard it is to hand over.",

@@ -160,7 +160,7 @@ const groupActive = (g) =>
           '<p class="nm-head">Save &amp; sync your plan</p>' +
           '<a class="nm-item" href="/my-plan#connect-nostr" role="menuitem"><span class="nm-ic">🔑</span> Sign in with Nostr</a>' +
           '<p class="nm-note">More sign-in options coming — Pubky.</p>' +
-          '<p class="nm-foot">Your plan stays in your browser. Signing in only lets you sync it, encrypted to your own keys — we never see it.</p>';
+          '<p class="nm-foot">Your plan stays in your browser. Signing in only lets you sync it, encrypted to your own keys (NIP-44) — we never see it.</p>';
       } else {
         menu.innerHTML =
           '<p class="nm-id"><span class="nm-npub mono">' + esc(s.name || shortNpub(s.npub)) + '</span>' +
