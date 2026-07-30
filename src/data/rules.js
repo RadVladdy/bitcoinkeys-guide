@@ -148,9 +148,9 @@ export const rules = [
   {
     n: 9,
     key: 'seed-words-scam',
-    short: 'Asking for your words = scam',
-    rule: 'If someone asks for your seed words, they’re a scammer.',
-    body: 'Not your wallet maker, not your exchange, not support, not a “migration,” not a security check, not an urgent message about suspicious activity. There is no legitimate reason for anyone to ever ask — so there is no judgement call to make. The request itself is the proof. Phishing is the number-one real-world attack, and this one sentence defeats nearly all of it.',
+    short: 'Requiring your words = theft',
+    rule: 'If someone requires your seed words for any reason, they’re trying to steal your Bitcoin.',
+    body: 'Not your wallet maker, not your exchange, not support, not a “migration,” not a security check, not an urgent message about suspicious activity. No legitimate service ever needs those words — so there is no judgement call to make and no story to weigh up. <strong>The demand itself is the proof.</strong> The only time your words are ever typed anywhere is a recovery <em>you</em> started, on a device <em>you</em> chose, at a moment <em>you</em> picked. Anything else is theft in progress. Phishing is the number-one real-world attack, and this one rule defeats nearly all of it.',
     href: '/learn/phishing-and-scams',
     level: '104',
     lesson: 'Phishing and everyday safety',

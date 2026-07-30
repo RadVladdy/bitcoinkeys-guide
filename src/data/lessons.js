@@ -294,10 +294,10 @@ export const lessons = [
     "keyCallout": {
       "tone": "danger",
       "label": "The sentence that defeats nearly all of it",
-      "body": "<strong>Nobody legitimate will ever ask for your seed words.</strong> Not your wallet maker, not your exchange, not support, not a “migration,” not a security check. There is no exception and there never will be. Anything that asks is an attack, without exception, no matter how convincing it looks."
+      "body": "<strong>If someone requires your seed words for any reason, they’re trying to steal your Bitcoin.</strong> Not your wallet maker, not your exchange, not support, not a “migration,” not a security check. No legitimate service ever needs them, so you never have to weigh up how convincing the story is — the demand itself is the answer. The only time those words are typed anywhere is a recovery <em>you</em> started, on a device <em>you</em> chose."
     },
     "checklist": [
-      "Never type your seed phrase into any website, app, or chat — and treat anything that asks as an attack.",
+      "Never type your seed phrase into any website, app, or chat — and treat anything that requires it as theft in progress, however convincing the reason sounds.",
       "Treat every unexpected email, text, or call as a scam; verify by typing the address yourself or calling back on the official number.",
       "Download wallet software only from the maker’s official site, reached by a bookmark or typed by hand — never a search ad or a sent link.",
       "Let a password manager autofill your logins; when it refuses, you’re on a fake site.",
