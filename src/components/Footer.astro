@@ -3,8 +3,25 @@ import { navGroups } from '../data/nav.js';
 import { levels } from '../data/curriculum.js';
 const year = 2026;
 
-// The Learn group is `mega` — its links live in the curriculum, not in nav.js.
-// The footer is a sitemap, so it lists every lesson, grouped by level.
+// REBUILT 2026-07-30 (the owner: "footer laying out weirdly"). It was — and the cause
+// was structural rather than cosmetic. The footer listed all 17 lessons plus 5 level
+// headers in a column sized 1.7fr of `1.7fr 1fr 1fr 1fr`, beside three columns
+// holding three links each. One column carried 30 items and three carried three, so
+// Learn was crushed into sub-columns barely wide enough for two words ("Beyond the
+// ladder — BIP-85 and Shamir" wrapped to four lines) while ~1,000px of the pledge
+// column sat empty. Desktop 1,300px tall; mobile 2,000px with a stranded column.
+//
+// The footer was trying to be a second copy of the mega-menu. It doesn't need to be:
+// the nav links all 17 lessons from EVERY page (verified before cutting), so nothing
+// here is a last path to anything. It now lists the five LEVELS, anchored into the
+// /start syllabus, which already carries an id per level.
+//
+// Five balanced columns of 3–6 items. Reference (glossary, further reading) gets its
+// own column rather than hiding under Learn — those are the `ref: true` links in
+// nav.js, where they still belong in the MENU. Same data, different job.
+const learn = navGroups.find((g) => g.mega);
+const others = navGroups.filter((g) => !g.mega);
+const reference = (learn?.links || []).filter((l) => l.ref);
 ---
 <footer class="foot">
   <div class="wrap foot-inner">
@@ -13,31 +30,25 @@ const year = 2026;
       <p class="sub">BitcoinKeys.guide is an independent, Bitcoin-only guide to holding your own coins. No affiliate hardware brand, no custody service, nothing to sell you — just the simplest setup that fits you, and how to build it.</p>
     </div>
     <nav class="foot-map" aria-label="Footer">
-      {navGroups.map((g) => (
-        <div class:list={['foot-col', { wide: g.mega }]}>
+      <div class="foot-col">
+        <p class="foot-col-title">{learn.title}</p>
+        {learn.lead && <a href={learn.lead.href}>{learn.lead.pin}</a>}
+        {levels.map((lv) => (
+          <a href={`/start#${lv.id}`}><span class="foot-lvn mono">{lv.id}</span> {lv.title}</a>
+        ))}
+      </div>
+      {others.map((g) => (
+        <div class="foot-col">
           <p class="foot-col-title">{g.title}</p>
-          {g.mega && (
-            <Fragment>
-              {g.lead && <a href={g.lead.href}>{g.lead.pin}</a>}
-              <span class="foot-levels">
-                {levels.map((lv) => (
-                  <span class="foot-lvgrp">
-                    <span class="foot-lv">{lv.id} · {lv.title}</span>
-                    {lv.lessons.map((l) => <a href={l.href}>{l.label}</a>)}
-                  </span>
-                ))}
-              </span>
-              <span class="foot-div"></span>
-            </Fragment>
-          )}
-          {g.links.map((l, i) => (
-            <Fragment>
-              {!g.mega && l.ref && !g.links[i - 1]?.ref && <span class="foot-div"></span>}
-              <a href={l.href}>{l.label}</a>
-            </Fragment>
-          ))}
+          {g.links.map((l) => <a href={l.href}>{l.label}</a>)}
         </div>
       ))}
+      {reference.length > 0 && (
+        <div class="foot-col">
+          <p class="foot-col-title">Reference</p>
+          {reference.map((l) => <a href={l.href}>{l.label}</a>)}
+        </div>
+      )}
     </nav>
   </div>
   <div class="wrap foot-base">
@@ -53,23 +64,15 @@ const year = 2026;
 
 <style>
   .foot { border-top: 1px solid var(--line-soft); background: var(--surface-2); margin-top: 2rem; }
-  .foot-inner { display: grid; grid-template-columns: 1.3fr 2fr; gap: 2rem; padding: 2.6rem 1.4rem 1.6rem; }
-  .pledge { max-width: 42ch; }
+  .foot-inner { display: block; padding: 2.6rem 1.4rem 1.6rem; }
+  .pledge { max-width: 64ch; margin-bottom: 2.2rem; }
   .pledge-line { font-size: 1.05rem; font-weight: 700; margin: 0 0 0.5rem; }
   .pledge .sub { margin: 0; font-size: 0.92rem; }
-  .foot-map { display: grid; grid-template-columns: 1.7fr 1fr 1fr 1fr; gap: 1.4rem 1.2rem; }
+  .foot-map { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.6rem 1.2rem; }
   .foot-col { display: flex; flex-direction: column; gap: 0.5rem; }
   .foot-col-title { margin: 0 0 0.15rem; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.12em;
     text-transform: uppercase; color: var(--faint); }
-  /* Marks the chapters/reference split inside a column (nav.js `ref: true`). */
-  .foot-div { display: block; height: 1px; margin: 0.25rem 0; width: 1.8rem; background: var(--line); }
-  .foot-lv { font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase;
-    color: var(--faint); }
-  .foot-col.wide { display: block; columns: 2; column-gap: 1.2rem; }
-  .foot-col.wide a { display: block; margin-bottom: 0.5rem; }
-  .foot-col.wide .foot-lv { display: block; margin-bottom: 0.35rem; }
-  .foot-col.wide > * { break-inside: avoid; }
-  @media (max-width: 860px) { .foot-col.wide { columns: 1; } }
+  .foot-lvn { color: var(--accent); font-size: 0.72rem; }
   .foot-col a { color: var(--muted); text-decoration: none; font-size: 0.9rem; }
   .foot-col a:hover { color: var(--accent); }
   .foot-base { display: flex; align-items: center; justify-content: space-between; gap: 1rem 1.4rem; flex-wrap: wrap;
@@ -79,6 +82,6 @@ const year = 2026;
     text-transform: uppercase; color: var(--faint); }
   .foot-sisters a { color: var(--muted); text-decoration: none; }
   .foot-sisters a:hover { color: var(--accent); }
-  @media (max-width: 860px) { .foot-inner { grid-template-columns: 1fr; gap: 1.6rem; } }
+  @media (max-width: 900px) { .foot-map { grid-template-columns: repeat(3, 1fr); } }
   @media (max-width: 560px) { .foot-map { grid-template-columns: 1fr 1fr; } }
 </style>

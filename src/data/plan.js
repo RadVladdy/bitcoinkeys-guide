@@ -125,11 +125,44 @@ export function hasLocal() {
   }
 }
 
-/** Forget the saved plan in this browser. */
+/**
+ * Forget EVERYTHING in this browser — answers, hardware, ticks, notes.
+ * The nuke. See clearPlanSelection() for the one people usually want.
+ */
 export function clearLocal() {
   try {
     localStorage.removeItem(PLAN_KEY);
   } catch (e) {}
+}
+
+/**
+ * Clear the PLAN SELECTION and the checklist progress under it — keeping the two
+ * things that are not downstream of it: your quiz answers, and the hardware you own.
+ *
+ * ADDED 2026-07-30 (the owner). One button used to flatten the whole object, so "clear
+ * my plan" also forgot which devices you own and every answer you had given. Those
+ * sit at different layers:
+ *
+ *     what you own ──┐      ← a fact about you. Survives everything but the nuke;
+ *                    │        it is also settable on /wallets without ever opening
+ *     quiz answers ──┤        the setup finder, so it is not downstream of anything.
+ *                    ├──→  PLAN SELECTION ──→ checklist ticks
+ *
+ * Answers are kept so the common case — "redo my setup choice without re-answering
+ * six questions" — is possible at all. Ticks go with the selection, because a tick
+ * against a step that no longer applies is worse than no tick.
+ */
+export function clearPlanSelection() {
+  const p = loadLocal();
+  if (!p) return null;
+  const answers = (p.quiz && p.quiz.answers) || null;
+  p.quiz = answers ? { answers } : null;
+  p.ladder = null;
+  p.device = null;
+  p.custodian = null;
+  p.checklist = {};
+  p.notes = '';
+  return saveLocal(p);
 }
 
 // ── per-tool save helpers (merge one slice into the shared plan) ────────────

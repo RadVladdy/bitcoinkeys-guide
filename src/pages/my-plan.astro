@@ -58,7 +58,7 @@ import WhereAmI from '../components/WhereAmI.astro';
     return `<a class="ps-verdict ${v.cls}" href="/standard" title="${esc(d.why)}">${v.label}</a>`;
   }
   import {
-    loadLocal, hasLocal, clearLocal, saveLocal, downloadPlan, parsePlanText,
+    loadLocal, hasLocal, clearLocal, clearPlanSelection, saveLocal, downloadPlan, parsePlanText,
     planHasContent, emptyPlan, PLAN_FILENAME, setOwnedAndPrivacy,
     assignToPlan, removeFromPlan, retireOwned, getRecommendedDevices,
     encryptPlanToEnvelope, decryptEnvelope, downloadEncryptedPlan, isEncryptedEnvelope,
@@ -391,7 +391,8 @@ import WhereAmI from '../components/WhereAmI.astro';
           <button class="btn-primary" id="p-download">↓ Download my plan <span class="p-btn-note">(encryption optional)</span></button>
           <button class="btn-ghost" id="p-nostr">☁ Save to Nostr (encrypted) ↓</button>
           <label class="btn-ghost file-btn">Import a plan<input type="file" id="p-import" accept="application/json,.json" hidden /></label>
-          <button class="btn-danger" id="p-clear">Clear my saved plan</button>
+          <button class="btn-ghost" id="p-clear">Clear my plan</button>
+          <button class="btn-danger" id="p-forget">Forget everything</button>
         </div>
         <p class="p-nostr-hint mono">Ways to keep it: a <strong>plain or password-encrypted file</strong> (most private — nothing leaves your browser), or <strong>your own Nostr</strong>, encrypted so only you can read it (syncs across devices). <a href="#nostr-sec">What's Nostr save? →</a></p>
         <p class="p-foot mono">This plan is stored only in this browser. A downloaded file is yours to keep — no seed words are ever in it. Never put your recovery words in the notes.</p>
@@ -444,13 +445,24 @@ import WhereAmI from '../components/WhereAmI.astro';
       }
     });
 
+    // Two actions, because there are two layers. Clearing your PLAN keeps the things
+    // that are not downstream of it — your answers and the hardware you own. Forgetting
+    // EVERYTHING is the nuke, and now says so instead of hiding behind "clear my plan".
     document.getElementById('p-clear').addEventListener('click', async () => {
       const ok = await confirmDialog({
-        title: 'Clear your saved plan?',
-        message: 'This removes it from this browser and can’t be undone. Download it first if you want to keep a copy.',
-        confirmText: 'Clear plan', cancelText: 'Keep it', danger: true,
+        title: 'Clear your plan?',
+        message: 'This clears the setup you chose and your checklist progress. It keeps your quiz answers and the hardware you own, so you can pick a different setup without starting over.',
+        confirmText: 'Clear plan', cancelText: 'Keep it',
       });
-      if (ok) { clearLocal(); toast('Plan cleared', ''); render(); }
+      if (ok) { clearPlanSelection(); toast('Plan cleared — your answers and hardware are still here', ''); render(); }
+    });
+    document.getElementById('p-forget').addEventListener('click', async () => {
+      const ok = await confirmDialog({
+        title: 'Forget everything?',
+        message: 'This removes all of it from this browser — your answers, your setup, your checklist progress, and the hardware you told us you own. It can’t be undone. Download it first if you want to keep a copy.',
+        confirmText: 'Forget everything', cancelText: 'Keep it', danger: true,
+      });
+      if (ok) { clearLocal(); toast('Everything cleared', ''); render(); }
     });
 
     // Update ONLY the roadmap block (so the picker mid-edit isn't torn down).

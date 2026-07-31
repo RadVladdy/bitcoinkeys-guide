@@ -32,7 +32,7 @@ import { questionCountWordCap } from '../data/quiz.js';
   import { questions, recommend } from '../data/quiz.js';
   import { assessDevices, wallets, keysForSetup, slugForName } from '../data/wallets.js';
   import { rungAnchor } from '../data/ladder.js';
-  import { savePlannedSetup, plannedSetupRung, plannedSetupLabel, loadLocal, getOwned } from '../data/plan.js';
+  import { savePlannedSetup, plannedSetupRung, plannedSetupLabel, loadLocal, getOwned, clearPlanSelection } from '../data/plan.js';
   import { mountOwnedPicker } from '../data/owned-picker.js';
   import { confirmDialog } from '../data/ui-dialog.js';
 
@@ -448,6 +448,10 @@ import { questionCountWordCap } from '../data/quiz.js';
     if (jump) jump.addEventListener('click', () => { renderResult(); document.getElementById('quiz').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
     document.getElementById('q-fresh').addEventListener('click', () => {
       for (const k in answers) delete answers[k];
+      // Re-answering the questions while a stale SETUP sits saved is incoherent —
+      // the selection was derived from the answers you are throwing away. Owned
+      // hardware survives, because it is a fact about you, not a plan choice.
+      if (plannedSetupRung()) clearPlanSelection();
       idx = 0; atOwned = false; box.hidden = true;
       renderQuestion();
     });
