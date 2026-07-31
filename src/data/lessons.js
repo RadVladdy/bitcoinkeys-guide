@@ -73,6 +73,7 @@ export const lessons = [
   },
   {
     "slug": "back-up-your-seed",
+    "extra": "metal",
     "short": "Back up your seed",
     "verified": "2026-07-15",
     "title": "Back up your seed phrase — so a fire, a flood, or a bad day can't erase your Bitcoin",

@@ -1,0 +1,95 @@
+---
+// The "which metal backup" block. Rendered on a lesson that declares `extra: 'metal'`
+// in lessons.js, so nothing is hardcoded to a slug — see src/data/metal.js for why
+// this is framed as someone else's test results rather than our own verdict.
+import { metalCriteria, metalPicks, metalBands, metalFailed, metalSource, metalVerified } from '../data/metal.js';
+const band = Object.fromEntries(metalBands.map((b) => [b.key, b.label]));
+const badge = { value: 'best value', titanium: 'if you want titanium' };
+---
+<section class="metal">
+  <h2 id="choosing-metal">Choosing a metal backup</h2>
+  <p class="m-lead">
+    “Move it to metal” is easy to say and oddly hard to act on — there are dozens of these things and they
+    are not equally good. Here is how to choose one, and a short list that survives.
+  </p>
+
+  <div class="callout">
+    <span class="label">Whose judgement this is</span>
+    <p style="margin:0">
+      We rate hardware wallets ourselves, because that judgement is about design and firmware and we can read
+      those. <strong>Metal backups are decided by fire, acid and a 20-ton press, and we have not run those
+      tests.</strong> <a href={metalSource.url} target="_blank" rel="noopener">{metalSource.name}</a> has —
+      {metalSource.note} The criteria below are ours; every verdict is his.
+    </p>
+  </div>
+
+  <h3>What actually matters</h3>
+  <ol class="m-crit">
+    {metalCriteria.map((c) => (
+      <li><strong>{c.t}</strong><span>{c.d}</span></li>
+    ))}
+  </ol>
+
+  <h3>A short list that survives</h3>
+  <p class="m-sub">
+    Every one of these scored top marks in all four of Lopp’s stress categories. It is a starting point, not a
+    ranking of our own, and deliberately not exhaustive.
+  </p>
+  <ul class="m-picks">
+    {metalPicks.map((p) => (
+      <li>
+        <span class="m-head">
+          <a href={p.url} target="_blank" rel="noopener">{p.name} ↗</a>
+          {p.pick && <span class="m-badge mono">{badge[p.pick]}</span>}
+          <span class="m-band mono">{band[p.band]}</span>
+        </span>
+        <span class="m-method mono">{p.method}</span>
+        <span class="m-note">{p.note}</span>
+      </li>
+    ))}
+  </ul>
+  <p class="m-price-note sub">
+    Prices are bands rather than figures on purpose. We watch hardware-wallet prices on a schedule and stamp
+    them with a date; we don’t watch these, so a precise number would be a promise we couldn’t keep.
+  </p>
+
+  <div class="callout warn">
+    <span class="label">Named because they failed</span>
+    <p style="margin:0">
+      {metalFailed.join(' · ')} — all failed multiple stress tests. Two are sold by companies whose hardware
+      wallets people already own, which is exactly when someone assumes the metal must be fine too. It isn’t
+      automatically.
+    </p>
+  </div>
+  <p class="m-verified mono">Test results checked against the source, and every link above loaded, on {metalVerified}</p>
+</section>
+
+<style>
+  .metal { margin-top: 2.2rem; }
+  .m-lead { color: var(--muted); max-width: 62ch; }
+  .m-sub { color: var(--muted); font-size: 0.94rem; }
+
+  .m-crit { list-style: none; margin: 1.1rem 0 0; padding: 0; counter-reset: mc;
+    display: flex; flex-direction: column; gap: 0.7rem; }
+  .m-crit li { counter-increment: mc; display: grid; gap: 0.2rem;
+    border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: var(--radius);
+    background: var(--surface); padding: 0.9rem 1.15rem; }
+  .m-crit li strong { color: var(--text); }
+  .m-crit li strong::before { content: counter(mc) " · "; color: var(--accent); font-family: var(--mono); }
+  .m-crit li span { color: var(--muted); font-size: 0.93rem; line-height: 1.55; }
+
+  .m-picks { list-style: none; margin: 1.1rem 0 0; padding: 0;
+    display: flex; flex-direction: column; gap: 0.6rem; }
+  .m-picks li { border: 1px solid var(--line); border-radius: var(--radius);
+    background: var(--surface); padding: 0.9rem 1.15rem; display: grid; gap: 0.25rem; }
+  .m-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.5rem; }
+  .m-head a { font-weight: 650; text-decoration: none; color: var(--accent); }
+  .m-head a:hover { text-decoration: underline; }
+  .m-badge { font-size: 0.64rem; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 700;
+    color: var(--accent-ink); background: var(--accent); border-radius: 0.35rem; padding: 0.1rem 0.4rem; }
+  .m-band { color: var(--faint); font-size: 0.76rem; margin-left: auto; white-space: nowrap; }
+  .m-method { color: var(--safe); font-size: 0.72rem; letter-spacing: 0.03em; }
+  .m-note { color: var(--muted); font-size: 0.92rem; line-height: 1.55; }
+  .m-price-note { margin-top: 0.8rem; font-size: 0.86rem; }
+  .m-verified { color: var(--faint); font-size: 0.74rem; margin-top: 1rem; }
+</style>

@@ -6,6 +6,7 @@ import { lessons } from '../../data/lessons.js';
 import RuleBand from '../../components/RuleBand.astro';
 import LessonEyebrow from '../../components/LessonEyebrow.astro';
 import LessonCheck from '../../components/LessonCheck.astro';
+import MetalPicker from '../../components/MetalPicker.astro';
 
 export function getStaticPaths() {
   return lessons.map((h, i) => ({
@@ -72,6 +73,11 @@ const accentize = (title, phrase) => {
       </div>
     </section>
   )}
+
+  {/* A lesson can declare one `extra` block — a reference section too structured to
+      live as an HTML string in lessons.js. Keyed by the lesson's own data, not by a
+      hardcoded slug, so moving or renaming the lesson carries it. */}
+  {h.extra === 'metal' && <MetalPicker />}
 
   <!-- The knowledge check sits AFTER the lesson and BEFORE prev/next: you read,
        you check it landed, then you move on. It self-locates by rule and renders
