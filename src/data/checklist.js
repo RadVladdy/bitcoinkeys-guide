@@ -84,10 +84,10 @@ export const checklistItems = [
   // THEN metal — nobody has a steel plate on day one.
   { id: 'back-up-seed', phase: 'backup', t: 'Write the seed on paper, check it, then move it to metal',
     d: 'Copy the words by hand and check them against the device. Paper is fine for today; get it onto metal before the wallet holds anything you would miss, and keep each copy in a genuinely separate place. No photos, no cloud, ever.',
-    // Deep-links the metal section rather than the top of the lesson. This step is the
-    // moment someone actually buys a plate, and "move it to metal" is the one
-    // instruction on this list that names a product category without naming a product.
-    href: '/learn/back-up-your-seed#choosing-metal', rule: 'never-digital' },
+    // Points at the metal-backup PAGE, not the lesson: this step is the moment someone
+    // actually buys a plate, and "move it to metal" is the one instruction on this
+    // list that names a product category without naming a product.
+    href: '/metal-backups', rule: 'never-digital' },
   { id: 'passphrase-backup', phase: 'backup', only: ['passphrase'], t: 'Back up the passphrase — separately from the seed',
     d: 'The single most documented way people lose passphrase-protected Bitcoin: they memorise it, never write it down, then forget it or die. The seed is backed up so the wallet LOOKS recoverable — it isn’t. Back up the passphrase as carefully as the seed, in a different place.',
     href: '/learn/ladder#rung-2' },

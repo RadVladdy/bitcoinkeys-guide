@@ -16,6 +16,16 @@ import { ruleCountWord } from '../data/rules.js';
 //   #cl-yours   — plan saved AND complete: the personalized header.
 // Recorded here rather than beside each one, because an HTML comment in template
 // position is output and ships to every reader.
+// A step's link is usually to the lesson behind it, but not always. Derive the
+// wording from the target so a label can never promise the wrong kind of page —
+// the hardcoded "Read the lesson" was doing exactly that on FIVE steps: two point
+// at /collaborative, one at /wallets, one at an interactive demo, and the metal
+// step at /metal-backups. Only the first of those is a lesson.
+const linkLabel = (href) =>
+  href.startsWith('/learn/') ? 'Read the lesson →'
+  : href.startsWith('/deep-dive/') ? 'Try the demo →'
+  : 'See the guide →';
+
 const groups = checklistGroups;
 const total = checklistCount;
 ---
@@ -47,7 +57,7 @@ const total = checklistCount;
       <p class="y-count mono" id="cl-yours-count"></p>
     </div>
 
-    <p class="sub">Each item links to the lesson behind it. This is the map; the course is the detail. Where a step <em>is</em> one of <a href="/learn/rules">the {ruleCountWord} rules</a>, it says which — so you can see the course and this list are the same advice, once as reading and once as doing. Your ticks are kept <strong>in your browser</strong> and go nowhere unless you deliberately save your plan somewhere else — <strong>we never see them either way</strong>. Clear them any time on <a href="/my-plan">your plan</a>.</p>
+    <p class="sub">Each item links to the lesson behind it — or, where the step is a purchase, to the page that compares your options. This is the map; the course is the detail. Where a step <em>is</em> one of <a href="/learn/rules">the {ruleCountWord} rules</a>, it says which — so you can see the course and this list are the same advice, once as reading and once as doing. Your ticks are kept <strong>in your browser</strong> and go nowhere unless you deliberately save your plan somewhere else — <strong>we never see them either way</strong>. Clear them any time on <a href="/my-plan">your plan</a>.</p>
   </section>
 
   {groups.map((g) => (
@@ -74,7 +84,7 @@ const total = checklistCount;
               <span class="ct-title">{it.t}<span class="ct-dev" hidden></span></span>
               <span class="ct-desc">{it.d}</span>
               <span class="ct-links">
-                {it.href && <a href={it.href} class="ct-link">Read the lesson →</a>}
+                {it.href && <a href={it.href} class="ct-link">{linkLabel(it.href)}</a>}
                 {ruleForItem(it) && (
                   <a class="ct-rule mono" href={`/learn/rules#rule-${ruleForItem(it).n}`}>
                     Rule {String(ruleForItem(it).n).padStart(2, '0')} · {ruleForItem(it).short}

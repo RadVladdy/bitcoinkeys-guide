@@ -48,6 +48,7 @@ export const navGroups = [
     links: [
       { href: '/wallets', label: 'Hardware wallets' },
       { href: '/standard', label: 'How we rate them' },
+      { href: '/metal-backups', label: 'Metal backups' },
       { href: '/collaborative', label: 'Collaborative custody' },
     ],
   },

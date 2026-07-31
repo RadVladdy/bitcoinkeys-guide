@@ -6,10 +6,8 @@ import { lessons } from '../../data/lessons.js';
 import RuleBand from '../../components/RuleBand.astro';
 import LessonEyebrow from '../../components/LessonEyebrow.astro';
 import LessonCheck from '../../components/LessonCheck.astro';
-import MetalPicker from '../../components/MetalPicker.astro';
 // Page order below is load-bearing: lesson body, then the lesson's own short
-// checklist, then any `extra` reference block, then the knowledge check, then
-// prev/next. The check sits after the material it tests and before the exit.
+// checklist, then the knowledge check, then prev/next. The check sits after the material it tests and before the exit.
 // LessonCheck self-locates by rule and renders nothing where a rule has no check;
 // LessonNav walks curriculum.js, so neither is hardcoded per lesson.
 
@@ -78,11 +76,6 @@ const accentize = (title, phrase) => {
       </div>
     </section>
   )}
-
-  {/* A lesson can declare one `extra` block — a reference section too structured to
-      live as an HTML string in lessons.js. Keyed by the lesson's own data, not by a
-      hardcoded slug, so moving or renaming the lesson carries it. */}
-  {h.extra === 'metal' && <MetalPicker />}
 
   <LessonCheck href={`/learn/${h.slug}`} />
 

@@ -53,7 +53,7 @@ export const resources = [
       {
         "title": "Lopp's metal seed-storage stress tests",
         "url": "https://jlopp.github.io/metal-bitcoin-storage-reviews/",
-        "what": "Hard data from fire-, crush-, and acid-testing metal backup plates, to help you pick a durable way to store a seed phrase.",
+        "what": "Hard data from fire-, crush-, and acid-testing metal backup plates. This is the source behind our own <a href=\"/metal-backups\">metal-backup page</a> — go here for the full per-device results.",
         "level": "Advanced"
       }
     ]

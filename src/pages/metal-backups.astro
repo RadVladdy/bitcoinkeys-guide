@@ -1,23 +1,41 @@
 ---
-// The "which metal backup" block. Rendered on a lesson that declares `extra: 'metal'`
-// in lessons.js, so nothing is hardcoded to a slug — see src/data/metal.js for why
-// this is framed as someone else's test results rather than our own verdict.
+// The "which metal backup" page. Promoted out of /learn/back-up-your-seed on
+// 2026-07-31: it carries six outbound vendor links, which is the shape of the other
+// pages in "Hardware & services" (/wallets, /standard, /collaborative) and unlike any
+// lesson on the site — no other lesson sends a reader out to buy something. It was
+// also 32% of that lesson's rendered page, which made a mid-length lesson the second
+// longest page on the guide.
+//
+// The lesson keeps the TEACHING (why metal, what fails, practise on a dummy seed);
+// this page answers WHICH ONE. See src/data/metal.js for why every grade and price
+// here is attributed rather than claimed as ours.
+import Base from '../layouts/Base.astro';
 import { metalCriteria, metalPicks, metalBands, metalFailed, metalSource, metalVerified,
          metalTests, metalOutcome } from '../data/metal.js';
 const band = Object.fromEntries(metalBands.map((b) => [b.key, b.label]));
 const badge = { value: 'best value', titanium: 'if you want titanium' };
-// Every figure below derives from metalOutcome — see invariant #10. The percentage is
-// computed rather than written down, because a typed one silently stops matching the
-// counts beside it the first time the source is re-read.
+// Derived, never typed — see invariant #10. The percentage is computed so it cannot
+// stop matching the counts printed beside it the next time the source is re-read.
 const pctPoor = Math.round((metalOutcome.poor / metalOutcome.reviewed) * 100);
 ---
-<section class="metal">
-  <h2 id="choosing-metal">Choosing a metal backup</h2>
-  <p class="m-lead">
-    “Move it to metal” is easy to say and oddly hard to act on — there are dozens of these things and they
-    are not equally good. Here is how to choose one, and a short list that survives.
-  </p>
+<Base
+  title="Which metal seed backup to buy \u00b7 BitcoinKeys.guide"
+  description={`Which metal backup should hold your Bitcoin seed phrase? Independent stress-test results on ${metalOutcome.reviewed} plates \u2014 fire, acid and a 20-ton press \u2014 plus the ${metalCriteria.length} criteria that decide the rest, and the ones to avoid. No affiliate links.`}
+  verified={metalVerified}
+>
+  <section class="prose">
+    <p class="eyebrow">Back up your seed</p>
+    <h1>Which metal backup should hold <span class="accent">your seed</span>?</h1>
+    <p class="lead">
+      \u201cMove it to metal\u201d is easy to say and oddly hard to act on \u2014 there are dozens of these things and they are
+      not equally good. Here is how to choose one, which five we\u2019d point you at, and which to avoid. We sell
+      nothing and take no affiliate money, so nothing below is bought placement. New to this?
+      <a href="/learn/back-up-your-seed">The lesson on backing up your seed</a> covers why metal at all, and how
+      to copy the words without making a mistake.
+    </p>
+  </section>
 
+<section class="metal">
   <div class="callout">
     <span class="label">Whose judgement this is</span>
     <p style="margin:0">
@@ -29,13 +47,13 @@ const pctPoor = Math.round((metalOutcome.poor / metalOutcome.reviewed) * 100);
     </p>
   </div>
 
-  <h3>The good news first</h3>
+  <h2>The good news first</h2>
   <p class="m-lead">
     Most of these products are fine. Of the {metalOutcome.reviewed} devices tested, <strong>{metalOutcome.topGrade} came
     through every test with nothing lost</strong>, and only {metalOutcome.poor} — about {pctPoor}% — did badly.
     So this is not a minefield, and you do not need to agonise. You need to avoid a
     <a href="#metal-failures">short list of specific traps</a>, and then pick on the things the stress tests
-    don't measure. That second part is what the rest of this section is for.
+    don't measure. That second part is what the rest of this page is for.
   </p>
   <ul class="m-tests">
     {metalTests.map((x) => (
@@ -43,14 +61,14 @@ const pctPoor = Math.round((metalOutcome.poor / metalOutcome.reviewed) * 100);
     ))}
   </ul>
 
-  <h3>What actually matters</h3>
+  <h2>What actually matters</h2>
   <ol class="m-crit">
     {metalCriteria.map((c) => (
       <li><strong>{c.t}</strong><span>{c.d}</span></li>
     ))}
   </ol>
 
-  <h3>Five that meet all five</h3>
+  <h2>Five that meet all five</h2>
   <p class="m-sub">
     Every one of these scored top marks in all {metalTests.length} of Lopp’s stress tests <em>and</em> meets the
     {' '}{metalCriteria.length} criteria above, which he doesn’t test for. Far more than five would qualify on
@@ -74,7 +92,7 @@ const pctPoor = Math.round((metalOutcome.poor / metalOutcome.reviewed) * 100);
     them with a date; we don’t watch these, so a precise number would be a promise we couldn’t keep.
   </p>
 
-  <h3 id="metal-failures">The ones to avoid</h3>
+  <h2 id="metal-failures">The ones to avoid</h2>
   <p class="m-sub">
     The {metalOutcome.poor} that did badly are worth naming, and each failure shows you one of the criteria above
     doing its job.
@@ -86,9 +104,8 @@ const pctPoor = Math.round((metalOutcome.poor / metalOutcome.reviewed) * 100);
   </ul>
   <p class="m-verified mono">Test results checked against the source, and every link above loaded, on {metalVerified}</p>
 </section>
-
 <style>
-  .metal { margin-top: 2.2rem; }
+  .metal { margin-top: 1.6rem; }
   .m-lead { color: var(--muted); max-width: 62ch; }
   .m-sub { color: var(--muted); font-size: 0.94rem; }
 
