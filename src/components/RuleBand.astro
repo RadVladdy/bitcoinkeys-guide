@@ -4,15 +4,14 @@
 // This is the visible half of the 2026-07-29 restructure: every lesson from 101
 // onward opens by naming the numbered rule it exists to teach.
 //
-// REWORKED 2026-07-30, the owner's call, and it removes two things:
+// The band is a REMINDER, not a destination. Two things were removed:
 //
 //   1. THE BACK-LINK. The band used to be an <a> to /learn/rules#rule-N. That was
 //      built as the counterweight to the old /principles page, which pushed readers
 //      FORWARD out of the sequence — so pulling them back felt like the fix. But a
 //      reminder is not a destination: the reader met the rules as lesson 1 and does
 //      not need to be sent back to re-read one they are about to spend a whole
-//      lesson on. the owner: "I don't think we need to link back to the rule. We just
-//      want to display it as a reminder that this is a rule." The band is now inert.
+//      lesson on. The band is inert: it displays the rule, and nothing more.
 //      (`<RuleRef>` in prose still links — that is a CITATION mid-argument, where a
 //      reader genuinely might want to check the source. Different job.)
 //
@@ -54,7 +53,7 @@ const mine = rulesFor(href ?? Astro.url.pathname);
   .rb-n { font-weight: 800; }
   .rb-part { color: var(--faint); font-weight: 600; }
   /* The rule is the loudest thing in the band — it outranks the surrounding body
-     copy rather than matching it. Sized 2026-07-30 (the owner) to read as a statement.
+     copy rather than matching it — sized to read as a statement.
      Kept in step with the rules page's own list (.r-body h2) so the same sentence
      is the same size wherever the guide states a rule. */
   .rb-t { margin: 0; color: var(--text); font-weight: 650; font-size: 1.18rem; line-height: 1.38; }

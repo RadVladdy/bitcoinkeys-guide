@@ -101,7 +101,7 @@ import WhereAmI from '../components/WhereAmI.astro';
 
   // Slim the page to the current status: once you're signed in to Nostr, the long
   // "what is Nostr / how to connect" explainer + the Pubky note are just noise, so
-  // collapse them and keep only the control. (the owner: keep the site slim per state.)
+  // collapse them and keep only the control — slim per state.
   function slimNostr() {
     const signedIn = !!getSession();
     const hide = (id) => { const e = document.getElementById(id); if (e) e.style.display = signedIn ? 'none' : ''; };
@@ -186,7 +186,7 @@ import WhereAmI from '../components/WhereAmI.astro';
   // A verdict chip on each filled key slot. /my-plan showed the device you own and
   // said nothing about whether it meets the standard the rest of the site judges
   // hardware by — so someone could plan around a Ledger and never be told. The
-  // reasoning is pulled from assessDevices(), never restated here. (the owner, 7/30.)
+  // reasoning is pulled from assessDevices(), never restated here.
 
   // Is the saved plan actually finished? A plan with an unchosen hardware wallet, or
   // a collaborative plan with no custodian, is a plan in progress — and the page
@@ -287,8 +287,7 @@ import WhereAmI from '../components/WhereAmI.astro';
     } else {
       // Nothing. The slots show the state and the "Your next step" row gives the
       // one instruction — including the different-makers reason for multisig. This
-      // footer was saying it a second time, word for word. (the owner: "look through
-      // this for redundancy... make it more simple, less confusing.")
+      // footer was saying it a second time, word for word.
       footer = '';
     }
     // Recommended devices for this setup (from the quiz) — suggest them to fill gaps.
@@ -374,7 +373,7 @@ import WhereAmI from '../components/WhereAmI.astro';
       // This block used to announce "Your checklist is ready — 16 steps" while a
       // wallet slot sat empty, which is the opposite of a next step: the first
       // thing the checklist would tell you is to go and choose the device you have
-      // not chosen. (the owner, 2026-07-30: "the output here should all be contextual.")
+      // not chosen. The output here must be contextual.
       const g = planGaps();
       rows.push([
         `Your next step`,
@@ -872,7 +871,7 @@ import WhereAmI from '../components/WhereAmI.astro';
   #plan .ps-slot { display: flex; align-items: center; gap: 0.7rem; border: 1px solid var(--line); border-radius: 0.55rem; background: var(--surface-2); padding: 0.6rem 0.85rem; }
   /* On a phone the three-part row (label · device · action) was squeezing into
      ~120px columns and wrapping mid-phrase — "Not chosen / yet" beside "Choose /
-     →". Stack it. (the owner's mobile screenshot, 2026-07-30.) */
+     →". Stack it. */
   @media (max-width: 560px) {
     #plan .ps-slot { flex-wrap: wrap; gap: 0.35rem 0.6rem; }
     #plan .ps-slot .ps-slot-n { flex: 0 0 100%; }

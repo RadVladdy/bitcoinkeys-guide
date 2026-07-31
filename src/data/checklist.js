@@ -52,7 +52,7 @@ export const checklistItems = [
   // calls assessDevices()). "Get a REAL hardware wallet" shipped to everyone with a
   // plan — including people who already owned one — and the page helpfully appended
   // "— you have Ledger Nano". Telling someone to go and get the thing they just told
-  // you they have, and calling theirs unreal, was the worst of both. (the owner, 7/30.)
+  // you they have, and calling theirs unreal, was the worst of both.
   { id: 'get-device', phase: 'setup', t: 'Get a hardware wallet',
     d: 'A device from our cold-storage tier — Bitcoin-only firmware available, its own screen, offline signing. Buy direct from the maker and check the tamper seal.',
     href: '/wallets', deviceSlot: true, rule: 'buy-direct' },
@@ -81,7 +81,7 @@ export const checklistItems = [
   // ── Step 2 · Secure the backup ────────────────────────────────────────────
   // Was "Back up the seed on metal, in two places" — metal-first, which is not what
   // anyone actually does on day one and not what the lesson teaches. Paper, checked,
-  // THEN metal. (the owner, 7/30: "most users won't have metal ready.")
+  // THEN metal — nobody has a steel plate on day one.
   { id: 'back-up-seed', phase: 'backup', t: 'Write the seed on paper, check it, then move it to metal',
     d: 'Copy the words by hand and check them against the device. Paper is fine for today; get it onto metal before the wallet holds anything you would miss, and keep each copy in a genuinely separate place. No photos, no cloud, ever.',
     href: '/learn/back-up-your-seed', rule: 'never-digital' },

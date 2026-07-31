@@ -207,7 +207,7 @@ import { questionCountWordCap } from '../data/quiz.js';
   // The checklist USED to be generated here as well as on /checklist — two
   // generators for one artefact, which is why /checklist read generic beside it.
   // The result page now hands off instead of duplicating: one page produces the
-  // checklist, and it is the one called /checklist. (the owner, 2026-07-30.)
+  // checklist, and it is the one called /checklist.
   function checklistHandoff() {
     // No link to /checklist here. Until they save, there IS no plan, so the
     // checklist would be the generic everything-list — offering it as "yours" before
@@ -361,7 +361,7 @@ import { questionCountWordCap } from '../data/quiz.js';
         const isSaved = savedSource ? b.source === savedSource : Boolean(savedRung && b.rung === savedRung);
         if (isSaved) {
           // Plan first, checklist second: the plan is the thing they just made, and
-          // the checklist is built FROM it. (the owner, 2026-07-30.)
+          // the checklist is built FROM it.
           b.el.innerHTML = `<span class="r-saved">✓ This is your saved plan.</span> <a class="r-saved-link" href="/my-plan">Open your plan →</a> <a class="r-saved-link" href="/checklist">your checklist is ready too</a>`;
         } else {
           b.el.innerHTML = `<button class="btn-save js-save" type="button">＋ Save this setup to my plan</button>

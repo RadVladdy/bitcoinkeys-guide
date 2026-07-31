@@ -1,7 +1,7 @@
 // Choosing a metal seed backup.
 //
-// ADDED 2026-07-30 (the owner): "I just realised we don't have any info on selecting a
-// metal backup system, which we should." He was right, and it was conspicuous — the
+// The guide rates eleven hardware wallets against a published standard and then said
+// "move it to metal" with no guidance on which metal. That gap was conspicuous — the
 // site rates eleven hardware wallets against a published standard and then says
 // "move it to metal" without a word on which metal.
 //

@@ -21,7 +21,7 @@
 // rewritten to a single standard: a rule is either a MEME-GRADE STATEMENT ("Not
 // your keys, not your coins") or a DIRECTIVE ("Every time you receive Bitcoin,
 // generate a new address"). Anything that was merely a true observation is not a
-// rule and was cut or rewritten. Three removals, all redundancy the owner caught:
+// rule and was cut or rewritten. Three removals, all of them redundancy:
 //
 // RE-HOMED 2026-07-29 (later 2) — the hot/cold rule ("never keep long-term savings
 // on an internet-connected device") used to be rule 01, on the keys lesson. Two

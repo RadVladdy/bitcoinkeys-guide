@@ -301,7 +301,7 @@ function primaryRec(a) {
   const { stakes, recovery, worry, tech } = a;
   const sharedNeed = recovery !== 'just-me';
 
-  // MINIMUM RECOMMENDATION IS SINGLE-SIG COLD STORAGE (the owner, 2026-07-30).
+  // MINIMUM RECOMMENDATION IS SINGLE-SIG COLD STORAGE.
   // This branch used to recommend a non-custodial PHONE WALLET as the destination
   // and treat hardware as a later graduation. Two problems. A phone wallet is
   // genuinely self-custody — so the objection is not custody, it is TEMPERATURE:

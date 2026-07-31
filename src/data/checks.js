@@ -1,6 +1,6 @@
 // Per-lesson knowledge checks — "did that land?", not "what setup do you need?".
 //
-// ADDED 2026-07-30 (the owner). Deliberately the SECOND thing built after /quiz was
+// Deliberately the SECOND thing built after /quiz was
 // renamed /find-your-setup: the setup finder was never a quiz (it tests nothing —
 // it asks about your situation), and shipping real knowledge checks while that
 // page still owned the word would have left two things called "quiz", one of them
@@ -23,8 +23,7 @@
 //      deliberate action, it is learning, and filing it would put the three privacy
 //      promises (/find-your-setup, /my-plan, /checklist) back in question exactly
 //      the way /my-plan did on 2026-07-30. Transient by construction, which also
-//      means the feature needs no consent copy at all. the owner's call and the right
-//      one: "nothing would ever be saved… transient or ephemeral."
+//      means the feature needs no consent copy at all. Transient by construction.
 //   2. ZERO ANALYTICS (invariant #7). Answers never leave the DOM, so there is
 //      nothing to leak and no request to make.
 //   3. LINKS POINT BACKWARDS (invariant #9). An explanation teaches IN PLACE. No

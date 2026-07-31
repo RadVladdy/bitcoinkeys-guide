@@ -7,11 +7,11 @@ import { shamirNote, bip85 } from '../../data/ladder.js';
 
 // ADDED 2026-07-30. Both of these used to be callouts on the ladder page, which was
 // wrong twice over: they are not rungs (neither changes how many keys sign), and a
-// two-sentence callout can't carry a real trade-off. the owner: "I do want a page just
+// two-sentence callout can't carry a real trade-off. This needs a page
 // explaining what those are in this section... and then, of course, on that page we
 // can link out to the demonstrations."
 //
-// BIP-85 first, Shamir second — the owner's order, and it is the right one: BIP-85 makes
+// BIP-85 first, Shamir second, which is the right order: BIP-85 makes
 // backups FEWER, Shamir makes one backup SPLIT. Fewer-then-split reads as a widening
 // of the same question ("how many pieces should my backup be in?"), where the reverse
 // reads as two unrelated tricks.

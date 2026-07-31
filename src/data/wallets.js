@@ -10,7 +10,7 @@
 //   Prices/specs from trezor.io/compare + independent reviews.
 // 2026-07-17: added Coldcard Mk5 ($170, pocket keypad Coldcard, dual SE, MicroSD air-gap) and covered Blockstream
 //   Jade. Now 11 devices.
-// 2026-07-18: prices re-verified against vendor stores (the owner). Blockstream lineup corrected — the $79 entry is the
+// 2026-07-18: prices re-verified against vendor stores. Blockstream lineup corrected — the $79 entry is the
 //   original "Blockstream Jade" (button + screen, no camera → airgap 'no'), NOT the "Jade Core" (that's the $99
 //   touchscreen, also no camera; not carried here). Jade Plus is $169 (was $149). Bitkey $250 and Passport Prime
 //   $349 (Arctic Copper "America 250" limited edition) both confirmed.

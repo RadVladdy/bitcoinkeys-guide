@@ -139,7 +139,7 @@ export function clearLocal() {
  * Clear the PLAN SELECTION and the checklist progress under it — keeping the two
  * things that are not downstream of it: your quiz answers, and the hardware you own.
  *
- * ADDED 2026-07-30 (the owner). One button used to flatten the whole object, so "clear
+ * One button used to flatten the whole object, so "clear
  * my plan" also forgot which devices you own and every answer you had given. Those
  * sit at different layers:
  *
@@ -317,7 +317,7 @@ export function plannedSetupLabel() {
  * recommendations can legitimately land on the same rung (a "start simple, then
  * graduate" first choice and a "graduate to cold storage" second choice are both
  * single-sig). Saving either lit up BOTH bands with "this is your saved plan".
- * The source is the only thing unique per band. (the owner caught it, 2026-07-30.)
+ * The source is the only thing unique per band.
  */
 export function plannedSetupSource() {
   const p = loadLocal();
