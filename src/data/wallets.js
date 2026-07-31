@@ -465,10 +465,13 @@ export function slugForName(name) { return _slugByName[name] || null; }
 // How many keys the user personally holds for a given setup — drives the roadmap
 // slots (owned devices fill them; the rest become a "still to get" shopping list).
 // Collaborative = the user holds 2 of 3 (a Bitcoin service holds the third).
-// "Getting started" (learning) = 0: a phone wallet first, no hardware pushed yet —
-// consistent with the guide's "don't buy gear you don't need" ethos.
+// The "Getting started" tier returned 0 here — a phone wallet first, no hardware.
+// That tier was retired 2026-07-30 when single-sig cold storage became the minimum
+// recommendation, so nothing produces it any more. The guard stays for plans SAVED
+// under the old tier, which would otherwise ask their owner for a device the plan
+// never told them to buy.
 export function keysForSetup({ rungSlug, label = '', tier = '' } = {}) {
-  if (/getting started/i.test(tier)) return 0;
+  if (/getting started/i.test(tier)) return 0;   // legacy saved plans only
   if (/3-of-5/.test(String(label) + ' ' + String(tier))) return 5;
   switch (rungSlug) {
     case 'single-sig': return 1;

@@ -11,6 +11,12 @@ export const changelog = [
   {
     date: '2026-07-30',
     type: 'content',
+    title: 'The lowest setup we recommend is now cold storage, not a phone wallet',
+    detail: 'If you told the setup finder that losing this Bitcoin wouldn’t change your life, it used to recommend keeping a small amount in a non-custodial phone wallet and graduating to a hardware wallet later. That has changed. The lowest setup this guide recommends is now single-signature cold storage for everybody, and low stakes change the budget rather than the setup. Two reasons. A phone wallet really is self-custody, so the objection was never custody — it is temperature: the rule this whole guide rests on is that savings do not live on an internet-connected device, and it was odd to publish a standard for eleven cold devices and then point the least experienced reader somewhere else. And "graduate later" puts the single riskiest thing a holder ever does, moving a wallet, in front of the person least equipped for it. Cold storage starts at the price of the Trezor Safe 3, which is less than the spread on a lot of first Bitcoin purchases, and the cheap devices in our cold-storage tier do the same job as the ones costing four times as much. None of this changes what the guide says about phone wallets for money you are actually spending — a hot wallet for walking-around money is still exactly right, and the lesson on hot and cold says so.',
+  },
+  {
+    date: '2026-07-30',
+    type: 'content',
     title: 'The checklist now tells you when it isn’t yours yet',
     detail: 'If you have chosen a setup but not yet picked the hardware for it, the checklist page used to look exactly like a finished, personalised one. It now says plainly that your plan is not finished, names what is missing — a hardware wallet, two more of them, a collaborative custodian — and points you back at the step that closes it. The page is not blocked and never will be: the first steps on it are how to get the hardware a finished plan would name, and reading ahead is reasonable. What it no longer does is dress the full list of everything up as a list built for you. Once the plan is complete it trims to just your steps and says so, exactly as before.',
   },

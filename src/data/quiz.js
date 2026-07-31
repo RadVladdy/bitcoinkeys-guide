@@ -111,6 +111,7 @@ export const questionCountWordCap = numberWordCap(questionCount);
 // Neutral + informational — NOT affiliate links, NOT ranked "best." Casa is
 // deliberately omitted there (it supports other coins), so it's omitted here.
 import { custodians } from './custodians.js';
+import { deviceBySlug } from './wallets.js';
 const KYC_LABEL = { yes: 'No KYC', no: 'KYC required', partial: 'KYC varies' };
 export const collaborativeVendors = custodians.map((c) => ({
   name: c.name,
@@ -127,7 +128,12 @@ export const collaborativeVendors = custodians.map((c) => ({
 // published standard (/standard); savings recommendations draw from the
 // cold-storage tier, and spending-tier devices are labeled as such when they
 // appear. Within a tier, fit decides. Prices render from wallets.js.
+// Price comes from wallets.js, which the freshness runner watches — a figure typed
+// here would drift silently the way "~$79" did (invariant #10).
+const price = (slug) => (deviceBySlug[slug] && deviceBySlug[slug].price) || '';
+
 const DEV = {
+  safe3:    { name: 'Trezor Safe 3', why: `the cheapest device that clears our bar (${price('trezor-safe-3')}) — buttons and a small screen rather than a touchscreen, but the same secure element and open-source firmware as its pricier siblings` },
   jade:     { name: 'Blockstream Jade', why: 'genuinely good on a budget, simple, Bitcoin-only (connects by USB/Bluetooth — no on-device camera)' },
   bitbox:   { name: 'BitBox02 (BTC-only)', why: 'Swiss, minimalist, fully open-source — an excellent multisig component' },
   coldcard: { name: 'Coldcard Q',          why: 'the physical keyboard and clear menus make it the friendliest to operate — and it’s buy-once: the same device covers single-sig, a passphrase, and multisig, so you never re-buy as you climb (Bitcoin-only; premium price)' },
@@ -157,10 +163,16 @@ function singleSigDevices(a) {
   const budgetTight = a.stakes === 'learning' || a.stakes === 'meaningful';
   // Small amount / budget-conscious → economics leads; a cheap device is the right call.
   if (a.tech === 'simple' && budgetTight) {
+    // Cold-storage tier LEADS. This branch used to lead with Bitkey and close on
+    // "as your stack becomes savings, make the Jade its cold home" — the same
+    // graduate-later shape retired from the learning branch on 2026-07-30, one
+    // stakes level up. Bitkey stays on offer, with its tier stated, because it is a
+    // genuinely good phone-first on-ramp; it just isn't the thing we lead a SAVINGS
+    // recommendation with.
     return {
-      devices: [DEV.bitkey, DEV.jade],
-      headline: 'Start with a simple, phone-friendly setup',
-      note: 'Bitkey is a phone-based 2-of-3 with recovery built in (a light collaborative setup) — an especially easy on-ramp, though we rate it built for spending, not a long-term vault; the Jade is a classic cold-storage-tier single-sig wallet and great value. Both are solid, low-cost first setups — as your stack becomes savings, make the Jade (or a step up) its cold home.',
+      devices: [DEV.jade, DEV.bitkey],
+      headline: 'The simplest cold setup — with a phone-friendly alternative',
+      note: 'The Jade is a cold-storage-tier single-sig wallet and excellent value — the straightforward answer, and the one we would pick. Bitkey is the alternative if you live on your phone: a 2-of-3 with recovery built in and no single seed to lose, which makes it an unusually easy on-ramp — but we rate it built for spending rather than a long-term vault, so know what you are choosing.',
     };
   }
   if (budgetTight) {
@@ -289,20 +301,25 @@ function primaryRec(a) {
   const { stakes, recovery, worry, tech } = a;
   const sharedNeed = recovery !== 'just-me';
 
+  // MINIMUM RECOMMENDATION IS SINGLE-SIG COLD STORAGE (the owner, 2026-07-30).
+  // This branch used to recommend a non-custodial PHONE WALLET as the destination
+  // and treat hardware as a later graduation. Two problems. A phone wallet is
+  // genuinely self-custody — so the objection is not custody, it is TEMPERATURE:
+  // rule 04 says savings never live on an internet-connected device, and this guide
+  // publishes a standard for eleven cold devices and then pointed its most novice
+  // reader somewhere else. And the "graduate later" path puts the riskiest thing a
+  // holder ever does — migrating a wallet — in front of the least experienced person.
+  // Low stakes now change the BUDGET, not the setup.
   if (stakes === 'learning') {
     return {
-      tier: 'Getting started', rungSlug: 'single-sig', rungLabel: 'Start simple — graduate to cold storage as you grow',
-      headline: 'Start small and learn the moves',
-      why: "Since losing this wouldn't change your life, don't over-engineer it — the worst setup is one so fiddly you avoid using it. The valuable thing right now is learning to hold your own keys, not buying gear. Keep a small amount in a reputable non-custodial phone wallet, get comfortable sending and receiving, and step up to a hardware wallet as your stack grows.",
-      wallet: null,
-      walletNote: 'A reputable <strong>non-custodial phone wallet</strong> to learn on (you hold the keys — not an exchange app). When you graduate to cold storage, a simple ~$79 device like the Blockstream Jade is a great first hardware wallet.',
-      checklist: [
-        { text: 'Pick a non-custodial phone wallet — one where YOU hold the keys, not the company', howto: 'not-your-keys' },
-        { text: 'Move a small amount off the exchange and practice sending & receiving', howto: 'send-bitcoin-safely' },
-        { text: 'Write the recovery phrase down and keep it offline — never a photo or cloud note', howto: 'back-up-your-seed' },
-        { text: 'As your stack grows, graduate to a hardware wallet and cold storage', howto: 'ladder' },
-      ],
-      holdback: null,
+      tier: 'Tier 1', rungSlug: 'single-sig', rungLabel: 'Single-signature cold storage',
+      headline: 'Single-signature cold storage — on the cheapest device that clears our bar',
+      why: `Losing this wouldn’t change your life today, which is exactly why it is the right moment to build the habit properly rather than a temporary one you would have to migrate later — and migrating a wallet is one of the riskiest things a holder ever does. The setup is the same one most people should be on. All your stakes change is how much you need to spend on the device: cold storage starts at ${price('trezor-safe-3')}, which is less than the spread on a lot of first Bitcoin purchases. A phone wallet is fine for money you are spending this week. It is not where savings belong, however small.`,
+      wallets: [DEV.safe3, DEV.jade],
+      walletNote: `The cheap ones do the same job. The Trezor Safe 3 (${price('trezor-safe-3')}) and the Blockstream Jade (${price('jade-core')}) both sit in our cold-storage tier — the same tier as devices costing four times as much. You are buying a screen you can trust and keys that never leave it, and that does not get more expensive.`,
+      checklist: [ STEP.buy, STEP.offline, STEP.metal, STEP.testRecover, STEP.smallFirst, STEP.separate,
+        ...(recovery !== 'just-me' ? [{ text: 'Leave your partner/heirs a plain-English guide to finding the backup and recovering the wallet', howto: 'recovery-kit' }] : []) ],
+      holdback: 'We deliberately did NOT add a passphrase or a second key. At this stage the thing that protects you is a backup you have actually tested, not another moving part — and every extra secret is one more thing to lose while you are still learning.',
     };
   }
 
@@ -357,14 +374,8 @@ function secondaryRec(a, primary) {
   const slug = primary.rungSlug;
   const S = (rungSlug, rungLabel, headline, when) => ({ rungSlug, rungLabel, headline, when });
 
-  // Learning-stakes users share the single-sig rung slug but their primary is
-  // "phone wallet, don't buy gear" — their step-up is graduating to cold
-  // storage, never a passphrase or multisig. Branch on tier BEFORE the slug.
-  if (primary.tier === 'Getting started') {
-    return S('single-sig', 'Single-signature cold storage', 'Graduate to cold storage',
-      'The moment your stack is more than pocket money, move it to a hardware wallet in single-sig cold storage — your first real self-custody setup.');
-  }
-
+  // Learning stakes now START in single-sig cold storage, so the step-up is the same
+  // one every single-sig holder gets — grow into it, don't graduate into it.
   // The multisig fork is already the top of the ladder — the step-up is more keys /
   // more resilience, kept self-sovereign by default (only mention insurance if they
   // didn't insist on pure self-custody).
