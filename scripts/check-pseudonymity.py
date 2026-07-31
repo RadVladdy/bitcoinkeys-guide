@@ -11,6 +11,19 @@ Two mechanisms did it, and neither is obvious:
      not a build-time comment; it is output. Every internal note written that way is
      readable in view-source. Thirty-three of them were.
 
+     SINCE 2026-07-31 THIS FAILS ON *ANY* SUCH COMMENT, not only one carrying a name.
+     The identifier list catches the names someone thought to list; the broader rule
+     is that internal notes have no business on a public page. A sweep found 28 in
+     source producing 232 in the built output — the ones in Nav.astro and Base.astro
+     multiply by every page on the site. None of those named a person, so this
+     check passed while they shipped.
+
+     Where a note belongs instead, all three verified stripped from the build:
+       • explaining MARKUP           → the `---` frontmatter, as `//`
+       • explaining a <style> block  → inside it, as `/* */`
+       • explaining a bundled        → inside it, as `//`
+         <script>                      (NOT `is:inline` — that is emitted verbatim)
+
   2. `{/* ... */}` INSIDE A JAVASCRIPT TEMPLATE LITERAL IS NOT A COMMENT — it is
      literal text, and it RENDERS ON THE PAGE. That one was visible to any reader,
      mid-card, in the middle of a recommendation. Same family as the
@@ -192,12 +205,26 @@ for d in SOURCE:
 
         # An HTML comment in template position SHIPS. In .astro the frontmatter
         # block is compiled away, so only the body counts.
+        #
+        # ANY such comment fails, not just one carrying an identifier. The identifier
+        # list only catches the names someone thought to list, and the wider rule is
+        # that internal notes do not belong on a public page at all — 28 of these in
+        # source became 232 in the built output, because the ones in Nav and Base
+        # render on all 43 pages. Where each note belongs instead:
+        #   • explaining MARKUP        → the `---` frontmatter, as `//` (compiled away)
+        #   • explaining a <style>     → inside it as `/* */` (CSS comments are stripped)
+        #   • explaining a bundled     → inside it as `//` (the bundler strips them)
+        #     <script>                   — but NOT `is:inline`, which is emitted verbatim
         if f.suffix in ('.astro', '.html', '.svelte', '.vue'):
             body = text.split('---', 2)[-1] if (f.suffix == '.astro' and text.startswith('---')) else text
             for m in re.finditer(r'<!--.*?-->', body, re.S):
-                if any(scan(m.group(0))):
-                    fails.append(f'IDENTIFIER IN AN HTML COMMENT (these SHIP)  {rel}'
-                                 f'\n    {re.sub(chr(10), " ", m.group(0))[:140]}')
+                inner = m.group(0)[4:-3].strip()
+                if not inner:
+                    continue          # <!-- --> spacers carry nothing
+                kind = ('IDENTIFIER IN AN HTML COMMENT' if any(scan(m.group(0)))
+                        else 'HTML COMMENT IN TEMPLATE POSITION')
+                fails.append(f'{kind} (these SHIP to the reader)  {rel}'
+                             f'\n    {re.sub(chr(10), " ", m.group(0))[:140]}')
 
         # A {/* */} inside a template literal is not a comment — it renders as text.
         # Only meaningful where template literals build markup; in .jsx/.tsx a
@@ -249,5 +276,5 @@ if fails:
     sys.exit(1)
 
 print(f'clean — {SITE}: no identifying content in the built output, none in source, '
-      'no HTML comment carrying one, no JSX comment inside a template literal'
+      'no HTML comment in template position, no JSX comment inside a template literal'
       + (', no narrative comments' if not warns else ''))

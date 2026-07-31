@@ -212,9 +212,8 @@ import Base from '../../layouts/Base.astro';
   .btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
 </style>
 
-<!-- Step content is injected via innerHTML (no Astro scope attr), so these must be
-     global — namespaced under #step-body so they can't leak. -->
 <style is:global>
+  /* Step content is injected via innerHTML (no Astro scope attr), so these must be global — namespaced under #step-body so they can't leak. */
   #step-body .panel { width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 0.6rem; padding: 1rem; overflow-x: auto; }
   #step-body .bits { font-family: var(--mono); font-size: 0.9rem; line-height: 1.9; letter-spacing: 0.04em; word-break: break-all; }
   #step-body .bits.ent { color: var(--text); }

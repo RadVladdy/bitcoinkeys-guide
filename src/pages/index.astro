@@ -9,6 +9,14 @@ import { deepDives, featuredDives } from '../data/deepdives.js';
 import { custodians } from '../data/custodians.js';
 import { wallets, coldWallets, spendingWallets, disqualifiedWallets, tierCountWord } from '../data/wallets.js';
 
+// SECTION ORDER IS THE ARGUMENT, and it is deliberate: hero → the pledge → what's
+// here → rule 03 → the ladder → the 201 sampler. The PLEDGE comes before anything
+// asks the reader to do something, because independence is the differentiator and
+// the "nothing logged" line is the one a competitor running a beacon structurally
+// cannot copy. The SAMPLER is last because 201 is optional depth, but it is on this
+// page at all because real cryptography running in the reader's own browser, on
+// throwaway keys, is the most distinctive thing here.
+//
 // The page this replaces had three problems, all of
 // them found by reading it against itself rather than top to bottom:
 //
@@ -57,11 +65,6 @@ const optional = levels.filter((lv) => lv.optional);
     </div>
   </section>
 
-  <!-- ── The pledge — promoted 2026-07-30. This is the differentiator, so it comes
-       before anything asks the reader to do something. The fourth line is new and is
-       the one competitors structurally cannot copy, because they all run a beacon.
-       It is also a hard invariant here, verified against the BUILT OUTPUT after every
-       deploy — so it is a checkable fact rather than a marketing claim. ── -->
   <section class="trust" aria-label="What this site promises">
     <p class="pl-k mono">The BitcoinKeys.guide pledge</p>
     <div class="pl-grid">
@@ -85,7 +88,6 @@ const optional = levels.filter((lv) => lv.optional);
     <p class="pl-foot sub"><strong>Bottom line:</strong> nobody pays us, so nothing here is bent to sell you something. <a href="/about">How this works →</a></p>
   </section>
 
-  <!-- ── What's here: the three sections of the site, mirroring the nav ── -->
   <section class="whats">
     <h2>What’s here</h2>
     <div class="w-grid">
@@ -154,9 +156,6 @@ const optional = levels.filter((lv) => lv.optional);
     <p class="sub" style="margin-top:1.2rem; font-size:0.9rem;">Each rung opens out below — what it solves, what it costs you, and who it’s for. <a href="/learn/ladder">Read the full ladder →</a></p>
   </section>
 
-  <!-- ── The 201 sampler. This tier is the most distinctive thing on the site and the
-       front page never mentioned it once. Real cryptography, in the reader's own
-       browser, on throwaway keys, with nothing sent anywhere. ── -->
   <section class="dives">
     <h2>Under the hood — see it for yourself</h2>
     <p class="sub prose" style="margin-bottom:1.4rem;">You don’t need any of this to hold Bitcoin safely. It’s here so you don’t have to take it on faith: {deepDives.length} demos that run the real cryptography in your own browser, on throwaway keys, with nothing sent anywhere. <strong>None of them will ever ask for your seed words</strong> — that’s the whole point.</p>

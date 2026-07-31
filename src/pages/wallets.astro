@@ -2,6 +2,11 @@
 import Base from '../layouts/Base.astro';
 import { wallets, compareCriteria, walletsVerified, badgeDefs, chooserFilters, useCaseChips, budgetBuckets, coldWallets, spendingWallets, disqualifiedWallets, tierOf, tierCountWord } from '../data/wallets.js';
 
+// PAGE STRUCTURE: view tabs (filter/browse ⇄ comparison table, revealed by JS as
+// progressive enhancement — the browse view works with none) → the interactive
+// chooser → the full comparison table. Noted here because an HTML comment in
+// template position ships to the reader.
+
 const ratingMark = { yes: '✓', partial: '~', no: '✗' };
 const ratingClass = { yes: 'r-yes', partial: 'r-partial', no: 'r-no' };
 const ratingTitle = { yes: 'Yes', partial: 'Partial / with caveats', no: 'No' };
@@ -41,13 +46,11 @@ const tableGroups = [
   </section>
 
 
-  <!-- ── View tabs: filter/browse ⇄ comparison table (JS progressive enhancement) ── -->
   <div class="wtabs" id="wtabs" role="tablist" aria-label="Device views" hidden>
     <button class="wtab active" id="tab-browse" role="tab" aria-selected="true" aria-controls="chooser" type="button">Filter &amp; browse</button>
     <button class="wtab" id="tab-table" role="tab" aria-selected="false" aria-controls="cmp-table" type="button">Comparison table</button>
   </div>
 
-  <!-- ── Interactive chooser ──────────────────────────────────────────── -->
   <section id="chooser" class="chooser">
     <div class="prose">
       <p class="eyebrow">Find your device</p>
@@ -158,7 +161,6 @@ const tableGroups = [
     </noscript>
   </section>
 
-  <!-- ── Full comparison table ────────────────────────────────────────── -->
   <section id="cmp-table">
     <h2 class="prose">The full comparison</h2>
     <p class="scroll-hint">Swipe the table sideways to see every column →</p>
@@ -316,10 +318,10 @@ const tableGroups = [
   }
 </script>
 
-<!-- Per-tile plan controls: mark a device as OWNED (status) or add it to your
-     planned setup's key slots. Explicit, opt-in writes — the page stays dataless
-     until you click. Injected by JS, so styles live in a global block below. -->
 <script>
+  // Per-tile plan controls: mark a device as OWNED (status) or add it to your planned
+  // setup's key slots. Explicit, opt-in writes — the page stays dataless until you
+  // click. Injected by JS, so the styles live in the global block further down.
   import { toggleOwned, assignToPlan, removeFromPlan, getOwned, getPlannedDevices, hasPlannedSetup, getRecommendedDevices } from '../data/plan.js';
 
   function wtoast(msg, kind) {
@@ -509,8 +511,8 @@ const tableGroups = [
   .reach-note { display: block; font-size: 0.84rem; color: var(--muted); line-height: 1.45; margin: 0; }
 </style>
 
-<!-- Plan controls are injected by JS (no scoped attr) → global styles. -->
 <style is:global>
+  /* Plan controls are injected by JS (no scoped attr) → global styles. */
   .wc-plan { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.9rem; padding-top: 0.8rem; border-top: 1px solid var(--line-soft); }
   .wcp-btn { font-family: var(--sans); font-size: 0.82rem; cursor: pointer; background: var(--raise);
     border: 1px solid var(--line); border-radius: 2rem; padding: 0.4rem 0.85rem; color: var(--text);

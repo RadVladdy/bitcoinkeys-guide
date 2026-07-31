@@ -124,8 +124,8 @@ const markCls = { yes: 'y', partial: 'p', no: 'n' };
   }
 </script>
 
-<!-- Per-tile plan control: pick this service as your plan's collaborative custodian. -->
 <script>
+  // Per-tile plan control: pick this service as your plan's collaborative custodian.
   import { setCustodian, getCustodian, hasPlannedSetup } from '../data/plan.js';
 
   function ctoast(msg, kind) {
@@ -213,8 +213,8 @@ const markCls = { yes: 'y', partial: 'p', no: 'n' };
   .reach-legend { font-size: 0.85rem; color: var(--muted); display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem; margin: 1.2rem 0 0.4rem; }
 </style>
 
-<!-- Plan control injected by JS → global styles (shared w/ wallets' .wcp-btn / .w-toast). -->
 <style is:global>
+  /* Plan control injected by JS → global styles (shared w/ wallets' .wcp-btn / .w-toast). */
   #ctiles .wc-plan { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.9rem; padding-top: 0.8rem; border-top: 1px solid var(--line-soft); }
   .wcp-cust { font-family: var(--sans); font-size: 0.82rem; cursor: pointer; background: var(--raise);
     border: 1px solid var(--line); border-radius: 2rem; padding: 0.4rem 0.85rem; color: var(--text);

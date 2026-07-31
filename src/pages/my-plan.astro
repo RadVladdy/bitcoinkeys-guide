@@ -855,8 +855,8 @@ import WhereAmI from '../components/WhereAmI.astro';
   .ps-verdict:hover  { filter: brightness(1.1); }
 </style>
 
-<!-- Plan card is injected by client JS (no scoped attribute) → global, namespaced under #plan. -->
 <style is:global>
+  /* Plan card is injected by client JS (no scoped attribute) → global, namespaced under #plan. */
   #plan { margin-top: 2rem; max-width: 46rem; }
 
   /* Status → roadmap cards (sit above the saved-plan card) */

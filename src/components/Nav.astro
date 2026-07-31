@@ -8,6 +8,19 @@ const isActive = (href) => path === href || path.startsWith(href + '/');
 const megaLinks = [...levels.flatMap((lv) => lv.lessons.map((l) => l.href)), '/start', '/learn'];
 const groupActive = (g) =>
   g.links.some((l) => isActive(l.href)) || (g.mega && megaLinks.some((h) => isActive(h)));
+//
+// Structure of the markup below, in order. Kept here rather than as inline comments
+// because an HTML comment in template position SHIPS, and this component renders on
+// every page — one note here became 43 copies in the built output.
+//   1. <nav class="sections">  — desktop: the four groups are the top-level menu,
+//      each opening a dropdown.
+//   2. <nav class="site-menu"> — mobile only: the hamburger opens those same groups
+//      as a stacked list.
+//   3. the sign-in control + its <script> — top right, always visible: a "sign in"
+//      affordance when logged out, the user's avatar when logged in, clicking either
+//      opens a small menu (sign-in options, or open-my-plan + sign-out). It reads the
+//      browser-only session from nostr-session.js. NOTE: showing the real profile
+//      photo requires `img-src https:` in the CSP — see public/_headers.
 ---
 <header class="nav">
   <div class="wrap nav-inner">
@@ -16,7 +29,6 @@ const groupActive = (g) =>
       <img class="mark mark-dark" src="/brand/mark-dark.png?v=2" alt="" aria-hidden="true" />
       <span>BitcoinKeys<span class="accent-text">.guide</span></span>
     </a>
-    <!-- Desktop: the four sections are the top-level menu; each opens a dropdown -->
     <nav class="sections" aria-label="Primary">
       {navGroups.map((g) => (
         <div class:list={['section', { 'has-mega': g.mega }]}>
@@ -83,7 +95,6 @@ const groupActive = (g) =>
       </button>
     </div>
   </div>
-  <!-- Mobile only: the hamburger opens the same groups as a stacked list -->
   <nav class="site-menu" id="site-menu" aria-label="All pages">
     {navGroups.map((g) => (
       <div class="mm-group">
@@ -116,10 +127,6 @@ const groupActive = (g) =>
   </nav>
 </header>
 
-<!-- Top-right sign-in control. Always visible: a "sign in" affordance when logged
-     out, the user's avatar when logged in. Click → a small menu (sign-in options /
-     open-my-plan + sign-out). Reads the browser-only session (nostr-session.js); the
-     real profile photo needs img-src https: in the CSP (public/_headers). -->
 <script>
   import { getSession, clearSession, NOSTR_CHANGE_EVENT } from '../data/nostr-session.js';
   const btn = document.getElementById('nostr-login');
@@ -366,9 +373,8 @@ const groupActive = (g) =>
   }
 </style>
 
-<!-- The sign-in button's avatar + the dropdown menu are built in JS (no Astro scope
-     attribute), so these must be global. Namespaced under .nostr-* to avoid leaking. -->
 <style is:global>
+  /* The sign-in button's avatar + the dropdown menu are built in JS (no Astro scope attribute), so these must be global. Namespaced under .nostr-* to avoid leaking. */
   .nostr-auth { position: relative; display: inline-flex; flex: 0 0 auto; }
   .nostr-login { display: inline-grid; place-items: center; width: 2.1rem; height: 2.1rem; border-radius: 50%;
     overflow: hidden; border: 1px solid var(--line); background: var(--raise); color: var(--muted);

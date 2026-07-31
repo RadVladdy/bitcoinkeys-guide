@@ -210,9 +210,8 @@
   .wa-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 </style>
 
-<!-- The tool's cards/questions are injected by client JS (no scoped attribute),
-     so these are global, namespaced under #wa to avoid leaking. -->
 <style is:global>
+  /* The tool's cards/questions are injected by client JS (no scoped attribute), so these are global, namespaced under #wa to avoid leaking. */
   #wa { margin-top: 1.4rem; max-width: 46rem; }
   #wa .wa-card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface-2); padding: 1.5rem; box-shadow: var(--shadow); }
   #wa .wa-q { margin: 0 0 1rem; font-size: 1.2rem; }

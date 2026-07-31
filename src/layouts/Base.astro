@@ -4,6 +4,12 @@ import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
 import { glossary } from '../data/glossary.js';
 
+// The `is:inline` theme script in <head> must STAY inline and STAY in <head>: it
+// applies the saved theme before first paint, and moving it into the bundle brings
+// back a flash of the wrong theme on every load. Its reason lives here because an
+// `is:inline` script is emitted verbatim — a `//` note inside it would ship, and so
+// would an HTML comment above it, on all 43 pages.
+
 // Compact plain-text lookup for the site-wide hover-preview cards on glossary links.
 const gslug = (t) => t.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const glossaryPreview = glossary.map((t) => ({
@@ -33,7 +39,6 @@ const verifiedLabel = verified
 <!doctype html>
 <html lang="en">
 <head>
-<!-- theme is set before paint to avoid a flash -->
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>{title}</title>

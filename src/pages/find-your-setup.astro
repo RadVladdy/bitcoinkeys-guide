@@ -490,9 +490,8 @@ import { questionCountWordCap } from '../data/quiz.js';
   .ns { color: var(--muted); }
 </style>
 
-<!-- The quiz card/options/result are injected by client JS, so they never receive
-     Astro's scoped attribute — these must be global. Namespaced under #quiz to not leak. -->
 <style is:global>
+  /* The quiz card/options/result are injected by client JS, so they never receive Astro's scoped attribute — these must be global. Namespaced under #quiz to not leak. */
   #quiz { margin-top: 2rem; max-width: 44rem; }
   /* "Welcome back" resume banner — cross-site continuity made visible */
   #quiz #q-resume { margin-bottom: 1rem; }

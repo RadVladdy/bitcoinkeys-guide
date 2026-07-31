@@ -9,6 +9,13 @@ import { ruleCountWord } from '../data/rules.js';
 // exists, the client HIDES the items that don't apply, names the visitor's own
 // devices, and highlights ONE next action — it never injects markup that wasn't
 // already here. That keeps a single source of truth for the content.
+//
+// THREE MUTUALLY EXCLUSIVE HEADERS sit above the list, switched by that client script:
+//   #cl-nudge   — nothing saved: the one door to a personalized list.
+//   #cl-partial — a setup chosen but the plan unfinished: says what is still missing.
+//   #cl-yours   — plan saved AND complete: the personalized header.
+// Recorded here rather than beside each one, because an HTML comment in template
+// position is output and ships to every reader.
 const groups = checklistGroups;
 const total = checklistCount;
 ---
@@ -22,7 +29,6 @@ const total = checklistCount;
     <h1 id="cl-h1">The self-custody <span class="accent">checklist</span></h1>
     <p class="lead" id="cl-lead">Everything that matters, in the order that matters. Tick items as you go; your progress saves to your own plan automatically.</p>
 
-    <!-- Shown only when NO plan is saved: the one door to a personalized list. -->
     <div class="callout" id="cl-nudge">
       <span class="label">Make this yours</span>
       <p>This is the full list — everything that could matter to anyone. <strong><a href="/find-your-setup">Find your setup</a> — it takes two minutes — and this page becomes your checklist:</strong> only the steps your setup actually needs, in your order, with your own hardware named and one clear next action. {questionCountWordCap} plain questions, and we never ask how much Bitcoin you hold.</p>
@@ -33,7 +39,6 @@ const total = checklistCount;
       <p id="cl-partial-p"></p>
     </div>
 
-    <!-- Shown only when a plan is saved AND COMPLETE: the personalized header. -->
     <div class="yours" id="cl-yours" hidden>
       <p class="y-k mono">Your checklist</p>
       <h2 class="y-h" id="cl-yours-h"></h2>
