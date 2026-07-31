@@ -214,7 +214,7 @@ import { questionCountWordCap } from '../data/quiz.js';
     // it is anyone's was getting the sequence backwards. Say what saving gets you;
     // the saved state below then offers the plan first and the checklist after it.
     return `<div class="r-handoff"><span class="r-k mono">Next</span>
-      <p>Save this and it becomes your plan. Your checklist is then built from it — only the steps your setup actually needs, in order, with your own hardware named.</p></div>`;
+      <p>Save this and it becomes your plan. On your plan you pick the hardware that fills it — and we'll tell you whether anything you already own clears our bar. Your checklist is built from that: only the steps your setup needs, in order, with your own devices named.</p></div>`;
   }
 
 
@@ -314,11 +314,10 @@ import { questionCountWordCap } from '../data/quiz.js';
         ${saveControl(secondary.rungSlug, secondary.rungLabel, secondary.rungLabel, 'quiz-secondary')}
       </div>` : ''}
       <div class="r-links">
-        <a class="btn-primary" href="/checklist">Build it — my step-by-step checklist →</a>
+        <span id="r-next"></span>
         <a class="btn-ghost" href="${rungAnchor(primary.rungSlug)}">Read the full ${esc(primary.rungLabel)} walkthrough</a>
         <button class="btn-ghost" id="q-restart">Start over</button>
       </div>
-      <p class="r-foot mono">Save the setup above and your checklist trims itself to just the steps you need.</p>
       <p class="r-foot mono">This is guidance, not financial or legal advice — never act on a step you don't understand. When in doubt, choose the simpler setup.</p>`;
 
     // Per-setup save with replace-confirm. Only ONE planned setup at a time — saving one
@@ -335,12 +334,20 @@ import { questionCountWordCap } from '../data/quiz.js';
       // matching lit up every band that shared one. `source` is unique per band.
       const savedSource = plannedSetupSource();
       const savedRung = plannedSetupRung();
+      // The row below is painted from whether a band on THIS page matched, not from
+      // whether a plan exists at all. A saved plan for a setup none of these cards
+      // offers — an older plan, or one saved from a different set of answers — leaves
+      // every band reading "save this setup", and the row must agree with them.
+      let anySaved = false;
       saveBands.forEach((b) => {
         const isSaved = savedSource ? b.source === savedSource : Boolean(savedRung && b.rung === savedRung);
+        if (isSaved) anySaved = true;
         if (isSaved) {
-          // Plan first, checklist second: the plan is the thing they just made, and
-          // the checklist is built FROM it.
-          b.el.innerHTML = `<span class="r-saved">✓ This is your saved plan.</span> <a class="r-saved-link" href="/my-plan">Open your plan →</a> <a class="r-saved-link" href="/checklist">your checklist is ready too</a>`;
+          // The band CONFIRMS; the actions live once, in the row below. The band used
+          // to carry its own "Open your plan" and "your checklist is ready too" links
+          // while the row shouted a third link at the checklist — the same two
+          // destinations offered twice on one screen, with the loud one wrong.
+          b.el.innerHTML = `<span class="r-saved">✓ This is your saved plan.</span>`;
         } else {
           b.el.innerHTML = `<button class="btn-save js-save" type="button">＋ Save this setup to my plan</button>
             <span class="r-save-note">One setup at a time — kept only in your browser until you save it. <a href="/my-plan">your data, not ours</a>.</span>`;
@@ -370,6 +377,29 @@ import { questionCountWordCap } from '../data/quiz.js';
           });
         }
       });
+      paintNextRow(anySaved);
+    }
+    // The one loud action on this page, and it depends on whether anything is saved.
+    //
+    // THREE PHASES: choosing a setup here, BUILDING it on /my-plan (which hardware
+    // fills each slot, what you already own, the custodian), then working through
+    // /checklist. So the step after saving is the plan, not the checklist — a
+    // checklist reached before the plan is built names no devices in its steps.
+    //
+    // Before anything is saved there is no plan for the checklist to be trimmed to,
+    // so neither is offered: the primary action is the save button in the card above,
+    // and a second primary here would compete with it.
+    function paintNextRow(saved) {
+      const row = document.getElementById('r-next');
+      if (!row) return;
+      row.innerHTML = saved
+        ? `<a class="btn-primary" href="/my-plan">Open your plan →</a>
+           <a class="btn-ghost" href="/checklist">Your checklist</a>`
+        : '';
+      // Deliberately NOT toggling [hidden]: #r-next is display:contents, so an empty
+      // one generates no box and no flex gap on its own. Adding [hidden] alongside an
+      // author display rule is the combination that renders an empty element as a
+      // visible gap, because the author rule wins.
     }
     paintSaveStates();
     // The device buttons used to re-render a per-device checklist in place. That
@@ -558,10 +588,12 @@ import { questionCountWordCap } from '../data/quiz.js';
     cursor: pointer; padding: 0.6rem 1rem; border-radius: 0.55rem; }
   #quiz .btn-save:hover { border-color: var(--accent); }
   #quiz .r-save-note { color: var(--faint); font-size: 0.8rem; }
-  #quiz .r-save-note a, #quiz .r-saved-link { color: var(--accent); text-decoration: none; }
-  #quiz .r-save-note a:hover, #quiz .r-saved-link:hover { text-decoration: underline; }
+  #quiz .r-save-note a { color: var(--accent); text-decoration: none; }
+  #quiz .r-save-note a:hover { text-decoration: underline; }
   #quiz .r-saved { color: var(--safe); font-weight: 600; font-size: 0.92rem; }
   #quiz .r-links { display: flex; flex-wrap: wrap; gap: 0.8rem; align-items: center; margin: 1.5rem 0 0; }
+  /* the state-dependent actions sit in the same flex row as the static ones */
+  #quiz #r-next { display: contents; }
   #quiz .btn-primary { background: var(--accent); color: var(--accent-ink); font-weight: 600; font-size: 0.95rem; text-decoration: none; padding: 0.7rem 1.2rem; border-radius: 0.55rem; display: inline-block; }
   #quiz .btn-primary:hover { opacity: 0.9; }
   #quiz .btn-ghost { background: none; border: 1px solid var(--line); color: var(--muted); font-family: var(--sans); font-size: 0.9rem; cursor: pointer; padding: 0.7rem 1.1rem; border-radius: 0.55rem; }

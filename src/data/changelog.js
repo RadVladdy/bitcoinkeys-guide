@@ -9,6 +9,12 @@
 // Entry types: 'price' | 'device' | 'spec' | 'security' | 'feature' | 'content'
 export const changelog = [
   {
+    date: '2026-07-31',
+    type: 'content',
+    title: 'After you choose a setup, the next step is your plan again — not the checklist',
+    detail: 'There are three steps here and the site had flattened the middle one. You choose a setup, then you build that plan out — which hardware fills it, whether anything you already own clears our bar, and for a collaborative setup who holds the service key — and only then do you work the checklist. Yesterday’s change moved the hardware decisions off your plan entirely and onto the checklist, which was one page too far: the checklist is for doing the thing, and it can only name your devices if the plan already knows them. So the wallet slots, the recommendations and the verdict on hardware you already own are back on your plan, where you are choosing. Choosing a setup stays a clean single decision with no device talk in it. And the big button on the result page no longer sends you past your plan to a checklist that has nothing to trim yet — after you save, it points at your plan; before you save, it isn’t there at all, because the thing to do first is save. The plan card also stopped congratulating you on a full set of slots when one of them holds a device we would move you off: it now says which one, and why, while leaving the choice to you.',
+  },
+  {
     date: '2026-07-30',
     type: 'content',
     title: 'Choosing a setup and choosing hardware are now two separate steps',
