@@ -23,6 +23,10 @@
 //   sales are transient. Blockstream formally launched Jade Core ($99, USB-C+Bluetooth, blind oracle, no camera)
 //   2026-04-28 — still not carried; a drafted row is staged on the freshness review surface pending device art
 //   and a carry/no-carry call. All other prices confirmed at vendor stores today.
+// 2026-07-31 (later): Jade Core CARRIED (editorial call) — 12th device, cold tier, explicit slug
+//   'jade-core-2026' ('jade-core' was already taken by the $79 Jade; slugs are persisted user data).
+//   Ships without device art for now (art render = front of the backlog); the image field is optional
+//   since this entry — renderers guard on it and the slug no longer derives from the image basename alone.
 // Rule of the guide: every device is rated in three tiers against the published
 // standard (standardGates/tiers below, rendered at /standard). Within a tier,
 // fit decides — there is still no single "best" device, but there IS a bar.
@@ -229,6 +233,29 @@ export const wallets = [
     notes: {
       reproducible: 'Open-source with documented reproducible builds.',
       recoverability: 'Standard BIP-39 seed — interoperable both ways with Coldcard, Trezor, Ledger and others.',
+    },
+  },
+  {
+    name: 'Blockstream Jade Core',
+    slug: 'jade-core-2026', // explicit: no device art yet (art is the front backlog item); 'jade-core' is TAKEN by the $79 Jade above
+    barCaveat: 'Clears the bar — Bitcoin-only, fully open-source. Same deliberate trade-off as its siblings: no dedicated secure-element chip; a "blind oracle" acts as a virtual one, and Blockstream argues there is nothing physical on the device to steal.',
+    ladderReach: { s: 'strong', p: 'ok', m: 'ok', note: 'Built as a guided first device; passphrase and multisig work but are not its focus.' },
+    vendor: 'Blockstream',
+    price: '$99',
+    priceNum: 99,
+    airgap: 'no',        // USB-C + Bluetooth, no camera
+    btcOnly: 'yes',
+    openSource: 'yes',
+    multisig: 'partial', // Sparrow / Nunchuk / Electrum compatible per vendor
+    secureElement: 'no', // blind-oracle "virtual secure element"
+    reproducible: 'yes',
+    recoverability: 'yes',
+    useCases: ['first', 'budget'],
+    bestFor: 'Blockstream’s beginner-focused device (launched April 2026) — guided setup through the Blockstream app, USB-C or Bluetooth, a Genuine Check authenticity test at setup, and the same fully open-source blind-oracle security as the rest of the Jade line.',
+    watch: 'No camera, so no air-gapped QR signing (the Jade Plus adds that), and Bluetooth is present. No dedicated secure element (the blind-oracle model). New hardware — its track record is months, not years.',
+    notes: {
+      reproducible: 'Same open-source firmware family as the other Jades, with documented reproducible builds.',
+      recoverability: 'Standard BIP-39 seed — restorable in any BIP-39 wallet.',
     },
   },
   {
@@ -451,12 +478,14 @@ export const budgetBuckets = [
 // The plan feature (owned wallets · roadmap slots · "add to plan" on tiles) needs
 // a canonical id per device. We derive it from each device's image basename —
 // already unique and stable — so no hand-maintained id list can drift from `wallets`.
+// A device may instead carry an explicit `slug` (needed when it ships before its
+// device art exists — the image is optional, the slug is not).
 // WARNING: these slugs are PERSISTED USER DATA — they live in saved plans
 // (localStorage / downloaded files / Nostr backups). Never rename one (even
 // when the slug reads oddly, e.g. jade-core = the original Jade) without a
 // migration in plan.js normalize().
 export const deviceCatalog = wallets.map((w) => ({
-  slug: w.image.replace('/devices/', '').replace(/\.webp$/, ''),
+  slug: w.slug ?? w.image.replace('/devices/', '').replace(/\.webp$/, ''),
   name: w.name,
   price: w.price,
   priceNum: w.priceNum,
@@ -489,7 +518,7 @@ export function keysForSetup({ rungSlug, label = '', tier = '' } = {}) {
 }
 
 // ── Ownership catalog: what someone might ALREADY OWN (make → model) ─────────
-// Deliberately broader than the 11-device comparison above — most people hold an
+// Deliberately broader than the comparison above — most people hold an
 // OLDER or discontinued model, so this leans legacy. Current-lineup models reuse
 // the exact `deviceCatalog` slugs so "I own this" on /wallets and this picker agree.
 // Grouped by make for a compact make→model dropdown; `current:true` marks the
@@ -497,7 +526,7 @@ export function keysForSetup({ rungSlug, label = '', tier = '' } = {}) {
 // FRESHNESS SYNC: legacy models here are static and NOT price/availability-checked.
 // But when the freshness runner flags a CURRENT device as added/discontinued
 // (an `avail-*` judge in ~/dev/bkeys-freshness), update this catalog's `current:`
-// flags to match the 11-device comparison — that's the only maintenance tie-in.
+// flags to match the comparison — that's the only maintenance tie-in.
 export const ownableCatalog = [
   { brand: 'Coldcard (Coinkite)', models: [
     { slug: 'coldcard-q', name: 'Coldcard Q', current: true },
@@ -532,6 +561,7 @@ export const ownableCatalog = [
   { brand: 'Blockstream', models: [
     { slug: 'jade-plus', name: 'Blockstream Jade Plus', current: true },
     { slug: 'jade-core', name: 'Blockstream Jade', current: true },
+    { slug: 'jade-core-2026', name: 'Blockstream Jade Core', current: true },
     { slug: 'jade-2021', name: 'Blockstream Jade (original, 2021)' },
   ] },
   { brand: 'Foundation', models: [

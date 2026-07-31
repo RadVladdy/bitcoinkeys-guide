@@ -147,7 +147,7 @@ const tableGroups = [
               <span class="reach-note">{w.ladderReach.note}</span>
             </div>
           )}
-          <div class="wc-plan" data-slug={w.image.replace('/devices/', '').replace('.webp', '')} hidden></div>
+          <div class="wc-plan" data-slug={w.slug ?? w.image.replace('/devices/', '').replace('.webp', '')} hidden></div>
         </article>
       ))}
       <div class="cards-empty" id="ch-empty" hidden>

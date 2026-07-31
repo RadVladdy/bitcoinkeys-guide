@@ -10,6 +10,12 @@
 export const changelog = [
   {
     date: '2026-07-31',
+    type: 'device',
+    title: 'Blockstream Jade Core joins the comparison — the twelfth device',
+    detail: 'Blockstream launched the Jade Core in April as its beginner-focused hardware wallet, and it now has a row in the comparison: $99, USB-C or Bluetooth, guided setup through the Blockstream app, a device-authenticity check at first power-on, and the same fully open-source blind-oracle security model as the rest of the Jade line. It clears our security floor and lands in the cold-storage tier, which now holds nine devices. The honest caveats are on the card: no camera, so no air-gapped QR signing (that’s what the Jade Plus adds), Bluetooth is present, there’s no dedicated secure-element chip (Blockstream’s deliberate blind-oracle design, shared by every Jade), and the hardware is new enough that its track record is measured in months. Its line-art portrait is still being drawn — the row ships first, the picture follows. While we were in the Blockstream aisle: the $79 original Jade remains on sale at their store and keeps its row; nothing was replaced.',
+  },
+  {
+    date: '2026-07-31',
     type: 'price',
     title: 'Jade Plus back down to $149; Trezor’s sale doesn’t change our list prices',
     detail: 'A full re-check of every device against its vendor’s own store today. One real change: the Blockstream Jade Plus base model is back to $149 — it launched at $149, rose to $169 in July, and has come down again; the table now says $149. Trezor is running a limited-time sale on the whole Safe line (Safe 3 $47, Safe 5 $103, Safe 7 $224 at time of writing) — the guide keeps showing the regular prices of $59, $129, and $249, because sale prices churn and a guide that quietly tracked them would overstate the cost the week after the sale ends. If you’re buying this week, enjoy the discount. Everything else — the Coldcards, BitBox02, Passport Prime, the $79 Jade, Bitkey — verified unchanged. Also on our radar: Blockstream formally launched the Jade Core ($99) in April as its beginner-focused device; we’re evaluating whether it earns a row in the comparison.',
