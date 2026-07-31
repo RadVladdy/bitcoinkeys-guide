@@ -3,13 +3,14 @@
   "type": "module",
   "version": "0.1.0",
   "private": true,
-  "description": "BitcoinKeys.guide — a plain-English, independent, Bitcoin-only self-custody guide.",
+  "description": "BitcoinKeys.guide \u2014 a plain-English, independent, Bitcoin-only self-custody guide.",
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
     "content": "node scripts/build-content.mjs",
-    "deploy": "astro build && bash scripts/deploy.sh"
+    "deploy": "astro build && bash scripts/deploy.sh",
+    "prepare": "git config core.hooksPath .githooks"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.2.1",
