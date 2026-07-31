@@ -30,7 +30,7 @@ import { questionCountWordCap } from '../data/quiz.js';
 
 <script>
   import { questions, recommend } from '../data/quiz.js';
-  import { assessDevices, wallets, keysForSetup, slugForName } from '../data/wallets.js';
+  import { wallets, keysForSetup, slugForName } from '../data/wallets.js';
   import { rungAnchor } from '../data/ladder.js';
   import { savePlannedSetup, plannedSetupRung, plannedSetupLabel, loadLocal, getOwned, clearPlanSelection, plannedSetupSource } from '../data/plan.js';
   import { mountOwnedPicker } from '../data/owned-picker.js';
@@ -217,27 +217,6 @@ import { questionCountWordCap } from '../data/quiz.js';
       <p>Save this and it becomes your plan. Your checklist is then built from it — only the steps your setup actually needs, in order, with your own hardware named.</p></div>`;
   }
 
-  // ── What you already own, judged against the standard ──────────────────────
-  // The result recommended two devices and never mentioned the Ledger the reader
-  // had just told us about. Naming it, and saying plainly why we would move, is
-  // the difference between advice and a catalogue. Reasoning comes from
-  // assessDevices() so it can never disagree with /standard.
-  function ownedVerdictHtml() {
-    const owned = getOwned().filter(Boolean);
-    if (!owned.length) return '';
-    const judged = assessDevices(owned);
-    const flagged = judged.filter((d) => d.verdict === 'spending' || d.verdict === 'disqualified');
-    const clearing = judged.filter((d) => d.verdict === 'cold');
-    if (clearing.length) {
-      return `<div class="r-owned ok"><span class="r-k mono">You already have what you need</span>
-        <p>You told us you have a <strong>${esc(clearing[0].name)}</strong>, and it clears our bar. There is nothing to buy — the steps below are about setting it up properly.</p></div>`;
-    }
-    if (!flagged.length) return '';
-    const d = flagged[0];
-    return `<div class="r-owned warn"><span class="r-k mono">About the hardware you have</span>
-      <p>You told us you have a <strong>${esc(d.name)}</strong>. ${esc(d.why)}</p>
-      <p>You are not obliged to replace it, and your coins are not in danger today. But for money you mean to leave alone for years, we would move to a device from our cold-storage tier — which is why the ones below are what we suggest. <a href="/standard">How we decide →</a></p></div>`;
-  }
 
   function vendorsBlock(vendors) {
     if (!vendors || !vendors.length) return '';
@@ -320,7 +299,6 @@ import { questionCountWordCap } from '../data/quiz.js';
         <p class="r-why">${primary.why}</p>
         ${primary.fork ? forkHtml(primary.fork, primary.tier, saveControl) : `
         ${primary.holdback ? `<div class="r-holdback"><span class="r-k mono">Why not more?</span><p>${primary.holdback}</p></div>` : ''}
-        ${ownedVerdictHtml()}
         ${walletCard(primary, adaptive, sel)}
         ${checklistHandoff()}
         ${primaryHasVendors ? vendorsBlock(primary.vendors) : ''}

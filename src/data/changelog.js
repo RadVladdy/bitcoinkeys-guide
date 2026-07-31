@@ -11,6 +11,12 @@ export const changelog = [
   {
     date: '2026-07-30',
     type: 'content',
+    title: 'Choosing a setup and choosing hardware are now two separate steps',
+    detail: 'Your plan page was asking you to pick hardware and judging the hardware you already own, at a point where neither decision was in front of you. Those have moved. Your plan now describes the setup you chose and what it takes — one hardware wallet, or three from different makers, or two of your own plus a service key — and for a collaborative setup it asks who holds that service key, because which service you run with is part of which setup you are running. Everything about which device fills it now happens on your checklist, where you are actually doing it: which model to get, and whether something you already own clears our bar or is worth replacing. The result is that you are never told to consider upgrading a device at a moment when you are only trying to decide what kind of setup you want.',
+  },
+  {
+    date: '2026-07-30',
+    type: 'content',
     title: 'Fixed: a saved step-up was named after the action, not the setup — and your plan said the same thing three times',
     detail: 'If you saved the second choice, your plan came back reading "Plan: Add a passphrase" — an instruction where a plan should carry a setup name, and it ran straight into the wallet count, which made the line hard to parse at all. Two causes, both fixed. The step-up card was headed with its action ("Add a passphrase") while the first choice was headed with a setup ("Single-signature cold storage"), so the two were not comparable side by side; the step-up now leads with the setup it produces — single-sig plus a passphrase — with the action underneath it. And the plan itself now saves the setup name rather than the heading. Separately, a plan with an unchosen wallet was giving the same instruction three times: once on the empty slot, once in a line underneath the slots, and once again under "your next step", each with its own link to the same page — and the line underneath the slots still called hardware wallets keys. The slots now show the state, and "your next step" gives the instruction, once. On a multisig plan the different-makers advice was likewise printed twice, word for word; it is said once now, where the instruction is.',
   },

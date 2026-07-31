@@ -45,18 +45,6 @@ import WhereAmI from '../components/WhereAmI.astro';
 </Base>
 
 <script>
-  const VERDICT = {
-    cold:         { cls: 'v-ok',   label: '✓ clears our bar' },
-    spending:     { cls: 'v-warn', label: '~ built for spending' },
-    disqualified: { cls: 'v-bad',  label: '⚠ doesn’t clear our bar' },
-    unrated:      { cls: 'v-un',   label: '· not rated by us' },
-  };
-  function verdictChip(slug) {
-    const d = assessDevices([slug])[0];
-    if (!d) return '';
-    const v = VERDICT[d.verdict];
-    return `<a class="ps-verdict ${v.cls}" href="/standard" title="${esc(d.why)}">${v.label}</a>`;
-  }
   import { getPlannedDevices,
     loadLocal, hasLocal, clearLocal, clearPlanSelection, saveLocal, downloadPlan, parsePlanText,
     planHasContent, emptyPlan, PLAN_FILENAME, setOwnedAndPrivacy,
@@ -64,7 +52,7 @@ import WhereAmI from '../components/WhereAmI.astro';
     encryptPlanToEnvelope, decryptEnvelope, downloadEncryptedPlan, isEncryptedEnvelope,
   } from '../data/plan.js';
   import { getRung, rungAnchor } from '../data/ladder.js';
-  import { keysForSetup, assessDevices, ownedName, deviceBySlug } from '../data/wallets.js';
+  import { keysForSetup, ownedName, deviceBySlug } from '../data/wallets.js';
   import { custodianName, custodianBySlug } from '../data/custodians.js';
   import { mountOwnedPicker } from '../data/owned-picker.js';
   import { checklistLabels, checklistCount, checklistItems, itemApplies } from '../data/checklist.js';
@@ -150,11 +138,7 @@ import WhereAmI from '../components/WhereAmI.astro';
     if (owned.length) {
       ownBlock = `<div id="ps-owned-display" class="ps-owned-display">
           <span class="ps-sub mono">Hardware wallets you own</span>
-          <div class="ps-owned-chips">${owned.map((s) => {
-            const a = assessDevices([s])[0];
-            const v = a ? VERDICT[a.verdict] : null;
-            return `<span class="ps-owned-chip">${esc(ownedName(s))}${v ? `<a class="ps-verdict ${v.cls}" href="/standard" title="${esc(a.why)}">${v.label}</a>` : ''}</span>`;
-          }).join('')}</div>
+          <div class="ps-owned-chips">${owned.map((s) => `<span class="ps-owned-chip">${esc(ownedName(s))}</span>`).join('')}</div>
           <button class="ps-edit-own" id="ps-edit-own" type="button">✎ add or edit</button>
         </div>`;
     } else if (plan.ownPrivate) {
@@ -183,35 +167,16 @@ import WhereAmI from '../components/WhereAmI.astro';
   // ROADMAP: the bridge from status to plan — key slots the owned/chosen wallets
   // fill, and the gap that becomes a short shopping list.
 
-  // A verdict chip on each filled key slot. /my-plan showed the device you own and
-  // said nothing about whether it meets the standard the rest of the site judges
-  // hardware by — so someone could plan around a Ledger and never be told. The
-  // reasoning is pulled from assessDevices(), never restated here.
-
-  // Is the saved plan actually finished? A plan with an unchosen hardware wallet, or
-  // a collaborative plan with no custodian, is a plan in progress — and the page
-  // should say what is missing rather than hand over a checklist built on a blank.
+  // A plan is a SETUP, not a shopping list. Which hardware fills it is the BUILD, and
+  // that happens on /checklist where the reader can act on the answer. The only thing
+  // still outstanding at plan time is the collaborative custodian, because WHICH
+  // service holds the third key is part of which setup you are running.
   function planGaps() {
     const plan = loadLocal() || emptyPlan();
-    const need = keysForSetup({ rungSlug: plan.quiz?.rung, label: plan.quiz?.primaryLabel, tier: plan.quiz?.primaryTier });
-    const assigned = getPlannedDevices().filter(Boolean);
-    const missing = Math.max(0, need - assigned.length);
-    const isCollab = plan.quiz?.rung === 'collaborative';
-    if (missing > 0) {
-      return {
-        label: missing === 1
-          ? 'Choose your hardware wallet'
-          : `Choose ${missing} more hardware wallet${missing > 1 ? 's' : ''}`,
-        note: missing === 1
-          ? 'Your plan needs one hardware wallet. Pick it and your checklist is built around that exact device — which model, which steps, named throughout.'
-          : `Your plan needs ${missing} more. Best practice for multisig is different makers, so one firmware problem can never reach more than one of them.`,
-        href: '/wallets', cta: 'Compare wallets',
-      };
-    }
-    if (isCollab && !plan.custodian) {
+    if (plan.quiz?.rung === 'collaborative' && !plan.custodian) {
       return {
         label: 'Choose who holds the service key',
-        note: 'Your own hardware wallets are set. The last piece is which Bitcoin service holds the third key.',
+        note: 'A collaborative setup is defined partly by who you run it with, so this one belongs to the plan rather than the build.',
         href: '/collaborative', cta: 'Compare custodians',
       };
     }
@@ -240,102 +205,36 @@ import WhereAmI from '../components/WhereAmI.astro';
           <p class="ps-road-note">This setup starts on a <strong>non-custodial phone wallet</strong> — no hardware to buy yet. When your stack grows, you’ll graduate to a single hardware wallet. No shopping list for now; just learn the moves.</p>
         </div>`;
     }
-    // Collaborative custody: the user holds `need` keys (wallets) + a service holds one
-    // (the custodian slot). DIY / single-sig plans have no custodian slot.
+    // A plan card describes the SETUP: what it is, what it takes, and — for a
+    // collaborative plan — who holds the service key, because that is part of which
+    // setup you are running. Everything about WHICH DEVICES fills it has moved to
+    // /checklist: the choice, the recommendation, and whether what you already own
+    // clears the bar. Those are build decisions, and surfacing them at plan time
+    // means answering a question the reader is not yet in a position to act on.
     const isCollab = plan.quiz.rung === 'collaborative';
-    const owned = plan.owned || [];
-    const assigned = (plan.quiz.plannedDevices || []).slice(0, need); // the plan's wallet key slots
-    const sidelined = owned.filter((s) => !assigned.includes(s));     // owned but not in this plan
-    const hasSpace = assigned.length < need;
-    let slots = '';
-    for (let i = 0; i < need; i++) {
-      const slug = assigned[i];
-      if (slug) {
-        const isOwned = owned.includes(slug);
-        const tag = isOwned ? 'you own' : 'to buy';
-        slots += `<div class="ps-slot filled"><span class="ps-slot-n mono">Wallet ${i + 1}</span><span class="ps-slot-dev">${esc(ownedName(slug))}</span>${verdictChip(slug)}<span class="ps-slot-tag ${isOwned ? 'own' : 'plan'}">${tag}</span><button class="ps-slot-x" data-act="unassign" data-slug="${esc(slug)}" title="Take out of this plan" type="button">×</button></div>`;
-      } else {
-        slots += `<div class="ps-slot empty"><span class="ps-slot-n mono">Wallet ${i + 1}</span><span class="ps-slot-dev ps-muted">Not chosen yet</span><a class="ps-slot-cta" href="/wallets">Choose →</a></div>`;
-      }
-    }
-    if (isCollab) {
-      const cust = plan.custodian;
-      slots += cust
-        ? `<div class="ps-slot filled ps-slot-cust"><span class="ps-slot-n mono">Service key</span><span class="ps-slot-dev">${esc(custodianName(cust))}</span><span class="ps-slot-tag plan">custodian</span><a class="ps-slot-cta" href="/collaborative">Change →</a></div>`
-        : `<div class="ps-slot empty ps-slot-cust"><span class="ps-slot-n mono">Service key</span><span class="ps-slot-dev ps-muted">Collaborative custodian — not yet chosen</span><a class="ps-slot-cta" href="/collaborative">Choose one →</a></div>`;
-    }
-    // Sidelined wallets: owned but not in this plan (retired-in-place, or spare beyond need).
-    let sidelineHtml = '';
-    if (sidelined.length) {
-      sidelineHtml = `<div class="ps-sideline">
-        <span class="ps-sub mono">Owned, not in this plan <span class="ps-hint">${hasSpace ? 'add to a slot, or set aside' : 'spare — this plan is full'}</span></span>
-        ${sidelined.map((s) => `<div class="ps-side-row"><span class="ps-side-dev">${esc(ownedName(s))}</span><span class="ps-side-acts">${hasSpace ? `<button class="ps-side-add" data-act="assign" data-slug="${esc(s)}" type="button">＋ Add to plan</button>` : ''}<button class="ps-side-retire" data-act="retire" data-slug="${esc(s)}" type="button">Retire</button></span></div>`).join('')}
-      </div>`;
-    }
-    const gaps = Math.max(0, need - assigned.length);
-    const custGap = isCollab && !plan.custodian; // collaborative plan missing its custodian
-    const multi = need >= 3;
-    // "needs 1 key" meant "you need to buy one hardware wallet" and did not say so.
+    const custGap = isCollab && !plan.custodian;
     const needLabel = isCollab
       ? `${need} hardware wallet${need > 1 ? 's' : ''} you hold + a service key`
       : `${need} hardware wallet${need > 1 ? 's' : ''}`;
-    let footer;
-    if (plan.ownPrivate && !owned.length) {
-      footer = `<p class="ps-road-gap">You’d rather not say which wallets you own — so we’ve laid out the full setup. <strong>You may already have some of these.</strong>${multi ? ' Best practice: use a <em>different maker</em> for each, so one firmware problem can never reach more than one key.' : ''}</p>`;
-    } else if (gaps === 0 && !custGap) {
-      footer = `<p class="ps-road-done">✓ Every slot is filled. What’s left is configuring and testing the setup.</p>`;
-    } else {
-      // Nothing. The slots show the state and the "Your next step" row gives the
-      // one instruction — including the different-makers reason for multisig. This
-      // footer was saying it a second time, word for word.
-      footer = '';
+
+    let custHtml = '';
+    if (isCollab) {
+      custHtml = plan.custodian
+        ? `<p class="ps-cur">Service key held by <strong>${esc(custodianName(plan.custodian))}</strong> <a class="ps-mini-link" href="/collaborative">change →</a></p>`
+        : `<p class="ps-road-gap"><strong>One piece left: who holds the service key.</strong> <a href="/collaborative">Compare custodians →</a></p>`;
     }
-    // Recommended devices for this setup (from the quiz) — suggest them to fill gaps.
-    const recSlugs = (plan.quiz.recommendedDevices || []).filter((s) => !assigned.includes(s));
-    const recHtml = (gaps > 0 && recSlugs.length)
-      ? `<p class="ps-recs"><span class="ps-recs-k mono">★ Recommended for your plan</span>
-          ${recSlugs.map((s) => `<a class="ps-rec-chip" href="/wallets">${esc(ownedName(s))}</a>`).join('')}
-          <span class="ps-recs-note">— pick these on the <a href="/wallets">wallet comparison</a>.</span></p>`
-      : '';
-    // Custodian-specific device advice for a collaborative plan's user-held keys.
-    let custAdviceHtml = '';
-    if (isCollab && plan.custodian) {
-      const cust = custodianBySlug[plan.custodian];
-      if (cust) {
-        const supports = cust.supports || [];
-        const recNames = (cust.recommends || []).map((s) => ownedName(s));
-        if (!supports.length) {
-          custAdviceHtml = `<p class="ps-recs"><span class="ps-recs-k mono">★ With ${esc(cust.name)}</span>
-            <span class="ps-recs-note">${esc(cust.name)} includes its own device — there's no separate hardware wallet to choose for these keys. <a href="/collaborative">custodian details →</a></span></p>`;
-        } else {
-          // List cleared devices plainly; flag any supported device that doesn't
-          // clear our standard rather than presenting it as an equal option.
-          const cleared = supports.filter((s) => (deviceBySlug[s]?.tier ?? 'cold') !== 'disqualified');
-          const dq = supports.filter((s) => deviceBySlug[s]?.tier === 'disqualified');
-          const supNames = cleared.map((s) => ownedName(s));
-          const supList = supNames.slice(0, 6).join(', ') + (supNames.length > 6 ? ', and more' : '');
-          const dqNote = dq.length
-            ? ` (it also supports ${dq.map((s) => esc(ownedName(s))).join(', ')}, which doesn't clear <a href="/standard">our standard</a>)`
-            : '';
-          custAdviceHtml = `<p class="ps-recs"><span class="ps-recs-k mono">★ Devices for your ${esc(cust.name)} keys</span>
-            <span class="ps-recs-note">${esc(cust.name)} works with ${esc(supList)}${dqNote}.</span>
-            ${recNames.length ? `<span class="ps-recs-note">Of those, we'd recommend ${recNames.map((n) => `<a class="ps-rec-chip" href="/wallets">${esc(n)}</a>`).join(' ')} for your keys${recNames.length > 1 ? ' — different brands, so one vendor’s bug can’t affect both' : ''}.</span>` : ''}
-            <span class="ps-recs-note"><a href="/collaborative">See ${esc(cust.name)}’s device support →</a></span></p>`;
-        }
-      }
-    }
+
+    const whatItTakes = isCollab
+      ? `You hold ${need} of the three keys on your own hardware; a Bitcoin service holds the third and can never move your coins alone.`
+      : need > 1
+        ? `It takes ${need} hardware wallets, ideally from different makers, so one firmware problem can never reach more than one key.`
+        : `It takes one hardware wallet, kept offline, holding the only key that can move your coins.`;
+
     return `
       <div class="ps-road-in">
         <p class="ps-cur ps-plan-lead">Plan: <strong>${esc(planLabel)}</strong> <span class="ps-need mono">· ${needLabel}</span></p>
-        <span class="ps-sub mono">The hardware wallets in this plan</span>
-        <div class="ps-slots">${slots}</div>
-        ${sidelineHtml}
-        ${footer}
-        ${recHtml}
-        ${custAdviceHtml}
-        ${assigned.length || sidelined.length
-          ? `<a class="ps-rework" href="/wallets">✎ Rework your devices — compare &amp; swap from the wallets page →</a>`
-          : ''}
+        <p class="ps-what">${whatItTakes}</p>
+        ${custHtml}
       </div>`;
   }
 
