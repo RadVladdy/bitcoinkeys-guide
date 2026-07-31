@@ -324,15 +324,21 @@ import { questionCountWordCap } from '../data/quiz.js';
         ${walletCard(primary, adaptive, sel)}
         ${checklistHandoff()}
         ${primaryHasVendors ? vendorsBlock(primary.vendors) : ''}
-        ${saveControl(primary.rungSlug, primary.headline, primary.tier, 'quiz-primary', recSlugsFrom(primary.wallets))}`}
+        ${saveControl(primary.rungSlug, primary.rungLabel || primary.headline, primary.tier, 'quiz-primary', recSlugsFrom(primary.wallets))}`}
       </div>
       ${secondary ? `<div class="r-card secondary">
         <p class="r-tier mono muted">2nd choice · where you'd go next</p>
-        <h2 class="r-headline sm">${esc(secondary.headline)}</h2>
+        {/* The heading is the SETUP, not the action. It used to read "Add a
+            passphrase (the 25th word)" — an instruction where the first choice gave
+            a setup name, so the two cards were not comparable and a saved step-up
+            was called "Plan: Add a passphrase". The action line still appears, under
+            it, where it belongs. (the owner, 2026-07-30.) */}
+        <h2 class="r-headline sm">${esc(secondary.rungLabel)}</h2>
+        <p class="r-step-act mono">${esc(secondary.headline)}</p>
         <p class="r-why">${esc(secondary.when)}</p>
         ${(!primaryHasVendors && secondary.vendors) ? vendorsBlock(secondary.vendors) : ''}
         <a class="r-how2" href="${rungAnchor(secondary.rungSlug)}">Read the ${esc(secondary.rungLabel)} walkthrough →</a>
-        ${saveControl(secondary.rungSlug, secondary.headline, secondary.rungLabel, 'quiz-secondary')}
+        ${saveControl(secondary.rungSlug, secondary.rungLabel, secondary.rungLabel, 'quiz-secondary')}
       </div>` : ''}
       <div class="r-links">
         <a class="btn-primary" href="/checklist">Build it — my step-by-step checklist →</a>
@@ -605,6 +611,7 @@ import { questionCountWordCap } from '../data/quiz.js';
   #quiz .r-card.secondary { border-color: var(--line); background: var(--surface); margin-top: 1rem; }
   #quiz .r-tier.muted { color: var(--muted); }
   #quiz .r-headline.sm { font-size: 1.2rem; }
+  #quiz .r-step-act { color: var(--accent); font-size: 0.78rem; letter-spacing: 0.04em; margin: 0.2rem 0 0.7rem; }
   #quiz .r-how2 { display: inline-block; margin-top: 0.6rem; color: var(--accent); text-decoration: none; font-size: 0.9rem; }
   #quiz .r-how2:hover { text-decoration: underline; }
 

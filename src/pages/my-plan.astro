@@ -271,13 +271,15 @@ import WhereAmI from '../components/WhereAmI.astro';
       : `${need} hardware wallet${need > 1 ? 's' : ''}`;
     let footer;
     if (plan.ownPrivate && !owned.length) {
-      footer = `<p class="ps-road-gap">You’d rather not say which wallets you own — so we’ve laid out the full setup. <strong>You may already have some of these.</strong>${multi ? ' Best practice: use a <em>different brand</em> for each key.' : ''} <a href="/wallets">Compare devices →</a></p>`;
-    } else if (gaps === 0 && custGap) {
-      footer = `<p class="ps-road-gap"><strong>Your keys are set — now choose who holds the service key.</strong> <a href="/collaborative">Compare custodians →</a></p>`;
-    } else if (gaps === 0) {
-      footer = `<p class="ps-road-done">✓ Every key slot is filled. What’s left is configuring and testing the setup — follow the walkthrough below.</p>`;
+      footer = `<p class="ps-road-gap">You’d rather not say which wallets you own — so we’ve laid out the full setup. <strong>You may already have some of these.</strong>${multi ? ' Best practice: use a <em>different maker</em> for each, so one firmware problem can never reach more than one key.' : ''}</p>`;
+    } else if (gaps === 0 && !custGap) {
+      footer = `<p class="ps-road-done">✓ Every slot is filled. What’s left is configuring and testing the setup.</p>`;
     } else {
-      footer = `<p class="ps-road-gap"><strong>${gaps} more ${gaps > 1 ? 'keys' : 'key'} to add.</strong>${custGap ? ' Also choose your <a href="/collaborative">collaborative custodian →</a>.' : ''}${multi ? ' Best practice: use a <em>different brand</em> for each key, so one vendor’s bug can’t affect more than one.' : ''} <a href="/wallets">Compare &amp; add devices →</a></p>`;
+      // Nothing. The slots show the state and the "Your next step" row gives the
+      // one instruction — including the different-makers reason for multisig. This
+      // footer was saying it a second time, word for word. (the owner: "look through
+      // this for redundancy... make it more simple, less confusing.")
+      footer = '';
     }
     // Recommended devices for this setup (from the quiz) — suggest them to fill gaps.
     const recSlugs = (plan.quiz.recommendedDevices || []).filter((s) => !assigned.includes(s));
@@ -315,7 +317,7 @@ import WhereAmI from '../components/WhereAmI.astro';
     }
     return `
       <div class="ps-road-in">
-        <p class="ps-cur ps-plan-lead">Plan: <strong>${esc(planLabel)}</strong> <span class="ps-need mono">${needLabel}</span></p>
+        <p class="ps-cur ps-plan-lead">Plan: <strong>${esc(planLabel)}</strong> <span class="ps-need mono">· ${needLabel}</span></p>
         <span class="ps-sub mono">The hardware wallets in this plan</span>
         <div class="ps-slots">${slots}</div>
         ${sidelineHtml}
