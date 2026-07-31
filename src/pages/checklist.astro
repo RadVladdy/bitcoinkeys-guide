@@ -101,7 +101,7 @@ const total = checklistCount;
   import { loadLocal, saveChecklistSlice } from '../data/plan.js';
   import { itemApplies } from '../data/checklist.js';
   import { getRung } from '../data/ladder.js';
-  import { ownedName } from '../data/wallets.js';
+  import { ownedName, assessDevices } from '../data/wallets.js';
 
   const checked = {};
   const items = Array.from(document.querySelectorAll('.citem'));
@@ -151,16 +151,58 @@ const total = checklistCount;
       if (!applies) delete checked[li.getAttribute('data-id')];
     });
 
-    // Name the hardware they actually own/plan on the device step.
-    const devSlugs = (ctx.devices.length ? ctx.devices : ctx.owned).filter(Boolean);
-    if (devSlugs.length) {
-      const names = devSlugs.map((s) => ownedName(s)).filter(Boolean);
-      if (names.length) {
-        items.filter((li) => li.getAttribute('data-device-slot') === 'true').forEach((li) => {
-          const span = li.querySelector('.ct-dev');
-          if (span) { span.textContent = ' — you have ' + listOf(names); span.hidden = false; }
-        });
+    // ── The device step, judged against what you actually own ────────────────
+    // Three outcomes, because "go and get one" is wrong in two of them:
+    //   · you own something that clears the bar  → the step is DONE, hide it
+    //   · you own only flagged/unrated hardware  → it becomes "consider upgrading",
+    //     with the reason, and if that device is your CHOSEN plan device it drops to
+    //     the end as advisory rather than blocking a build you have already decided
+    //   · you own nothing                        → unchanged, go and get one
+    const planned = ctx.devices.filter(Boolean);
+    const devSlugs = (planned.length ? planned : ctx.owned).filter(Boolean);
+    const deviceStep = items.find((li) => li.getAttribute('data-device-slot') === 'true');
+    if (deviceStep && devSlugs.length) {
+      const judged = assessDevices(devSlugs);
+      const clearing = judged.filter((d) => d.verdict === 'cold');
+      const flagged = judged.filter((d) => d.verdict === 'spending' || d.verdict === 'disqualified');
+      const unrated = judged.filter((d) => d.verdict === 'unrated');
+      const title = deviceStep.querySelector('.ct-title');
+      const desc = deviceStep.querySelector('.ct-desc');
+      const span = deviceStep.querySelector('.ct-dev');
+
+      if (clearing.length) {
+        // Already handled — you have a device we'd trust. Don't sell them another.
+        deviceStep.hidden = true;
+        delete checked[deviceStep.getAttribute('data-id')];
+      } else if (flagged.length || unrated.length) {
+        const d = flagged[0] || unrated[0];
+        // NOT "get a real hardware wallet". They chose this; say why we'd revisit it.
+        // And an UNRATED device gets a different ask entirely — we have not judged it,
+        // so "consider upgrading" would be a verdict we never reached.
+        title.childNodes[0].nodeValue = flagged.length
+          ? 'Consider upgrading your hardware wallet'
+          : 'Check your hardware wallet against our standard';
+        desc.textContent = `You have a ${d.name}. ${d.why} `
+          + (flagged.length
+            ? 'Nothing here forces your hand — but for money you mean to leave alone for years, we would move to a device from our cold-storage tier.'
+            : 'Compare it against the standard yourself and decide.');
+        if (span) { span.hidden = true; }
+        // Chosen deliberately → advisory, at the end, not a step blocking the build.
+        if (planned.length) {
+          deviceStep.classList.add('advisory');
+          const group = deviceStep.closest('.cgroup');
+          const lastGroup = document.querySelector('.cgroup[data-phase="yearly"]') || group;
+          lastGroup.querySelector('.clist, ul').appendChild(deviceStep);
+        }
       }
+    } else if (deviceStep && !devSlugs.length) {
+      const span = deviceStep.querySelector('.ct-dev');
+      if (span) span.hidden = true;
+    }
+    if (deviceStep && devSlugs.length) {
+      const names = devSlugs.map((s) => ownedName(s)).filter(Boolean);
+      const span = deviceStep.querySelector('.ct-dev');
+      if (span && !span.hidden && names.length) { span.textContent = ' — you have ' + listOf(names); span.hidden = false; }
     }
 
     // Hide any phase whose every item is now hidden.
@@ -304,6 +346,7 @@ const total = checklistCount;
   .citem.done { border-color: color-mix(in srgb, var(--safe) 45%, var(--line)); background: color-mix(in srgb, var(--safe) 7%, var(--surface)); }
   /* Exactly one open action is highlighted at a time. */
   .citem.next { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent-soft); background: color-mix(in srgb, var(--accent) 5%, var(--surface)); }
+  .citem.advisory { border-left: 3px solid var(--warn); padding-left: 0.8rem; }
   .ct-next { align-self: center; font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase;
     color: var(--accent-ink); background: var(--accent); border-radius: 999px; padding: 0.2rem 0.55rem; white-space: nowrap; }
   .box { width: 1.5rem; height: 1.5rem; border: 2px solid var(--accent); border-radius: 6px; margin-top: 0.1rem;

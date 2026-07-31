@@ -45,6 +45,18 @@ import WhereAmI from '../components/WhereAmI.astro';
 </Base>
 
 <script>
+  const VERDICT = {
+    cold:         { cls: 'v-ok',   label: '✓ clears our bar' },
+    spending:     { cls: 'v-warn', label: '~ built for spending' },
+    disqualified: { cls: 'v-bad',  label: '⚠ doesn’t clear our bar' },
+    unrated:      { cls: 'v-un',   label: '· not rated by us' },
+  };
+  function verdictChip(slug) {
+    const d = assessDevices([slug])[0];
+    if (!d) return '';
+    const v = VERDICT[d.verdict];
+    return `<a class="ps-verdict ${v.cls}" href="/standard" title="${esc(d.why)}">${v.label}</a>`;
+  }
   import {
     loadLocal, hasLocal, clearLocal, saveLocal, downloadPlan, parsePlanText,
     planHasContent, emptyPlan, PLAN_FILENAME, setOwnedAndPrivacy,
@@ -52,7 +64,7 @@ import WhereAmI from '../components/WhereAmI.astro';
     encryptPlanToEnvelope, decryptEnvelope, downloadEncryptedPlan, isEncryptedEnvelope,
   } from '../data/plan.js';
   import { getRung, rungAnchor } from '../data/ladder.js';
-  import { ownedName, deviceBySlug } from '../data/wallets.js';
+  import { assessDevices, ownedName, deviceBySlug } from '../data/wallets.js';
   import { custodianName, custodianBySlug } from '../data/custodians.js';
   import { mountOwnedPicker } from '../data/owned-picker.js';
   import { checklistLabels, checklistCount, checklistItems, itemApplies } from '../data/checklist.js';
@@ -138,7 +150,11 @@ import WhereAmI from '../components/WhereAmI.astro';
     if (owned.length) {
       ownBlock = `<div id="ps-owned-display" class="ps-owned-display">
           <span class="ps-sub mono">Hardware wallets you own</span>
-          <div class="ps-owned-chips">${owned.map((s) => `<span class="ps-owned-chip">${esc(ownedName(s))}</span>`).join('')}</div>
+          <div class="ps-owned-chips">${owned.map((s) => {
+            const a = assessDevices([s])[0];
+            const v = a ? VERDICT[a.verdict] : null;
+            return `<span class="ps-owned-chip">${esc(ownedName(s))}${v ? `<a class="ps-verdict ${v.cls}" href="/standard" title="${esc(a.why)}">${v.label}</a>` : ''}</span>`;
+          }).join('')}</div>
           <button class="ps-edit-own" id="ps-edit-own" type="button">✎ add or edit</button>
         </div>`;
     } else if (plan.ownPrivate) {
@@ -166,6 +182,11 @@ import WhereAmI from '../components/WhereAmI.astro';
 
   // ROADMAP: the bridge from status to plan — key slots the owned/chosen wallets
   // fill, and the gap that becomes a short shopping list.
+
+  // A verdict chip on each filled key slot. /my-plan showed the device you own and
+  // said nothing about whether it meets the standard the rest of the site judges
+  // hardware by — so someone could plan around a Ledger and never be told. The
+  // reasoning is pulled from assessDevices(), never restated here. (the owner, 7/30.)
   function roadmapHtml(plan) {
     if (!plan.quiz || !(plan.quiz.primaryLabel || plan.quiz.rung)) return '';
     const need = typeof plan.quiz.keysNeeded === 'number' ? plan.quiz.keysNeeded : null;
@@ -191,7 +212,7 @@ import WhereAmI from '../components/WhereAmI.astro';
       if (slug) {
         const isOwned = owned.includes(slug);
         const tag = isOwned ? 'you own' : 'to buy';
-        slots += `<div class="ps-slot filled"><span class="ps-slot-n mono">Key ${i + 1}</span><span class="ps-slot-dev">${esc(ownedName(slug))}</span><span class="ps-slot-tag ${isOwned ? 'own' : 'plan'}">${tag}</span><button class="ps-slot-x" data-act="unassign" data-slug="${esc(slug)}" title="Take out of this plan" type="button">×</button></div>`;
+        slots += `<div class="ps-slot filled"><span class="ps-slot-n mono">Key ${i + 1}</span><span class="ps-slot-dev">${esc(ownedName(slug))}</span>${verdictChip(slug)}<span class="ps-slot-tag ${isOwned ? 'own' : 'plan'}">${tag}</span><button class="ps-slot-x" data-act="unassign" data-slug="${esc(slug)}" title="Take out of this plan" type="button">×</button></div>`;
       } else {
         slots += `<div class="ps-slot empty"><span class="ps-slot-n mono">Key ${i + 1}</span><span class="ps-slot-dev ps-muted">Empty — assign a wallet or get one</span><a class="ps-slot-cta" href="/wallets">Choose →</a></div>`;
       }
@@ -729,6 +750,14 @@ import WhereAmI from '../components/WhereAmI.astro';
   .sovereign2 p { color: var(--muted); font-size: 0.92rem; }
   .sovereign2 .tag { font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
     border: 1px solid var(--line); border-radius: 999px; padding: 0.1rem 0.5rem; margin-left: 0.3rem; vertical-align: middle; }
+  .ps-verdict { display: inline-block; margin-left: 0.5rem; font-family: var(--mono); font-size: 0.66rem;
+    letter-spacing: 0.03em; padding: 0.12rem 0.45rem; border-radius: 0.35rem; text-decoration: none;
+    border: 1px solid var(--line); white-space: nowrap; }
+  .ps-verdict.v-ok   { color: var(--safe);   border-color: color-mix(in srgb, var(--safe) 45%, var(--line));   background: var(--safe-dim); }
+  .ps-verdict.v-warn { color: var(--warn);   border-color: color-mix(in srgb, var(--warn) 45%, var(--line));   background: var(--warn-dim); }
+  .ps-verdict.v-bad  { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, var(--line)); background: var(--danger-dim); }
+  .ps-verdict.v-un   { color: var(--faint); }
+  .ps-verdict:hover  { filter: brightness(1.1); }
 </style>
 
 <!-- Plan card is injected by client JS (no scoped attribute) → global, namespaced under #plan. -->

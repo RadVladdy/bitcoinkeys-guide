@@ -41,10 +41,19 @@ const MULTI = ['multisig', 'collaborative'];
 
 export const checklistItems = [
   // ── Step 1 · Get set up ───────────────────────────────────────────────────
-  { id: 'learn-hot-cold', phase: 'setup', t: 'Understand hot vs cold before you move anything',
+  // `done: true` — shown on the GENERIC list, hidden once you have a plan. Placing
+  // you on a rung IS the hot/cold decision, so the finder already settled it three
+  // minutes ago. Same reasoning `right-size` has always used; this item predates the
+  // "Learn teaches, /checklist acts" principle (7/30) and was never revisited.
+  { id: 'learn-hot-cold', phase: 'setup', done: true, t: 'Understand hot vs cold before you move anything',
     d: 'A hot wallet is connected to the internet — fine for spending money. A cold wallet keeps the keys offline — that’s where savings belong. Getting this straight first stops the most common beginner mistake.',
     href: '/learn/hot-and-cold', rule: 'savings-offline' },
-  { id: 'get-device', phase: 'setup', t: 'Get a real hardware wallet',
+  // Three states, resolved on the page against what you actually own (the client
+  // calls assessDevices()). "Get a REAL hardware wallet" shipped to everyone with a
+  // plan — including people who already owned one — and the page helpfully appended
+  // "— you have Ledger Nano". Telling someone to go and get the thing they just told
+  // you they have, and calling theirs unreal, was the worst of both. (the owner, 7/30.)
+  { id: 'get-device', phase: 'setup', t: 'Get a hardware wallet',
     d: 'A device from our cold-storage tier — Bitcoin-only firmware available, its own screen, offline signing. Buy direct from the maker and check the tamper seal.',
     href: '/wallets', deviceSlot: true, rule: 'buy-direct' },
   { id: 'multisig-brands', phase: 'setup', only: MULTI, t: 'Use different brands for your keys',
@@ -70,8 +79,11 @@ export const checklistItems = [
     href: '/learn/send-bitcoin-safely', rule: 'not-your-keys' },
 
   // ── Step 2 · Secure the backup ────────────────────────────────────────────
-  { id: 'back-up-seed', phase: 'backup', t: 'Back up the seed on metal, in two places',
-    d: 'Write it by hand, move it to steel, store two copies in separate locations. No photos, no cloud, ever.',
+  // Was "Back up the seed on metal, in two places" — metal-first, which is not what
+  // anyone actually does on day one and not what the lesson teaches. Paper, checked,
+  // THEN metal. (the owner, 7/30: "most users won't have metal ready.")
+  { id: 'back-up-seed', phase: 'backup', t: 'Write the seed on paper, check it, then move it to metal',
+    d: 'Copy the words by hand and check them against the device. Paper is fine for today; get it onto metal before the wallet holds anything you would miss, and keep each copy in a genuinely separate place. No photos, no cloud, ever.',
     href: '/learn/back-up-your-seed', rule: 'never-digital' },
   { id: 'passphrase-backup', phase: 'backup', only: ['passphrase'], t: 'Back up the passphrase — separately from the seed',
     d: 'The single most documented way people lose passphrase-protected Bitcoin: they memorise it, never write it down, then forget it or die. The seed is backed up so the wallet LOOKS recoverable — it isn’t. Back up the passphrase as carefully as the seed, in a different place.',

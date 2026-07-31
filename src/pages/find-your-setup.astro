@@ -30,9 +30,9 @@ import { questionCountWordCap } from '../data/quiz.js';
 
 <script>
   import { questions, recommend } from '../data/quiz.js';
-  import { wallets, keysForSetup, slugForName } from '../data/wallets.js';
+  import { assessDevices, wallets, keysForSetup, slugForName } from '../data/wallets.js';
   import { rungAnchor } from '../data/ladder.js';
-  import { savePlannedSetup, plannedSetupRung, plannedSetupLabel, loadLocal } from '../data/plan.js';
+  import { savePlannedSetup, plannedSetupRung, plannedSetupLabel, loadLocal, getOwned } from '../data/plan.js';
   import { mountOwnedPicker } from '../data/owned-picker.js';
   import { confirmDialog } from '../data/ui-dialog.js';
 
@@ -204,14 +204,36 @@ import { questionCountWordCap } from '../data/quiz.js';
     return rec.walletNote ? `<div class="r-wallet"><span class="r-k mono">Where to start</span><p>${rec.walletNote}</p></div>` : '';
   }
 
-  function checklistHtml(rec, dev) {
-    const list = (dev && dev.checklist) || rec.checklist;
-    // A howto starting with "/" is an absolute path (a tool page like /collaborative);
-    // anything else is a lesson slug under /learn/. See the scoping note in quiz.js.
-    const stepHref = (h) => (h.startsWith('/') ? h : `/learn/${h}`);
-    const steps = list.map((s) => `<li>${esc(s.text)}${s.howto ? ` <a class="r-how" href="${esc(stepHref(s.howto))}">how →</a>` : ''}</li>`).join('');
-    const label = (dev && dev.checklist) ? `Your checklist — for ${esc(dev.name)}` : 'Your checklist';
-    return `<span class="r-k mono">${label}</span><ol>${steps}</ol>`;
+  // The checklist USED to be generated here as well as on /checklist — two
+  // generators for one artefact, which is why /checklist read generic beside it.
+  // The result page now hands off instead of duplicating: one page produces the
+  // checklist, and it is the one called /checklist. (the owner, 2026-07-30.)
+  function checklistHandoff() {
+    return `<div class="r-handoff"><span class="r-k mono">Next</span>
+      <p>Save this and your checklist is built from it — only the steps your setup needs, in order, with your own hardware named.</p>
+      <a class="r-how2" href="/checklist">Open your checklist →</a></div>`;
+  }
+
+  // ── What you already own, judged against the standard ──────────────────────
+  // The result recommended two devices and never mentioned the Ledger the reader
+  // had just told us about. Naming it, and saying plainly why we would move, is
+  // the difference between advice and a catalogue. Reasoning comes from
+  // assessDevices() so it can never disagree with /standard.
+  function ownedVerdictHtml() {
+    const owned = getOwned().filter(Boolean);
+    if (!owned.length) return '';
+    const judged = assessDevices(owned);
+    const flagged = judged.filter((d) => d.verdict === 'spending' || d.verdict === 'disqualified');
+    const clearing = judged.filter((d) => d.verdict === 'cold');
+    if (clearing.length) {
+      return `<div class="r-owned ok"><span class="r-k mono">You already have what you need</span>
+        <p>You told us you have a <strong>${esc(clearing[0].name)}</strong>, and it clears our bar. There is nothing to buy — the steps below are about setting it up properly.</p></div>`;
+    }
+    if (!flagged.length) return '';
+    const d = flagged[0];
+    return `<div class="r-owned warn"><span class="r-k mono">About the hardware you have</span>
+      <p>You told us you have a <strong>${esc(d.name)}</strong>. ${esc(d.why)}</p>
+      <p>You are not obliged to replace it, and your coins are not in danger today. But for money you mean to leave alone for years, we would move to a device from our cold-storage tier — which is why the ones below are what we suggest. <a href="/standard">How we decide →</a></p></div>`;
   }
 
   function vendorsBlock(vendors) {
@@ -243,7 +265,7 @@ import { questionCountWordCap } from '../data/quiz.js';
         <div class="r-tradeoff"><span class="r-k mono">The trade-off</span><p>${esc(p.tradeoff)}</p></div>
         ${p.inheritanceNote ? `<div class="r-inherit"><span class="r-k mono">Self-custodied inheritance</span><p>${esc(p.inheritanceNote)}</p></div>` : ''}
         ${walletCard(p, false, 0)}
-        <div class="r-checklist">${checklistHtml(p, null)}</div>
+        ${checklistHandoff()}
         ${p.vendors ? vendorsBlock(p.vendors) : ''}
         <a class="r-how2" href="${rungAnchor(p.rungSlug)}">Read the ${esc(p.rungLabel)} walkthrough →</a>
         ${saveControl(p.rungSlug, p.label, tier, 'quiz-fork-' + p.key, recSlugsFrom(p.wallets))}
@@ -295,8 +317,9 @@ import { questionCountWordCap } from '../data/quiz.js';
         <p class="r-why">${primary.why}</p>
         ${primary.fork ? forkHtml(primary.fork, primary.tier, saveControl) : `
         ${primary.holdback ? `<div class="r-holdback"><span class="r-k mono">Why not more?</span><p>${primary.holdback}</p></div>` : ''}
+        ${ownedVerdictHtml()}
         ${walletCard(primary, adaptive, sel)}
-        <div class="r-checklist" id="r-checklist">${checklistHtml(primary, adaptive ? devs[sel] : null)}</div>
+        ${checklistHandoff()}
         ${primaryHasVendors ? vendorsBlock(primary.vendors) : ''}
         ${saveControl(primary.rungSlug, primary.headline, primary.tier, 'quiz-primary', recSlugsFrom(primary.wallets))}`}
       </div>
@@ -359,13 +382,14 @@ import { questionCountWordCap } from '../data/quiz.js';
       });
     }
     paintSaveStates();
+    // The device buttons used to re-render a per-device checklist in place. That
+    // checklist is gone (one generator, on /checklist), so they now only mark the
+    // selection — which is all the save band ever read from them.
     if (adaptive) {
-      const slot = document.getElementById('r-checklist');
       elResult.querySelectorAll('.r-dev').forEach((btn) => {
         btn.addEventListener('click', () => {
           sel = parseInt(btn.getAttribute('data-idx'), 10);
           elResult.querySelectorAll('.r-dev').forEach((b, i) => b.classList.toggle('sel', i === sel));
-          slot.innerHTML = checklistHtml(primary, devs[sel]);
         });
       });
     }
@@ -525,9 +549,14 @@ import { questionCountWordCap } from '../data/quiz.js';
   #quiz .r-price { color: var(--accent); font-family: var(--mono); font-size: 0.9rem; }
   #quiz .r-compare { color: var(--muted); font-size: 0.88rem; text-decoration: none; }
   #quiz .r-compare:hover { color: var(--accent); }
-  #quiz .r-checklist { border-top: 1px solid var(--line-soft); padding-top: 1.1rem; }
-  #quiz .r-checklist ol { margin: 0; padding-left: 1.3rem; display: grid; gap: 0.55rem; }
-  #quiz .r-checklist li { color: var(--text); font-size: 0.95rem; }
+  #quiz .r-handoff { border-top: 1px solid var(--line-soft); padding-top: 1.1rem; margin-top: 1.1rem; }
+  #quiz .r-handoff p { color: var(--muted); font-size: 0.94rem; margin: 0 0 0.6rem; }
+  #quiz .r-owned { border-left: 3px solid var(--line); background: var(--raise); border-radius: 0.5rem;
+    padding: 0.9rem 1.1rem; margin: 0 0 1.1rem; }
+  #quiz .r-owned.warn { border-left-color: var(--warn); background: var(--warn-dim); }
+  #quiz .r-owned.ok { border-left-color: var(--safe); background: var(--safe-dim); }
+  #quiz .r-owned p { margin: 0 0 0.5rem; font-size: 0.94rem; color: var(--text); }
+  #quiz .r-owned p:last-child { margin-bottom: 0; }
   #quiz .r-how { color: var(--accent); text-decoration: none; font-size: 0.8rem; font-family: var(--mono); white-space: nowrap; }
   #quiz .r-how:hover { text-decoration: underline; }
   #quiz .r-save { border-top: 1px solid var(--line-soft); margin-top: 1.4rem; padding-top: 1.2rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 0.9rem; }

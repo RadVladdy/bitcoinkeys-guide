@@ -598,3 +598,57 @@ export function ownedName(slug) {
  */
 export const tierCount = tiers.length;
 export const tierCountWord = numberWord(tierCount);
+
+// ── Does a device someone OWNS meet our standard? ───────────────────────────
+// Added 2026-07-30. The site had every fact needed to answer this and never once
+// asked it: a reader could tell the setup finder they own a Ledger and be shown two
+// replacement devices with no explanation, then see "Get a real hardware wallet —
+// you have Ledger Nano" on their checklist. Naming what they have while telling
+// them to go and get one is the worst of both.
+//
+// The care needed here is NOT inventing a judgement. 48 of the 59 models in the
+// ownership catalog have never been rated, and saying nothing about those is the
+// honest answer — `unrated` is a real verdict, not a failure to compute one.
+//
+// ONE family maps beyond its own slug: the rated "Ledger Nano family" entry says in
+// its own copy that it spans the Nano S Plus through the Flex and Stax, and the
+// reason it is disqualified (closed firmware that can export the seed) is a property
+// of the platform, not of one model. No other brand's rating claims that reach —
+// a Trezor Model T is NOT covered by the Safe 3/5/7 entries, so it stays unrated.
+const RATED_FAMILY = Object.fromEntries(
+  ownableDevices.filter((d) => d.slug.startsWith('ledger')).map((d) => [d.slug, 'ledger'])
+);
+
+/** The rated device covering an owned slug, or null if we have never rated it. */
+export function ratedSlugFor(slug) {
+  if (deviceBySlug[slug]) return slug;
+  return RATED_FAMILY[slug] || null;
+}
+
+/**
+ * Judge a list of owned/planned device slugs against the published standard.
+ * Returns one entry per slug: { slug, name, verdict, why }.
+ *   verdict: 'cold' | 'spending' | 'disqualified' | 'unrated'
+ * `why` is pulled from the device's own tierNote so this can never drift from
+ * /standard — there is no second copy of the reasoning.
+ */
+export function assessDevices(slugs = []) {
+  return slugs.filter(Boolean).map((slug) => {
+    const ratedSlug = ratedSlugFor(slug);
+    const w = ratedSlug ? wallets.find((x) => x.image.includes('/' + ratedSlug + '.')) : null;
+    if (!w) {
+      return {
+        slug, name: ownedName(slug), verdict: 'unrated',
+        why: 'We haven’t rated this model against our standard, so we can’t tell you either way. Check it against the criteria yourself.',
+      };
+    }
+    const verdict = tierOf(w);
+    const why = (w.tierNote && w.tierNote.summary)
+      || (w.barCaveat ? w.barCaveat : 'Clears our bar for long-term cold storage.');
+    return { slug, name: ownedName(slug), verdict, why, ratedName: w.name };
+  });
+}
+
+/** True if any of these devices fails to reach the cold-storage tier. */
+export const anyBelowBar = (slugs = []) =>
+  assessDevices(slugs).some((d) => d.verdict === 'spending' || d.verdict === 'disqualified');
