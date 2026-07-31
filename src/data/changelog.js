@@ -11,6 +11,12 @@ export const changelog = [
   {
     date: '2026-07-30',
     type: 'content',
+    title: 'The checklist now tells you when it isn’t yours yet',
+    detail: 'If you have chosen a setup but not yet picked the hardware for it, the checklist page used to look exactly like a finished, personalised one. It now says plainly that your plan is not finished, names what is missing — a hardware wallet, two more of them, a collaborative custodian — and points you back at the step that closes it. The page is not blocked and never will be: the first steps on it are how to get the hardware a finished plan would name, and reading ahead is reasonable. What it no longer does is dress the full list of everything up as a list built for you. Once the plan is complete it trims to just your steps and says so, exactly as before.',
+  },
+  {
+    date: '2026-07-30',
+    type: 'content',
     title: 'Your plan now says what to do next, instead of announcing a checklist that isn’t ready',
     detail: 'A saved plan with no hardware wallet chosen was still telling you "your checklist is ready — 16 steps", which was backwards: the first thing that checklist would have said is to go and choose the device you had not chosen. The next step is now whatever is actually next. No wallet picked yet and it says choose your hardware wallet, and explains that your checklist gets built around that exact device once you have. Multisig with one of three chosen says choose two more, and mentions that different makers is the point. A collaborative plan with its own wallets set says the last piece is who holds the service key. The page also stopped talking about keys where it meant hardware wallets — "needs 1 key" and "1 more key to add" now say what they mean, and the slots read Wallet 1, Wallet 2 rather than Key 1, Key 2. The only place that still says key is the collaborative service key, which genuinely is one and is not a device you buy. "Rework devices" no longer appears when there are no devices to rework, and the link out to a rung walkthrough has left the top of your plan, where it was a detour at the moment you most wanted a next step.',
   },

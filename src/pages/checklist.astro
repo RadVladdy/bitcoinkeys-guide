@@ -28,7 +28,17 @@ const total = checklistCount;
       <p>This is the full list — everything that could matter to anyone. <strong><a href="/find-your-setup">Find your setup</a> — it takes two minutes — and this page becomes your checklist:</strong> only the steps your setup actually needs, in your order, with your own hardware named and one clear next action. {questionCountWordCap} plain questions, and we never ask how much Bitcoin you hold.</p>
     </div>
 
-    <!-- Shown only when a plan IS saved: the header for a personalized list. -->
+    <!-- Shown when a plan EXISTS BUT ISN'T FINISHED. the owner's call, 2026-07-30: don't
+         block the page — someone may genuinely want to read ahead, and the first
+         steps here are how to GET the hardware a finished plan would name. But do
+         not dress the full list up as theirs. State the limitation and point back
+         at the step that closes it. -->
+    <div class="callout warn" id="cl-partial" hidden>
+      <span class="label" id="cl-partial-k">Your plan isn’t finished yet</span>
+      <p id="cl-partial-p"></p>
+    </div>
+
+    <!-- Shown only when a plan is saved AND COMPLETE: the personalized header. -->
     <div class="yours" id="cl-yours" hidden>
       <p class="y-k mono">Your checklist</p>
       <h2 class="y-h" id="cl-yours-h"></h2>
@@ -101,7 +111,7 @@ const total = checklistCount;
   import { loadLocal, saveChecklistSlice } from '../data/plan.js';
   import { itemApplies } from '../data/checklist.js';
   import { getRung } from '../data/ladder.js';
-  import { ownedName, assessDevices } from '../data/wallets.js';
+  import { ownedName, assessDevices, keysForSetup } from '../data/wallets.js';
 
   const checked = {};
   const items = Array.from(document.querySelectorAll('.citem'));
@@ -131,10 +141,49 @@ const total = checklistCount;
       owned: Array.isArray(p.owned) ? p.owned : [],
     };
   }
-  const ctx = planContext(plan);
+  // Is the saved plan actually finished? Mirrors planGaps() on /my-plan — a plan
+  // missing a hardware wallet, or a collaborative plan missing its custodian, is a
+  // plan in progress. An unfinished plan does NOT personalize this page: the full
+  // list is shown, honestly labelled, with a pointer back to the step that finishes
+  // it. Trimming and calling it "your checklist" would be claiming a tailoring that
+  // has not happened.
+  function planGap(p) {
+    if (!p || !p.quiz || !p.quiz.rung) return null;
+    const need = keysForSetup({ rungSlug: p.quiz.rung, label: p.quiz.primaryLabel, tier: p.quiz.primaryTier });
+    const assigned = (Array.isArray(p.quiz.plannedDevices) ? p.quiz.plannedDevices : []).filter(Boolean);
+    const missing = Math.max(0, need - assigned.length);
+    if (missing > 0) {
+      return {
+        what: missing === 1 ? 'a hardware wallet' : `${missing} more hardware wallets`,
+        href: '/wallets', cta: 'Compare wallets',
+      };
+    }
+    if (p.quiz.rung === 'collaborative' && !p.custodian) {
+      return { what: 'a collaborative custodian', href: '/collaborative', cta: 'Compare custodians' };
+    }
+    return null;
+  }
+  const gap = planGap(plan);
+  const ctx = gap ? null : planContext(plan);
 
   // ── Personalize: hide what doesn't apply, name the visitor's own hardware ───
   function personalize() {
+    if (gap) {
+      // Not personalized, and says so. The nudge to take the finder would be wrong
+      // here — they already did; what's missing is further along.
+      const nudgeEl = document.getElementById('cl-nudge');
+      const partial = document.getElementById('cl-partial');
+      const pp = document.getElementById('cl-partial-p');
+      if (nudgeEl) nudgeEl.hidden = true;
+      if (partial && pp) {
+        pp.innerHTML = `You’ve chosen a setup, but it still needs <strong>${gap.what}</strong> — so this is the <strong>full list</strong>, `
+          + `not yet trimmed to you. Finish your plan and this page becomes your checklist: only the steps your setup needs, in order, `
+          + `with your own hardware named throughout. `
+          + `<a href="${gap.href}">${gap.cta} →</a> <a href="/my-plan">or open your plan</a>`;
+        partial.hidden = false;
+      }
+      return;
+    }
     if (!ctx) return;
 
     // Attributes → the same item shape itemApplies() expects, so page and data
