@@ -29,16 +29,27 @@ import pathlib
 DIST = pathlib.Path('dist')
 SRC = pathlib.Path('src')
 
-# Anything that would identify the human behind RadVladdy. Deliberately broad — a
-# false positive costs a second, a false negative is the whole point of the project.
-IDENTIFIERS = re.compile(
-    r'\b(the owner|valadez|valdez)\b'
-    r'|/Users/[a-z]+'                 # a Mac home path
-    r'|/home/radvladdy'               # this box's paths
-    r'|[a-z0-9._%+-]+@gmail\.com',
-    re.I,
-)
-# The pseudonymous brand addresses are expected and must not trip it.
+# The names to look for are NOT stored in this repo — that would put the very
+# string we are trying to keep out of it back into it, in the file whose whole job
+# is to keep it out. They live in an untracked local file, one pattern per line:
+#
+#     ~/.config/bkeys-identifiers.txt
+#
+# Structural identifiers that name nobody (home paths, personal mail hosts) are
+# built in, so the check still does useful work if that file is missing — but it
+# says loudly that it is running degraded rather than printing a clean pass.
+STRUCTURAL = [
+    r'/Users/[a-z]+',                  # a Mac home directory
+    r'/home/(?!runner)[a-z]+/',        # a Linux home directory
+    r'[a-z0-9._%+-]+@gmail\.com',
+]
+NAMES_FILE = pathlib.Path.home() / '.config' / 'bkeys-identifiers.txt'
+names = []
+if NAMES_FILE.exists():
+    names = [l.strip() for l in NAMES_FILE.read_text().splitlines()
+             if l.strip() and not l.startswith('#')]
+IDENTIFIERS = re.compile('|'.join(STRUCTURAL + [r'\b' + n + r'\b' for n in names]), re.I)
+
 ALLOWED = re.compile(r'keys@bitcoinkeys\.guide|Bitcoineconomyai@gmail\.com', re.I)
 
 fails = []
@@ -71,6 +82,11 @@ for f in sorted(SRC.rglob('*.astro')):
                 f'JSX COMMENT INSIDE A TEMPLATE LITERAL — RENDERS AS TEXT  {f}\n'
                 f'    {re.sub(chr(10), " ", m.group(0))[:120]}'
             )
+
+if not NAMES_FILE.exists():
+    print(f'!! DEGRADED: {NAMES_FILE} is missing, so only structural identifiers were')
+    print('   checked. Recreate it (one name per line) before trusting a clean result.')
+    sys.exit(2)
 
 if fails:
     print('!! PSEUDONYMITY CHECK FAILED\n')
