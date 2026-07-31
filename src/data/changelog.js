@@ -10,6 +10,12 @@
 export const changelog = [
   {
     date: '2026-07-31',
+    type: 'price',
+    title: 'Jade Plus back down to $149; Trezor’s sale doesn’t change our list prices',
+    detail: 'A full re-check of every device against its vendor’s own store today. One real change: the Blockstream Jade Plus base model is back to $149 — it launched at $149, rose to $169 in July, and has come down again; the table now says $149. Trezor is running a limited-time sale on the whole Safe line (Safe 3 $47, Safe 5 $103, Safe 7 $224 at time of writing) — the guide keeps showing the regular prices of $59, $129, and $249, because sale prices churn and a guide that quietly tracked them would overstate the cost the week after the sale ends. If you’re buying this week, enjoy the discount. Everything else — the Coldcards, BitBox02, Passport Prime, the $79 Jade, Bitkey — verified unchanged. Also on our radar: Blockstream formally launched the Jade Core ($99) in April as its beginner-focused device; we’re evaluating whether it earns a row in the comparison.',
+  },
+  {
+    date: '2026-07-31',
     type: 'security',
     title: 'Correction: the checklist had you move everything onto your new wallet before its backup was tested. The big move now comes last.',
     detail: 'The old order was setup, then backup, then prove the backup works — and the last step of setup said to move a test amount off the exchange "then move the rest." Follow that literally and your whole stack lands on a device whose seed phrase has not been written down or restore-tested, right before a later step tells you to wipe that device to prove recovery. That is the one ordering mistake on this site that could actually lose someone their Bitcoin, and the guide’s own lessons have always taught the opposite: back up, prove recovery, then fund. The step is now split the way the lessons say. A small test amount still arrives early — you verify the receive address on the device’s own screen and see a real payment land. Moving the rest is now the final step of proving your backup, worded the way it should have been all along: now that the backup is proven. If you had already ticked the old step, your tick carries over to the moved one.',

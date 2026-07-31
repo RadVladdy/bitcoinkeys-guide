@@ -17,13 +17,19 @@
 // 2026-07-19: Trezor Safe 3 repriced $79 → $59 at trezor.io (browser-verified: buy price "USD 59",
 //   no strikethrough, offer valid to 2031 — a permanent cut, not a sale). Ladder cost-floor cascaded
 //   to $59. Freshness runner caught it via the new headless-render deterministic (JSON-LD) price read.
+// 2026-07-31: full forced freshness pass + human verification. Jade Plus back DOWN $169 → $149 (store base
+//   variant; it has bounced $149→$169→$149 — see changelog history). Trezor Safe line is running a limited-time
+//   sale ($47/$103/$224) — editorial decision: the guide shows list prices ($59/$129/$249), which are unchanged;
+//   sales are transient. Blockstream formally launched Jade Core ($99, USB-C+Bluetooth, blind oracle, no camera)
+//   2026-04-28 — still not carried; a drafted row is staged on the freshness review surface pending device art
+//   and a carry/no-carry call. All other prices confirmed at vendor stores today.
 // Rule of the guide: every device is rated in three tiers against the published
 // standard (standardGates/tiers below, rendered at /standard). Within a tier,
 // fit decides — there is still no single "best" device, but there IS a bar.
 
 import { numberWord } from './numbers.js';
 
-export const walletsVerified = '2026-07-22';
+export const walletsVerified = '2026-07-31';
 
 // `barCaveat` is the cold tier's honesty layer, and it must AGREE WITH THE BADGES.
 // Until 2026-07-30 the Trezor Safe 3 and Safe 5 carried none, so /standard called
@@ -231,8 +237,8 @@ export const wallets = [
     image: '/devices/jade-plus.webp',
     ladderReach: { s: 'strong', p: 'ok', m: 'ok', note: 'Covers the ladder; the joystick makes passphrase and multisig fiddlier, but the camera + battery make it a nicer air-gap unit than the standard Jade.' },
     vendor: 'Blockstream',
-    price: '$169',
-    priceNum: 169,
+    price: '$149',
+    priceNum: 149,
     airgap: 'partial',  // on-device camera for QR air-gap, but also USB/Bluetooth
     btcOnly: 'yes',
     openSource: 'yes',
