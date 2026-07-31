@@ -255,6 +255,10 @@ const total = checklistCount;
           + `<a href="${gap.href}">${gap.cta} →</a> <a href="/my-plan">or open your plan</a>`;
         partial.hidden = false;
       }
+      // The list can't be trimmed yet, but the risk picture is already known —
+      // and emphasis never depends on which hardware they end up with. Someone
+      // mid-plan is exactly who needs to see which steps their answers lean on.
+      emphasize();
       return;
     }
     if (!ctx) return;
