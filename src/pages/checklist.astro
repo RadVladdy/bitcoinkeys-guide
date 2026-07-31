@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import { checklistGroups, checklistCount, ruleForItem } from '../data/checklist.js';
-import { questionCountWordCap } from '../data/quiz.js';
+import { finderPromiseCap } from '../data/quiz.js';
 import { ruleCountWord } from '../data/rules.js';
 
 // GENERATED CHECKLIST (2026-07-28). Every item is server-rendered, so the page
@@ -41,7 +41,7 @@ const total = checklistCount;
 
     <div class="callout" id="cl-nudge">
       <span class="label">Make this yours</span>
-      <p>This is the full list — everything that could matter to anyone. <strong><a href="/find-your-setup">Find your setup</a> — it takes two minutes — and this page becomes your checklist:</strong> only the steps your setup actually needs, in your order, with your own hardware named and one clear next action. {questionCountWordCap} plain questions, and we never ask how much Bitcoin you hold.</p>
+      <p>This is the full list — everything that could matter to anyone. <strong><a href="/find-your-setup">Find your setup</a> and this page becomes your checklist:</strong> only the steps your setup actually needs, in your order, with your own hardware named and one clear next action. {finderPromiseCap}, and we never ask how much Bitcoin you hold.</p>
     </div>
 
     <div class="callout warn" id="cl-partial" hidden>
@@ -86,8 +86,13 @@ const total = checklistCount;
               <svg class="tick" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
             </button>
             <div class="ctext">
-              <span class="ct-title">{it.t}<span class="ct-dev" hidden></span></span>
+              {/* The emphasis chip + why line ship hidden on EVERY item and are
+                  filled/unhidden by the client only when the saved plan's risk
+                  assessment flags the step's concern — same single-source rule
+                  as the rest of this page: the client never injects markup. */}
+              <span class="ct-title">{it.t}<span class="ct-dev" hidden></span><span class="ct-flag mono" hidden>matters extra for you</span></span>
               <span class="ct-desc">{it.d}</span>
+              <span class="ct-why" hidden></span>
               <span class="ct-links">
                 {it.href && <a href={it.href} class="ct-link">{linkLabel(it.href)}</a>}
                 {ruleForItem(it) && (
@@ -125,7 +130,8 @@ const total = checklistCount;
 
 <script>
   import { loadLocal, saveChecklistSlice } from '../data/plan.js';
-  import { itemApplies } from '../data/checklist.js';
+  import { itemApplies, concernEmphasis } from '../data/checklist.js';
+  import { scoreWord, scoreFromPrompts, shimScores } from '../data/finder.js';
   import { getRung } from '../data/ladder.js';
   import { ownedName, assessDevices, keysForSetup } from '../data/wallets.js';
 
@@ -184,6 +190,54 @@ const total = checklistCount;
   }
   const gap = planGap(plan);
   const ctx = gap ? null : planContext(plan);
+
+  // ── Risk-assessment emphasis: which concerns run elevated/high for this plan ─
+  // The saved answers can carry the picture three ways, newest first: explicit
+  // scores (the review screen's word is the user's word — hand adjustments and
+  // all), checked prompts (derive exactly as the finder does), or a legacy
+  // ranked worries[] (shimmed, exactly as /find-your-setup shims it on load).
+  // None of the three → no emphasis, and the generic list is untouched.
+  function riskWords(p) {
+    const a = p && p.quiz && p.quiz.answers;
+    if (!a || typeof a !== 'object') return null;
+    const stakes = a.stakes || 'meaningful';
+    let scores = null;
+    if (a.scores && typeof a.scores === 'object') scores = a.scores;
+    else if (Array.isArray(a.checkedPrompts)) {
+      scores = scoreFromPrompts(a.checkedPrompts, stakes, Array.isArray(a.skippedSections) ? a.skippedSections : []);
+    } else if (Array.isArray(a.worry) && a.worry.length) {
+      scores = shimScores(a);
+    }
+    if (!scores) return null;
+    const words = {};
+    for (const c of Object.keys(concernEmphasis)) {
+      if (typeof scores[c] === 'number') words[c] = scoreWord(scores[c], c, stakes);
+    }
+    return words;
+  }
+
+  // Tag the mapped steps of every elevated/high concern. EMPHASIS ONLY — the
+  // chip and why-line were server-rendered hidden on every item; this fills and
+  // reveals them, and never moves, adds, or removes a step (the order is
+  // safety-critical). Hidden steps (not part of this setup) are skipped.
+  function emphasize() {
+    const words = riskWords(plan);
+    if (!words) return;
+    items.forEach((li) => {
+      if (li.hidden) return;
+      const id = li.getAttribute('data-id');
+      for (const [concern, em] of Object.entries(concernEmphasis)) {
+        const w = words[concern];
+        if ((w === 'elevated' || w === 'high') && em.steps.includes(id)) {
+          const flag = li.querySelector('.ct-flag');
+          const why = li.querySelector('.ct-why');
+          if (flag) flag.hidden = false;
+          if (why) { why.textContent = em.why.replace('{word}', w); why.hidden = false; }
+          break;
+        }
+      }
+    });
+  }
 
   // ── Personalize: hide what doesn't apply, name the visitor's own hardware ───
   function personalize() {
@@ -300,6 +354,9 @@ const total = checklistCount;
     if (yh) yh.textContent = 'Getting you to ' + setupName;
     const ys = document.getElementById('cl-yours-sub');
     if (ys) ys.textContent = visible().length + ' steps, tailored to your setup. We’ve hidden everything that doesn’t apply to you — nothing here is filler.';
+
+    // Last, on the trimmed list: chip the steps your own risk picture leans on.
+    emphasize();
   }
 
   function listOf(names) {
@@ -459,6 +516,18 @@ const total = checklistCount;
   .citem.done .ct-title { text-decoration: line-through; text-decoration-color: color-mix(in srgb, var(--safe) 60%, transparent); color: var(--muted); }
   .ct-desc { color: var(--muted); font-size: 0.93rem; }
   .ct-link { font-size: 0.84rem; font-weight: 600; margin-top: 0.2rem; }
+
+  /* Risk-assessment emphasis — chip beside the title, one why-line under the
+     description. Ships hidden on every item (zero layout shift for anyone
+     without an assessment); token colors only, so both themes come free. */
+  .ct-flag { display: inline-block; margin-left: 0.5rem; vertical-align: middle; font-size: 0.66rem;
+    letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600; color: var(--warn);
+    border: 1px solid color-mix(in srgb, var(--warn) 55%, var(--line)); background: var(--warn-dim);
+    border-radius: 999px; padding: 0.12rem 0.5rem; white-space: nowrap; }
+  .ct-flag[hidden] { display: none; }
+  .ct-why { color: var(--warn); font-size: 0.86rem; margin-top: 0.1rem; }
+  .ct-why[hidden] { display: none; }
+  .citem.done .ct-flag, .citem.done .ct-why { opacity: 0.55; }
 
   .ct-links { display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 0.9rem; }
   /* No nowrap: the chip carries a whole rule title ("Rule 03 · Simplest setup that

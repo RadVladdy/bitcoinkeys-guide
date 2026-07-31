@@ -10,6 +10,24 @@
 export const changelog = [
   {
     date: '2026-07-31',
+    type: 'feature',
+    title: 'The finder now runs a real risk assessment',
+    detail: 'The old "rank your worries" question asked you to guess at your own threat model in one tap. It’s gone. In its place: the standard picture of how Bitcoin is actually lost — most of it self-inflicted or scammed away, almost none of it robbers — and then a walk through all four risks with concrete "true of me?" statements, each carrying its receipt ("25% of documented physical attacks happened during in-person trades"). Your bars move as you answer; the words — low, typical, elevated, high — are the whole scale, because a decimal point would be false precision. The result now shows its work: your picture next to the typical holder’s, the reasons in plain language, and — when we deliberately did NOT add something — why not, computed from your own answers. A passphrase, for example, no longer gets recommended to someone whose biggest risk is locking themselves out: it defends one concern by inflaming the other, and the result says so. Skip any section and keep the standard estimate; nudge any bar by hand and the recommendation follows. When two setups genuinely tie, the result says "either of these fits" and names the trade instead of faking a winner. Saved plans from the old finder still work — we estimate your picture from your earlier answers and say so, and walking the assessment replaces the estimate.',
+  },
+  {
+    date: '2026-07-31',
+    type: 'feature',
+    title: 'Your checklist now says which steps matter extra — for you specifically',
+    detail: 'When your saved plan carries a risk assessment, the checklist tags the steps that answer your elevated or high concerns with a small "matters extra for you" marker and one sentence of why. High on locking yourself out promotes the backup, recovery-test, and re-test steps; scams promote the verify-on-device and official-app habits; targeted theft promotes the low-profile steps; company failure marks the final move itself — the whole point, don’t stall there. Emphasis only: the order of the steps is safety-critical and never changes, and without an assessment the list is exactly as it was.',
+  },
+  {
+    date: '2026-07-31',
+    type: 'content',
+    title: 'The finder shows its homework: how we weigh risk',
+    detail: 'The risk assessment starts everyone from a research-based default, and that default is now a published page — How we weigh risk, next to the hardware standard in the menu. The four concerns with their evidence bands, the primary sources behind each number (the FBI’s annual fraud reports, Chainalysis crime data, the lost-coin estimate family including River’s deliberately conservative low, the physical-attack registry and the academic study of those attacks, and the original exchange-failure research), the questions we deliberately don’t ask — your age, "are you careful," "is your neighborhood safe" — with the evidence for skipping each one, and the places the data is honestly uncertain: the bands are wide on purpose, and the scale is words instead of scores because the underlying research can’t support a decimal point. The headline statistics sit on the same scheduled freshness watch as the device prices, so the verified date on that page means what it says.',
+  },
+  {
+    date: '2026-07-31',
     type: 'device',
     title: 'Blockstream Jade Core joins the comparison — the twelfth device',
     detail: 'Blockstream launched the Jade Core in April as its beginner-focused hardware wallet, and it now has a row in the comparison: $99, USB-C or Bluetooth, guided setup through the Blockstream app, a device-authenticity check at first power-on, and the same fully open-source blind-oracle security model as the rest of the Jade line. It clears our security floor and lands in the cold-storage tier, which now holds nine devices. The honest caveats are on the card: no camera, so no air-gapped QR signing (that’s what the Jade Plus adds), Bluetooth is present, there’s no dedicated secure-element chip (Blockstream’s deliberate blind-oracle design, shared by every Jade), and the hardware is new enough that its track record is measured in months. Its line-art portrait is still being drawn — the row ships first, the picture follows. While we were in the Blockstream aisle: the $79 original Jade remains on sale at their store and keeps its row; nothing was replaced.',

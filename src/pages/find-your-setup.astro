@@ -1,10 +1,9 @@
 ---
 import Base from '../layouts/Base.astro';
-import { questions } from '../data/quiz.js';
-import { numberWordCap } from '../data/numbers.js';
-// The ranked-worries question was replaced by the risk assessment (2026-07-31),
-// so the "N plain questions" copy counts the questions this page actually asks.
-const fitCountCap = numberWordCap(questions.filter((q) => q.id !== 'worry').length);
+import { questionCountWordCap } from '../data/quiz.js';
+// The ranked-worries question was replaced by the risk assessment (2026-07-31);
+// quiz.js no longer carries it, so the shared count is the count this page asks.
+const fitCountCap = questionCountWordCap;
 ---
 <Base
   title="Find your setup — which self-custody setup fits you · BitcoinKeys.guide"
@@ -45,10 +44,11 @@ const fitCountCap = numberWordCap(questions.filter((q) => q.id !== 'worry').leng
   import { mountOwnedPicker } from '../data/owned-picker.js';
   import { confirmDialog } from '../data/ui-dialog.js';
 
-  // The five plain questions — the ranked-worries question is retired; the
-  // assessment (finder.js prompts → scores) sits in its place, between stakes
-  // and recovery, because the stakes answer sets the assessment's defaults.
-  const fitQuestions = questions.filter((q) => q.id !== 'worry');
+  // The five plain questions — the ranked-worries question is retired (and gone
+  // from quiz.js since Phase C); the assessment (finder.js prompts → scores)
+  // sits in its place, between stakes and recovery, because the stakes answer
+  // sets the assessment's defaults.
+  const fitQuestions = questions;
   const questionById = Object.fromEntries(fitQuestions.map((q) => [q.id, q]));
   const CONCERN_BY_KEY = Object.fromEntries(CONCERNS.map((c) => [c.key, c]));
 
@@ -226,6 +226,7 @@ const fitCountCap = numberWordCap(questions.filter((q) => q.id !== 'worry').leng
       <p class="q-help">For a typical holder, most loss is self-inflicted or a scam that talks you into handing it over — not hackers breaking the cryptography, and almost never someone at your door. That’s not a judgment about you; it’s the base rate for <em>everyone</em>. The bars below are that standard picture, the same one our <a href="/learn/how-bitcoin-is-lost">how Bitcoin is lost</a> lesson teaches. Next we walk it, one risk at a time, and find out where yours differs.</p>
       <div class="as-meter">${rows}</div>
       ${estNote}
+      <p class="as-method">The defaults behind these bars are published, sourced, and dated — <a href="/how-we-weigh-risk">how we weigh risk →</a></p>
       <div class="as-acts">
         <button class="q-back" id="q-back">← Back</button>
         <button class="btn-primary" id="q-continue" type="button">Let’s see if your situation is different →</button>
@@ -368,6 +369,7 @@ const fitCountCap = numberWordCap(questions.filter((q) => q.id !== 'worry').leng
       <h2 class="q-title">Your risk picture</h2>
       <p class="q-help">Here’s where you landed against the typical holder (the dim bars). The words are the whole scale — low, typical, elevated, high. If a bar doesn’t match how you honestly see it, nudge it with − and ＋: your hand beats our arithmetic, and the recommendation will follow it.</p>
       <div class="as-review">${rows}</div>
+      <p class="as-method"><a href="/how-we-weigh-risk">How we weigh risk →</a></p>
       <div class="as-acts">
         <button class="q-back" id="q-back">← Back</button>
         <button class="btn-primary" id="q-continue" type="button">Looks right — on to the fit →</button>
@@ -927,6 +929,10 @@ const fitCountCap = numberWordCap(questions.filter((q) => q.id !== 'worry').leng
   #finder .as-legend { color: var(--faint); font-size: 0.76rem; margin: 0.55rem 0 0; }
   #finder .as-estnote { color: var(--muted); font-size: 0.88rem; margin: 0 0 1.2rem; }
   #finder .as-estnote strong { color: var(--text); }
+  /* the quiet methodology pointer on the intro + review screens */
+  #finder .as-method { color: var(--faint); font-size: 0.8rem; margin: 0.2rem 0 0; }
+  #finder .as-method a { color: var(--muted); text-decoration: none; }
+  #finder .as-method a:hover { color: var(--accent); text-decoration: underline; }
   /* intro + profile rows: label + word on one line, full-width bar below */
   #finder .as-prow { display: grid; grid-template-columns: 1fr auto; gap: 0.3rem 0.6rem; align-items: center; padding: 0.42rem 0; }
   #finder .as-prow .as-bar { grid-column: 1 / -1; }

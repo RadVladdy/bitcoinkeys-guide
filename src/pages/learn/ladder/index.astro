@@ -5,7 +5,7 @@ import LessonEyebrow from '../../../components/LessonEyebrow.astro';
 import Diagram from '../../../components/Diagram.astro';
 import RuleBand from '../../../components/RuleBand.astro';
 import { ladder } from '../../../data/ladder.js';
-import { questionCountWord } from '../../../data/quiz.js';
+import { finderPromise } from '../../../data/quiz.js';
 
 // GAINED 2026-07-29: the "how much money at which temperature" material from the
 // retired hot-vs-cold page. Deciding what lives hot and what lives cold is a SETUP
@@ -142,7 +142,7 @@ const rungs = ladder;
 
     <div class="callout">
       <span class="label">Which rung is yours?</span>
-      <p>This page teaches the ladder; it doesn’t place you on it. The <a href="/find-your-setup">2-minute setup finder</a> does that — {questionCountWord} plain questions, and it names the rung that fits what you’re actually protecting against. It errs toward the <em>lowest</em> rung that covers you, because that’s the rule this whole ladder is built on.</p>
+      <p>This page teaches the ladder; it doesn’t place you on it. The <a href="/find-your-setup">setup finder</a> does that — {finderPromise}, and it names the rung that fits what you’re actually protecting against. It errs toward the <em>lowest</em> rung that covers you, because that’s the rule this whole ladder is built on.</p>
     </div>
     <div class="cta-row">
       <a href="/find-your-setup" class="btn btn-primary">Find my rung <span class="arw">→</span></a>

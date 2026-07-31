@@ -1,7 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import { levels, lessonCount } from '../data/curriculum.js';
-import { questionCountWord } from '../data/quiz.js';
+import { finderPromise } from '../data/quiz.js';
 import { glossary } from '../data/glossary.js';
 
 // RESTRUCTURED 2026-07-28 (twice). First: this page stopped being an eight-step
@@ -78,7 +78,7 @@ const termCount = glossary.length;
 
     <div class="handoff">
       <p class="ho-k mono">When you’re ready to build it</p>
-      <p>The reading is the hard part; the doing is a checklist. When this all makes sense — or if you’d rather see where you’d land first — finding your setup takes {questionCountWord} plain questions and names the one that fits you, then turns it into a step-by-step checklist. <strong>It never asks how much Bitcoin you hold</strong>, and it runs entirely in your browser.</p>
+      <p>The reading is the hard part; the doing is a checklist. When this all makes sense — or if you’d rather see where you’d land first — finding your setup is {finderPromise} — it names the one that fits you, then turns it into a step-by-step checklist. <strong>It never asks how much Bitcoin you hold</strong>, and it runs entirely in your browser.</p>
       <div class="cta-row">
         <a href="/find-your-setup" class="btn btn-primary">Find your setup <span class="arw">→</span></a>
         {/* /learn/rules, not /learn/bitcoin-keys — the syllabus above lists the

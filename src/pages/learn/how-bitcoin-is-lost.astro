@@ -2,7 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import LessonNav from '../../components/LessonNav.astro';
 import LessonEyebrow from '../../components/LessonEyebrow.astro';
-import { questionCountWord } from '../../data/quiz.js';
+import { finderPromise } from '../../data/quiz.js';
 import { numberWord } from '../../data/numbers.js';
 import RuleBand from '../../components/RuleBand.astro';
 
@@ -203,7 +203,8 @@ const buckets = [
     <h2>Now — which of these do <em>you</em> most need to defend?</h2>
     <p>
       You don’t need to defend against all {numberWord(buckets.length)} equally. The right setup is the simplest one that
-      covers <em>your</em> real risks. Answer {questionCountWord} plain questions and we’ll point you to it.
+      covers <em>your</em> real risks. It’s {finderPromise} — starting from the same base rates this
+      lesson just taught — and we’ll point you to it.
     </p>
     <p class="cta-row">
       <a class="btn" href="/find-your-setup">Find your setup →</a>

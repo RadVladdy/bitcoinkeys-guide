@@ -1,4 +1,14 @@
 // The setup-tier quiz — the hero interactive feature.
+//
+// STATUS (2026-07-31, Phase C of the risk-assessment redesign): this file is
+// legacy-but-load-bearing. The ranked-worries question is GONE from `questions`
+// (the finder's risk assessment replaced it — see finder.js prompts/scores),
+// but recommend() below still builds every result card's STRUCTURE: finder.js
+// recommendV2() calls it with a synthesized answer set (worry included) to get
+// the fork paths, device pairs, and journey framing. Do NOT delete or rename
+// this file; retiring it is a later refactor, done together with folding the
+// card builders into finder.js — not before.
+//
 // PRIVACY BY DESIGN: we never ask how much Bitcoin you hold. The driver is the
 // *consequence* of loss + threat model, not any amount — safer (nothing an
 // observer could use) and more correct (the ladder was always about threat
@@ -50,24 +60,13 @@ export const questions = [
       { value: 'heirs',   label: 'Yes — my heirs / family (I want an estate plan)' },
     ],
   },
-  {
-    id: 'worry',
-    type: 'rank',
-    q: 'What worries you most? Rank them — tap in order, biggest worry first.',
-    help: 'This shapes the setup more than anything else. Your top worry drives the recommendation; your second shapes the step-up option.',
-    // Ordered by WHO the reader is afraid of: me → a thief → a company → someone
-    // after me specifically → not sure. `exchange` was added 2026-07-30: a reader
-    // whose Bitcoin is still on an exchange had no honest answer here, and that
-    // fear is rule 02 and a whole lesson of this guide. They were picking
-    // 'self-loss', which means something else, or 'unsure'.
-    options: [
-      { value: 'self-loss', label: 'Losing access myself — forgetting something, losing a backup' },
-      { value: 'theft',     label: 'Someone stealing it — a remote hack, or a thief finding my backup' },
-      { value: 'exchange',  label: 'A company losing it — my exchange going bust, freezing my account, or getting hacked' },
-      { value: 'targeted',  label: 'Being personally targeted or coerced' },
-      { value: 'unsure',    label: "Honestly, I'm not sure" },
-    ],
-  },
+  // The ranked-worries question was REMOVED 2026-07-31: the risk assessment
+  // (finder.js prompts → four scored concerns) sits where it used to be, between
+  // stakes and recovery. Its 'worry' ANSWER values (self-loss / theft / exchange /
+  // targeted / unsure) live on: saved plans still carry them, shimScores() maps
+  // them to a score vector, and recommend() below still reads them from the
+  // synthesized answers recommendV2() sends. Nothing indexes `questions` by
+  // position — every consumer looks up by id.
   {
     id: 'tech',
     type: 'single',
@@ -93,17 +92,29 @@ export const questions = [
 ];
 
 /**
- * How many questions the quiz asks, and the same figure as an English word, so
- * page copy ("Six plain questions") derives instead of being typed. Invariant #10:
+ * How many questions the finder asks, and the same figure as an English word, so
+ * page copy ("Five plain questions") derives instead of being typed. Invariant #10:
  * a typed count is a bug even when it's right today — and this one was typed on
  * eight surfaces (home ×2, /quiz ×2, /start, /checklist, /learn, /learn/ladder,
  * /404, /my-plan), every one of which would have gone stale on a seventh question.
  * The optional owned-wallets step is deliberately NOT counted: it's an interstitial
  * between Q1 and Q2, shown conditionally, and the copy promises plain questions.
+ * The risk assessment isn't counted either — it is not a question, and the pages
+ * that promise it use finderPromise below, which names it separately.
  */
 export const questionCount = questions.length;
 export const questionCountWord = numberWord(questionCount);
 export const questionCountWordCap = numberWordCap(questionCount);
+
+/**
+ * THE one phrase every surface uses to promise what the finder is — built from
+ * the live count, never typed. When "six plain questions" became five (the
+ * worry question retired into the risk assessment, 2026-07-31), eight pages
+ * were each saying it their own way; now they all say this, and a sixth
+ * question or a renamed assessment is a one-line change here.
+ */
+export const finderPromise = `${questionCountWord} plain questions and a short risk assessment`;
+export const finderPromiseCap = `${questionCountWordCap} plain questions and a short risk assessment`;
 
 // Bitcoin-only collaborative-custody services, derived LIVE from custodians.js
 // (the /collaborative page's single source of truth) so the quiz and the

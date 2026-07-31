@@ -193,7 +193,7 @@ export function clearLocal() {
  *                    ├──→  PLAN SELECTION ──→ checklist ticks
  *
  * Answers are kept so the common case — "redo my setup choice without re-answering
- * six questions" — is possible at all. Ticks go with the selection, because a tick
+ * everything" — is possible at all. Ticks go with the selection, because a tick
  * against a step that no longer applies is worse than no tick.
  */
 export function clearPlanSelection() {

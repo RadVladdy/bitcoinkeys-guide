@@ -45,9 +45,12 @@ export const navGroups = [
   {
     title: 'Hardware & services',
     // The reference shelf you dip into once the setup finder has told you what you need.
+    // /how-we-weigh-risk sits beside /standard on purpose: they are the same genre —
+    // the published "how we decide" pages — one for devices, one for the finder.
     links: [
       { href: '/wallets', label: 'Hardware wallets' },
       { href: '/standard', label: 'How we rate them' },
+      { href: '/how-we-weigh-risk', label: 'How we weigh risk' },
       { href: '/metal-backups', label: 'Metal backups' },
       { href: '/collaborative', label: 'Collaborative custody' },
     ],

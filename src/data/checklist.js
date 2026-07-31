@@ -197,6 +197,47 @@ export function itemApplies(item, ctx) {
   return true;
 }
 
+// ── Risk-assessment emphasis (Phase C of the finder redesign, 2026-07-31) ───
+// When a saved plan carries a risk assessment (finder.js scores — or a legacy
+// ranked-worries answer shimmed into one) and a concern lands ELEVATED or HIGH,
+// /checklist tags that concern's steps with a "matters extra for you" chip and
+// one sentence of why. EMPHASIS ONLY, NEVER ORDER: the step order above is
+// safety-critical (test amount → backup → prove recovery → only then fund) and
+// was corrected 2026-07-31 — personalization must not move a single item.
+// Steps that don't apply to the plan's setup (e.g. distribute-keys on a
+// single-sig plan) are already hidden by itemApplies() and get no chip.
+// {word} interpolates the visitor's own level (elevated / high) — the same
+// word scale the finder uses, never a number.
+export const concernEmphasis = {
+  'self-loss': {
+    steps: ['back-up-seed', 'prove-recovery', 'retest-backup', 'test-receive'],
+    why: 'Locking yourself out is {word} in your risk picture — this step is exactly what answers it.',
+  },
+  physical: {
+    steps: ['low-profile', 'confirm-locations', 'distribute-keys'],
+    why: 'Targeted theft is {word} in your risk picture — this step is one of the few that actually lowers it.',
+  },
+  remote: {
+    steps: ['verify-address', 'install-app', 'daily-safety'],
+    why: 'Scams and remote theft are {word} in your risk picture — this habit is what stops them.',
+  },
+  custodial: {
+    steps: ['test-send'],
+    why: 'Company failure is {word} in your risk picture, and this move is the whole answer — don’t stall here.',
+  },
+};
+
+// Fail the build, not the reader: every emphasized step id must exist. A typo
+// here would otherwise just silently never chip anything.
+{
+  const ids = new Set(checklistItems.map((it) => it.id));
+  for (const [concern, em] of Object.entries(concernEmphasis)) {
+    for (const s of em.steps) {
+      if (!ids.has(s)) throw new Error(`checklist.js: concernEmphasis["${concern}"] names unknown step id "${s}"`);
+    }
+  }
+}
+
 /** Flat { id: title } map for resolving saved checklist keys to labels. */
 export const checklistLabels = Object.fromEntries(checklistItems.map((it) => [it.id, it.t]));
 

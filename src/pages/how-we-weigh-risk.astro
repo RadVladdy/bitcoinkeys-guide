@@ -1,0 +1,211 @@
+---
+import Base from '../layouts/Base.astro';
+import { CONCERNS, defaultsFor, HALF_BAND, prompts } from '../data/finder.js';
+
+// The methodology page behind the setup finder's risk assessment (Phase C of
+// the redesign, design § 7). Everything numeric here DERIVES from finder.js —
+// the defaults, the bands, the prompt count — so this page and the engine can
+// never disagree. The prose carries what can't derive: where the anchors come
+// from, what we refuse to ask, and where we're honestly uncertain.
+//
+// URL: /how-we-weigh-risk — the same "how we decide" family as /standard
+// ("How we decide what's worth trusting"), novice-walkable, verb-first.
+
+// The mid band is the published default — the typical holder the finder's
+// ghost bars show. Small/large shifts are described in words below.
+const d = defaultsFor('meaningful');
+const band = (key) => `${Math.max(d[key] - HALF_BAND[key], 0)}–${d[key] + HALF_BAND[key]}`;
+const promptCount = prompts.length;
+
+// Where each default comes from — the anchor evidence, one block per concern,
+// in the order the bars are shown. Sources are the primary documents, linked.
+const EVIDENCE = [
+  {
+    key: 'remote',
+    heading: 'Scams and remote theft — the largest measured flow',
+    body: 'The biggest bucket, because it is the biggest measured number in the field. The FBI’s Internet Crime Complaint Center logged $11.4 billion in reported US cryptocurrency-fraud losses across 181,565 complaints in its latest annual report, and Chainalysis’s blockchain-side measurement puts global crypto scam revenue around $17 billion a year. Both are counts of money that actually moved — not projections — and both are understatements, since most victims never report.',
+    sources: [
+      { label: 'FBI IC3 annual report', href: 'https://www.ic3.gov/AnnualReport/Reports/2025_IC3Report.pdf' },
+      { label: 'Chainalysis crypto crime reporting', href: 'https://www.chainalysis.com/blog/crypto-scams-2026/' },
+    ],
+  },
+  {
+    key: 'self-loss',
+    heading: 'Locking yourself out — the largest all-time stock',
+    body: 'Estimates of Bitcoin lost forever cluster between 11% and 23% of everything ever mined — Chainalysis’s classic dormancy study put it at 17–23% of then-supply; Ledger’s 2025 restatement lands at 11–18%. One honest footnote: River’s deliberately conservative 2025 estimate (~1.57 million BTC, about 7.5%) sits below that range — and 98% of the losses River counts happened before 2020, which is real evidence that modern wallets and steel backups have cut the flow. On the people side, surveys put a lockout — a forgotten password, a lost backup — in the history of roughly 35–40% of holders, and the oldest recovery firm succeeds only about a third of the time.',
+    sources: [
+      { label: 'River — what happens to lost Bitcoin (incl. the conservative estimate)', href: 'https://river.com/learn/what-happens-to-lost-bitcoin/' },
+    ],
+  },
+  {
+    key: 'custodial',
+    heading: 'A company failing you — the longest track record',
+    body: 'This is the best-documented failure class in Bitcoin’s history. The foundational academic study of exchange failure, from 2013, already found a 45% failure rate with a median exchange lifetime of 381 days — and the pattern held: of all the exchanges ever launched, roughly six in ten have closed, from Mt. Gox through the 2022 bankruptcies to FTX. Cumulative customer losses run to tens of billions of dollars. It sits third, not first, for one reason: it is the only risk you can take to zero in an afternoon, by withdrawing — which is why the finder’s answer to it is the checklist, not a bigger bar.',
+    sources: [
+      { label: 'Moore & Christin, Financial Cryptography 2013 — exchange-failure study', href: 'https://www.ifca.ai/pub/fc13/78590025.pdf' },
+    ],
+  },
+  {
+    key: 'physical',
+    heading: 'Targeted physical theft — rare, documented, and deliberately over-weighted',
+    body: 'The public registry of physical bitcoin attacks — maintained by Jameson Lopp — documents on the order of 344 incidents worldwide across twelve years, with a sharp rise recently. Against tens of millions of holders that is a baseline on the order of one in a hundred thousand per year, and our default sits above that raw rate on purpose: it is a severity premium, stated openly, because an attack at your door is catastrophic in a way a frozen account is not. The academic study of these attacks (AFT 2024) adds the finding the whole section is built on: victim selection is essentially never random — it starts with someone knowing.',
+    sources: [
+      { label: 'Lopp’s physical-attack registry', href: 'https://github.com/jlopp/physical-bitcoin-attacks' },
+      { label: 'Ordekian et al., “Investigating Wrench Attacks,” AFT 2024', href: 'https://drops.dagstuhl.de/storage/00lipics/lipics-vol316-aft2024/LIPIcs.AFT.2024.24/LIPIcs.AFT.2024.24.pdf' },
+    ],
+  },
+];
+
+// Blurbs keyed for the profile rows (finder.js CONCERNS carries label + blurb).
+const concernByKey = Object.fromEntries(CONCERNS.map((c) => [c.key, c]));
+// Render the bars in evidence order (largest flow first), same data as the finder.
+const PROFILE_ORDER = ['remote', 'self-loss', 'custodial', 'physical'];
+
+// The folk questions the assessment deliberately does NOT ask — each with the
+// one-line evidence reason. Publishing this list is the point: what a
+// methodology refuses to ask is as informative as what it asks.
+const notAsked = [
+  {
+    q: '“Are you experienced and careful?”',
+    why: 'No protective effect shows up in the incident record — the victims include a hardware-wallet company co-founder, and studies find the self-confident click on scams more, not less.',
+  },
+  {
+    q: '“Is your area safe?”',
+    why: 'Unsupported. Documented physical attacks start with someone knowing what you hold, not with the neighborhood — and remote scams have no neighborhood at all.',
+  },
+  {
+    q: '“Are your holdings small?”',
+    why: 'Perceived holdings drive targeting, not real ones — people holding almost nothing have been attacked anyway, and a mass scam costs the attacker nearly nothing per victim. (We never ask amounts anywhere on this site, for the same reason.)',
+  },
+  {
+    q: 'Your age',
+    why: 'The evidence is mixed: age predicts how badly a loss hurts, not reliably whether you’ll be fooled. So the assessment asks about behavior — what you’d actually do — not your birthday.',
+  },
+];
+---
+<Base
+  title="How we weigh risk — the research behind the setup finder · BitcoinKeys.guide"
+  description="The setup finder's risk assessment starts everyone from a published, sourced default: how Bitcoin is actually lost for a typical holder. This page shows the homework — the four concerns, the research bands behind each default, the questions we deliberately don't ask, and where the evidence is honestly uncertain."
+  verified="2026-07-31"
+>
+  <section class="prose">
+    <p class="eyebrow">The finder’s methodology</p>
+    <h1>How we weigh <span class="accent">risk</span></h1>
+    <p class="lead">The <a href="/find-your-setup">setup finder</a> walks you through a short risk assessment: four concerns, each starting at a research-based default and moved by facts about your situation. This page is the homework behind it — <strong>where every default comes from, what shifts it, what we refuse to ask, and where we’re honestly uncertain</strong>. No other part of the recommendation is hand-waved either, but this is the part worth publishing.</p>
+  </section>
+
+  <section class="prose">
+    <h2>The standard picture — the typical holder’s four risks</h2>
+    <p>Each bar is a concern’s <strong>share of expected loss</strong> for a typical holder — someone with meaningful but not life-changing money at stake, mixed custody, no public profile. Not a probability, a share: “of the ways this is likely to go wrong, how much of the danger lives here.” Beside each bar is the research band we publish with it — the honest range, not just the point.</p>
+  </section>
+
+  <section>
+    <div class="profile">
+      {PROFILE_ORDER.map((key) => (
+        <div class="p-row">
+          <div class="p-head">
+            <span class="p-label">{concernByKey[key].label}</span>
+            <span class="p-band mono">band {band(key)}</span>
+          </div>
+          <div class="p-bar" aria-hidden="true"><span class="p-fill" style={`width:${Math.max(d[key], 1.5)}%`}></span></div>
+          <p class="p-blurb">{concernByKey[key].blurb}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section class="prose">
+    <h2>Where each default comes from</h2>
+    <p>Four anchors, four very different kinds of evidence — a reported-loss flow, a lost-coin stock, a corporate failure history, and an incident registry. That mismatch is exactly why the bands above are wide (more on that below).</p>
+  </section>
+
+  <section>
+    <div class="evcards">
+      {EVIDENCE.map((e) => (
+        <article class="evcard">
+          <h3>{e.heading}</h3>
+          <p>{e.body}</p>
+          <p class="ev-src mono">Sources: {e.sources.map((s, i) => (
+            <Fragment>{i > 0 && ' · '}<a href={s.href} target="_blank" rel="noopener noreferrer">{s.label} ↗</a></Fragment>
+          ))}</p>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  <section class="prose">
+    <h2>What moves the bars</h2>
+    <p><strong>Your stakes shift the starting point.</strong> The finder asks how much losing this Bitcoin would hurt — never how much it is. If losing it wouldn’t change your life, the company-failure share starts larger (small holders are the ones most likely to still be entirely on an exchange) and targeted physical theft starts near nothing. If losing it would be devastating, targeted theft starts meaningfully higher and company failure lower — big holders are mostly off exchanges already, and perceived worth is what attracts targeting.</p>
+    <p><strong>Then your situation moves each bar individually.</strong> The assessment is {promptCount} plain yes/no statements — “true of me?” — and every single one carries its evidence in the same breath, so you can see why checking it moves the bar. Checking everything in a section pushes that bar high, but never to the top of the scale: total certainty about the future is not something this page gets to claim, and neither does the bar.</p>
+
+    <h2>Low, typical, elevated, high — and why there are no numbers</h2>
+    <p>Your result is always one of four words per concern. <strong>Typical</strong> means you sit inside the research band above — you are the base rate. <strong>Low</strong> means below it, <strong>elevated</strong> meaningfully above it, <strong>high</strong> well above it. That’s the whole scale.</p>
+    <p>We don’t show you a score, and that is a decision, not a limitation. The sources behind these defaults measure different things, over different periods, with different denominators — a “your remote-theft risk is 43.7” would be <strong>false precision</strong>, dressing a judgment call up as a measurement. The words carry exactly as much confidence as the evidence does. No more.</p>
+  </section>
+
+  <section class="prose">
+    <h2>The questions we deliberately don’t ask</h2>
+    <p>Most risk quizzes ask some version of these. We looked for the evidence and didn’t find it — so the assessment doesn’t ask, and this list stays published as part of the method.</p>
+  </section>
+
+  <section>
+    <ul class="notasked">
+      {notAsked.map((n) => (
+        <li class="na">
+          <span class="na-q">{n.q}</span>
+          <p class="na-why">{n.why}</p>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="prose">
+    <div class="callout warn">
+      <span class="label">Where we’re uncertain — on purpose, out loud</span>
+      <p>Honesty about the seams: <strong>dormant coins aren’t proof of loss</strong> — the lost-coin estimates rest on heuristics about coins that haven’t moved, and some of those owners are just patient. <strong>Recovery firms publish no case-type breakdowns</strong>, so “forgotten passphrases dominate their caseload” is a qualitative claim from the firms, not a percentage. <strong>The physical-attack registry counts only media-reported cases</strong> — in one academic sample, two of eleven interviewed victims had reported at all, so the true count is plausibly several times higher. And <strong>no academic study splits expected loss across these four buckets</strong> — we composed it from flow data, stock estimates, and an incident registry with different denominators. That is exactly why the bands are wide, and why the finder speaks in words instead of decimals.</p>
+    </div>
+    <p class="fresh">The headline statistics behind these defaults — the FBI’s IC3 annual report, Chainalysis’s crime reporting, and the physical-attack registry — are on our freshness watch and re-checked on a schedule, like the prices and claims everywhere else on this guide. The verified date at the bottom of this page is real, and it moves when the evidence does.</p>
+  </section>
+
+  <section class="prose">
+    <div class="callout safe">
+      <span class="label">Now put it to work</span>
+      <p>The defaults are everyone’s picture; the finder’s job is to find out where <em>yours</em> differs — <a href="/find-your-setup">walk your own risk assessment</a>. And if you’d rather read the base rates as a lesson first, they’re the same ones taught in <a href="/learn/how-bitcoin-is-lost">how people actually lose Bitcoin</a>.</p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  /* The standard-picture rows — the finder's bar idiom, server-rendered. */
+  .profile { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface);
+    padding: 1.1rem 1.3rem; margin-top: 1.2rem; }
+  .p-row { padding: 0.85rem 0; border-top: 1px solid var(--line-soft); }
+  .p-row:first-child { border-top: 0; padding-top: 0.2rem; }
+  .p-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.6rem; margin-bottom: 0.5rem; }
+  .p-label { color: var(--text); font-weight: 650; font-size: 0.98rem; }
+  .p-band { color: var(--accent); font-size: 0.74rem; letter-spacing: 0.05em; white-space: nowrap; }
+  .p-bar { position: relative; height: 12px; border-radius: 999px; background: var(--line-soft); overflow: hidden; }
+  .p-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; background: var(--accent); opacity: 0.85; }
+  .p-blurb { margin: 0.55rem 0 0; color: var(--muted); font-size: 0.88rem; line-height: 1.55; }
+
+  /* Evidence blocks — one per concern, source links inline. */
+  .evcards { display: flex; flex-direction: column; gap: 0.9rem; margin-top: 1.2rem; }
+  .evcard { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: var(--radius);
+    background: var(--surface); padding: 1.15rem 1.35rem; }
+  .evcard h3 { margin: 0 0 0.5rem; color: var(--text); font-size: 1.05rem; }
+  .evcard p { margin: 0 0 0.6rem; color: var(--muted); font-size: 0.94rem; line-height: 1.6; }
+  .ev-src { color: var(--faint); font-size: 0.78rem; letter-spacing: 0.02em; }
+  .ev-src a { color: var(--accent); text-decoration: none; }
+  .ev-src a:hover { text-decoration: underline; }
+
+  /* The not-asked list. */
+  .notasked { list-style: none; margin: 1.1rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.65rem; }
+  .na { border: 1px solid var(--line); border-left: 3px solid var(--faint); border-radius: var(--radius);
+    background: var(--surface); padding: 0.95rem 1.2rem; }
+  .na-q { display: block; color: var(--text); font-weight: 650; margin-bottom: 0.25rem; }
+  .na-q::after { content: " — not asked"; color: var(--faint); font-weight: 400; font-size: 0.82rem;
+    font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; }
+  .na-why { margin: 0; color: var(--muted); font-size: 0.92rem; line-height: 1.55; }
+
+  .fresh { color: var(--muted); font-size: 0.92rem; }
+</style>

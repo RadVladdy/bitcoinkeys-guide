@@ -49,11 +49,12 @@ import WhereAmI from '../components/WhereAmI.astro';
     encryptPlanToEnvelope, decryptEnvelope, downloadEncryptedPlan, isEncryptedEnvelope,
   } from '../data/plan.js';
   import { getRung, rungAnchor } from '../data/ladder.js';
+  import { CONCERNS, defaultsFor, scoreWord, scoreFromPrompts, shimScores } from '../data/finder.js';
   import { keysForSetup, assessDevices, ownedName, deviceBySlug } from '../data/wallets.js';
   import { custodianName, custodianBySlug } from '../data/custodians.js';
   import { mountOwnedPicker } from '../data/owned-picker.js';
   import { checklistLabels, checklistCount, checklistItems, itemApplies } from '../data/checklist.js';
-  import { questionCountWord } from '../data/quiz.js';
+  import { finderPromise } from '../data/quiz.js';
   import { getSession, setSession, clearSession } from '../data/nostr-session.js';
   import { confirmDialog, promptPassword, downloadDialog } from '../data/ui-dialog.js';
 
@@ -394,6 +395,56 @@ import WhereAmI from '../components/WhereAmI.astro';
       </div>`;
   }
 
+  // ── The risk-picture strip — the profile the recommendation came from ──────
+  // Rendered only when the saved answers carry an assessment: explicit scores
+  // (2026-07-31+ saves; the review screen's word, hand adjustments and all),
+  // checked prompts (derived exactly as the finder derives them), or a legacy
+  // ranked worries[] shimmed into an ESTIMATED picture and labelled as one —
+  // the same three-way read /find-your-setup and /checklist use. No assessment
+  // in the plan → the strip doesn't exist. Words only, never numbers.
+  function riskProfile(plan) {
+    const a = plan && plan.quiz && plan.quiz.answers;
+    if (!a || typeof a !== 'object') return null;
+    const stakes = a.stakes || 'meaningful';
+    let scores = null;
+    let estimated = false;
+    if (a.scores && typeof a.scores === 'object') scores = a.scores;
+    else if (Array.isArray(a.checkedPrompts)) {
+      scores = scoreFromPrompts(a.checkedPrompts, stakes, Array.isArray(a.skippedSections) ? a.skippedSections : []);
+    } else if (Array.isArray(a.worry) && a.worry.length) {
+      scores = shimScores(a);
+      estimated = true;
+    }
+    if (!scores) return null;
+    return { scores, stakes, estimated, defaults: defaultsFor(stakes) };
+  }
+  const barW = (n) => Math.max(n, 1.5); // tiny floor so "low" still draws
+  function riskStripHtml(plan) {
+    const rp = riskProfile(plan);
+    if (!rp) return '';
+    const rows = CONCERNS.map((c) => {
+      const s = typeof rp.scores[c.key] === 'number' ? rp.scores[c.key] : rp.defaults[c.key];
+      const w = scoreWord(s, c.key, rp.stakes);
+      return `<div class="pr-row">
+        <span class="pr-label">${esc(c.label)}</span>
+        <span class="pr-word w-${w}">${w}</span>
+        <div class="pr-bar" aria-hidden="true">
+          <span class="pr-ghost" style="width:${barW(rp.defaults[c.key])}%"></span>
+          <span class="pr-fill w-${w}" style="width:${barW(s)}%"></span>
+        </div>
+      </div>`;
+    }).join('');
+    const note = rp.estimated
+      ? `<p class="pr-note">Estimated from your earlier answers — the finder now walks these one risk at a time.</p>`
+      : '';
+    return `<div class="pr-strip">
+      <span class="p-k mono">Your risk picture — you against the typical holder</span>
+      ${rows}
+      ${note}
+      <a class="pr-link" href="/find-your-setup">Re-walk your risks →</a>
+    </div>`;
+  }
+
   // The saved-plan card now leads with the roadmap (the setup + its wallet slots) and
   // the status card carries the ladder position — so rowsHtml is just the checklist.
   function rowsHtml(plan) {
@@ -473,7 +524,7 @@ import WhereAmI from '../components/WhereAmI.astro';
       el.innerHTML = `
         <div class="p-empty">
           <p class="p-empty-h">Nothing saved yet — and that's the default.</p>
-          <p>The setup finder starts your plan: it places you on the ladder and names the setup that fits. You build the plan out here — which hardware fills it — and that becomes your checklist. Two minutes, ${questionCountWord} questions, and it never asks how much you hold.</p>
+          <p>The setup finder starts your plan: it places you on the ladder and names the setup that fits. You build the plan out here — which hardware fills it — and that becomes your checklist. It’s ${finderPromise}, and it never asks how much you hold.</p>
           <div class="p-empty-links">
             <a class="btn-primary" href="/find-your-setup">Find your setup →</a>
             <a class="btn-ghost" href="/start">I'd rather learn it first</a>
@@ -495,6 +546,7 @@ import WhereAmI from '../components/WhereAmI.astro';
           ${plan.updated ? `<span class="p-updated mono">Saved ${esc(fmtDate(plan.updated))}</span>` : ''}
         </div>
         <div id="ps-road-mount">${roadmapHtml(plan)}</div>
+        ${riskStripHtml(plan)}
         <div id="ps-rows-mount">${rowsHtml(plan)}</div>
 
         <div class="p-notes">
@@ -1019,6 +1071,28 @@ import WhereAmI from '../components/WhereAmI.astro';
   #plan .p-mini-note { margin: 0.3rem 0 0; color: var(--muted); font-size: 0.9rem; }
   #plan .p-cta { justify-self: start; color: var(--accent); text-decoration: none; font-size: 0.85rem; }
   #plan .p-cta:hover { text-decoration: underline; }
+
+  /* the risk-picture strip — the finder's words-and-bars idiom, plan-sized */
+  #plan .pr-strip { border-top: 1px solid var(--line-soft); margin-top: 1.1rem; padding-top: 1.1rem; }
+  #plan .pr-strip .p-k { margin-bottom: 0.5rem; }
+  #plan .pr-row { display: grid; grid-template-columns: 1fr auto; gap: 0.25rem 0.6rem; align-items: center; padding: 0.35rem 0; }
+  #plan .pr-label { color: var(--text); font-size: 0.9rem; font-weight: 600; line-height: 1.3; }
+  #plan .pr-bar { grid-column: 1 / -1; position: relative; height: 10px; border-radius: 999px; background: var(--line-soft); overflow: hidden; }
+  #plan .pr-ghost { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; background: var(--faint); opacity: 0.3; }
+  #plan .pr-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; }
+  #plan .pr-fill.w-low { background: var(--safe); }
+  #plan .pr-fill.w-typical { background: var(--accent); }
+  #plan .pr-fill.w-elevated { background: var(--warn); }
+  #plan .pr-fill.w-high { background: var(--danger); }
+  #plan .pr-word { font-family: var(--mono); text-transform: uppercase; font-size: 0.68rem; letter-spacing: 0.08em; font-weight: 600;
+    padding: 0.14rem 0.55rem; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+  #plan .pr-word.w-low { color: var(--safe); }
+  #plan .pr-word.w-typical { color: var(--muted); }
+  #plan .pr-word.w-elevated { color: var(--warn); }
+  #plan .pr-word.w-high { color: var(--danger); }
+  #plan .pr-note { color: var(--muted); font-size: 0.85rem; margin: 0.45rem 0 0; }
+  #plan .pr-link { display: inline-block; margin-top: 0.55rem; color: var(--accent); text-decoration: none; font-size: 0.85rem; }
+  #plan .pr-link:hover { text-decoration: underline; }
 
   #plan .p-notes { border-top: 1px solid var(--line-soft); padding-top: 1.1rem; margin-top: 1.1rem; }
   #plan .p-notes textarea { width: 100%; margin-top: 0.4rem; font-family: var(--sans); font-size: 0.95rem; color: var(--text);
