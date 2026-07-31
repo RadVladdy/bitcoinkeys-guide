@@ -179,9 +179,9 @@ export const checklistLabels = Object.fromEntries(checklistItems.map((it) => [it
 
 /**
  * A step may name the rule it IS — the checklist is the course's own advice in
- * doing form, and until 2026-07-30 neither surface said so. Cited by stable KEY,
- * never by number (invariant #8), and validated here so a bad key fails the build
- * rather than rendering a dead chip — the same contract <RuleRef> enforces in prose.
+ * doing form. Cited by stable KEY, never by number (invariant #8), and validated
+ * here so a bad key fails the build rather than rendering a dead chip — the same
+ * contract <RuleRef> enforces in prose.
  */
 for (const it of checklistItems) {
   if (it.rule && !ruleByKey(it.rule)) {
