@@ -328,11 +328,6 @@ import { questionCountWordCap } from '../data/quiz.js';
       </div>
       ${secondary ? `<div class="r-card secondary">
         <p class="r-tier mono muted">2nd choice · where you'd go next</p>
-        {/* The heading is the SETUP, not the action. It used to read "Add a
-            passphrase (the 25th word)" — an instruction where the first choice gave
-            a setup name, so the two cards were not comparable and a saved step-up
-            was called "Plan: Add a passphrase". The action line still appears, under
-            it, where it belongs. (the owner, 2026-07-30.) */}
         <h2 class="r-headline sm">${esc(secondary.rungLabel)}</h2>
         <p class="r-step-act mono">${esc(secondary.headline)}</p>
         <p class="r-why">${esc(secondary.when)}</p>
