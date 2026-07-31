@@ -25,20 +25,21 @@ const tableGroups = [
   <section class="prose">
     <p class="eyebrow">Choose a device</p>
     <h1>Bitcoin hardware wallets, compared <span class="accent">honestly</span></h1>
-    <p class="lead">There’s no one “best” hardware wallet — but there is a bar, and not every device clears it. We rate all of them against a <a href="/standard">published standard</a>, then help you pick on fit within your tier. Because we sell no device and take no affiliate money, we can say so plainly.</p>
+    {/* The lead and the tier callout used to make the SAME claim, stacked: both said
+        "we rate every device against a published standard" and both linked /standard.
+        The callout added the counts, the lead added the no-affiliate line, and a
+        saturated amber box competed with the page's own heading for a reader who had
+        not yet seen a single device. Merged 2026-07-30 (the owner: "busy and confusing").
+        Every number still derives. */}
+    <p class="lead">There’s no one “best” hardware wallet — but there is a bar, and not every device clears it. We rate all {wallets.length} against a published, Bitcoin-only standard: <strong class="ti-cold">{coldWallets.length} built for cold storage</strong> (what we’d trust with long-term savings), <strong class="ti-spend">{spendingWallets.length} built for spending</strong> (secure, but suited to daily use or smaller balances), and <strong class="ti-dq">{disqualifiedWallets.length} that {disqualifiedWallets.length === 1 ? 'doesn’t' : 'don’t'} clear our bar</strong>. Every one is covered in full, with the reasoning — and because we sell no device and take no affiliate money, we can say so plainly. <a href="/standard">Read the standard →</a></p>
     {/* "The right mental model" callout removed 2026-07-30 (the owner). It taught what a
         wallet is versus what the device is — 101 material, and /learn/bitcoin-keys now
         teaches it properly after the 7/30 rewrite (the one-way key chain, then the
         wallet as both questions, then why the device is a signing device). Repeating
         it here pushed the filter and the comparison table — the reason anyone opens
         this page — a long way down. This is a tool page; the course does the teaching. */}
-    <div class="callout warn">
-      <span class="label">We rate every device in {tierCountWord} tiers</span>
-      <p>Fit matters — but so does what a device is <em>for</em>. We sort all {wallets.length} into {tierCountWord} tiers against a published, Bitcoin-only standard: <strong class="ti-cold">{coldWallets.length} built for cold storage</strong> (what we’d trust with long-term savings), <strong class="ti-spend">{spendingWallets.length} built for spending</strong> (secure, but suited to daily use or smaller balances), and <strong class="ti-dq">{disqualifiedWallets.length} that {disqualifiedWallets.length === 1 ? 'doesn’t' : 'don’t'} clear our bar</strong>. Every one is covered in full, with the reasoning. <a href="/standard">Read the standard →</a></p>
-    </div>
   </section>
 
-  <div id="plan-nudge" class="plan-nudge" hidden></div>
 
   <!-- ── View tabs: filter/browse ⇄ comparison table (JS progressive enhancement) ── -->
   <div class="wtabs" id="wtabs" role="tablist" aria-label="Device views" hidden>
@@ -51,7 +52,7 @@ const tableGroups = [
     <div class="prose">
       <p class="eyebrow">Find your device</p>
       <h2>Narrow it down</h2>
-      <p class="ch-lead">Flip on what matters to you. Every badge is a <strong>fact</strong> about the device, not a ranking — so the list only ever shrinks to what genuinely fits. Already own one? Hit <em>I own this</em> on its card, or <em>Add to my plan</em>, and it flows straight into your <a href="/my-plan">plan and roadmap</a>.</p>
+      <p class="ch-lead">Flip on what matters to you. Every badge is a <strong>fact</strong> about the device, not a ranking — so the list only ever shrinks to what genuinely fits.</p>
       <details class="ch-defs">
         <summary>New to these words? Tap here for plain-English meanings</summary>
         <dl>
@@ -330,20 +331,8 @@ const tableGroups = [
     setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 2600);
   }
 
-  // A small banner making the cross-site tracking visible: what's noted + where it goes.
-  function paintNudge() {
-    const el = document.getElementById('plan-nudge');
-    if (!el) return;
-    const owned = getOwned().length, planned = getPlannedDevices().length, hasPlan = hasPlannedSetup();
-    if (!owned && !planned && !hasPlan) { el.hidden = true; return; }
-    el.hidden = false;
-    el.innerHTML = hasPlan
-      ? `<span>✓ We’re keeping track — the wallets you mark here feed your plan.</span> <a href="/my-plan">View your plan →</a>`
-      : `<span>✓ Noted ${owned} wallet${owned !== 1 ? 's' : ''} you own${planned ? ` + ${planned} in mind` : ''}.</span> <a href="/find-your-setup">Find your setup to turn it into a plan →</a>`;
-  }
 
   function paintPlanControls() {
-    paintNudge();
     const owned = new Set(getOwned());
     const planned = new Set(getPlannedDevices());
     const recommended = new Set(getRecommendedDevices());
@@ -381,7 +370,7 @@ const tableGroups = [
 
 <style>
   /* ── Chooser: static controls (present at build, scoped styling is fine) ── */
-  .chooser { margin-top: 2.4rem; }
+  .chooser { margin-top: 0.6rem; }
   .ch-lead { color: var(--muted); max-width: 46rem; }
   .ch-defs { margin: 0.9rem 0 0; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 0.4rem 1rem; }
   .ch-defs summary { cursor: pointer; font-size: 0.9rem; font-weight: 600; padding: 0.5rem 0; color: var(--accent); }
@@ -541,10 +530,6 @@ const tableGroups = [
   .w-toast.ok { border-color: var(--safe); }
   .w-toast.err { border-color: var(--warn); }
 
-  .plan-nudge { display: flex; flex-wrap: wrap; gap: 0.3rem 0.7rem; align-items: center; margin: 1.4rem 0 0;
-    border: 1px solid var(--safe); background: var(--safe-dim); border-radius: 0.6rem; padding: 0.7rem 1rem; font-size: 0.9rem; color: var(--muted); }
-  .plan-nudge a { color: var(--accent); text-decoration: none; font-weight: 600; }
-  .plan-nudge a:hover { text-decoration: underline; }
 
   /* An author `display:` beats the UA rule for [hidden], so a class that sets one
      renders an EMPTY BOX while the attribute says hidden. #plan-nudge did exactly
@@ -552,5 +537,5 @@ const tableGroups = [
      visitor saw, since the nudge only un-hides once you have a plan. The same trap
      was already guarded for #chooser/#cmp-table in this file; it just was not
      applied to the rest. (the owner spotted the pill, 2026-07-30.) */
-  .plan-nudge[hidden], .wc-plan[hidden], .wtabs[hidden] { display: none !important; }
+  .wc-plan[hidden], .wtabs[hidden] { display: none !important; }
 </style>

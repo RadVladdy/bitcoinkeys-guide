@@ -123,6 +123,11 @@ a:hover { text-decoration-color: var(--accent); }
   display: inline-flex; align-items: center; gap: 0.6rem; margin: 0 0 0.9rem;
 }
 .eyebrow::before { content:""; width: 1.4rem; height: 1px; background: var(--accent); }
+/* An eyebrow belongs TO the heading under it. h2 carries a 2.6rem top margin for
+   separation between sections, which pushed every eyebrow ~125px away from the
+   heading it labels — the section break landed BETWEEN them instead of before
+   them. The pair now moves as one. (Found while de-cluttering /wallets, 2026-07-30.) */
+.eyebrow + h2, .eyebrow + h3 { margin-top: 0.35rem; }
 
 .lead { font-size: clamp(1.1rem, 2.3vw, 1.32rem); line-height: 1.5; color: var(--text); max-width: 46ch; }
 .sub  { color: var(--muted); }
