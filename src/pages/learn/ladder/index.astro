@@ -38,7 +38,7 @@ const rungs = ladder;
 <Base
   title="The wallet configuration ladder · BitcoinKeys.guide"
   description="Every serious Bitcoin self-custody setup fits on one ladder of rising complexity — from single-signature to collaborative multisig. What each rung solves, what it costs you, and how to find the lowest one that covers you."
-  verified="2026-07-30"
+  verified="2026-07-31"
 >
   <section class="prose">
     <LessonEyebrow />
@@ -60,7 +60,8 @@ const rungs = ladder;
     <p class="sub">Read down the last two columns. Every rung buys you the third and charges you the fourth — that trade is the whole ladder.</p>
   </section>
   <section>
-    <div class="tbl-wrap">
+    <p class="scroll-hint">Swipe sideways to see every column →</p>
+    <div class="scroll tbl-wrap">
       <table class="rungtbl">
         <thead>
           <tr>
@@ -86,13 +87,16 @@ const rungs = ladder;
 
   {rungs.map((r) => (
     <section class="prose rung-sec" id={`rung-${r.step}`}>
-      <p class="rung-eyebrow mono">Rung {r.step} of {rungs.length} · {r.tier}</p>
+      <p class="rung-eyebrow mono">Rung {r.step} of {rungs.length}</p>
       <h2>{r.pageName ?? r.name}</h2>
       <p class="lead rung-lead">{r.tagline}</p>
 
       {r.diagram && <Diagram name={r.diagram} />}
 
       <p set:html={r.whatItIs}></p>
+
+      <h3>What it gains you</h3>
+      <ul>{(r.gains ?? []).map((g) => <li set:html={g}></li>)}</ul>
 
       <h3>What it costs you</h3>
       <ul>{(r.costs ?? []).map((c) => <li set:html={c}></li>)}</ul>
@@ -102,6 +106,20 @@ const rungs = ladder;
           <span class="label">{r.keyRisk.label}</span>
           <p set:html={r.keyRisk.body}></p>
         </div>
+      )}
+
+      {r.keyNote && (
+        <div class:list={['callout', r.keyNote.tone ?? '']}>
+          <span class="label">{r.keyNote.label}</span>
+          <p set:html={r.keyNote.body}></p>
+        </div>
+      )}
+
+      {r.also && (
+        <>
+          <h3>{r.also.label}</h3>
+          <p set:html={r.also.body}></p>
+        </>
       )}
 
       <h3>Who should use it</h3>
@@ -138,9 +156,9 @@ const rungs = ladder;
   section { margin-bottom: 0.5rem; }
   .cta-row { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.4rem; }
 
-  /* The at-a-glance table. Scrolls inside itself on narrow screens rather than
-     forcing the page to scroll sideways. */
-  .tbl-wrap { overflow-x: auto; margin: 0 0 0.5rem; }
+  /* The at-a-glance table. The shared .scroll wrapper (global.css) gives it the
+     sideways scroll, edge fade, and sticky header/first-column on phones. */
+  .tbl-wrap { margin: 0 0 0.5rem; }
   .rungtbl { width: 100%; border-collapse: collapse; font-size: 0.9rem; min-width: 44rem; }
   .rungtbl th, .rungtbl td { text-align: left; vertical-align: top; padding: 0.7rem 0.8rem;
     border-bottom: 1px solid var(--line); }
@@ -151,12 +169,15 @@ const rungs = ladder;
   .rungtbl tbody th a:hover { color: var(--accent); }
   .rt-n { color: var(--accent); font-weight: 800; margin-right: 0.3rem; }
   .rt-cost { color: var(--muted); font-size: 0.82rem; white-space: nowrap; }
+  /* On a phone the sticky first column already takes a third of the screen —
+     a nowrap cost string ("$59–$249 (same device)") must not claim another. */
+  @media (max-width: 760px) { .rt-cost { white-space: normal; } }
   .rungtbl tbody tr:last-child th, .rungtbl tbody tr:last-child td { border-bottom: none; }
 
   /* Each rung is a scannable block with its own anchor — the action side deep-links
      to these (checklist steps, quiz "how →" links), so the ids are load-bearing. */
   .rung-sec { scroll-margin-top: 4.5rem; border-top: 2px solid var(--line); padding-top: 1.6rem; margin-top: 2.2rem; }
-  .rung-eyebrow { color: var(--accent); font-size: 0.74rem; letter-spacing: 0.12em;
+  .rung-eyebrow { color: var(--accent); font-size: 0.78rem; letter-spacing: 0.12em;
     text-transform: uppercase; margin: 0 0 0.2rem; }
   .rung-lead { font-size: 1.02rem; margin-top: 0.2rem; }
   .rung-sec h3 { font-size: 0.95rem; margin: 1.3rem 0 0.4rem; }

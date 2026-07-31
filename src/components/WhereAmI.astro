@@ -38,6 +38,7 @@
   const elResult = document.getElementById('wa-result');
 
   let pickedSlug = null;
+  let lastSaveOk = false;
   const answers = {};
 
   function esc(s) { const d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
@@ -77,8 +78,18 @@
     elLocate.querySelectorAll('.wa-opt').forEach((b) => {
       b.addEventListener('click', () => {
         pickedSlug = b.getAttribute('data-slug');
-        saveLadderSlice(pickedSlug);           // auto-save where you are, the moment you pick
-        toast('✓ Saved to your plan');
+        // Auto-save where you are, the moment you pick. saveLadderSlice returns
+        // null when the browser blocked the write — then nothing was saved, and
+        // neither the toast nor the band below may claim otherwise.
+        lastSaveOk = Boolean(saveLadderSlice(pickedSlug));
+        if (lastSaveOk) {
+          toast('✓ Saved to your plan');
+          // Tell the host page (my-plan's status card shows "On the ladder: …")
+          // so it re-renders now rather than on the next reload.
+          window.dispatchEvent(new CustomEvent('bkeys-ladder-change'));
+        } else {
+          toast('Couldn’t save — your browser is blocking storage');
+        }
         renderResult();
       });
     });
@@ -176,11 +187,16 @@
     elResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
-  // Where you are is auto-saved on pick (above) — this band just confirms it.
-  const saveBandHtml = () => `<div class="wa-save" id="wa-save">
-      <span class="wa-saved">✓ Saved to your plan — you're on ${esc(content(pickedSlug).name)}.</span>
-      <a class="wa-saved-link" href="/checklist">See your checklist →</a>
-    </div>`;
+  // Where you are is auto-saved on pick (above) — this band confirms what actually
+  // happened, including the case where the browser refused the write.
+  const saveBandHtml = () => lastSaveOk
+    ? `<div class="wa-save" id="wa-save">
+        <span class="wa-saved">✓ Saved to your plan — you're on ${esc(content(pickedSlug).name)}.</span>
+        <a class="wa-saved-link" href="/checklist">See your checklist →</a>
+      </div>`
+    : `<div class="wa-save" id="wa-save">
+        <span class="wa-save-note">Couldn’t save to your plan — your browser is blocking storage. The verdict above still stands; it just won’t be here when you come back.</span>
+      </div>`;
 
   function toast(msg) {
     const t = document.createElement('div');

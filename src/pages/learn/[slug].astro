@@ -19,6 +19,13 @@ export function getStaticPaths() {
 }
 
 const { h } = Astro.props;
+// Every lesson must carry its own "last verified" date — a silent fallback here
+// once let stale stamps ship, so a missing date now fails the build instead.
+if (!h.verified) throw new Error(`Lesson "${h.slug}" has no verified date in lessons.js — add one before building.`);
+// Section headings get stable slug ids so the desktop "On this page" rail can
+// anchor to them (same slug idiom as the glossary). Nothing else targets these ids.
+const sid = (t) => t.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const toc = h.sections.map((s) => ({ id: sid(s.h), label: s.h }));
 const toneClass = { warn: 'warn', safe: 'safe', danger: 'danger' };
 // accent a keyword/phrase in the title (orange), leaving the rest plain
 const accentize = (title, phrase) => {
@@ -36,10 +43,12 @@ const accentize = (title, phrase) => {
 <Base
   title={`${h.title} · BitcoinKeys.guide`}
   description={h.lead}
-  verified={h.verified ?? '2026-07-15'}
+  verified={h.verified}
 >
   <nav class="crumb"><a href="/learn">The course</a> <span aria-hidden="true">/</span> <span>{h.short ?? h.slug}</span></nav>
 
+  <div class="lgrid">
+  <div class="lmain">
   <section class="prose">
     <LessonEyebrow />
     <h1 set:html={accentize(h.title, h.accent)}></h1>
@@ -53,7 +62,7 @@ const accentize = (title, phrase) => {
 
     {h.sections.map((s) => (
       <>
-        <h2>{s.h}</h2>
+        <h2 id={sid(s.h)}>{s.h}</h2>
         <div set:html={s.body}></div>
       </>
     ))}
@@ -82,6 +91,17 @@ const accentize = (title, phrase) => {
 
 
   <LessonNav />
+  </div>
+
+  {toc.length >= 3 && (
+    <aside class="toc" aria-label="On this page">
+      <p class="toc-k mono">On this page</p>
+      <ol>
+        {toc.map((t) => <li><a href={`#${t.id}`}>{t.label}</a></li>)}
+      </ol>
+    </aside>
+  )}
+  </div>
 </Base>
 
 <style>
@@ -99,4 +119,17 @@ const accentize = (title, phrase) => {
   .checklist li { position: relative; padding-left: 1.9rem; color: var(--text); }
   .checklist li::before { content: "✓"; position: absolute; left: 0; top: 0; color: var(--safe); font-weight: 700; font-family: var(--mono); }
 
+  /* Desktop-only "On this page" rail — fills the empty right canvas on wide
+     screens; phones and tablets never see it. Static anchor list, no scroll-spy. */
+  .toc { display: none; }
+  @media (min-width: 1200px) {
+    .lgrid { display: grid; grid-template-columns: minmax(0, 1fr) 15rem; gap: 3.5rem; align-items: start; }
+    .toc { display: block; position: sticky; top: 5.5rem; max-height: calc(100vh - 7rem);
+      overflow-y: auto; border-left: 1px solid var(--line-soft); padding-left: 1.25rem; }
+    .toc-k { font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--faint); font-weight: 600; margin: 0 0 0.7rem; }
+    .toc ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.55rem; }
+    .toc a { display: block; color: var(--muted); font-size: 0.86rem; line-height: 1.4; text-decoration: none; }
+    .toc a:hover { color: var(--accent); }
+  }
 </style>

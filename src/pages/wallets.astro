@@ -163,7 +163,7 @@ const tableGroups = [
 
   <section id="cmp-table">
     <h2 class="prose">The full comparison</h2>
-    <p class="scroll-hint">Swipe the table sideways to see every column →</p>
+    <p class="scroll-hint">Swipe sideways to see every column →</p>
     <div class="scroll compare">
       <table>
         <thead>
@@ -176,7 +176,7 @@ const tableGroups = [
           {tableGroups.map((grp) => grp.rows.length > 0 && (
             <>
               <tr class:list={['grouprow', `g-${grp.key}`]} id={grp.key === 'cold' ? undefined : `tier-${grp.key}`}>
-                <td colspan={compareCriteria.length + 1}>{grp.title} · {grp.rows.length}</td>
+                <td colspan={compareCriteria.length + 1}><span class="gl">{grp.title} · {grp.rows.length}</span></td>
               </tr>
               {grp.rows.map((w) => (
                 <tr class:list={[grp.key !== 'cold' && 'offrow']}>
@@ -410,12 +410,10 @@ const tableGroups = [
 
 <style>
   .compare table { min-width: 44rem; }
-  .scroll-hint { display: none; }
-  @media (max-width: 760px) {
-    .scroll-hint { display: block; font-family: var(--mono); font-size: 0.76rem; color: var(--muted); margin: 0 0 0.45rem; }
-  }
+  /* .scroll-hint lives in global.css — every wide table shares it. */
   .ctr { text-align: center; }
   .dev { min-width: 11rem; }
+  @media (max-width: 760px) { .dev { min-width: 8.5rem; max-width: 8.5rem; } }
   .dname { display: block; font-weight: 650; }
   .vendor { display: block; font-size: 0.72rem; color: var(--faint); margin-top: 0.1rem; }
   .mark { display: inline-grid; place-items: center; width: 1.7rem; height: 1.7rem; border-radius: 50%; font-weight: 700; font-family: var(--mono); }
@@ -438,7 +436,14 @@ const tableGroups = [
   .grouprow.g-cold td { color: var(--safe); }
   .grouprow.g-spending td { color: var(--warn); }
   .grouprow.g-disqualified td { color: var(--danger); }
-  .offrow { opacity: 0.82; }
+  /* The tier row spans every column, so when the table scrolls sideways its label
+     would ride away — pin the label itself to the visible edge instead. */
+  .grouprow .gl { display: inline-block; position: sticky; left: 0.95rem; }
+  /* Dimmed per-cell rather than per-row: row opacity would let scrolled columns
+     ghost through the sticky (opaque) device cell. */
+  .offrow td { opacity: 0.82; }
+  .offrow td.dev { opacity: 1; }
+  .offrow .dname { color: var(--muted); }
   .grouprow.g-disqualified + .offrow .dname,
   .offrow.dq .dname { text-decoration: none; }
 

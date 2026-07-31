@@ -27,7 +27,7 @@ import RuleBand from '../../components/RuleBand.astro';
 <Base
   title="What Bitcoin keys are, and how they work · BitcoinKeys.guide"
   description="Plain English, from the ground up: why your Bitcoin is really a key, what the seed words are, how a private key becomes a public key and then an address (and why that only runs one way), what a 'wallet' actually is, and how signing proves you hold the key without revealing it."
-  verified="2026-07-29"
+  verified="2026-07-31"
 >
   <section class="prose">
     <LessonEyebrow />
@@ -78,8 +78,7 @@ import RuleBand from '../../components/RuleBand.astro';
       </li>
       <li>
         From it, your wallet computes a <strong>public key</strong>. Nothing downstream of the private key can
-        spend — but “can’t spend” is not the same as “harmless to hand out.” The difference is privacy, and
-        it’s worth a moment.
+        spend — but “can’t spend” is not the same as “harmless to hand out.” More on that in a moment.
       </li>
       <li>
         From that, it computes an <strong><a href="/glossary#address">address</a></strong> — the string you
@@ -94,14 +93,6 @@ import RuleBand from '../../components/RuleBand.astro';
       why nothing you hand out can be turned back into your key.
     </p>
     <p>
-      <strong>Theft and privacy come apart right here, and it’s worth separating them now.</strong> Nothing
-      below the private key can take your coins — that part really is safe. But everything below it is
-      <em>public and permanent</em> once it touches the chain, and whatever can be linked together eventually
-      is. So the honest version isn’t “this is safe to share,” it’s: <strong>share an address when you need to
-      be paid, share as little else as you can, and use a fresh address each time.</strong> The next section has
-      the case that catches people out.
-    </p>
-    <p>
       The easiest picture is a mailbox. The address is the slot in the front — anyone can drop something in.
       The private key is the only thing that opens the back and takes anything out.
     </p>
@@ -109,6 +100,13 @@ import RuleBand from '../../components/RuleBand.astro';
       And you don’t get just one. A single seed grows a whole <em>tree</em> of these chains, which is how your
       wallet can hand out a brand-new address every time you’re paid. That costs nothing and it is the normal
       way to use Bitcoin.
+    </p>
+    <p>
+      Now the promised moment on privacy. Nothing below the private key can take your coins — that part really
+      is safe. But everything below it is <em>public and permanent</em> once it touches the chain, and whatever
+      can be linked together eventually is. So the honest version isn’t “this is safe to share,” it’s:
+      <strong>share an address when you need to be paid, share as little else as you can, and use a fresh
+      address each time.</strong> The next section has the case that catches people out.
     </p>
 
     <Diagram name="keys-mailbox" caption="Your address is the mail slot — anyone can drop coins in, and it gives nothing away about the key. The private key is the only thing that opens the back." />
@@ -126,7 +124,8 @@ import RuleBand from '../../components/RuleBand.astro';
         <strong>Which coins are mine?</strong> That tree of addresses from the section above has a public half,
         called an <strong>extended public key</strong> — an <span class="mono">xpub</span>. Hand it to a piece of
         software and it can work out every address you will ever receive at, watch them, and add up your
-        balance — <em>without being able to spend a single satoshi.</em>
+        balance — <em>without being able to spend a single <a href="/glossary#sats">satoshi</a> (the smallest
+        unit of Bitcoin).</em>
       </li>
       <li>
         <strong>What does it take to move them?</strong> One key signing alone is

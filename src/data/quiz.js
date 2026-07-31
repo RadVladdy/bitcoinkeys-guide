@@ -139,19 +139,11 @@ const DEV = {
   coldcard: { name: 'Coldcard Q',          why: 'the physical keyboard and clear menus make it the friendliest to operate — and it’s buy-once: the same device covers single-sig, a passphrase, and multisig, so you never re-buy as you climb (Bitcoin-only; premium price)' },
   trezor:   { name: 'Trezor Safe 5',       why: 'colour touchscreen and mainstream UX — easy passphrase entry' },
   bitkey:   { name: 'Bitkey',              why: 'phone-integrated and beginner-friendly — a 2-of-3 with recovery built in, so there’s no single seed to lose. A great first setup, especially if you live on your phone — note we rate it <a href="/standard#built-for-spending">built for spending</a>: when your stack becomes real savings, move it to a cold-storage-tier device',
-    // Bitkey's onboarding is app-guided and unique — no manual seed to write down;
-    // recovery is the built-in 2-of-3 (app key + hardware device + Block's server).
-    checklist: [
-      { text: 'Download the Bitkey app and order the Bitkey device (Block ships it to you)', howto: 'choose-a-wallet' },
-      { text: 'Set up your wallet in the app — it pairs with the hardware device (those are your two everyday keys)', howto: 'bitcoin-keys' },
-      // DELIBERATELY NO `howto`. Bitkey's recovery is app-guided and unlike anything
-      // else the guide teaches — there is no seed to write down, so every lesson we
-      // have would be a shoehorn, `back-up-your-seed` most of all. The step carries
-      // its own explanation instead of sending the reader somewhere inapplicable.
-      { text: 'Set up recovery in the app: add a Trusted Contact and/or a cloud backup. This is your third key — with it, any two of the three (app, device, Trusted Contact) can restore you, which is why there’s no seed phrase to write down or lose. Do it now, not later: until it’s done, a lost phone or a lost device is a real problem.' },
-      { text: 'Send a small amount first, confirm it arrives, then move the rest', howto: 'send-bitcoin-safely' },
-      { text: 'Keep the hardware device somewhere safe, separate from your phone', howto: 'privacy' },
-    ],
+    // Bitkey's setup is app-guided and unlike the rest of the ladder (no manual seed
+    // to write down), so the result page renders its device pair as a tappable choice.
+    // This flag used to be an entire unrendered checklist whose only living job was
+    // being truthy; now it says what it does.
+    adaptive: true,
   },
 };
 
@@ -186,28 +178,11 @@ function singleSigDevices(a) {
   return { devices: [DEV.coldcard, DEV.jade], note: 'The Coldcard Q is the friendliest to operate (a real keyboard, simple menus) and buy-once — it climbs to a passphrase or multisig later without new hardware, which is worth the premium if you expect to grow. The Jade is the budget alternative: spend less now, re-buy only if you ever climb.' };
 }
 
-// `howto` is the "how →" link beside a checklist step. It renders as /learn/<value>
-// unless it starts with "/", in which case it's used verbatim (see quiz.astro).
-// EVERY VALUE MUST BE SCOPE-CHECKED, NOT JUST RESOLVED: a wrong-but-real slug
-// links fine and no checker catches it. Re-scoped 2026-07-30 — sixteen targets had
-// gone stale against the 7/29 restructure while every one of them still resolved.
-// The traps, all of them live at the time:
-//   · `bitcoin-keys` had become the catch-all (6 uses) for material that now has
-//     its own lesson — sending, and hot/cold tiering (rule 04 re-homed to /ladder).
-//   · `inheritance` split into the PROBLEM (findability) and `recovery-kit` (the
-//     document). Anything telling the reader to WRITE or REVIEW the kit is
-//     `recovery-kit`; only the why-it-goes-wrong argument is `inheritance`.
-//   · `choose-a-wallet` is about picking HARDWARE and says so in its title — it is
-//     not the home for phone wallets, multisig walkthroughs, or picking a custodian.
-//   · `back-up-your-seed` never mentions the wallet descriptor; the rung pages do.
-const STEP = {
-  buy:      { text: 'Buy the device from the vendor directly — never a marketplace or third-party seller', howto: 'choose-a-wallet' },
-  offline:    { text: 'Set it up offline and generate your seed on the device itself', howto: 'choose-a-wallet' },
-  metal:      { text: 'Back up the recovery seed on metal (fire/flood-proof), not just paper', howto: 'back-up-your-seed' },
-  testRecover:{ text: 'TEST RECOVERY before you fund it — wipe the device and restore from your backup', howto: 'test-your-backup' },
-  smallFirst: { text: 'Send a small amount first, confirm it arrives, then move the rest', howto: 'send-bitcoin-safely' },
-  separate:   { text: 'Store the backup separate from the device — ideally a second location', howto: 'back-up-your-seed' },
-};
+// The per-recommendation checklists that used to live here (a STEP map plus a list
+// per branch) were DELETED 2026-07-31: they rendered nowhere — /checklist has been
+// the single checklist generator since 7/28, and checklist.js carries every step
+// they held, in the corrected order (test amount before funding, funding after the
+// recovery test). Only their truthiness survived, as the Bitkey `adaptive` flag.
 
 // ── The multisig FORK ───────────────────────────────────────────────────────
 // When the threat model calls for 2-of-3 multisig, we NEVER funnel to a service.
@@ -226,22 +201,15 @@ function multisigFork(a, sharedNeed) {
     label: 'Do it yourself — self-sovereign multisig',
     rungSlug: 'multisig', rungLabel: 'Do-it-yourself multisig (2-of-3)',
     essence: 'You — and, if you like, people you trust — hold all three keys. No company, no ID checks, no one who can freeze your coins or even see what you hold. This is the most private, most sovereign way to hold Bitcoin.',
-    tradeoff: 'The trade-off is responsibility. You buy devices from two different vendors, back up every key and the wallet descriptor (the map of your keys), test recovery yourself, and act as your own support desk. Done carefully it’s rock-solid — done carelessly it adds ways to lose access.',
+    tradeoff: 'The trade-off is responsibility. You buy three devices — one per key, each from a different maker — back up every key and the wallet descriptor (the map of your keys), test recovery yourself, and act as your own support desk. Done carefully it’s rock-solid — done carelessly it adds ways to lose access.',
     wallets: [DEV.coldcard, DEV.bitbox],
-    walletNote: 'Use two DIFFERENT vendors (like these) so one vendor’s bug can’t sink all your keys. The Coldcard Q’s keyboard and clear menus make driving a multisig signing session the least fiddly — and if you already started single-sig on one, you don’t need new hardware to get here.',
+    // THREE different makers, not two — one brand, one key. With two makers across
+    // three keys, one vendor's flaw reaches two keys, and two keys spend a 2-of-3.
+    // (The lessons, the ladder, and the wallets page all said three; this said two.)
+    walletNote: 'Use a DIFFERENT maker for each key — one brand, one key. With only two makers across three keys, a single vendor’s flaw reaches two of them, and two keys is enough to spend a 2-of-3. These two are strong picks; add a third from another maker on the wallets page. The Coldcard Q’s keyboard and clear menus make driving a multisig signing session the least fiddly — and if you already started single-sig on one of these, it carries over as one of your three keys.',
     inheritanceNote: sharedNeed
       ? 'A fully self-custodied inheritance plan is entirely achievable here — your heirs recover from the keys plus a plain-English guide, with no company in the loop. It takes deliberate planning, but sovereignty and a real estate plan are not a trade-off you have to make.'
       : null,
-    checklist: [
-      { text: 'Read the multisig walkthrough end-to-end before buying anything', howto: '/learn/ladder#rung-3' },
-      { text: 'Buy 2–3 devices from TWO different vendors (directly from each)', howto: 'choose-a-wallet' },
-      STEP.offline,
-      { text: 'Back up EACH key’s seed on metal, stored in separate locations', howto: 'back-up-your-seed' },
-      { text: 'Back up the wallet descriptor (the map of your keys) — without it the keys can’t be reassembled', howto: '/learn/ladder#rung-3' },
-      STEP.testRecover,
-      ...(sharedNeed ? [{ text: 'Write your heirs a plain-English recovery guide and store it with the estate documents', howto: 'recovery-kit' }] : []),
-      STEP.smallFirst,
-    ],
   };
 
   const collab = {
@@ -251,16 +219,6 @@ function multisigFork(a, sharedNeed) {
     essence: 'A Bitcoin-only service (or a trusted partner) holds one of the three keys as a safety net. There’s far less for you to run, and recovery — including for your heirs — is built in by design.',
     tradeoff: 'The trade-off is trust and privacy. You’re bringing an outside institution into your setup: most require ID verification (KYC), which ties your identity to your holdings, and most charge an ongoing fee. They can never move your coins alone — but they are now part of your plan, and can see it.',
     walletNote: '<strong>Choose your service first — it comes before the hardware.</strong> Each service lists the devices it supports, and some (like Bitkey) send you one.',
-    checklist: [
-      { text: 'Choose your service or co-signer FIRST — a Bitcoin-only collaborative-custody service (see below) and/or a trusted partner', howto: '/collaborative' },
-      { text: 'Get your hardware key(s) from the service’s supported list — some (like Bitkey) send you the device', howto: 'choose-a-wallet' },
-      STEP.offline,
-      { text: 'Back up each key you control on metal, in separate locations', howto: 'back-up-your-seed' },
-      { text: 'Back up the wallet descriptor (the map of your keys) somewhere safe', howto: '/learn/ladder#rung-4' },
-      STEP.testRecover,
-      { text: 'Document the recovery plainly for whoever needs it — partner or heirs', howto: 'recovery-kit' },
-      STEP.smallFirst,
-    ],
     vendors: collaborativeVendors,
   };
 
@@ -270,7 +228,7 @@ function multisigFork(a, sharedNeed) {
     : 'Your answers lean self-reliant, so we’ve put the do-it-yourself path first — but both are genuinely valid. The only real question is who holds the third key.';
 
   return {
-    tier: 'Tier 2–3', rungSlug: paths[0].rungSlug, rungLabel: paths[0].rungLabel,
+    rungSlug: paths[0].rungSlug, rungLabel: paths[0].rungLabel,
     headline: 'Multisig (2-of-3) — your call on who holds the third key',
     why: 'You’ve reached the level where a <strong>2-of-3 multisig</strong> is the right protection: three keys exist, any two together can move or recover your coins, so no single key that’s lost, stolen, or coerced can touch them — and losing any one key isn’t fatal. There are two honest ways to get there, and the only real question is <strong>who holds the third key.</strong>',
     fork: { lead, leadNote, paths },
@@ -312,13 +270,11 @@ function primaryRec(a) {
   // Low stakes now change the BUDGET, not the setup.
   if (stakes === 'learning') {
     return {
-      tier: 'Tier 1', rungSlug: 'single-sig', rungLabel: 'Single-signature cold storage',
+      rungSlug: 'single-sig', rungLabel: 'Single-signature cold storage',
       headline: 'Single-signature cold storage — on the cheapest device that clears our bar',
       why: `Losing this wouldn’t change your life today, which is exactly why it is the right moment to build the habit properly rather than a temporary one you would have to migrate later — and migrating a wallet is one of the riskiest things a holder ever does. The setup is the same one most people should be on. All your stakes change is how much you need to spend on the device: cold storage starts at ${price('trezor-safe-3')}, which is less than the spread on a lot of first Bitcoin purchases. A phone wallet is fine for money you are spending this week. It is not where savings belong, however small.`,
       wallets: [DEV.safe3, DEV.jade],
       walletNote: `The cheap ones do the same job. The Trezor Safe 3 (${price('trezor-safe-3')}) and the Blockstream Jade (${price('jade-core')}) both sit in our cold-storage tier — the same tier as devices costing four times as much. You are buying a screen you can trust and keys that never leave it, and that does not get more expensive.`,
-      checklist: [ STEP.buy, STEP.offline, STEP.metal, STEP.testRecover, STEP.smallFirst, STEP.separate,
-        ...(recovery !== 'just-me' ? [{ text: 'Leave your partner/heirs a plain-English guide to finding the backup and recovering the wallet', howto: 'recovery-kit' }] : []) ],
       holdback: 'We deliberately did NOT add a passphrase or a second key. At this stage the thing that protects you is a backup you have actually tested, not another moving part — and every extra secret is one more thing to lose while you are still learning.',
     };
   }
@@ -329,35 +285,25 @@ function primaryRec(a) {
 
   if (wantsMultisig) return multisigFork(a, sharedNeed);
 
-  if ((worry === 'theft' || worry === 'targeted') && worry !== 'self-loss') {
+  if (worry === 'theft' || worry === 'targeted') {
     const powerDevice = tech === 'technical' || tech === 'careful';
     return {
-      tier: 'Tier 1–2', rungSlug: 'passphrase', rungLabel: 'Single-sig + a passphrase (the "25th word")',
+      rungSlug: 'passphrase', rungLabel: 'Single-sig + a passphrase (the "25th word")',
       headline: 'Single-sig cold storage + a passphrase',
       why: `Because your worry is ${worry === 'targeted' ? 'being targeted or coerced' : 'someone getting hold of your seed'}, a passphrase earns its keep: the seed alone opens only a small decoy wallet, while the seed PLUS your passphrase opens the real one. A backup someone finds — or a seed pulled off a compromised device — can’t spend your coins.`,
       wallets: powerDevice ? [DEV.coldcard, DEV.trezor] : [DEV.trezor, DEV.coldcard],
       walletNote: 'Both of these make a passphrase easy to live with — the Coldcard Q has a full keyboard, the Trezor Safe 5 a touchscreen. You type a strong passphrase painlessly, with no on-screen fiddling and nothing typed into a computer.',
-      checklist: [
-        STEP.buy, STEP.offline, STEP.metal,
-        { text: 'Choose a strong passphrase — long and unguessable; it can’t be reset or recovered', howto: '/learn/ladder#rung-2' },
-        { text: 'BACK UP THE PASSPHRASE separately from the seed, in a different place — a passphrase only in your head is the #1 way people lose passphrase-protected Bitcoin', howto: 'back-up-your-seed' },
-        { text: 'Test recovery with BOTH the seed and the passphrase before funding', howto: 'test-your-backup' },
-        STEP.smallFirst,
-        ...(sharedNeed ? [{ text: 'Make the passphrase inheritable — your heirs need it too, or the coins are lost', howto: 'inheritance' }] : []),
-      ],
       holdback: 'A passphrase adds a brand-new way to lose everything (forget it and even the seed won’t help). It’s worth it for your threat model — but only if you back it up as carefully as the seed.',
     };
   }
 
   const ssd = singleSigDevices(a);
   return {
-    tier: 'Tier 1', rungSlug: 'single-sig', rungLabel: 'Single-signature cold storage',
+    rungSlug: 'single-sig', rungLabel: 'Single-signature cold storage',
     headline: ssd.headline || 'Single-signature cold storage',
     why: `${WHY_LEAD[worry] || WHY_LEAD.default} This is the simplest setup that isn’t negligent, and for most holders it’s the right home for a long time.`,
     wallets: ssd.devices,
     walletNote: ssd.note,
-    checklist: [ STEP.buy, STEP.offline, STEP.metal, STEP.testRecover, STEP.smallFirst, STEP.separate,
-      ...(recovery !== 'just-me' ? [{ text: 'Leave your partner/heirs a plain-English guide to finding the backup and recovering the wallet', howto: 'recovery-kit' }] : []) ],
     holdback: HOLDBACK_BECAUSE[worry]
       ? `We deliberately did NOT add a passphrase. A passphrase mainly defends against a found seed — but it’s a new single point of failure, and ${HOLDBACK_BECAUSE[worry]} Don’t add complexity you don’t need.`
       : null,
@@ -370,7 +316,6 @@ function primaryRec(a) {
 // duplicate checklist.
 function secondaryRec(a, primary) {
   const worries = a.worry || [];
-  const second = worries[1];
   const slug = primary.rungSlug;
   const S = (rungSlug, rungLabel, headline, when) => ({ rungSlug, rungLabel, headline, when });
 
@@ -394,9 +339,29 @@ function secondaryRec(a, primary) {
   if (slug === 'single-sig') {
     // If a theft/coercion worry is anywhere in the ranking → passphrase; else if
     // someone else needs to recover → collaborative; else the natural next layer.
-    if (worries.includes('theft') || worries.includes('targeted')) {
-      return S('passphrase', 'Single-sig + passphrase', 'Add a passphrase (the "25th word")',
-        `If ${second === 'targeted' ? 'coercion' : 'someone finding your seed'} becomes your bigger worry, add a passphrase so a found seed alone can’t spend your coins. Only take this on once you’re confident you can back the passphrase up as carefully as the seed.`);
+    //
+    // The copy keys off the HIGHEST-RANKED of theft/targeted — it used to phrase
+    // from worries[1] regardless, so a ranking like [theft, self-loss, targeted]
+    // argued about the wrong fear, and a #1-ranked theft (reachable at learning
+    // stakes, where the primary stays single-sig) was told its top worry might
+    // "become" its bigger worry. Targeted is justified against coercion and the
+    // decoy wallet — its actual threat — not seed-finding.
+    const ti = worries.indexOf('theft');
+    const gi = worries.indexOf('targeted');
+    const stepUpWorry = (ti >= 0 && (gi < 0 || ti < gi)) ? 'theft' : (gi >= 0 ? 'targeted' : null);
+    if (stepUpWorry) {
+      const isTop = worries[0] === stepUpWorry;
+      let when;
+      if (stepUpWorry === 'targeted') {
+        when = isTop
+          ? 'Being targeted is your top worry, and this is the step-up that answers it: with a passphrase, the seed alone opens only a small decoy wallet — so even someone who coerces you into opening a wallet sees the decoy, not the real balance. Take it on once you’re confident you can back the passphrase up as carefully as the seed.'
+          : 'If being personally targeted or coerced becomes your bigger worry, add a passphrase: the seed alone opens only a small decoy wallet, so even under pressure the real balance stays out of sight. Only take this on once you’re confident you can back the passphrase up as carefully as the seed.';
+      } else {
+        when = isTop
+          ? 'Someone finding your seed is your top worry, and this is the step-up that answers it: with a passphrase, a found seed alone can’t spend your coins. Take it on once you’re confident you can back the passphrase up as carefully as the seed.'
+          : 'If someone finding your seed becomes your bigger worry, add a passphrase so a found seed alone can’t spend your coins. Only take this on once you’re confident you can back the passphrase up as carefully as the seed.';
+      }
+      return S('passphrase', 'Single-sig + passphrase', 'Add a passphrase (the "25th word")', when);
     }
     if (a.recovery !== 'just-me') {
       return S('multisig', '2-of-3 multisig', 'Step up to 2-of-3 multisig',
@@ -482,6 +447,15 @@ function journeyFor(a, primary) {
     kind = 'start';
     headline = 'The best time to start is right now';
     message = 'Your Bitcoin is somewhere someone else can freeze or lose it. Your first move is the biggest and most valuable one: getting it onto a device where you alone hold the keys. Everything below is that first setup, one step at a time — you don’t have to do it all today.';
+  } else if (primary.fork && (curStep === 3 || curStep === 4) && (targetStep === 3 || targetStep === 4) && gap !== 0) {
+    // Both multisig flavors sit at the same security level — DIY vs collaborative is
+    // a different holder for the third key, not more or less protection. The old
+    // framing called a collaborative holder with pure-sovereignty answers "already
+    // ahead of what your situation needs" (and the reverse "one step away"), as if
+    // one were an upgrade on the other. It's a sideways move, and the copy says so.
+    kind = 'sideways';
+    headline = 'Same rung — a different holder for the third key';
+    message = `You’re running ${curLabel}, and your answers lean toward ${targetLabel}. That’s not a step up or down: both are 2-of-3 multisig, the same level of protection — the real difference is who holds the third key, and what you trade for it. Nothing forces a move; switching has real costs, and staying put is a sound call. Both paths are laid out below — read the one you’re not on and decide whether the trade fits you better.`;
   } else if (gap === 0) {
     kind = 'there';
     headline = 'Good news — you’re already right where you should be';
@@ -495,9 +469,13 @@ function journeyFor(a, primary) {
     headline = 'You’re just one step away';
     message = `You’re already doing the hard part — your Bitcoin is at ${curLabel}. Your situation points one rung further, to ${targetLabel}. It’s a single, well-trodden step; below is exactly what it changes and how to make it.`;
   } else {
+    // One BUILD, not a staged series of migrations — "about N steps" read as N
+    // separate moves up the ladder, when the right way to make this climb is to
+    // build the destination setup once, prove it, and move the Bitcoin one time.
+    // The gap is distance (more that's new), not a count of moves.
     kind = 'few';
-    headline = `You’ve got a clear path — about ${gap} steps`;
-    message = `Today you’re at ${curLabel}, and the setup that fits your situation is ${targetLabel}. That’s a few rungs up — very doable, one step at a time, and there’s no rush. Below is the destination and how to get there.`;
+    headline = 'You’ve got a clear path — one build';
+    message = `Today you’re at ${curLabel}, and the setup that fits your situation is ${targetLabel}. That’s ${numberWord(gap)} rungs higher on the ladder — but it isn’t ${numberWord(gap)} separate moves. You build ${targetLabel} once, prove it works, and move your Bitcoin a single time. The distance just means more of it will be new to you; there’s no rush, and below is the destination and how to get there.`;
   }
   return { kind, gap, curStep, targetStep, curLabel, targetLabel, headline, message };
 }
@@ -506,6 +484,13 @@ export function recommend(a) {
   const worryArr = Array.isArray(a.worry) ? a.worry : (a.worry ? [a.worry] : ['unsure']);
   const primary = primaryRec({ ...a, worry: worryArr[0] || 'unsure' });
   const secondary = secondaryRec({ ...a, worry: worryArr }, primary);
+  // When the primary card argues AGAINST a passphrase and the step-up card right
+  // below it offers one, the two must acknowledge each other or the screen argues
+  // with itself. The holdback is written per-worry; the pairing is only knowable
+  // here, once both cards exist.
+  if (primary.holdback && secondary && secondary.rungSlug === 'passphrase') {
+    primary.holdback += ' That holds for now — the second card below shows when that changes.';
+  }
   const journey = journeyFor(a, primary);
   return { primary: withVendors(primary), secondary: withVendors(secondary), journey };
 }

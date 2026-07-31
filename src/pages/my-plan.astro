@@ -9,7 +9,7 @@ import WhereAmI from '../components/WhereAmI.astro';
 <Base
   title="Your plan — your data, held by you · BitcoinKeys.guide"
   description="Save your setup result, ladder rung, chosen device, and checklist progress — on infrastructure you own, never ours. By default this site keeps nothing; saving is always your explicit choice."
-  verified="2026-07-28"
+  verified="2026-07-31"
 >
   <section class="prose">
     <p class="eyebrow">Your plan</p>
@@ -18,7 +18,7 @@ import WhereAmI from '../components/WhereAmI.astro';
 
     <div class="promise">
       <span class="pn-label mono">🔒 How this works</span>
-      <p>Nothing here is saved until <strong>you</strong> save it, and you choose where it goes: <strong>this browser</strong>, <strong>a file you download</strong>, or — only if you pick it — <strong>encrypted to your own Nostr key</strong>, on relays you choose. The first two never leave your device at all; the third leaves it already encrypted, readable by you alone. <strong>We never see your plan in any of them.</strong> There is no account and no server on our side. Clear it any time.</p>
+      <p>Your plan lives <strong>in this browser</strong> — your ticks and re-checks save there as you make them, and nothing about them ever leaves your device. Keeping it anywhere else is always your explicit choice: <strong>a file you download</strong>, or — only if you pick it — <strong>encrypted to your own Nostr key</strong>, on relays you choose. The file never leaves your device at all; the Nostr copy leaves it already encrypted, readable by you alone. <strong>We never see your plan in any of them.</strong> There is no account and no server on our side. Clear it any time.</p>
     </div>
   </section>
 
@@ -98,7 +98,9 @@ import WhereAmI from '../components/WhereAmI.astro';
     } else {
       b.classList.remove('signed-in');
       b.title = 'Sign in to save your plan to Nostr';
-      b.textContent = '☁ Save to Nostr (encrypted) ↓';
+      // Textual affordance — the bare trailing "↓" read as a mystery glyph rather
+      // than "this drops you to the connect panel".
+      b.textContent = '☁ Save to Nostr (encrypted) — connect below';
     }
   }
 
@@ -143,8 +145,17 @@ import WhereAmI from '../components/WhereAmI.astro';
   // picker, mounted after render into #ps-own-mount; supports multiple wallets).
   function statusHtml(plan) {
     const cur = currentSetupLabel(plan);
-    const ladder = plan.ladder && plan.ladder.rung
-      ? `<p class="ps-cur">On the ladder: <strong>${esc(rungName(plan.ladder.rung))}</strong> <a class="ps-mini-link" href="#whereami">re-check →</a></p>` : '';
+    // The quiz answer is frozen at quiz time; the ladder rung updates on every
+    // re-check below. When they disagree, say which is which — two contradictory
+    // "where you are" lines with no arbitration read as a bug.
+    const quizCur = plan.quiz && plan.quiz.answers && plan.quiz.answers.current;
+    const ladderRung = plan.ladder && plan.ladder.rung;
+    const stale = Boolean(quizCur && ladderRung && quizCur !== ladderRung);
+    const staleNote = stale
+      ? ` <span class="ps-hint">from your quiz answers — your ladder re-check below is newer</span>`
+      : '';
+    const ladder = ladderRung
+      ? `<p class="ps-cur">On the ladder: <strong>${esc(rungName(ladderRung))}</strong> <a class="ps-mini-link" href="#whereami">re-check →</a></p>` : '';
     const owned = plan.owned || [];
     // Owned wallets are DISPLAY-ONLY here (they're gathered from the quiz + /wallets).
     // The full make→model picker is tucked behind an "add or edit" toggle; if none are
@@ -173,7 +184,7 @@ import WhereAmI from '../components/WhereAmI.astro';
       <div class="ps-card ps-status">
         <h2 class="ps-h2">Where you are — your current status</h2>
         ${cur
-          ? `<p class="ps-cur">Your current setup: <strong>${esc(cur)}</strong></p>`
+          ? `<p class="ps-cur">Your current setup: <strong>${esc(cur)}</strong>${staleNote}</p>`
           : `<p class="ps-cur ps-muted">No current setup recorded yet — <a href="/find-your-setup">find your setup</a> to set your starting point.</p>`}
         ${ladder}
         <div class="ps-own">
@@ -203,6 +214,17 @@ import WhereAmI from '../components/WhereAmI.astro';
     const assigned = getPlannedDevices().filter(Boolean);
     const missing = Math.max(0, need - assigned.length);
     const isCollab = plan.quiz?.rung === 'collaborative';
+    // On a collaborative plan the custodian gap comes FIRST — the quiz says it in as
+    // many words ("Choose your service first — it comes before the hardware"): each
+    // service lists the devices it supports, and some send you one, so choosing
+    // hardware first can mean buying a device your service won't take.
+    if (isCollab && !plan.custodian) {
+      return {
+        label: 'Choose who holds the service key',
+        note: 'Pick the Bitcoin service before the hardware — each one lists the devices it supports, and some send you one. Your own wallets come next.',
+        href: '/collaborative', cta: 'Compare custodians',
+      };
+    }
     if (missing > 0) {
       return {
         label: missing === 1
@@ -216,18 +238,22 @@ import WhereAmI from '../components/WhereAmI.astro';
         href: '/wallets', cta: 'Compare wallets',
       };
     }
-    if (isCollab && !plan.custodian) {
-      return {
-        label: 'Choose who holds the service key',
-        note: 'Your own hardware wallets are set. The last piece is which Bitcoin service holds the third key.',
-        href: '/collaborative', cta: 'Compare custodians',
-      };
-    }
     return null;
   }
   const planIncomplete = () => planGaps() !== null;
   function roadmapHtml(plan) {
-    if (!plan.quiz || !(plan.quiz.primaryLabel || plan.quiz.rung)) return '';
+    if (!plan.quiz || !(plan.quiz.primaryLabel || plan.quiz.rung)) {
+      // No setup chosen — but if the quiz answers survive (the normal state right
+      // after "Clear my plan"), picking a new setup is seconds away, and the page
+      // should hold that door open instead of going quiet.
+      if (plan.quiz && plan.quiz.answers) {
+        return `<div class="ps-road-in">
+          <p class="ps-cur ps-muted">No setup chosen. Your quiz answers are kept, so picking a new one takes seconds.</p>
+          <a class="btn-primary" href="/find-your-setup">Pick your next setup →</a>
+        </div>`;
+      }
+      return '';
+    }
     const need = typeof plan.quiz.keysNeeded === 'number' ? plan.quiz.keysNeeded : null;
     if (need === null) return ''; // plan saved before roadmap existed — skip gracefully
     // Derive the name from the RUNG, not the stored label. The label is whatever the
@@ -372,20 +398,24 @@ import WhereAmI from '../components/WhereAmI.astro';
   // the status card carries the ladder position — so rowsHtml is just the checklist.
   function rowsHtml(plan) {
     const rows = [];
-    // Count only ids that still exist in the checklist data — an imported or
-    // old plan may carry renamed/retired ids, and the count must match the
-    // visible list below (which filters the same way).
-    const doneIds = plan.checklist ? Object.keys(plan.checklist).filter((id) => checklistLabels[id]) : [];
-    const done = doneIds.length;
-
-    // How many steps this plan's checklist actually contains — the same filter the
-    // checklist page applies, so the two numbers can never disagree.
     const rung = (plan.quiz && plan.quiz.rung) || (plan.ladder && plan.ladder.rung) || null;
     const recovery = (plan.quiz && plan.quiz.answers && plan.quiz.answers.recovery) || null;
     const ctx = rung && rung !== 'pre'
       ? { rung, heirs: recovery === 'partner' || recovery === 'heirs', custodian: Boolean(plan.custodian) || rung === 'collaborative' }
       : null;
-    const total = ctx ? checklistItems.filter((it) => itemApplies(it, ctx)).length : checklistCount;
+    // The done/total pair must be ONE list, the same list /checklist shows.
+    // /checklist personalizes only when the quiz-chosen plan is COMPLETE; an
+    // unfinished plan shows the full generic list there — so the same rule decides
+    // which list is counted here, and ticks are counted against that list only.
+    // `done` used to count every ticked id (including items not applicable to the
+    // plan) against a plan-filtered total, which could read "5 of 3 done".
+    const quizGap = Boolean(plan.quiz && plan.quiz.rung) && planIncomplete();
+    const countCtx = quizGap ? null : ctx;
+    const applicable = countCtx ? checklistItems.filter((it) => itemApplies(it, countCtx)) : checklistItems;
+    const applicableIds = new Set(applicable.map((it) => it.id));
+    const doneIds = plan.checklist ? Object.keys(plan.checklist).filter((id) => applicableIds.has(id)) : [];
+    const done = doneIds.length;
+    const total = countCtx ? applicable.length : checklistCount;
 
     if (done > 0) {
       const items = doneIds
@@ -474,7 +504,7 @@ import WhereAmI from '../components/WhereAmI.astro';
 
         <div class="p-actions">
           <button class="btn-primary" id="p-download">↓ Download my plan <span class="p-btn-note">(encryption optional)</span></button>
-          <button class="btn-ghost" id="p-nostr">☁ Save to Nostr (encrypted) ↓</button>
+          <button class="btn-ghost" id="p-nostr">☁ Save to Nostr (encrypted) — connect below</button>
           <label class="btn-ghost file-btn">Import a plan<input type="file" id="p-import" accept="application/json,.json" hidden /></label>
           <button class="btn-ghost" id="p-clear">Clear my plan</button>
           <button class="btn-danger" id="p-forget">Forget everything</button>
@@ -525,8 +555,8 @@ import WhereAmI from '../components/WhereAmI.astro';
       if (!p) return;
       if ((p.notes || '') !== notes.value) {
         p.notes = notes.value;
-        saveLocal(p);
-        toast('Notes saved', 'ok');
+        if (saveLocal(p)) toast('Notes saved', 'ok');
+        else toast('Couldn’t save — your browser is blocking storage', 'err');
       }
     });
 
@@ -623,7 +653,20 @@ import WhereAmI from '../components/WhereAmI.astro';
           catch (e) { toast('That doesn\'t look like a valid plan file.', 'err'); return; }
         }
         if (!planHasContent(plan)) { toast('That file has no plan data.', 'err'); return; }
-        saveLocal(plan);
+        // A plan already lives in this browser → importing overwrites it. Confirm,
+        // with both timestamps when we have them — this used to clobber silently.
+        const cur = loadLocal();
+        if (hasLocal() && cur && planHasContent(cur)) {
+          const curWhen = cur.updated ? ` (saved ${fmtDate(cur.updated)})` : '';
+          const fileWhen = plan.updated ? ` (saved ${fmtDate(plan.updated)})` : '';
+          const ok = await confirmDialog({
+            title: 'Replace the plan in this browser?',
+            message: `Importing replaces the plan saved in this browser${curWhen} — its setup, checklist ticks, and notes — with the one from the file${fileWhen}.`,
+            confirmText: 'Replace with the file', cancelText: 'Keep current',
+          });
+          if (!ok) return;
+        }
+        if (!saveLocal(plan)) { toast('Couldn’t save — your browser is blocking storage', 'err'); return; }
         toast('Plan imported', 'ok');
         render();
         document.getElementById('plan').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -790,7 +833,20 @@ import WhereAmI from '../components/WhereAmI.astro';
         const mod = await loadNostr();
         const plan = await mod.loadFromNostr(signer);
         if (!plan || !planHasContent(plan)) { nzStatus('No saved plan found on your relays for this key.', true); return; }
-        saveLocal(plan);
+        // Same guard as import: a restore overwrites whatever lives in this browser,
+        // so it asks first instead of clobbering silently.
+        const cur = loadLocal();
+        if (hasLocal() && cur && planHasContent(cur)) {
+          const curWhen = cur.updated ? ` (saved ${fmtDate(cur.updated)})` : '';
+          const restoredWhen = plan.updated ? ` (saved ${fmtDate(plan.updated)})` : '';
+          const ok = await confirmDialog({
+            title: 'Replace the plan in this browser?',
+            message: `Restoring replaces the plan saved in this browser${curWhen} — its setup, checklist ticks, and notes — with the one from your relays${restoredWhen}.`,
+            confirmText: 'Replace with the restore', cancelText: 'Keep current',
+          });
+          if (!ok) { nzStatus('Restore cancelled — the plan in this browser is unchanged.'); return; }
+        }
+        if (!saveLocal(plan)) { nzStatus('Couldn’t save — your browser is blocking storage.', true); return; }
         nzStatus('✓ Restored from Nostr into this browser.');
         render();
         document.getElementById('plan').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -812,6 +868,11 @@ import WhereAmI from '../components/WhereAmI.astro';
   else renderNostrDisconnected();
   paintNostrActionBtn();
   slimNostr();
+
+  // The WhereAmI re-check below auto-saves the rung it lands on. The status card's
+  // "On the ladder: X" line sits directly above it — re-render so the two can never
+  // disagree until a reload.
+  window.addEventListener('bkeys-ladder-change', () => render());
 
   // Keep the top action button + panel in sync with sign-in/out from anywhere (the nav
   // menu, another tab). A sign-out elsewhere resets this page's panel too.

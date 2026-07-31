@@ -105,14 +105,22 @@ export function loadLocal() {
   }
 }
 
-/** Write a plan to this browser, stamping `updated`. Returns the stored plan. */
+/**
+ * Write a plan to this browser, stamping `updated`. Returns the stored plan,
+ * or NULL when the write didn't take (private mode, storage full, storage
+ * blocked). Verified by reading the value back — this used to swallow the
+ * failure and return the plan anyway, so every caller toasted "saved" over a
+ * write that never happened. Callers must check for null and say so honestly.
+ */
 export function saveLocal(plan) {
   const p = normalize(plan);
   p.updated = new Date().toISOString();
+  const raw = JSON.stringify(p);
   try {
-    localStorage.setItem(PLAN_KEY, JSON.stringify(p));
+    localStorage.setItem(PLAN_KEY, raw);
+    if (localStorage.getItem(PLAN_KEY) !== raw) return null;
   } catch (e) {
-    /* private mode / quota — the caller's UI reports failure */
+    return null;
   }
   return p;
 }

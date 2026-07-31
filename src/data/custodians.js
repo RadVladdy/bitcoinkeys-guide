@@ -24,7 +24,7 @@ export const custodians = [
     subscription: 'Ongoing (free tier is free forever)',
     devices: 'Broadest support — Coldcard, Tapsigner, Jade, Ledger, Trezor, SeedSigner, BitBox, Passport, Keystone',
     jurisdiction: 'Global',
-    bestFor: 'The most sovereignty-friendly of the six — strictly no KYC, open-source (libnunchuk), the widest device support, and a genuinely free self-driven tier.',
+    bestFor: 'The most sovereignty-friendly option here — strictly no KYC, open-source (libnunchuk), the widest device support, and a genuinely free self-driven tier.',
     watch: 'Support is lighter-touch and more self-serve than Unchained or The Bitcoin Adviser — you drive more of the setup yourself.',
     notes: { openRecovery: 'Open-source engine; wallets use standard BSMS/BIP-48 descriptors — recover into Sparrow or Bitcoin Core without Nunchuk.' },
   },

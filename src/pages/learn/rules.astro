@@ -30,8 +30,10 @@ import { rules, umbrella, ruleCount, ruleCountWord, ruleCountWordCap } from '../
 <Base
   title={`The ${ruleCount} rules of holding your own Bitcoin · BitcoinKeys.guide`}
   description={`The whole guide, compressed into ${ruleCount} plain-English rules. Follow them and your Bitcoin is safe. Every lesson that follows is one of these rules in full.`}
-  verified="2026-07-29"
+  verified="2026-07-31"
 >
+  <div class="lgrid">
+  <div class="lmain">
   <section class="prose">
     <LessonEyebrow />
     <h1>{ruleCountWordCap} rules. <span class="accent">That’s the whole thing.</span></h1>
@@ -85,12 +87,25 @@ import { rules, umbrella, ruleCount, ruleCountWord, ruleCountWordCap } from '../
       any meaningful amount of Bitcoin.
     </p>
     <p class="sub">
-      Every lesson from here on opens by naming the rule it teaches, so you always know which of the {ruleCountWord}
+      Each lesson that teaches a rule opens by naming it, so you always know which of the {ruleCountWord}
       you’re working on.
     </p>
   </section>
 
   <LessonNav />
+  </div>
+
+  <aside class="toc" aria-label="On this page">
+    <p class="toc-k mono">The {ruleCountWord} rules</p>
+    <ol>
+      {rules.map((r) => (
+        <li>
+          <a href={`#rule-${r.n}`}><span class="toc-n mono">{String(r.n).padStart(2, '0')}</span> {r.short}</a>
+        </li>
+      ))}
+    </ol>
+  </aside>
+  </div>
 </Base>
 
 <style>
@@ -110,7 +125,7 @@ import { rules, umbrella, ruleCount, ruleCountWord, ruleCountWordCap } from '../
     border: 0; padding: 0; }
   .r-body p { margin: 0; color: var(--muted); font-size: 0.95rem; }
   .r-more { margin-top: 0.55rem !important; }
-  .r-where { margin-top: 0.6rem !important; font-family: var(--mono); font-size: 0.73rem;
+  .r-where { margin-top: 0.6rem !important; font-family: var(--mono); font-size: 0.78rem;
     letter-spacing: 0.03em; color: var(--faint) !important; text-transform: uppercase; }
   .r-where .mono { color: var(--accent); font-weight: 700; }
 
@@ -123,5 +138,20 @@ import { rules, umbrella, ruleCount, ruleCountWord, ruleCountWordCap } from '../
     .rule { grid-template-columns: 2.3rem 1fr; gap: 0.8rem; padding: 1rem 1.05rem; }
     .r-n { font-size: 1.2rem; }
     .r-body h2 { font-size: 1.08rem; }
+  }
+
+  /* Desktop-only "On this page" rail — one line per rule, anchored to the ids the
+     rest of the site already deep-links. Phones and tablets never see it. */
+  .toc { display: none; }
+  @media (min-width: 1200px) {
+    .lgrid { display: grid; grid-template-columns: minmax(0, 1fr) 15rem; gap: 3.5rem; align-items: start; }
+    .toc { display: block; position: sticky; top: 5.5rem; max-height: calc(100vh - 7rem);
+      overflow-y: auto; border-left: 1px solid var(--line-soft); padding-left: 1.25rem; }
+    .toc-k { font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--faint); font-weight: 600; margin: 0 0 0.7rem; }
+    .toc ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.55rem; }
+    .toc a { display: block; color: var(--muted); font-size: 0.86rem; line-height: 1.4; text-decoration: none; }
+    .toc a:hover { color: var(--accent); }
+    .toc-n { color: var(--accent); font-weight: 700; font-size: 0.78rem; }
   }
 </style>

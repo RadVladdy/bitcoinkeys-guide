@@ -69,7 +69,7 @@ const markCls = { yes: 'y', partial: 'p', no: 'n' };
 
   <section id="ctable" hidden>
     <h2 class="prose">The full comparison</h2>
-    <p class="scroll-hint">Swipe the table sideways to see every column →</p>
+    <p class="scroll-hint">Swipe sideways to see every column →</p>
     <div class="scroll compare">
       <table>
         <thead>
@@ -192,8 +192,7 @@ const markCls = { yes: 'y', partial: 'p', no: 'n' };
   .compare table { min-width: 44rem; border-collapse: collapse; width: 100%; }
   .compare th, .compare td { border-bottom: 1px solid var(--line-soft); padding: 0.6rem 0.7rem; font-size: 0.86rem; text-align: left; vertical-align: top; }
   .compare th { color: var(--faint); font-size: 0.72rem; letter-spacing: 0.05em; text-transform: uppercase; }
-  .scroll-hint { display: none; }
-  @media (max-width: 760px) { .scroll-hint { display: block; font-family: var(--mono); font-size: 0.76rem; color: var(--muted); margin: 0 0 0.45rem; } }
+  /* .scroll-hint lives in global.css — every wide table shares it. */
   .ctr { text-align: center; }
   .dev { min-width: 9rem; }
   .dname { display: block; font-weight: 650; color: var(--text); }

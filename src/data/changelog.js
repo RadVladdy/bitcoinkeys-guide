@@ -10,6 +10,60 @@
 export const changelog = [
   {
     date: '2026-07-31',
+    type: 'security',
+    title: 'Correction: the checklist had you move everything onto your new wallet before its backup was tested. The big move now comes last.',
+    detail: 'The old order was setup, then backup, then prove the backup works — and the last step of setup said to move a test amount off the exchange "then move the rest." Follow that literally and your whole stack lands on a device whose seed phrase has not been written down or restore-tested, right before a later step tells you to wipe that device to prove recovery. That is the one ordering mistake on this site that could actually lose someone their Bitcoin, and the guide’s own lessons have always taught the opposite: back up, prove recovery, then fund. The step is now split the way the lessons say. A small test amount still arrives early — you verify the receive address on the device’s own screen and see a real payment land. Moving the rest is now the final step of proving your backup, worded the way it should have been all along: now that the backup is proven. If you had already ticked the old step, your tick carries over to the moved one.',
+  },
+  {
+    date: '2026-07-31',
+    type: 'security',
+    title: 'Correction: the setup finder said two device makers were enough for multisig. Three keys need three makers.',
+    detail: 'The lessons, the ladder, and the hardware comparison all say the same thing about a do-it-yourself 2-of-3: use three different manufacturers, one per key, so a bug in any one maker’s device can touch at most one key. The setup finder — the tool most likely to be followed word for word — said two vendors. Two makers across three keys means one vendor’s flaw can reach two keys, and two keys is exactly what it takes to spend a 2-of-3. The finder now says three different makers and explains the one-brand-one-key reasoning, matching every other page. While we were in there we also fixed the multisig rung’s cost line: the cheapest trio of cold-storage devices in the current catalog comes to $275, not $300.',
+  },
+  {
+    date: '2026-07-31',
+    type: 'content',
+    title: 'Correction: the ladder lesson had quietly lost content a July rework was supposed to keep. Restored.',
+    detail: 'When the ladder walkthroughs were merged into one lesson on July 30, four pieces of each rung’s write-up stopped being shown without anyone deciding they should: the "what it gains you" list (the page’s own intro promises the gain-for-cost trade, and only the cost was rendering), the note that multisig keys should come from three different manufacturers, the warning that sovereign recovery — can you rebuild your wallet without the service? — is the make-or-break test for collaborative custody, and the whole discussion of bigger 3-of-5 setups that the page still pointed readers at. All four render again. We also retired the "Tier 1 ($1K–$50K)" dollar-bracket labels that sat on each rung: this guide’s whole position is that your setup should follow your threat model, not a dollar amount, and the labels collided with the completely different meaning of "tier" on the hardware standard page.',
+  },
+  {
+    date: '2026-07-31',
+    type: 'content',
+    title: 'The path from exchange to cold storage had missing steps. They’re in now.',
+    detail: 'Reading every page in order as a first-timer turned up three places where the site said what to do but not how the moment actually goes. First: nothing ever told you to install the maker’s wallet app — every USB hardware wallet needs its companion app to receive and send, and the checklist now has that step, with the warning to download only from the maker’s own site because fake wallet apps are a top way people get robbed. Second: the checklist’s seed step now walks first power-on concretely — start at the maker’s printed setup address, set a PIN, and the device shows your words on its own screen, to be copied by hand and never typed into a computer. Third: Send Bitcoin safely gained "Put it together: your first withdrawal" — generate a fresh receive address, confirm it on the device’s screen, make sure the exchange’s network menu says Bitcoin, send a small test, and what "arrived" actually means (the glossary now explains confirmations). Test your backup also now says plainly what to do if the restore fails — stop, and go back to the written copy you checked against the device before wiping, which is the whole reason that check comes first.',
+  },
+  {
+    date: '2026-07-31',
+    type: 'content',
+    title: 'Collaborative custody: choosing the service now comes before choosing hardware, everywhere',
+    detail: 'The finder has always said it in bold — choose your service first, because each service supports different devices — and then the checklist and both plan pages walked you to the hardware shop first anyway. Someone following the steps in order could buy a device their eventual service doesn’t support. On a collaborative plan, every surface now puts the service decision first and the device second: the checklist step order, and the "what’s missing" prompts on your plan and your checklist.',
+  },
+  {
+    date: '2026-07-31',
+    type: 'content',
+    title: 'Your plan stopped over-promising and started confirming',
+    detail: 'A batch of honesty fixes to the finder and plan pages. Saving now tells the truth: if your browser blocks storage (private windows do this), you get "couldn’t save" instead of a green check over nothing. Importing a plan file or restoring from Nostr now asks before replacing the plan already in this browser, showing the dates of both. "Start fresh" on the finder becomes "Clear my plan and start again" when you actually have a plan, and asks first — it was silently erasing checklist progress and notes. The result screen gained "Change my answers," so revisiting one question no longer means starting over. The device cards under your recommendation now say what tapping really does — puts that device first in your plan — instead of promising steps that adapt. Progress counts on your plan now use the same list your checklist shows, so the numbers always agree. A holder already in one kind of multisig whose answers lean toward the other kind now gets an honest "same rung, different holder for the third key" instead of being told they are ahead of what they need. And the step-up card now reasons from your actual top-ranked worry instead of whichever one happened to be listed second.',
+  },
+  {
+    date: '2026-07-31',
+    type: 'content',
+    title: 'A sweep for plain speech, defined terms, and Bitcoin-only examples',
+    detail: 'Fallout from a full read-through of every lesson in learner order. Exchange examples are Bitcoin-only everywhere now (River, Swan, Strike) — a multi-coin exchange had crept into two lists, and this guide doesn’t send anyone there. The one sneer on the site ("crypto casino") became an argument: fewer products competing for your attention, and withdrawal treated as a first-class feature. The two big statistics on How people actually lose Bitcoin now name their source family. Lightning, satoshi, on-chain, and coordinator software are all explained the first time you meet them, and the glossary gained Confirmation and Coordinator software. Hot and cold now says the phone-wallet sentence the careful way: fine for spending money — but savings belong cold, however small. The densest paragraph in the early lessons (the physical-theft defenses) is broken up and its riddle spelled out. A pointer in Beyond the ladder sent you to "the next lesson" for advice that actually lives two lessons later; it names the right lesson now. And a link to bitcoiner.guide on the resources page had quietly gone dead — fixed.',
+  },
+  {
+    date: '2026-07-31',
+    type: 'content',
+    title: 'Every page now carries a real "last verified" date — and missing one breaks our build',
+    detail: 'The dating promise is the visible half of how this site earns trust, and an audit found it slipping: several lessons carried stamps older than their own published corrections, the twelve demo pages had no date at all, and a page missing its date silently showed the launch date. Fixed on all three fronts. Stamps are bumped as part of any substantive edit — every page touched today says July 31. The demo pages now carry the date of their last substantive check. And a lesson without a date now fails our build instead of guessing. Behind the scenes, the scheduled checker that re-reads vendor stores got two upgrades: when a full pass comes back clean it now advances the "prices &amp; specs last verified" date you see on the hardware pages (it previously only recorded the check privately, so the public date understated), and it now watches the collaborative-custody services’ fees and minimums too — those were marked volatile in our own data and nothing was re-checking them.',
+  },
+  {
+    date: '2026-07-31',
+    type: 'feature',
+    title: 'Phone-friendly tables, a foldable checklist, and "On this page" shortcuts',
+    detail: 'The comparison tables were technically scrollable on a phone and looked finished at the cut — nothing said more columns existed, and scrolled down, the hardware table showed bare ✓ and ✗ marks with no header to say what they meant (a red ✗ next to a device reads as "fails" when it only means "no air-gap"). Tables now keep their header row and the device or rung name in view while you scroll, the cut-off edge fades to show there’s more, and a small hint says to swipe. The checklist’s phases now fold closed — collapsed, the page is a quarter of its length, and your "Next up" step always stays visible. Long lessons and the twelve rules gained an "On this page" shortcut list on wide screens. Small print got a touch bigger and small links got bigger tap areas throughout. The mobile menu also closes flush with the bottom of the screen and properly freezes the page behind it — fixing that turned up and fixed a subtler bug where the header lost its stickiness.',
+  },
+  {
+    date: '2026-07-31',
     type: 'content',
     title: 'Choosing a metal backup is now its own page, in Hardware & services',
     detail: 'The guidance on which metal plate to buy was buried partway down the lesson about backing up your seed, where you could only find it by scrolling. It is now a page of its own — Metal backups, in the Hardware & services menu, next to hardware wallets and collaborative custody. That is where it belongs: it is a buying decision with links out to five vendors, which is exactly what the other pages in that group are, and unlike any lesson on the guide — no lesson else sends you out to buy something. It was also a third of that lesson\u2019s length, which made a mid-sized lesson the second longest page on the site. The lesson keeps the teaching: why metal at all, how to copy the words without a mistake, what makes a plate fail, and the advice to practise on a throwaway seed first. The new page answers the separate question of which one to get. Every page that tells you to move your seed onto metal can now point somewhere, including the checklist step whose whole job is that moment. While we were there: five checklist steps had a link labelled \u201cRead the lesson\u201d that did not point at a lesson at all — two went to collaborative custody, one to the wallet comparison, one to an interactive demo. Each now says what it actually opens.',

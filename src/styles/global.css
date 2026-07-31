@@ -124,7 +124,7 @@ a:hover { text-decoration-color: var(--accent); }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
 
 .eyebrow {
-  font-family: var(--mono); font-size: 0.73rem; letter-spacing: 0.16em;
+  font-family: var(--mono); font-size: 0.79rem; letter-spacing: 0.16em;
   text-transform: uppercase; color: var(--accent); font-weight: 600;
   display: inline-flex; align-items: center; gap: 0.6rem; margin: 0 0 0.9rem;
 }
@@ -156,7 +156,7 @@ code, kbd, .mono { font-family: var(--mono); font-size: 0.9em; }
 .btn:hover .arw { transform: translateX(2px); }
 
 .chip {
-  font-family: var(--mono); font-size: 0.74rem; color: var(--muted);
+  font-family: var(--mono); font-size: 0.78rem; color: var(--muted);
   border: 1px solid var(--line); border-radius: 999px; padding: 0.3rem 0.78rem;
   background: var(--surface); display: inline-flex; align-items: center; gap: 0.45rem;
 }
@@ -180,7 +180,7 @@ a.card:hover { border-color: var(--accent); transform: translateY(-2px); }
 /* callouts — encode meaning in color + label */
 .callout { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 0.6rem;
   padding: 1rem 1.2rem; margin: 1.4rem 0; background: var(--accent-soft); }
-.callout .label { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase;
+.callout .label { font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase;
   color: var(--accent); font-weight: 700; display: block; margin-bottom: 0.35rem; }
 .callout p:last-child { margin-bottom: 0; }
 .callout.safe   { border-left-color: var(--safe);   background: var(--safe-dim); }
@@ -192,16 +192,47 @@ a.card:hover { border-color: var(--accent); transform: translateY(-2px); }
 
 /* verified stamp */
 .verified { display: inline-flex; align-items: center; gap: 0.45rem; font-family: var(--mono);
-  font-size: 0.76rem; color: var(--muted); }
+  font-size: 0.78rem; color: var(--muted); }
 .verified .tick { color: var(--safe); font-weight: 700; }
 
 .scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius); }
 table { border-collapse: collapse; width: 100%; font-size: 0.93rem; }
 th, td { text-align: left; padding: 0.75rem 0.95rem; border-bottom: 1px solid var(--line-soft); vertical-align: top; }
-thead th { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase;
+thead th { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--muted); background: var(--raise); font-weight: 600; }
 tbody tr:last-child td { border-bottom: 0; }
 .num { font-variant-numeric: tabular-nums; }
+
+/* Sticky axes inside a .scroll table: the header row keeps its labels while the
+   container scrolls vertically (mobile clamp below), and the first column — the
+   row's name — stays put while it scrolls sideways. Sticky cells need their own
+   opaque backgrounds (rows are transparent over the page ground) so scrolled
+   content can't ghost through in either theme. */
+.scroll thead th { position: sticky; top: 0; z-index: 2; }
+.scroll th:first-child, .scroll td:first-child { position: sticky; left: 0; z-index: 1; background: var(--bg); }
+.scroll thead th:first-child { z-index: 3; background: var(--raise); }
+
+/* "Swipe →" caption for wide tables — shown only where they actually scroll. */
+.scroll-hint { display: none; }
+
+@media (max-width: 760px) {
+  .scroll-hint { display: block; font-family: var(--mono); font-size: 0.78rem; color: var(--muted); margin: 0 0 0.45rem; }
+  /* Clamp tall tables so the sticky header has a scrollport to stick in, and fade
+     the cut-off right edge as a "more this way" affordance. The fade is a mask —
+     content thins out to the page background — so it holds in both themes without
+     naming a color. */
+  .scroll {
+    max-height: min(72dvh, 34rem);
+    overflow-y: auto;
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 2.2rem), transparent);
+    mask-image: linear-gradient(to right, #000 calc(100% - 2.2rem), transparent);
+  }
+}
+
+/* A standalone arrow/CTA link is a one-line tap target on phones — give it a
+   finger-sized hit area without shifting the text it sits in. Never applied to
+   inline prose links. */
+.tap-link { display: inline-block; padding-block: 0.55rem; margin-block: -0.55rem; }
 
 hr { border: 0; border-top: 1px solid var(--line-soft); margin: 2rem 0; }
 .section-gap { height: 1px; }

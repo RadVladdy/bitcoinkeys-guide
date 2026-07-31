@@ -72,14 +72,18 @@ const reference = (learn?.links || []).filter((l) => l.ref);
   .foot-col-title { margin: 0 0 0.15rem; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.12em;
     text-transform: uppercase; color: var(--faint); }
   .foot-lvn { color: var(--accent); font-size: 0.72rem; }
-  .foot-col a { color: var(--muted); text-decoration: none; font-size: 0.9rem; }
+  /* padding-block + matching negative margin: a finger-sized hit area on phones
+     without changing the column's visual rhythm. */
+  .foot-col a { color: var(--muted); text-decoration: none; font-size: 0.9rem;
+    padding-block: 0.35rem; margin-block: -0.35rem; }
   .foot-col a:hover { color: var(--accent); }
   .foot-base { display: flex; align-items: center; justify-content: space-between; gap: 1rem 1.4rem; flex-wrap: wrap;
     padding: 1.2rem 1.4rem 1.8rem; border-top: 1px solid var(--line-soft); color: var(--faint); font-size: 0.82rem; }
   .foot-sisters { display: flex; align-items: center; flex-wrap: wrap; gap: 0.4rem 0.9rem; }
   .foot-sisters .sis-label { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.12em;
     text-transform: uppercase; color: var(--faint); }
-  .foot-sisters a { color: var(--muted); text-decoration: none; }
+  .foot-sisters a { color: var(--muted); text-decoration: none; display: inline-block;
+    padding-block: 0.35rem; margin-block: -0.35rem; }
   .foot-sisters a:hover { color: var(--accent); }
   @media (max-width: 900px) { .foot-map { grid-template-columns: repeat(3, 1fr); } }
   @media (max-width: 560px) { .foot-map { grid-template-columns: 1fr 1fr; } }

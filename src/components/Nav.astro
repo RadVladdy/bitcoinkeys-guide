@@ -210,6 +210,8 @@ const groupActive = (g) =>
       var setOpen = function (open) {
         menu.classList.toggle('open', open);
         menuBtn.setAttribute('aria-expanded', String(open));
+        // Lock the page behind the open menu — the panel scrolls, the page doesn't.
+        document.documentElement.classList.toggle('bkg-menu-open', open);
       };
       menuBtn.addEventListener('click', function () { setOpen(!menu.classList.contains('open')); });
       menu.addEventListener('click', function (e) { if (e.target.closest('a')) setOpen(false); });
@@ -341,16 +343,19 @@ const groupActive = (g) =>
   @media (max-width: 820px) {
     .sections { display: none; }
     .menu-btn { display: inline-grid; }
+    /* The panel runs to the exact bottom of the visible viewport (dvh tracks the
+       collapsing browser chrome) — a vh guess left a strip of page peeking under it. */
     .site-menu { position: absolute; top: calc(100% + 1px); left: 0; right: 0; z-index: 30;
       background: var(--bg); border: 1px solid var(--line); border-top: none; border-radius: 0 0 0.7rem 0.7rem;
-      box-shadow: var(--shadow); padding: 0.6rem 0.5rem 0.8rem; max-height: calc(100vh - 4rem); overflow-y: auto; }
+      box-shadow: var(--shadow); padding: 0.6rem 0.5rem 0.8rem; overflow-y: auto;
+      height: calc(100vh - 3.6rem - 1px); height: calc(100dvh - 3.6rem - 1px); }
     .site-menu.open { display: block; }
     .mm-group { padding: 0.35rem 0; }
     .mm-group + .mm-group { border-top: 1px solid var(--line-soft); }
-    .mm-title { margin: 0.35rem 0.6rem 0.2rem; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.12em;
+    .mm-title { margin: 0.35rem 0.6rem 0.2rem; font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.12em;
       text-transform: uppercase; color: var(--faint); }
     .mm-div { margin: 0.5rem 0.9rem 0.15rem; padding-top: 0.5rem; border-top: 1px solid var(--line-soft);
-      font-family: var(--mono); font-size: 0.64rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--faint); }
+      font-family: var(--mono); font-size: 0.74rem; letter-spacing: 0.13em; text-transform: uppercase; color: var(--faint); }
     /* Level headings inside the hamburger — the mega-panel's structure, stacked.
        These carry more weight than on desktop: with no columns to separate the
        levels, the heading is the ONLY thing marking where one section ends and
@@ -405,5 +410,9 @@ const groupActive = (g) =>
   @media (max-width: 820px) {
     .nostr-menu { position: fixed; top: 3.9rem; right: 0.6rem; left: auto;
       width: min(16rem, calc(100vw - 1.2rem)); }
+    /* Set by the hamburger script while the menu panel is open. Root only — an
+       overflow:hidden on <body> would become the sticky nav's scrollport and
+       un-stick the header. */
+    :root.bkg-menu-open { overflow: hidden; }
   }
 </style>

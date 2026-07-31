@@ -27,7 +27,7 @@ import Diagram from '../../components/Diagram.astro';
 <Base
   title="Hot and cold — where your money lives · BitcoinKeys.guide"
   description="Hot wallets are connected to the internet; cold wallets aren't. Which matters less than the decision that follows from it: how much of your Bitcoin sits at each temperature, and how money moves between them."
-  verified="2026-07-30"
+  verified="2026-07-31"
 >
   <section class="prose">
     <LessonEyebrow />
@@ -74,7 +74,8 @@ import Diagram from '../../components/Diagram.astro';
     <ul>
       <li><strong>A hot wallet</strong> holds a small amount for spending. If your phone is lost or
         compromised this balance could go with it — but because it’s small, that’s survivable. If you use
-        Lightning for everyday payments, those funds have to be hot by design.</li>
+        <strong>Lightning</strong> — Bitcoin’s layer for instant everyday payments (see the
+        <a href="/glossary#lightning-network">glossary</a>) — those funds have to be hot by design.</li>
       <li><strong>A cold wallet</strong> — a hardware wallet — holds the balance you’re not spending this
         week but still want within reach. For most people this single device is the core of the whole setup.</li>
       <li><strong>Deep cold storage</strong> holds the bulk, touched rarely. This is where the more involved
@@ -88,8 +89,8 @@ import Diagram from '../../components/Diagram.astro';
       savings, because you haven’t mixed them with your spending money.
     </p>
     <p>
-      Match the effort to the amount. Starting small? A phone wallet is fine — the best wallet is the one
-      you’ll actually use and understand. Past pocket money, add a hardware wallet and keep only spending
+      Match the effort to the amount. A phone wallet is fine for spending money — but the moment any of it
+      is savings, it belongs cold, however small. At that point add a hardware wallet and keep only spending
       money on the phone. You may also hear people insist on strict <strong>air-gapping</strong> — a device
       that never plugs in and communicates only by scanned QR codes. It’s the most isolated form of cold
       storage, but for most people a well-managed hardware wallet that plugs in by USB is already strong

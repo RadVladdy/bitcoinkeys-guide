@@ -32,7 +32,7 @@ const total = checklistCount;
 <Base
   title="Your self-custody checklist · BitcoinKeys.guide"
   description="A plain-English Bitcoin self-custody checklist that adapts to your setup: what to do first, what to do next, and what to review every year. Find your setup and it becomes yours — device-neutral, nothing to sell you."
-  verified="2026-07-28"
+  verified="2026-07-31"
 >
   <section class="prose">
     <p class="eyebrow">Checklist</p>
@@ -62,12 +62,17 @@ const total = checklistCount;
 
   {groups.map((g) => (
     <section class="cgroup" data-phase={g.key}>
-      <div class="grouphead">
-        <span class="gtag">{g.tag}</span>
-        <h2>{g.title}</h2>
-        <p class="sub">{g.intro}</p>
-      </div>
-      <ul class="clist">
+      {/* Native details/summary so a long page can be folded phase by phase — open
+          by default (the page is a list to work down, not an accordion), no JS
+          state. markNext() re-opens any phase holding the "Next up" item. */}
+      <details class="cg-fold" open>
+        <summary class="grouphead">
+          <span class="gtag">{g.tag}</span>
+          <h2>{g.title}</h2>
+          <svg class="g-chev" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>
+        </summary>
+        <p class="sub g-intro">{g.intro}</p>
+        <ul class="clist">
         {g.items.map((it) => (
           <li
             class="citem"
@@ -95,7 +100,8 @@ const total = checklistCount;
             <span class="ct-next mono" hidden>Next up</span>
           </li>
         ))}
-      </ul>
+        </ul>
+      </details>
     </section>
   ))}
 
@@ -159,6 +165,12 @@ const total = checklistCount;
   // has not happened.
   function planGap(p) {
     if (!p || !p.quiz || !p.quiz.rung) return null;
+    // The custodian gap is checked FIRST on a collaborative plan: the service comes
+    // before the hardware (it decides which devices you can even use), and the quiz
+    // says so in as many words. Mirrors planGaps() on /my-plan.
+    if (p.quiz.rung === 'collaborative' && !p.custodian) {
+      return { what: 'a collaborative custodian', href: '/collaborative', cta: 'Compare custodians' };
+    }
     const need = keysForSetup({ rungSlug: p.quiz.rung, label: p.quiz.primaryLabel, tier: p.quiz.primaryTier });
     const assigned = (Array.isArray(p.quiz.plannedDevices) ? p.quiz.plannedDevices : []).filter(Boolean);
     const missing = Math.max(0, need - assigned.length);
@@ -167,9 +179,6 @@ const total = checklistCount;
         what: missing === 1 ? 'a hardware wallet' : `${missing} more hardware wallets`,
         href: '/wallets', cta: 'Compare wallets',
       };
-    }
-    if (p.quiz.rung === 'collaborative' && !p.custodian) {
-      return { what: 'a collaborative custodian', href: '/collaborative', cta: 'Compare custodians' };
     }
     return null;
   }
@@ -270,9 +279,15 @@ const total = checklistCount;
       sec.hidden = !any;
     });
 
-    // Swap the generic intro for the personalized header.
+    // Swap the generic intro for the personalized header. The name derives from the
+    // RUNG, not the stored label — pre-7/30 plans stored a step-up's ACTION as the
+    // label, so headers read "Getting you to Add a passphrase (the \"25th word\")".
+    // Same guard /my-plan applies: the stored label is trusted only when it names a
+    // setup rather than an action.
     const rung = getRung(ctx.rung);
-    const setupName = ctx.label || (rung && rung.name) || ctx.rung;
+    const stored = (ctx.label || '').trim();
+    const storedIsSetup = stored && !/^(add|step up|spread|graduate|start)\b/i.test(stored);
+    const setupName = (rung && rung.name) || (storedIsSetup ? stored : '') || ctx.rung;
     const nudge = document.getElementById('cl-nudge');
     const yours = document.getElementById('cl-yours');
     if (nudge) nudge.hidden = true;
@@ -308,6 +323,9 @@ const total = checklistCount;
     next.classList.add('next');
     const tag = next.querySelector('.ct-next');
     if (tag) tag.hidden = false;
+    // A collapsed phase must never hide the one action we're pointing at.
+    const fold = next.closest('details');
+    if (fold && !fold.open) fold.open = true;
   }
 
   function refresh() {
@@ -325,9 +343,9 @@ const total = checklistCount;
     markNext();
   }
 
-  function toast(msg) {
+  function toast(msg, kind) {
     const t = document.createElement('div');
-    t.className = 'cl-toast'; t.textContent = msg;
+    t.className = 'cl-toast' + (kind ? ' ' + kind : ''); t.textContent = msg;
     document.body.appendChild(t);
     requestAnimationFrame(() => t.classList.add('show'));
     setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 1800);
@@ -359,7 +377,15 @@ const total = checklistCount;
       refresh();
       // Merge, don't replace: hidden items may hold ticks from an earlier setup,
       // and clobbering them would silently erase real progress.
-      saveChecklistSlice({ ...saved, ...checked, ...hiddenOff() });
+      const savedPlan = saveChecklistSlice({ ...saved, ...checked, ...hiddenOff() });
+      // saveChecklistSlice returns null when the browser blocked the write (private
+      // mode, storage full) — the tick still shows for this visit, but claiming
+      // "saved" over a write that never happened would be a lie.
+      if (!savedPlan) {
+        if (elAuto) elAuto.hidden = true;
+        toast('Couldn’t save — your browser is blocking storage', 'err');
+        return;
+      }
       if (elAuto) elAuto.hidden = false;
       toast(nowOn ? '✓ Saved to your plan' : 'Updated your plan');
     });
@@ -379,16 +405,24 @@ const total = checklistCount;
 </script>
 
 <style>
-  .grouphead { margin-bottom: 1.2rem; }
-  .gtag { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase;
-    color: var(--accent-ink); background: var(--accent); border-radius: 999px; padding: 0.25rem 0.7rem; }
-  .grouphead h2 { margin-top: 0.9rem; margin-bottom: 0.3rem; }
-  .grouphead .sub { margin: 0; max-width: 60ch; }
+  .gtag { font-family: var(--mono); font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase;
+    color: var(--accent-ink); background: var(--accent); border-radius: 999px; padding: 0.25rem 0.7rem;
+    flex: 0 0 auto; }
+  /* The phase heading doubles as the fold control. */
+  .grouphead { display: flex; align-items: center; gap: 0.8rem; flex-wrap: wrap;
+    cursor: pointer; list-style: none; padding: 0.4rem 0; border-radius: 0.5rem; }
+  .grouphead::-webkit-details-marker { display: none; }
+  .grouphead h2 { margin: 0; }
+  .grouphead .g-chev { color: var(--muted); flex: 0 0 auto; transition: transform 0.15s ease; }
+  .grouphead:hover .g-chev { color: var(--accent); }
+  .cg-fold:not([open]) .g-chev { transform: rotate(-90deg); }
+  .cg-fold:not([open]) .grouphead { opacity: 0.85; }
+  .g-intro { margin: 0.3rem 0 0; max-width: 60ch; }
 
   /* The personalized header — replaces the "make this yours" nudge once a plan exists. */
   .yours { border: 1px solid var(--accent); border-radius: var(--radius); background: var(--accent-soft);
     padding: 1.4rem 1.6rem; margin: 1.4rem 0 0.6rem; }
-  .yours .y-k { display: block; color: var(--accent); font-size: 0.74rem; letter-spacing: 0.08em;
+  .yours .y-k { display: block; color: var(--accent); font-size: 0.78rem; letter-spacing: 0.08em;
     text-transform: uppercase; margin: 0 0 0.4rem; }
   .yours .y-h { margin: 0 0 0.4rem; font-size: 1.3rem; line-height: 1.2; }
   .yours .y-sub { margin: 0 0 1rem; color: var(--muted); font-size: 0.95rem; }
@@ -406,7 +440,7 @@ const total = checklistCount;
   /* Exactly one open action is highlighted at a time. */
   .citem.next { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent-soft); background: color-mix(in srgb, var(--accent) 5%, var(--surface)); }
   .citem.advisory { border-left: 3px solid var(--warn); padding-left: 0.8rem; }
-  .ct-next { align-self: center; font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase;
+  .ct-next { align-self: center; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
     color: var(--accent-ink); background: var(--accent); border-radius: 999px; padding: 0.2rem 0.55rem; white-space: nowrap; }
   .box { width: 1.5rem; height: 1.5rem; border: 2px solid var(--accent); border-radius: 6px; margin-top: 0.1rem;
     background: var(--raise); cursor: pointer; display: inline-grid; place-items: center; color: var(--accent-ink); padding: 0; transition: background 0.15s; }
@@ -430,7 +464,7 @@ const total = checklistCount;
   /* No nowrap: the chip carries a whole rule title ("Rule 03 · Simplest setup that
      covers you"), which is far too long to hold on one line on a phone and pushed
      the page sideways when it tried. */
-  .ct-rule { font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
+  .ct-rule { font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
     border: 1px solid var(--line); border-radius: 0.35rem; padding: 0.12rem 0.45rem; text-decoration: none; }
   .ct-rule:hover { color: var(--accent); border-color: var(--accent); }
   .citem.done .ct-rule { opacity: 0.55; }
@@ -449,6 +483,7 @@ const total = checklistCount;
     padding: 0.6rem 1.05rem; font-size: 0.9rem; box-shadow: var(--shadow); opacity: 0; z-index: 50;
     transition: opacity 0.25s, transform 0.25s; }
   .cl-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  .cl-toast.err { border-color: var(--danger); }
   @media (max-width: 560px) {
     .citem { grid-template-columns: 1.6rem 1fr; }
     .ct-next { grid-column: 2; justify-self: start; margin-top: 0.3rem; }

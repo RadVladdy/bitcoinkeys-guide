@@ -27,9 +27,11 @@ export interface Props {
   ogTitle?: string;
   /** per-page social share image (site-relative or absolute); defaults to the brand card */
   ogImage?: string;
+  /** error pages: no canonical/og:url (they'd point at a URL that 404s) and ask not to be indexed */
+  noindex?: boolean;
 }
 
-const { title, description, verified, ogTitle, ogImage } = Astro.props;
+const { title, description, verified, ogTitle, ogImage, noindex } = Astro.props;
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const ogImageUrl = new URL(ogImage ?? '/og-card.png', Astro.site).href;
 const verifiedLabel = verified
@@ -43,13 +45,13 @@ const verifiedLabel = verified
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>{title}</title>
 <meta name="description" content={description} />
-<link rel="canonical" href={canonical} />
+{noindex ? <meta name="robots" content="noindex" /> : <link rel="canonical" href={canonical} />}
 <meta name="theme-color" content="#0e0d0b" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="BitcoinKeys.guide" />
 <meta property="og:title" content={ogTitle ?? title} />
 <meta property="og:description" content={description} />
-<meta property="og:url" content={canonical} />
+{!noindex && <meta property="og:url" content={canonical} />}
 <meta property="og:image" content={ogImageUrl} />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />

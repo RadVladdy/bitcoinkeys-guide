@@ -65,7 +65,7 @@ const buckets = [
       { h: 'The “$5 wrench.”', d: 'The blunt truth: cryptography can’t protect you from someone willing to threaten you until you hand it over. If they know you hold Bitcoin and can reach you, the strong encryption doesn’t matter.' },
       { h: 'Being picked as a target.', d: 'These attacks are almost never random. It usually starts with a data leak — an exchange gets breached and your name and home address end up on a list — which gets cross-referenced with anything you’ve posted publicly about holding Bitcoin. That’s the pipeline: leak → list → your door.' },
     ],
-    defense: 'The best physical protection isn’t a gadget, it’s a habit: <strong>talk about Bitcoin as loudly as you like — never about <em>your</em> Bitcoin.</strong> Don’t attach your own name to the fact that you hold and self-custody it, and never attach a number. That includes the people you trust, because they have people they trust too. Then keep backups out of obvious places, and split things up so no single location holds enough to spend. For a targeted threat, a <strong>passphrase</strong> turns your base seed into a <strong>decoy wallet</strong>: the recovery words alone open only a small, believable stash, while the real coins sit behind a passphrase stored somewhere the words are not — so what a searcher finds still isn’t the real thing. <strong>Back that passphrase up as carefully as the seed, and keep it in a separate place.</strong> A passphrase living only in your memory is not a clever extra layer; it is the single most documented way this setup loses people their Bitcoin, and it’s the first item in this list wearing a disguise.',
+    defense: 'The best physical protection isn’t a gadget, it’s a habit: <strong>talk about Bitcoin as loudly as you like — never about <em>your</em> Bitcoin.</strong> Don’t attach your own name to the fact that you hold and self-custody it, and never attach a number. That includes the people you trust, because they have people they trust too.<br><br>Then make what a searcher finds not enough: keep backups out of obvious places, and split things up so no single location holds enough to spend.<br><br>For a targeted threat, a <strong>passphrase</strong> turns your base seed into a <strong>decoy wallet</strong>: the recovery words alone open only a small, believable stash, while the real coins sit behind a passphrase stored somewhere the words are not.<br><br>One warning if you go that way: <strong>back the passphrase up as carefully as the seed, and keep it in a separate place.</strong> A passphrase living only in your memory is “I’ll just remember it” all over again — risk number one on this page wearing a disguise — and it is the single most documented way this setup loses people their Bitcoin.',
     covered: 'The habits that keep you off the list are <strong>Privacy / OpSec</strong>, in 104 · The long haul. The decoy setup itself is a rung on the ladder, in 102 · Your setup.',
   },
   {
@@ -76,7 +76,7 @@ const buckets = [
       { h: 'The company goes bankrupt or runs off with it.', d: 'This is not hypothetical — it’s Bitcoin’s most repeated disaster. Mt. Gox lost about 850,000 coins in 2014. FTX vaporised roughly $8 billion of customer money in 2022. The list of collapsed exchanges is long, and it keeps getting longer.' },
       { h: 'Your account gets frozen.', d: 'Even a healthy exchange can lock your withdrawals — during a hack, a legal order, or a “review” — and there’s nothing you can do but wait, sometimes forever.' },
     ],
-    defense: 'Move your Bitcoin off the exchange and into your own custody after you buy — that single step is what this whole guide is about. And buy from a reputable <strong>Bitcoin-only</strong> service (River, Swan, Strike) rather than a multi-coin “crypto casino”: fewer distractions and gimmicks, a straightforward path to withdrawing to your own wallet, and a company whose entire business is Bitcoin.',
+    defense: 'Move your Bitcoin off the exchange and into your own custody after you buy — that single step is what this whole guide is about. And buy from a reputable <strong>Bitcoin-only</strong> service (River, Swan, Strike) rather than a multi-coin exchange: fewer products competing for your attention, withdrawal to your own wallet treated as a first-class feature, and a company whose entire business is Bitcoin.',
     covered: 'The very next lesson — <strong>Not your keys, not your coins</strong> — is this one in full.',
   },
   {
@@ -96,7 +96,7 @@ const buckets = [
 <Base
   title="How people actually lose Bitcoin · BitcoinKeys.guide"
   description={`The plain-English map of how Bitcoin is really lost — mostly mistakes, not hackers. Learn the ${numberWord(buckets.length)} ways it happens so you can see each one coming, with the exact page in this guide that defends against each.`}
-  verified="2026-07-17"
+  verified="2026-07-31"
 >
   <section class="risk-intro">
    <div class="prose intro-main">
@@ -118,7 +118,7 @@ const buckets = [
     <p>
       Those scary-sounding numbers trace back to Bitcoin’s earliest years — coins worth pennies, held by
       people who had no idea they’d ever matter, lost to reformatted drives and forgotten passwords. It’s
-      a one-time artifact of that era, <em>not</em> a one-in-six chance hanging over you now. The single
+      a one-time artifact of that era — that’s the “11–25% of all Bitcoin is lost” figure — <em>not</em> a “one in six of today’s coins are doomed” risk hanging over you now. The single
       biggest thing separating you from those early losers is simple: <strong>you already know what you’re
       holding.</strong> So read the list below not as what’s <em>likely</em> to happen to you, but as the
       short, knowable set of things to design around.
@@ -138,6 +138,7 @@ const buckets = [
        <div class="stat-n num">2</div>
        <div class="stat-c">ways to lose it: you lose the keys, or someone else gets them. Every defence trades one for the other.</div>
      </div>
+     <p class="stat-src">The percentages are Chainalysis-family estimates — readings of the public ledger, not precise counts.</p>
    </aside>
   </section>
 
@@ -220,10 +221,12 @@ const buckets = [
   .stat { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 1.05rem 1.2rem; }
   .stat-n { font-family: var(--mono); font-weight: 800; color: var(--accent); font-size: 2.3rem; line-height: 1; letter-spacing: -0.02em; }
   .stat-c { margin-top: 0.5rem; font-size: 0.88rem; line-height: 1.45; color: var(--muted); }
+  .stat-src { margin: 0; font-size: 0.78rem; line-height: 1.45; color: var(--faint); }
   @media (max-width: 860px) {
     .risk-intro { grid-template-columns: 1fr; gap: 1.6rem; }
     .rail { flex-direction: row; flex-wrap: wrap; }
     .stat { flex: 1 1 12rem; }
+    .stat-src { flex: 1 1 100%; }
   }
 
   .risks { list-style: none; margin: 1.6rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 1.1rem; }

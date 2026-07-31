@@ -53,17 +53,27 @@ export const checklistItems = [
   // plan — including people who already owned one — and the page helpfully appended
   // "— you have Ledger Nano". Telling someone to go and get the thing they just told
   // you they have, and calling theirs unreal, was the worst of both.
+  // The custodian comes BEFORE the hardware on a collaborative plan — the quiz says
+  // so in as many words ("Choose your service first — it comes before the hardware"):
+  // each service lists the devices it supports, and some send you one. Ordered here
+  // to match; its `only` keeps it off every other plan.
+  { id: 'choose-custodian', phase: 'setup', only: ['collaborative'], t: 'Choose your collaborative custodian',
+    d: 'The service holds one key of your multisig — you hold the rest, and they can never move your coins alone. Choose the service before the hardware: each one lists the devices it supports, and some send you one. Compare them on recovery terms and whether you could rebuild the wallet without them.',
+    href: '/collaborative' },
   { id: 'get-device', phase: 'setup', t: 'Get a hardware wallet',
     d: 'A device from our cold-storage tier — Bitcoin-only firmware available, its own screen, offline signing. Buy direct from the maker and check the tamper seal.',
     href: '/wallets', deviceSlot: true, rule: 'buy-direct' },
   { id: 'multisig-brands', phase: 'setup', only: MULTI, t: 'Use different brands for your keys',
     d: 'The cheapest big upgrade in all of self-custody. Three identical devices share one point of failure — a flaw in that brand hits every key at once. Different makers means a problem with one brand can only ever cost you one key.',
     href: '/learn/choose-a-wallet' },
-  { id: 'choose-custodian', phase: 'setup', only: ['collaborative'], t: 'Choose your collaborative custodian',
-    d: 'The service holds one key of your multisig — you hold the rest, and they can never move your coins alone. Compare them on recovery terms and whether you could rebuild the wallet without them.',
-    href: '/collaborative' },
+  // Every USB cold-tier device pairs with companion software, and until 2026-07-31
+  // no page on the site said so — the step between "buy the device" and "generate
+  // the seed" simply wasn't written down.
+  { id: 'install-app', phase: 'setup', t: 'Install the maker’s wallet app',
+    d: 'Your hardware wallet pairs with an app on your computer or phone — that’s where you’ll see balances and prepare the payments the device signs. Get it from the maker’s official site only, typed by hand, never from a search result or an ad: fake copies of these apps exist, and they are built to steal.',
+    href: '/learn/phishing-and-scams' },
   { id: 'generate-seed', phase: 'setup', t: 'Generate a fresh seed on the device yourself',
-    d: 'Never use pre-set words. Let the device create the seed in front of you.',
+    d: 'Power the device on and follow the maker’s official start page — the address printed in the box or on their site, not a link someone sent you. Set a PIN when it asks, then let the device create the seed in front of you: it shows the words on its own screen, and you copy them down by hand. Never use pre-set words, and never type the words into a computer or phone.',
     href: '/learn/ladder#rung-1', rule: 'buy-direct' },
   { id: 'passphrase-choose', phase: 'setup', only: ['passphrase'], t: 'Choose your passphrase carefully',
     d: 'The secret “25th word” that opens your real wallet — the seed alone opens a decoy. It can’t be reset, rate-limited, or recovered, so a weak or guessable one is almost as bad as none.',
@@ -74,8 +84,13 @@ export const checklistItems = [
   { id: 'verify-address', phase: 'setup', t: 'Verify every address on the device’s own screen',
     d: 'Malware exists that silently swaps the address you copied for an attacker’s, and your computer will show you the swap without blinking. The hardware wallet’s own screen can’t be faked that way. Read the address there, confirm it, then approve — every single time.',
     href: '/learn/send-bitcoin-safely', rule: 'verify-address' },
-  { id: 'test-send', phase: 'setup', t: 'Move a test amount off the exchange first',
-    d: 'Send a small amount to your own wallet, confirm it arrives, then move the rest. Never move everything in one blind step.',
+  // SPLIT 2026-07-31 (safety-critical ordering). One item used to say "send a test
+  // amount… then move the rest" HERE — before the backup existed (Step 2) or had been
+  // tested (Step 3), and Step 3 then tells you to wipe the device. The test amount
+  // belongs here; the rest of your Bitcoin moves only after recovery is proven. The
+  // funding step kept the old `test-send` id so previously ticked plans stay ticked.
+  { id: 'test-receive', phase: 'setup', t: 'Send a small test amount to your new wallet',
+    d: 'Move a little off the exchange — enough to prove the route works, small enough that a mistake costs nothing. Verify the receive address on the device’s own screen first, then confirm it arrives. The rest of your Bitcoin stays put until your backup is proven.',
     href: '/learn/send-bitcoin-safely', rule: 'not-your-keys' },
 
   // ── Step 2 · Secure the backup ────────────────────────────────────────────
@@ -111,6 +126,11 @@ export const checklistItems = [
   { id: 'custodian-recovery', phase: 'prove', only: ['collaborative'], needs: 'custodian', t: 'Confirm you can recover WITHOUT the service',
     d: 'The whole point of collaborative custody is that the service is a convenience, not a dependency. Make sure you hold enough keys — and the descriptor — to rebuild the wallet if they vanish tomorrow.',
     href: '/collaborative' },
+  // Closes the prove phase — this is the moment the setup earns real money. Kept its
+  // original `test-send` id (see the id-stability rule at the top of this file).
+  { id: 'test-send', phase: 'prove', t: 'Move the rest — now that the backup is proven',
+    d: 'Your backup exists, lives in more than one place, and has restored the wallet in a real test. Now the rest of your Bitcoin can follow the test amount. Verify the receive address on the device’s screen each time, and move it in a couple of pieces rather than one blind step.',
+    href: '/learn/send-bitcoin-safely', rule: 'not-your-keys' },
 
   // ── Step 4 · Live with it ─────────────────────────────────────────────────
   { id: 'daily-safety', phase: 'live', t: 'Learn the daily-safety habits',

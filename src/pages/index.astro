@@ -153,7 +153,7 @@ const optional = levels.filter((lv) => lv.optional);
     <h2>The ladder</h2>
     <p class="sub prose" style="margin-bottom:1.4rem;">Every setup fits on one ladder of rising complexity. <strong>Almost everyone belongs on the first rung or two</strong> — the names get technical as you climb, but you only move up if a real risk pushes you there. Find the lowest rung that covers you, and move up later only if your situation outgrows it.</p>
     <Ladder />
-    <p class="sub" style="margin-top:1.2rem; font-size:0.9rem;">Each rung opens out below — what it solves, what it costs you, and who it’s for. <a href="/learn/ladder">Read the full ladder →</a></p>
+    <p class="sub" style="margin-top:1.2rem; font-size:0.9rem;">Each rung opens out below — what it solves, what it costs you, and who it’s for. <a class="tap-link" href="/learn/ladder">Read the full ladder →</a></p>
   </section>
 
   <section class="dives">
@@ -171,7 +171,7 @@ const optional = levels.filter((lv) => lv.optional);
         </a>
       ))}
     </div>
-    <p class="sub" style="margin-top:1.2rem; font-size:0.9rem;"><a href="/deep-dive">All {deepDives.length} demos →</a></p>
+    <p class="sub" style="margin-top:1.2rem; font-size:0.9rem;"><a class="tap-link" href="/deep-dive">All {deepDives.length} demos →</a></p>
   </section>
 </Base>
 
@@ -224,7 +224,7 @@ const optional = levels.filter((lv) => lv.optional);
   .lv-t { font-weight: 650; font-size: 0.93rem; }
   .lv-t em { font-style: normal; color: var(--safe); font-size: 0.78rem; font-weight: 500; }
   .lv-w { color: var(--muted); font-size: 0.82rem; line-height: 1.4; }
-  .lv-c { color: var(--faint); font-size: 0.76rem; white-space: nowrap; }
+  .lv-c { color: var(--faint); font-size: 0.78rem; white-space: nowrap; }
   /* The unit stays on wide screens; on a phone the number alone carries it, because
      the level title is what deserves the width. */
   @media (max-width: 520px) { .lv-cl { display: none; } }

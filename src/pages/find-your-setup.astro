@@ -5,7 +5,7 @@ import { questionCountWordCap } from '../data/quiz.js';
 <Base
   title="Find your setup — which self-custody setup fits you · BitcoinKeys.guide"
   description={`${questionCountWordCap} plain questions → a self-custody setup that fits you, a personal roadmap from where you are now (built around any wallets you already own), and an ordered checklist. Runs entirely in your browser — we never ask how much Bitcoin you hold.`}
-  verified="2026-07-22"
+  verified="2026-07-31"
 >
   <section class="prose">
     <p class="eyebrow">Find your setup</p>
@@ -32,7 +32,7 @@ import { questionCountWordCap } from '../data/quiz.js';
   import { questions, recommend } from '../data/quiz.js';
   import { wallets, keysForSetup, slugForName } from '../data/wallets.js';
   import { rungAnchor } from '../data/ladder.js';
-  import { savePlannedSetup, plannedSetupRung, plannedSetupLabel, loadLocal, getOwned, clearPlanSelection, plannedSetupSource } from '../data/plan.js';
+  import { savePlannedSetup, plannedSetupRung, plannedSetupLabel, plannedKeysNeeded, loadLocal, getOwned, clearPlanSelection, plannedSetupSource } from '../data/plan.js';
   import { mountOwnedPicker } from '../data/owned-picker.js';
   import { confirmDialog } from '../data/ui-dialog.js';
 
@@ -192,7 +192,11 @@ import { questionCountWordCap } from '../data/quiz.js';
           : `<li>${body}</li>`;
       }).join('');
       const container = adaptive ? `<div class="r-devs adaptive">${items}</div>` : `<ul class="r-devs">${items}</ul>`;
-      const label = adaptive ? 'Two devices that fit — tap the one you’ll use; the steps adapt' : 'Two devices that fit — either works, pick by feel';
+      // The tap does exactly what this label says and nothing more: the chosen
+      // device is saved first in the plan's recommendations. The old label
+      // promised "the steps adapt" — a leftover from the retired per-device
+      // checklist, which no longer exists to adapt.
+      const label = adaptive ? 'Two devices that fit — tap the one you’re leaning toward and we’ll put it first in your plan' : 'Two devices that fit — either works, pick by feel';
       return `<div class="r-wallet">
         <span class="r-k mono">${label}</span>
         ${container}
@@ -260,6 +264,12 @@ import { questionCountWordCap } from '../data/quiz.js';
   // result: a from→to path when there's a climb, or a single "you're here" when they're
   // already at/beyond the fit. Encouraging by design; never implies a downgrade.
   function journeyPath(j) {
+    if (j.kind === 'sideways') {
+      // Same rung, different third-key holder — neither node is "the destination".
+      return `<span class="rj-node rj-now"><span class="rj-k mono">You’re here</span><span class="rj-lbl">${esc(j.curLabel)}</span></span>
+        <span class="rj-arrow" aria-hidden="true">↔</span>
+        <span class="rj-node rj-dest"><span class="rj-k mono">Where your answers lean</span><span class="rj-lbl">${esc(j.targetLabel)}</span></span>`;
+    }
     if (j.gap > 0) {
       return `<span class="rj-node rj-now"><span class="rj-k mono">You’re here</span><span class="rj-lbl">${esc(j.curLabel)}</span></span>
         <span class="rj-arrow" aria-hidden="true">→</span>
@@ -285,7 +295,7 @@ import { questionCountWordCap } from '../data/quiz.js';
     elResult.hidden = false;
     const { primary, secondary, journey } = recommend(answers);
     const devs = primary.wallets || [];
-    const adaptive = devs.some((d) => d.checklist);   // e.g. Bitkey has its own flow
+    const adaptive = devs.some((d) => d.adaptive);   // e.g. Bitkey has its own flow
     let sel = 0;
     const primaryHasVendors = primary.vendors && primary.vendors.length;
     const saveControl = (rung, label, tier, source, recSlugs) =>
@@ -294,7 +304,7 @@ import { questionCountWordCap } from '../data/quiz.js';
     elResult.innerHTML = `
       ${journeyHtml(journey)}
       <div class="r-card${primary.fork ? ' is-fork' : ''}">
-        <p class="r-tier mono">${journey && journey.gap > 0 ? 'Your destination · ' : ''}1st choice · ${esc(primary.tier)}</p>
+        <p class="r-tier mono">${journey && journey.gap > 0 && journey.kind !== 'sideways' ? 'Your destination · ' : ''}1st choice</p>
         <h2 class="r-headline">Your setup: ${esc(primary.headline)}</h2>
         <p class="r-why">${primary.why}</p>
         ${primary.fork ? forkHtml(primary.fork, primary.tier, saveControl) : `
@@ -316,13 +326,13 @@ import { questionCountWordCap } from '../data/quiz.js';
       <div class="r-links">
         <span id="r-next"></span>
         <a class="btn-ghost" href="${rungAnchor(primary.rungSlug)}">Read the full ${esc(primary.rungLabel)} walkthrough</a>
+        <button class="btn-ghost" id="q-edit">← Change my answers</button>
         <button class="btn-ghost" id="q-restart">Start over</button>
       </div>
       <p class="r-foot mono">This is guidance, not financial or legal advice — never act on a step you don't understand. When in doubt, choose the simpler setup.</p>`;
 
     // Per-setup save with replace-confirm. Only ONE planned setup at a time — saving one
     // reverts the other card's control back to a button (paintSaveStates re-marks all bands).
-    const currentDevice = () => (adaptive && devs[sel]) ? devs[sel].name : (devs[0] && devs[0].name) || null;
     const saveBands = Array.from(elResult.querySelectorAll('.r-save')).map((el) => ({
       el, rung: el.dataset.rung, label: el.dataset.label, tier: el.dataset.tier, source: el.dataset.source,
       recs: (el.dataset.recs || '').split(',').filter(Boolean),
@@ -350,11 +360,17 @@ import { questionCountWordCap } from '../data/quiz.js';
           b.el.innerHTML = `<span class="r-saved">✓ This is your saved plan.</span>`;
         } else {
           b.el.innerHTML = `<button class="btn-save js-save" type="button">＋ Save this setup to my plan</button>
-            <span class="r-save-note">One setup at a time — kept only in your browser until you save it. <a href="/my-plan">your data, not ours</a>.</span>`;
+            <span class="r-save-note">One setup at a time — kept only in your browser until you save it. <a href="/my-plan">Your data, not ours</a>.</span>`;
           b.el.querySelector('.js-save').addEventListener('click', async () => {
             const curRung = plannedSetupRung();
             const curLabel = plannedSetupLabel();
-            if (curLabel && curRung && curRung !== b.rung) {
+            const newKeys = keysForSetup({ rungSlug: b.rung, label: b.label, tier: b.tier });
+            // Confirm on ANY change of setup, not just a change of rung — a fork's
+            // DIY 2-of-3 and a 3-of-5 step-up share the rung slug 'multisig', and
+            // the rung-only check replaced one with the other silently.
+            const differs = curRung !== b.rung || curLabel !== b.label ||
+              (plannedKeysNeeded() != null && plannedKeysNeeded() !== newKeys);
+            if (curLabel && curRung && differs) {
               const ok = await confirmDialog({
                 title: 'Replace your planned setup?',
                 message: `You already have “${curLabel}” saved. Replace it with “${b.label}”?`,
@@ -365,14 +381,25 @@ import { questionCountWordCap } from '../data/quiz.js';
             }
             const fromQuiz = b.source.indexOf('quiz') === 0;
             const ownedSlugs = Array.isArray(answers.ownedDevices) ? answers.ownedDevices : [];
-            savePlannedSetup({
+            // The chosen device (the tapped card) leads the saved recommendations,
+            // so /my-plan suggests it first — the tap's whole promise.
+            let recs = b.recs;
+            if (adaptive && b.source === 'quiz-primary' && devs[sel]) {
+              const chosen = slugForName(devs[sel].name);
+              if (chosen) recs = [chosen, ...recs.filter((s) => s !== chosen)];
+            }
+            const saved = savePlannedSetup({
               rung: b.rung, label: b.label, tier: b.tier, source: b.source,
               answers: fromQuiz ? answers : null,
-              keysNeeded: keysForSetup({ rungSlug: b.rung, label: b.label, tier: b.tier }),
+              keysNeeded: newKeys,
               owned: fromQuiz ? ownedSlugs : undefined,
               ownPrivate: fromQuiz ? !!answers.ownPrivate : undefined,
-              recommendedDevices: b.recs,
+              recommendedDevices: recs,
             });
+            if (!saved) {
+              b.el.innerHTML = `<span class="r-save-err">Couldn’t save — your browser is blocking storage (private mode, or storage is full).</span>`;
+              return;
+            }
             paintSaveStates();
           });
         }
@@ -419,6 +446,13 @@ import { questionCountWordCap } from '../data/quiz.js';
       renderQuestion();
       document.getElementById('quiz').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
+    // Non-destructive path back into the questions — answers stay put, so each
+    // question renders with "your answer" marked and Continue re-reaches the result.
+    document.getElementById('q-edit').addEventListener('click', () => {
+      idx = questions.length - 1;
+      renderQuestion();
+      document.getElementById('quiz').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
   }
 
   // ── Cross-site continuity: prefill from anything already saved elsewhere (wallets
@@ -454,6 +488,11 @@ import { questionCountWordCap } from '../data/quiz.js';
     else if (pf.got.includes('ladder')) bits.push('where you are on the ladder');
     if (pf.got.includes('custodian')) bits.push('your chosen custodian');
     const list = bits.length ? bits.join(' · ') : 'your earlier choices';
+    // When a planned setup exists, this button clears far more than the answers on
+    // this page — so it says so, and it confirms first (same dialog family as
+    // /my-plan's "Clear my plan"). The lightweight "Start fresh" label is honest
+    // only when there is nothing saved to lose.
+    const heavy = Boolean(plannedSetupRung());
     box.hidden = false;
     box.innerHTML = `
       <div class="q-resume-in">
@@ -461,17 +500,27 @@ import { questionCountWordCap } from '../data/quiz.js';
         <p>We've prefilled what you told us elsewhere (<strong>${esc(list)}</strong>). Walk through and change anything${allAnswered() ? ', or jump straight to your result.' : ' — or just confirm as you go.'}</p>
         <div class="q-resume-acts">
           ${allAnswered() ? `<button class="btn-primary" id="q-jump" type="button">See your result →</button>` : ''}
-          <button class="q-fresh" id="q-fresh" type="button">Start fresh</button>
+          <button class="q-fresh" id="q-fresh" type="button">${heavy ? 'Clear my plan and start again' : 'Start fresh'}</button>
         </div>
       </div>`;
     const jump = document.getElementById('q-jump');
-    if (jump) jump.addEventListener('click', () => { renderResult(); document.getElementById('quiz').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
-    document.getElementById('q-fresh').addEventListener('click', () => {
-      for (const k in answers) delete answers[k];
+    // The jump lands on the result, so the progress line must agree — leaving idx at
+    // 0 kept it reading "Question 1 of 6" above a finished result.
+    if (jump) jump.addEventListener('click', () => { idx = questions.length; atOwned = false; renderResult(); document.getElementById('quiz').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+    document.getElementById('q-fresh').addEventListener('click', async () => {
       // Re-answering the questions while a stale SETUP sits saved is incoherent —
       // the selection was derived from the answers you are throwing away. Owned
       // hardware survives, because it is a fact about you, not a plan choice.
-      if (plannedSetupRung()) clearPlanSelection();
+      if (plannedSetupRung()) {
+        const ok = await confirmDialog({
+          title: 'Clear your plan and start again?',
+          message: 'This clears your saved setup, your checklist progress, and your notes, along with your answers here — the plan was built from the answers you’re about to redo. The hardware you own is kept.',
+          confirmText: 'Clear and start again', cancelText: 'Keep my plan', danger: true,
+        });
+        if (!ok) return;
+        clearPlanSelection();
+      }
+      for (const k in answers) delete answers[k];
       idx = 0; atOwned = false; box.hidden = true;
       renderQuestion();
     });
@@ -590,6 +639,7 @@ import { questionCountWordCap } from '../data/quiz.js';
   #quiz .r-save-note a { color: var(--accent); text-decoration: none; }
   #quiz .r-save-note a:hover { text-decoration: underline; }
   #quiz .r-saved { color: var(--safe); font-weight: 600; font-size: 0.92rem; }
+  #quiz .r-save-err { color: var(--danger); font-weight: 600; font-size: 0.92rem; }
   #quiz .r-links { display: flex; flex-wrap: wrap; gap: 0.8rem; align-items: center; margin: 1.5rem 0 0; }
   /* the state-dependent actions sit in the same flex row as the static ones */
   #quiz #r-next { display: contents; }
