@@ -222,7 +222,17 @@ import WhereAmI from '../components/WhereAmI.astro';
     if (!plan.quiz || !(plan.quiz.primaryLabel || plan.quiz.rung)) return '';
     const need = typeof plan.quiz.keysNeeded === 'number' ? plan.quiz.keysNeeded : null;
     if (need === null) return ''; // plan saved before roadmap existed — skip gracefully
-    const planLabel = plan.quiz.primaryLabel || rungName(plan.quiz.rung);
+    // Derive the name from the RUNG, not the stored label. The label is whatever the
+    // result page passed at save time, and until 2026-07-30 that was a step-up's
+    // ACTION ("Add a passphrase (the \"25th word\")"). Fixing what gets saved only
+    // helps new plans — anyone who saved before that still has the bad string in
+    // their browser, and there is no reliable way to map free text back to a setup.
+    // The rung slug is stable, canonical, and always names a setup, so use it. The
+    // stored label is kept only when it adds something the rung name doesn't.
+    const rungTitle = rungName(plan.quiz.rung);
+    const stored = plan.quiz.primaryLabel || '';
+    const storedIsSetup = stored && !/^(add|step up|spread|graduate|start)\b/i.test(stored.trim());
+    const planLabel = rungTitle || (storedIsSetup ? stored : '') || stored;
     if (need === 0) {
       return `
         <div class="ps-road-in">
@@ -860,6 +870,14 @@ import WhereAmI from '../components/WhereAmI.astro';
   #plan .ps-need { color: var(--accent); font-size: 0.78rem; margin-left: 0.3rem; }
   #plan .ps-slots { display: grid; gap: 0.55rem; margin: 0.2rem 0 0.9rem; }
   #plan .ps-slot { display: flex; align-items: center; gap: 0.7rem; border: 1px solid var(--line); border-radius: 0.55rem; background: var(--surface-2); padding: 0.6rem 0.85rem; }
+  /* On a phone the three-part row (label · device · action) was squeezing into
+     ~120px columns and wrapping mid-phrase — "Not chosen / yet" beside "Choose /
+     →". Stack it. (the owner's mobile screenshot, 2026-07-30.) */
+  @media (max-width: 560px) {
+    #plan .ps-slot { flex-wrap: wrap; gap: 0.35rem 0.6rem; }
+    #plan .ps-slot .ps-slot-n { flex: 0 0 100%; }
+    #plan .ps-slot .ps-slot-dev { flex: 1 1 auto; min-width: 0; }
+  }
   #plan .ps-slot.empty { border-style: dashed; }
   #plan .ps-slot-n { color: var(--faint); font-size: 0.7rem; letter-spacing: 0.05em; text-transform: uppercase; flex: 0 0 auto; }
   #plan .ps-slot-dev { color: var(--text); font-size: 0.94rem; font-weight: 600; }
