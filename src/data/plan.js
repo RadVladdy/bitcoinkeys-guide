@@ -39,11 +39,46 @@ export function emptyPlan() {
 function strList(arr, cap = 20) {
   return Array.isArray(arr) ? arr.filter((x) => typeof x === 'string').slice(0, cap) : [];
 }
+// The finder's four concern keys — stable identifiers that appear in saved
+// plans (finder.js is the source; duplicated here so the plan model doesn't
+// have to import the whole engine to validate a file).
+const CONCERN_KEYS = ['custodial', 'self-loss', 'remote', 'physical'];
+
+// Sanitize the assessment slice inside the saved answers (2026-07-31): the
+// risk assessment extends `quiz.answers` with { scores, checkedPrompts,
+// skippedSections }. Old plans — a ranked worries[] and nothing else — pass
+// through untouched; the finder shims them into an estimated risk picture on
+// load and says so. Imported files are untrusted, so every new field is
+// coerced or dropped, never believed.
+function normAnswers(ans) {
+  if (!ans || typeof ans !== 'object') return ans;
+  const out = { ...ans };
+  if (out.scores && typeof out.scores === 'object') {
+    const s = {};
+    for (const c of CONCERN_KEYS) {
+      const v = out.scores[c];
+      if (typeof v === 'number' && Number.isFinite(v)) s[c] = Math.min(100, Math.max(0, Math.round(v)));
+    }
+    if (Object.keys(s).length) out.scores = s; else delete out.scores;
+  } else {
+    delete out.scores;
+  }
+  if (Array.isArray(out.checkedPrompts)) out.checkedPrompts = strList(out.checkedPrompts, 60);
+  else delete out.checkedPrompts;
+  if (Array.isArray(out.skippedSections)) {
+    out.skippedSections = strList(out.skippedSections, 8).filter((c) => CONCERN_KEYS.includes(c));
+  } else {
+    delete out.skippedSections;
+  }
+  return out;
+}
+
 // Sanitize the planned-setup slice, coercing its device/keys fields to safe types.
 function normQuiz(q) {
   if (!q || typeof q !== 'object') return null;
   return {
     ...q,
+    answers: q.answers && typeof q.answers === 'object' ? normAnswers(q.answers) : q.answers ?? null,
     keysNeeded: typeof q.keysNeeded === 'number' ? q.keysNeeded : null,
     plannedDevices: strList(q.plannedDevices),
     recommendedDevices: strList(q.recommendedDevices),

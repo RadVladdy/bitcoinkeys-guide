@@ -1,17 +1,21 @@
 ---
 import Base from '../layouts/Base.astro';
-import { questionCountWordCap } from '../data/quiz.js';
+import { questions } from '../data/quiz.js';
+import { numberWordCap } from '../data/numbers.js';
+// The ranked-worries question was replaced by the risk assessment (2026-07-31),
+// so the "N plain questions" copy counts the questions this page actually asks.
+const fitCountCap = numberWordCap(questions.filter((q) => q.id !== 'worry').length);
 ---
 <Base
   title="Find your setup — which self-custody setup fits you · BitcoinKeys.guide"
-  description={`${questionCountWordCap} plain questions → a self-custody setup that fits you, a personal roadmap from where you are now (built around any wallets you already own), and an ordered checklist. Runs entirely in your browser — we never ask how much Bitcoin you hold.`}
+  description={`${fitCountCap} plain questions plus a short risk assessment → a self-custody setup that fits you, a personal roadmap from where you are now (built around any wallets you already own), and an ordered checklist. Runs entirely in your browser — we never ask how much Bitcoin you hold.`}
   verified="2026-07-31"
 >
   <section class="prose">
     <p class="eyebrow">Find your setup</p>
     <h1>Which self-custody setup <span class="accent">fits you</span>?</h1>
-    <p class="lead">{questionCountWordCap} plain questions — then a setup that fits you, a <strong>roadmap from where you are today</strong>, and a checklist to get there. Tell us which wallets you already own and we build the plan around them, so it only ever points you at what you still need. No accounts, no jargon, no "best device" hand-waving.</p>
-    <p class="risks-hint">New to this? It helps to first skim <a href="/learn/how-bitcoin-is-lost">how people actually lose Bitcoin</a> — the questions below are really asking which of those risks matters most to you.</p>
+    <p class="lead">{fitCountCap} plain questions and a short risk assessment — we show you the standard picture of <strong>how Bitcoin is actually lost</strong>, then find out whether yours differs. Out the other side: a setup that fits you, a <strong>roadmap from where you are today</strong> (built around any wallets you already own), and a checklist to get there. No accounts, no jargon, no "best device" hand-waving.</p>
+    <p class="risks-hint">The assessment shows you the standard risk picture as you go. If you'd rather read the full story first, it's the same base rates as <a href="/learn/how-bitcoin-is-lost">how people actually lose Bitcoin</a>.</p>
 
     <div class="privacy-note">
       <span class="pn-label mono">🔒 Notice what we don't ask</span>
@@ -19,9 +23,9 @@ import { questionCountWordCap } from '../data/quiz.js';
     </div>
   </section>
 
-  <div id="quiz" class="quiz" aria-live="polite">
+  <div id="finder" class="finder" aria-live="polite">
     <div id="q-resume" hidden></div>
-    <div class="quiz-progress mono" id="q-progress"></div>
+    <div class="f-progress mono" id="q-progress"></div>
     <div id="q-card"></div>
     <div id="q-result" hidden></div>
     <noscript><p class="ns">This needs JavaScript. You can reach the same answer by hand: read <a href="/start">Start here</a> for the whole guide in order, then <a href="/learn/ladder">the configuration ladder</a> to place yourself, then work <a href="/checklist">the checklist</a>.</p></noscript>
@@ -29,59 +33,110 @@ import { questionCountWordCap } from '../data/quiz.js';
 </Base>
 
 <script>
-  import { questions, recommend } from '../data/quiz.js';
+  import { questions } from '../data/quiz.js';
+  import {
+    CONCERNS, CONCERN_KEYS, SECTION_ORDER, defaultsFor, scoreWord, HALF_BAND,
+    prompts, promptsFor, promptById, scoreFromPrompts, shimScores, recommendV2, FAMILY,
+  } from '../data/finder.js';
+  import { numberWord } from '../data/numbers.js';
   import { wallets, keysForSetup, slugForName } from '../data/wallets.js';
   import { rungAnchor } from '../data/ladder.js';
-  import { savePlannedSetup, plannedSetupRung, plannedSetupLabel, plannedKeysNeeded, loadLocal, getOwned, clearPlanSelection, plannedSetupSource } from '../data/plan.js';
+  import { savePlannedSetup, plannedSetupRung, plannedSetupLabel, plannedKeysNeeded, loadLocal, clearPlanSelection, plannedSetupSource } from '../data/plan.js';
   import { mountOwnedPicker } from '../data/owned-picker.js';
   import { confirmDialog } from '../data/ui-dialog.js';
 
+  // The five plain questions — the ranked-worries question is retired; the
+  // assessment (finder.js prompts → scores) sits in its place, between stakes
+  // and recovery, because the stakes answer sets the assessment's defaults.
+  const fitQuestions = questions.filter((q) => q.id !== 'worry');
+  const questionById = Object.fromEntries(fitQuestions.map((q) => [q.id, q]));
+  const CONCERN_BY_KEY = Object.fromEntries(CONCERNS.map((c) => [c.key, c]));
+
+  // ── state ──
+  // Answers ride in memory only, exactly as before — nothing persists unless the
+  // user explicitly saves. The assessment adds three pieces alongside `answers`:
+  //   checked    — prompt ids tapped true ("true of me")
+  //   skipped    — concerns where the user kept the standard estimate
+  //   overrides  — per-concern scores set by hand on the review screen (these
+  //                take precedence in the engine: scores > prompts > shim)
   const answers = {};
-  let idx = 0;
-  // The owned-wallets step is an interstitial between Q1 and Q2, shown only when the
-  // user's current setup implies they hold hardware (Q1 ≠ 'pre'). Not one of the 6.
-  let atOwned = false;
+  const checked = new Set();
+  const skipped = new Set();
+  const overrides = {};
+  // Concerns whose level is an ESTIMATE from a saved plan's old ranked-worries
+  // answer (via shimScores) rather than anything walked here. Walking a section
+  // or adjusting its bar replaces the estimate with the real thing.
+  const estimatedConcerns = new Set();
+  let assessDone = false;      // reached the review screen, or prefilled from a save
+  let assessEstimated = false; // any part of the picture came from a legacy shim
+  let pos = 0;
 
   const elProgress = document.getElementById('q-progress');
   const elCard = document.getElementById('q-card');
   const elResult = document.getElementById('q-result');
 
   function esc(s) { const d = document.createElement('div'); d.textContent = s == null ? '' : s; return d.innerHTML; }
-  // The quiz recommends devices by NAME; map a recommendation's wallet list → slugs
+  // The finder recommends devices by NAME; map a recommendation's wallet list → slugs
   // (saved as recommendedDevices → suggested in empty slots + annotated on /wallets).
   function recSlugsFrom(list) { return (list || []).map((d) => slugForName(d.name)).filter(Boolean); }
 
-  function renderProgress() {
-    const total = questions.length;
+  // ── the step machine ──
+  // The flow: current → (owned interstitial) → stakes → assessment intro → four
+  // concern sections → review → recovery → tech → sovereignty → result.
+  // The list is recomputed every render because the owned step is conditional on
+  // Q1; it sits immediately after Q1, so a plain index stays coherent.
+  function steps() {
+    const s = [{ k: 'q', id: 'current' }];
+    if (answers.current && answers.current !== 'pre') s.push({ k: 'owned' });
+    s.push({ k: 'q', id: 'stakes' });
+    s.push({ k: 'intro' });
+    for (const c of SECTION_ORDER) s.push({ k: 'sect', c });
+    s.push({ k: 'review' });
+    s.push({ k: 'q', id: 'recovery' }, { k: 'q', id: 'tech' }, { k: 'q', id: 'sovereignty' });
+    return s;
+  }
+
+  function render() {
+    const list = steps();
+    if (pos >= list.length) { renderResult(); return; }
+    const st = list[pos];
+    renderProgress(st);
+    elResult.hidden = true;
+    elCard.hidden = false;
+    if (st.k === 'q') renderSingle(questionById[st.id]);
+    else if (st.k === 'owned') renderOwnedStep();
+    else if (st.k === 'intro') renderAssessIntro();
+    else if (st.k === 'sect') renderSection(st.c);
+    else renderReview();
+  }
+  function go(delta) {
+    pos += delta;
+    render();
+    elCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  // ── progress — honest at every screen ──
+  // Four stages: where you are → what's at stake → your risk picture → the fit.
+  const FIT_IDS = ['recovery', 'tech', 'sovereignty'];
+  function renderProgress(st) {
+    let stage, text;
+    if (!st) { stage = 4; text = 'Your setup'; }
+    else if (st.k === 'owned') { stage = 0; text = 'The wallets you own — optional'; }
+    else if (st.k === 'q' && st.id === 'current') { stage = 0; text = 'Where you are today'; }
+    else if (st.k === 'q' && st.id === 'stakes') { stage = 1; text = 'What’s at stake'; }
+    else if (st.k === 'intro') { stage = 2; text = 'Your risk picture — the standard view'; }
+    else if (st.k === 'sect') { stage = 2; text = `Your risk picture — ${SECTION_ORDER.indexOf(st.c) + 1} of ${SECTION_ORDER.length}`; }
+    else if (st.k === 'review') { stage = 2; text = 'Your risk picture — review'; }
+    else { stage = 3; text = `The fit — question ${FIT_IDS.indexOf(st.id) + 1} of ${FIT_IDS.length}`; }
     let dots = '';
-    for (let i = 0; i < total; i++) {
-      const cls = i < idx ? 'done' : (i === idx && !atOwned) ? 'now' : '';
-      dots += `<span class="dot ${cls}"></span>`;
-    }
-    if (atOwned) { elProgress.innerHTML = `<span class="dots">${dots}</span> The wallets you own — optional`; return; }
-    elProgress.innerHTML = idx < total
-      ? `<span class="dots">${dots}</span> Question ${idx + 1} of ${total}`
-      : `<span class="dots">${dots}</span> Your setup`;
+    for (let i = 0; i < 4; i++) dots += `<span class="dot ${i < stage ? 'done' : i === stage ? 'now' : ''}"></span>`;
+    elProgress.innerHTML = `<span class="dots">${dots}</span> ${text}`;
   }
 
-  function renderQuestion() {
-    if (atOwned) { renderOwnedStep(); return; }
-    const q = questions[idx];
-    renderProgress();
-    elResult.hidden = true;
-    elCard.hidden = false;
-    if (q.type === 'rank') renderRank(q);
-    else renderSingle(q);
-  }
-
-  // The interstitial owned-wallets step — its own card between Q1 and Q2, shown only
-  // when the current setup implies hardware. Compact make→model picker; supports
-  // multiple wallets + a privacy opt-out. Answers ride in memory; saved only if the
-  // user later saves their plan (the quiz's "nothing stored unless you save" holds).
+  // The interstitial owned-wallets step — between Q1 and stakes, shown only when
+  // the current setup implies hardware. Answers ride in memory; saved only if the
+  // user later saves their plan (the finder's "nothing stored unless you save" holds).
   function renderOwnedStep() {
-    renderProgress();
-    elResult.hidden = true;
-    elCard.hidden = false;
     elCard.innerHTML = `<div class="q-card">
       <h2 class="q-title">Which hardware wallet(s) do you own?</h2>
       <p class="q-help">Optional — this lets us build your roadmap around what you already have, so we only suggest what you still need. Add as many as you own.</p>
@@ -96,12 +151,8 @@ import { questionCountWordCap } from '../data/quiz.js';
       privateInit: !!answers.ownPrivate,
       onChange: (sel, priv) => { answers.ownedDevices = sel; answers.ownPrivate = priv; },
     });
-    document.getElementById('q-continue').addEventListener('click', () => {
-      atOwned = false; idx = 1;
-      if (idx >= questions.length) renderResult(); else renderQuestion();
-      elCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    });
-    document.getElementById('q-back').addEventListener('click', () => { atOwned = false; idx = 0; renderQuestion(); });
+    document.getElementById('q-continue').addEventListener('click', () => go(1));
+    document.getElementById('q-back').addEventListener('click', () => go(-1));
   }
 
   function shell(q, inner) {
@@ -111,75 +162,272 @@ import { questionCountWordCap } from '../data/quiz.js';
   function renderSingle(q) {
     const prior = answers[q.id]; // prefilled from a saved plan → highlight it
     const opts = q.options.map((o) => `<button class="q-opt ${o.value === prior ? 'sel' : ''}" data-value="${esc(o.value)}"><span>${esc(o.label)}</span>${o.value === prior ? '<span class="q-prior mono">your answer</span>' : ''}</button>`).join('');
-    elCard.innerHTML = shell(q, `<div class="q-opts">${opts}</div>${idx > 0 ? `<button class="q-back" id="q-back">← Back</button>` : ''}`);
+    elCard.innerHTML = shell(q, `<div class="q-opts">${opts}</div>${pos > 0 ? `<button class="q-back" id="q-back">← Back</button>` : ''}`);
     elCard.querySelectorAll('.q-opt').forEach((b) => {
       b.addEventListener('click', () => {
         answers[q.id] = b.getAttribute('data-value');
-        // Q1: a hardware setup routes to the owned-wallets step; "nothing yet" skips it.
-        if (q.id === 'current' && answers.current !== 'pre') {
-          atOwned = true; renderQuestion();
-          elCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-          return;
-        }
-        idx++;
-        if (idx >= questions.length) renderResult(); else renderQuestion();
-        elCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        go(1);
       });
     });
-    wireBack(q, false);
-  }
-
-  function renderRank(q) {
-    const ranked = Array.isArray(answers[q.id]) ? answers[q.id].slice() : [];
-    const draw = () => {
-      const opts = q.options.map((o) => {
-        const pos = ranked.indexOf(o.value);
-        const badge = pos >= 0 ? `<span class="rank-badge">${pos + 1}</span>` : `<span class="rank-badge empty"></span>`;
-        return `<button class="q-opt ${pos >= 0 ? 'ranked' : ''}" data-value="${esc(o.value)}">${badge}<span>${esc(o.label)}</span></button>`;
-      }).join('');
-      elCard.innerHTML = shell(q, `
-        <div class="q-opts rank">${opts}</div>
-        <div class="rank-actions">
-          ${idx > 0 ? `<button class="q-back" id="q-back">← Back</button>` : `<span></span>`}
-          <span class="rank-right">
-            ${ranked.length ? `<button class="q-reset" id="q-reset">Clear</button>` : ``}
-            <button class="btn-primary q-continue" id="q-continue" ${ranked.length ? '' : 'disabled'}>Continue →</button>
-          </span>
-        </div>`);
-      elCard.querySelectorAll('.q-opt').forEach((b) => {
-        b.addEventListener('click', () => {
-          const v = b.getAttribute('data-value');
-          const i = ranked.indexOf(v);
-          if (i >= 0) ranked.splice(i, 1); else ranked.push(v);
-          draw();
-        });
-      });
-      const cont = document.getElementById('q-continue');
-      cont.addEventListener('click', () => {
-        if (!ranked.length) return;
-        answers[q.id] = ranked.slice();
-        idx++;
-        if (idx >= questions.length) renderResult(); else renderQuestion();
-        elCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      });
-      const reset = document.getElementById('q-reset');
-      if (reset) reset.addEventListener('click', () => { ranked.length = 0; draw(); });
-      wireBack(q, true, ranked);
-    };
-    draw();
-  }
-
-  function wireBack(q, isRank, ranked) {
     const back = document.getElementById('q-back');
-    if (!back) return;
-    back.addEventListener('click', () => {
-      if (isRank) answers[q.id] = ranked.slice();
-      // Going back from Q2 returns to the owned step when it was shown (Q1 ≠ 'pre').
-      if (idx === 1 && answers.current && answers.current !== 'pre') { atOwned = true; renderQuestion(); return; }
-      idx--;
-      renderQuestion();
-    });
+    if (back) back.addEventListener('click', () => go(-1));
   }
+
+  // ── the assessment ──────────────────────────────────────────────────────────
+
+  const stakesNow = () => answers.stakes || 'meaningful';
+  function promptDerived() { return scoreFromPrompts([...checked], stakesNow(), [...skipped]); }
+  function scoresNow() {
+    const s = promptDerived();
+    for (const c of CONCERN_KEYS) {
+      if (!skipped.has(c) && typeof overrides[c] === 'number') s[c] = overrides[c];
+    }
+    return s;
+  }
+  function assessAnswers() {
+    return { scores: scoresNow(), checkedPrompts: [...checked], skippedSections: [...skipped] };
+  }
+  function gateOk(p) { return !p.gatedBy || p.gatedBy.some((g) => checked.has(g)); }
+  function touchesConcern(p, c) { return p.concern === c || (p.also || []).some((x) => x.concern === c); }
+  function checkedCountFor(c) { return prompts.filter((p) => checked.has(p.id) && gateOk(p) && touchesConcern(p, c)).length; }
+
+  // Bars are decorative (aria-hidden); the WORD is the scale, and it's the only
+  // scale — never a number. Tiny floor width so "low"/near-zero still draws.
+  const barW = (n) => Math.max(n, 1.5);
+  function barHtml(c, s, d, w) {
+    return `<div class="as-bar" aria-hidden="true" data-bar="${c}">
+      <span class="as-ghost" style="width:${barW(d)}%"></span>
+      <span class="as-fill w-${w}" style="width:${barW(s)}%"></span>
+    </div>`;
+  }
+  function wordTag(c, w) { return `<span class="as-word w-${w}" data-word="${c}">${w}</span>`; }
+
+  // Two-sentence mechanism recaps, in the site's voice — the receipt for why
+  // each concern is its own section.
+  const SECTION_RECAP = {
+    custodial: 'Your exchange or app going under, freezing your account, or losing your coins — the Mt. Gox to FTX class of loss. While a company holds the keys, its problems are your problems.',
+    'self-loss': 'The quiet one: a backup that was never tested, a passphrase that lived only in your head, nobody else who could recover it. More Bitcoin has been lost this way than has ever been stolen in exchange hacks.',
+    remote: 'Phishing, fake support, fake apps, malware, long-con investment scams — theft that never touches your door. It’s the largest measured flow of loss, and it works by fooling you, not by breaking the cryptography.',
+    physical: 'Someone coming after you specifically — coercion, burglary for devices and backups, theft by people who know you. It’s by far the rarest of the four, and it almost never starts at random: it starts with someone knowing.',
+  };
+
+  function renderAssessIntro() {
+    const d = defaultsFor(stakesNow());
+    const rows = CONCERNS.map((c) => `<div class="as-prow">
+      <span class="as-plabel">${esc(c.label)}</span>
+      ${wordTag(c.key, 'typical')}
+      <div class="as-bar" aria-hidden="true"><span class="as-ghost lit" style="width:${barW(d[c.key])}%"></span></div>
+    </div>`).join('');
+    const estNote = assessEstimated
+      ? `<p class="as-estnote">Your bars ahead are <strong>estimated from your earlier answers</strong> — walk the sections anytime to replace the estimate with the real thing.</p>`
+      : '';
+    elCard.innerHTML = `<div class="q-card as-card">
+      <h2 class="q-title">Here’s what actually goes wrong</h2>
+      <p class="q-help">For a typical holder, most loss is self-inflicted or a scam that talks you into handing it over — not hackers breaking the cryptography, and almost never someone at your door. That’s not a judgment about you; it’s the base rate for <em>everyone</em>. The bars below are that standard picture, the same one our <a href="/learn/how-bitcoin-is-lost">how Bitcoin is lost</a> lesson teaches. Next we walk it, one risk at a time, and find out where yours differs.</p>
+      <div class="as-meter">${rows}</div>
+      ${estNote}
+      <div class="as-acts">
+        <button class="q-back" id="q-back">← Back</button>
+        <button class="btn-primary" id="q-continue" type="button">Let’s see if your situation is different →</button>
+      </div>
+    </div>`;
+    document.getElementById('q-continue').addEventListener('click', () => go(1));
+    document.getElementById('q-back').addEventListener('click', () => go(-1));
+  }
+
+  function promptBtnHtml(p) {
+    const on = checked.has(p.id);
+    return `<button type="button" class="as-prompt${on ? ' on' : ''}" aria-pressed="${on}" data-p="${p.id}">
+      <span class="as-tick" aria-hidden="true">${on ? '✓' : ''}</span>
+      <span class="as-ptxt"><span class="as-stmt">${esc(p.statement)}</span><span class="as-why">${esc(p.why)}</span></span>
+    </button>`;
+  }
+
+  function renderSection(c) {
+    // Entering a section means engaging with it: a skip is undone by returning,
+    // and any by-hand or estimated level is replaced by what you tap here.
+    skipped.delete(c);
+    delete overrides[c];
+    estimatedConcerns.delete(c);
+
+    const info = CONCERN_BY_KEY[c];
+    const list = promptsFor(c);
+    const items = list.map((p) => {
+      if (!p.gatedBy) return promptBtnHtml(p);
+      return `<div class="as-gated" data-gate-for="${p.id}" ${gateOk(p) ? '' : 'hidden'}>
+        <span class="as-gate-tag mono">Asked because of what you just said</span>
+        ${promptBtnHtml(p)}
+      </div>`;
+    }).join('');
+
+    const s = scoresNow()[c];
+    const d = defaultsFor(stakesNow())[c];
+    const w = scoreWord(s, c, stakesNow());
+    elCard.innerHTML = `<div class="q-card as-card">
+      <h2 class="q-title">${esc(info.label)}</h2>
+      <p class="q-help">${esc(SECTION_RECAP[c])}</p>
+      <div class="as-meter as-live">
+        <div class="as-meter-head"><span class="as-k mono">Your level</span>${wordTag(c, w)}</div>
+        ${barHtml(c, s, d, w)}
+        <p class="as-legend">The dim bar behind is the typical holder — you start there.</p>
+        <span class="vh" aria-live="polite" data-live="${c}">${esc(info.label)}: ${w}</span>
+      </div>
+      <p class="as-instr mono">Tap everything that’s true of you</p>
+      <div class="as-prompts">${items}</div>
+      <p class="as-skiprow"><button type="button" class="as-skip" id="q-skip">Use the standard estimate for this one →</button></p>
+      <div class="as-acts">
+        <button class="q-back" id="q-back">← Back</button>
+        <button class="btn-primary" id="q-continue" type="button">Continue →</button>
+      </div>
+    </div>`;
+
+    function updateBar() {
+      const sc = scoresNow()[c];
+      const wd = scoreWord(sc, c, stakesNow());
+      const fill = elCard.querySelector(`[data-bar="${c}"] .as-fill`);
+      fill.style.width = `${barW(sc)}%`;
+      fill.className = `as-fill w-${wd}`;
+      const tag = elCard.querySelector(`[data-word="${c}"]`);
+      tag.textContent = wd;
+      tag.className = `as-word w-${wd}`;
+      elCard.querySelector(`[data-live="${c}"]`).textContent = `${info.label}: ${wd}`;
+    }
+    function syncGates() {
+      list.filter((p) => p.gatedBy).forEach((p) => {
+        const wrap = elCard.querySelector(`[data-gate-for="${p.id}"]`);
+        const open = gateOk(p);
+        wrap.hidden = !open;
+        if (!open && checked.has(p.id)) {
+          // The gate closed — the family prompt no longer applies, so untick it.
+          checked.delete(p.id);
+          const btn = wrap.querySelector('.as-prompt');
+          btn.classList.remove('on');
+          btn.setAttribute('aria-pressed', 'false');
+          btn.querySelector('.as-tick').textContent = '';
+        }
+      });
+    }
+    elCard.querySelectorAll('.as-prompt').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const id = btn.getAttribute('data-p');
+        const on = !checked.has(id);
+        if (on) checked.add(id); else checked.delete(id);
+        btn.classList.toggle('on', on);
+        btn.setAttribute('aria-pressed', String(on));
+        btn.querySelector('.as-tick').textContent = on ? '✓' : '';
+        syncGates();
+        updateBar();
+      });
+    });
+    document.getElementById('q-skip').addEventListener('click', () => { skipped.add(c); go(1); });
+    document.getElementById('q-continue').addEventListener('click', () => go(1));
+    document.getElementById('q-back').addEventListener('click', () => go(-1));
+  }
+
+  // ── review screen — all four bars, hand-adjustable by word detents ──
+  // Free-drag is out (design § 3): each bar moves between the four words via
+  // −/+ steppers, snapping to a representative score inside each word's band.
+  const WORD_ORDER = ['low', 'typical', 'elevated', 'high'];
+  function detentsFor(c) {
+    const d = defaultsFor(stakesNow())[c];
+    const h = HALF_BAND[c];
+    return [
+      Math.max(Math.round(d - 1.5 * h), 0),   // low
+      d,                                       // typical
+      Math.round(d + 1.75 * h),                // elevated
+      Math.min(Math.round(d + 3 * h), 96),     // high — never certainty theater
+    ];
+  }
+  function recapLine(c) {
+    if (skipped.has(c)) return `Standard estimate — you skipped this one. <button type="button" class="as-walk" data-walk="${c}">Walk it →</button>`;
+    if (estimatedConcerns.has(c)) return `Estimated from your earlier answers. <button type="button" class="as-walk" data-walk="${c}">Walk it →</button>`;
+    if (typeof overrides[c] === 'number') return `Set by hand — your call stands. <button type="button" class="as-reset" data-reset="${c}">Reset to my answers</button>`;
+    const n = checkedCountFor(c);
+    if (!n) return 'Nothing you tapped moved this — you match the typical holder.';
+    return `Moved by the ${n === 1 ? 'one thing' : `${numberWord(n)} things`} you said ${n === 1 ? 'is' : 'are'} true of you.`;
+  }
+
+  function renderReview() {
+    assessDone = true;
+    const d = defaultsFor(stakesNow());
+    const rows = CONCERNS.map((c) => {
+      const s = scoresNow()[c.key];
+      const w = scoreWord(s, c.key, stakesNow());
+      return `<div class="as-row" data-row="${c.key}">
+        <div class="as-row-head"><span class="as-row-label">${esc(c.label)}</span>${wordTag(c.key, w)}</div>
+        <div class="as-row-mid">
+          <button type="button" class="as-step" data-dir="-1" data-c="${c.key}" aria-label="Lower ${esc(c.label)}">−</button>
+          ${barHtml(c.key, s, d[c.key], w)}
+          <button type="button" class="as-step" data-dir="1" data-c="${c.key}" aria-label="Raise ${esc(c.label)}">＋</button>
+        </div>
+        <p class="as-recap" data-recap="${c.key}">${recapLine(c.key)}</p>
+        <span class="vh" aria-live="polite" data-live="${c.key}">${esc(c.label)}: ${w}</span>
+      </div>`;
+    }).join('');
+    elCard.innerHTML = `<div class="q-card as-card">
+      <h2 class="q-title">Your risk picture</h2>
+      <p class="q-help">Here’s where you landed against the typical holder (the dim bars). The words are the whole scale — low, typical, elevated, high. If a bar doesn’t match how you honestly see it, nudge it with − and ＋: your hand beats our arithmetic, and the recommendation will follow it.</p>
+      <div class="as-review">${rows}</div>
+      <div class="as-acts">
+        <button class="q-back" id="q-back">← Back</button>
+        <button class="btn-primary" id="q-continue" type="button">Looks right — on to the fit →</button>
+      </div>
+    </div>`;
+
+    function repaintRow(c) {
+      const row = elCard.querySelector(`[data-row="${c}"]`);
+      const s = scoresNow()[c];
+      const w = scoreWord(s, c, stakesNow());
+      const fill = row.querySelector('.as-fill');
+      fill.style.width = `${barW(s)}%`;
+      fill.className = `as-fill w-${w}`;
+      const tag = row.querySelector(`[data-word="${c}"]`);
+      tag.textContent = w;
+      tag.className = `as-word w-${w}`;
+      row.querySelector(`[data-recap="${c}"]`).innerHTML = recapLine(c);
+      row.querySelector(`[data-live="${c}"]`).textContent = `${CONCERN_BY_KEY[c].label}: ${w}`;
+      row.querySelectorAll('.as-step').forEach((b) => {
+        const dir = parseInt(b.getAttribute('data-dir'), 10);
+        const i = WORD_ORDER.indexOf(w);
+        b.disabled = (dir < 0 && i === 0) || (dir > 0 && i === WORD_ORDER.length - 1);
+      });
+      wireRecap(row);
+    }
+    function wireRecap(row) {
+      const walk = row.querySelector('.as-walk');
+      if (walk) walk.addEventListener('click', () => {
+        const c = walk.getAttribute('data-walk');
+        pos = steps().findIndex((st) => st.k === 'sect' && st.c === c);
+        render();
+        elCard.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      });
+      const reset = row.querySelector('.as-reset');
+      if (reset) reset.addEventListener('click', () => {
+        delete overrides[reset.getAttribute('data-reset')];
+        repaintRow(reset.getAttribute('data-reset'));
+      });
+    }
+    elCard.querySelectorAll('.as-step').forEach((b) => {
+      b.addEventListener('click', () => {
+        const c = b.getAttribute('data-c');
+        const dir = parseInt(b.getAttribute('data-dir'), 10);
+        const w = scoreWord(scoresNow()[c], c, stakesNow());
+        const ni = Math.min(WORD_ORDER.length - 1, Math.max(0, WORD_ORDER.indexOf(w) + dir));
+        overrides[c] = detentsFor(c)[ni];
+        skipped.delete(c);
+        estimatedConcerns.delete(c);
+        repaintRow(c);
+      });
+      const i = WORD_ORDER.indexOf(scoreWord(scoresNow()[b.getAttribute('data-c')], b.getAttribute('data-c'), stakesNow()));
+      const dir = parseInt(b.getAttribute('data-dir'), 10);
+      b.disabled = (dir < 0 && i === 0) || (dir > 0 && i === WORD_ORDER.length - 1);
+    });
+    elCard.querySelectorAll('.as-row').forEach(wireRecap);
+    document.getElementById('q-continue').addEventListener('click', () => go(1));
+    document.getElementById('q-back').addEventListener('click', () => go(-1));
+  }
+
+  // ── result rendering ────────────────────────────────────────────────────────
 
   function walletCard(rec, adaptive, sel) {
     if (rec.wallets && rec.wallets.length) {
@@ -192,10 +440,6 @@ import { questionCountWordCap } from '../data/quiz.js';
           : `<li>${body}</li>`;
       }).join('');
       const container = adaptive ? `<div class="r-devs adaptive">${items}</div>` : `<ul class="r-devs">${items}</ul>`;
-      // The tap does exactly what this label says and nothing more: the chosen
-      // device is saved first in the plan's recommendations. The old label
-      // promised "the steps adapt" — a leftover from the retired per-device
-      // checklist, which no longer exists to adapt.
       const label = adaptive ? 'Two devices that fit — tap the one you’re leaning toward and we’ll put it first in your plan' : 'Two devices that fit — either works, pick by feel';
       return `<div class="r-wallet">
         <span class="r-k mono">${label}</span>
@@ -208,19 +452,12 @@ import { questionCountWordCap } from '../data/quiz.js';
     return rec.walletNote ? `<div class="r-wallet"><span class="r-k mono">Where to start</span><p>${rec.walletNote}</p></div>` : '';
   }
 
-  // The checklist USED to be generated here as well as on /checklist — two
-  // generators for one artefact, which is why /checklist read generic beside it.
-  // The result page now hands off instead of duplicating: one page produces the
-  // checklist, and it is the one called /checklist.
+  // One page produces the checklist, and it is the one called /checklist —
+  // the result hands off instead of duplicating.
   function checklistHandoff() {
-    // No link to /checklist here. Until they save, there IS no plan, so the
-    // checklist would be the generic everything-list — offering it as "yours" before
-    // it is anyone's was getting the sequence backwards. Say what saving gets you;
-    // the saved state below then offers the plan first and the checklist after it.
     return `<div class="r-handoff"><span class="r-k mono">Next</span>
       <p>Save this and it becomes your plan. On your plan you pick the hardware that fills it — and we'll tell you whether anything you already own clears our bar. Your checklist is built from that: only the steps your setup needs, in order, with your own devices named.</p></div>`;
   }
-
 
   function vendorsBlock(vendors) {
     if (!vendors || !vendors.length) return '';
@@ -260,12 +497,9 @@ import { questionCountWordCap } from '../data/quiz.js';
     return `<p class="r-leadnote">${esc(fork.leadNote)}</p><div class="r-paths">${cards}</div>`;
   }
 
-  // "Your journey" — frames the recommendation from where they are now (Q1). Leads the
-  // result: a from→to path when there's a climb, or a single "you're here" when they're
-  // already at/beyond the fit. Encouraging by design; never implies a downgrade.
+  // "Your journey" — frames the recommendation from where they are now (Q1).
   function journeyPath(j) {
     if (j.kind === 'sideways') {
-      // Same rung, different third-key holder — neither node is "the destination".
       return `<span class="rj-node rj-now"><span class="rj-k mono">You’re here</span><span class="rj-lbl">${esc(j.curLabel)}</span></span>
         <span class="rj-arrow" aria-hidden="true">↔</span>
         <span class="rj-node rj-dest"><span class="rj-k mono">Where your answers lean</span><span class="rj-lbl">${esc(j.targetLabel)}</span></span>`;
@@ -287,13 +521,43 @@ import { questionCountWordCap } from '../data/quiz.js';
     </div>`;
   }
 
+  // The profile strip — the result leads with the picture that produced it:
+  // your four levels over the typical holder's, words only, never numbers.
+  function profileStrip(profile) {
+    const rows = CONCERNS.map((c) => {
+      const s = profile.scores[c.key];
+      const w = profile.words[c.key];
+      return `<div class="as-prow">
+        <span class="as-plabel">${esc(c.label)}</span>
+        ${wordTag(c.key, w)}
+        ${barHtml(c.key, s, profile.defaults[c.key], w)}
+      </div>`;
+    }).join('');
+    const spoken = CONCERNS.map((c) => `${c.label}: ${profile.words[c.key]}`).join('. ');
+    return `<div class="r-profile">
+      <span class="r-k mono">Your risk picture — you against the typical holder</span>
+      ${rows}
+      <span class="vh">${esc(spoken)}</span>
+    </div>`;
+  }
+
+  // Readable names for the tie treatment — the engine's setup keys, in English.
+  const SETUP_TIE_LABEL = {
+    'single-sig': 'single-sig cold storage',
+    passphrase: 'single-sig + a passphrase',
+    multisig: 'do-it-yourself 2-of-3 multisig',
+    collaborative: 'collaborative 2-of-3 multisig',
+    'three-of-five': '3-of-5 multisig',
+  };
+
   function renderResult() {
-    renderProgress();
+    renderProgress(null);
     const rb = document.getElementById('q-resume');
     if (rb) rb.hidden = true; // the result speaks for itself
     elCard.hidden = true;
     elResult.hidden = false;
-    const { primary, secondary, journey } = recommend(answers);
+    const rec = recommendV2({ ...answers, ...assessAnswers() });
+    const { primary, secondary, journey, profile, reasons, holdbacks, tie } = rec;
     const devs = primary.wallets || [];
     const adaptive = devs.some((d) => d.adaptive);   // e.g. Bitkey has its own flow
     let sel = 0;
@@ -301,21 +565,57 @@ import { questionCountWordCap } from '../data/quiz.js';
     const saveControl = (rung, label, tier, source, recSlugs) =>
       `<div class="r-save" data-rung="${esc(rung)}" data-label="${esc(label)}" data-tier="${esc(tier || '')}" data-source="${source}" data-recs="${esc((recSlugs || []).join(','))}"></div>`;
 
+    // "Because of your answers" — the profile explains the pick, in its own words.
+    // One honesty guard on the engine's fallback line: it says "nothing stands
+    // out", but the engine only names concerns the winning setup actively
+    // defends — and single-sig's targeted-physical weight is zero, so a lone
+    // elevated/high PHYSICAL reaches the fallback with a high bar right above
+    // it. Say the true thing instead (this is the only combination that can
+    // reach the fallback with an elevated word — every other concern gets
+    // named by the engine).
+    let reasonList = reasons || [];
+    const physUp = profile.words.physical === 'elevated' || profile.words.physical === 'high';
+    if (reasonList.length === 1 && reasonList[0].concern === null && physUp) {
+      reasonList = [{
+        concern: 'physical',
+        text: `Your targeted-theft concern is ${profile.words.physical} — and at this level the setup itself stays simple. The win is a low profile: nothing at home needs to reveal what you hold, the privacy steps in your checklist carry most of the weight, and the step-up in the second card is the hardware answer when you want it.`,
+      }];
+    }
+    const reasonsHtml = reasonList.length
+      ? `<div class="r-because"><span class="r-k mono">Because of your answers</span><ul>${reasonList.map((r) => `<li>${esc(r.text)}</li>`).join('')}</ul></div>`
+      : '';
+    // Computed holdbacks — the anti-add-on honesty, generated from the user's own
+    // scores. Replaces the legacy card's single hand-written holdback line.
+    const holdbacksHtml = (holdbacks || []).map((h) =>
+      `<div class="r-holdback"><span class="r-k mono">Why not more?</span><p>${esc(h.text)}</p></div>`).join('');
+    // A genuine either/or (C5): say so out loud, above the cards it's about.
+    const tieHtml = tie
+      ? `<div class="r-tie"><span class="r-k mono">A genuine either/or</span>
+          <p>${esc(tie.note)} The two in question: <strong>${esc(SETUP_TIE_LABEL[tie.a] || tie.a)}</strong> and <strong>${esc(SETUP_TIE_LABEL[tie.b] || tie.b)}</strong> — the first is laid out below, and the trade the other one offers is in the second card.</p>
+        </div>`
+      : '';
+    // When the second card IS the other half of the tie, its label should say so
+    // instead of framing it as a later step-up.
+    const secondaryIsRival = Boolean(tie && secondary && FAMILY[secondary.rungSlug] === FAMILY[tie.b]);
+
     elResult.innerHTML = `
       ${journeyHtml(journey)}
+      ${profileStrip(profile)}
+      ${tieHtml}
       <div class="r-card${primary.fork ? ' is-fork' : ''}">
-        <p class="r-tier mono">${journey && journey.gap > 0 && journey.kind !== 'sideways' ? 'Your destination · ' : ''}1st choice</p>
+        <p class="r-tier mono">${journey && journey.gap > 0 && journey.kind !== 'sideways' ? 'Your destination · ' : ''}${tie ? 'Ahead by a hair' : '1st choice'}</p>
         <h2 class="r-headline">Your setup: ${esc(primary.headline)}</h2>
         <p class="r-why">${primary.why}</p>
+        ${reasonsHtml}
+        ${holdbacksHtml}
         ${primary.fork ? forkHtml(primary.fork, primary.tier, saveControl) : `
-        ${primary.holdback ? `<div class="r-holdback"><span class="r-k mono">Why not more?</span><p>${primary.holdback}</p></div>` : ''}
         ${walletCard(primary, adaptive, sel)}
         ${checklistHandoff()}
         ${primaryHasVendors ? vendorsBlock(primary.vendors) : ''}
         ${saveControl(primary.rungSlug, primary.rungLabel || primary.headline, primary.tier, 'quiz-primary', recSlugsFrom(primary.wallets))}`}
       </div>
       ${secondary ? `<div class="r-card secondary">
-        <p class="r-tier mono muted">2nd choice · where you'd go next</p>
+        <p class="r-tier mono muted">${secondaryIsRival ? 'The other half of the either/or — here’s the trade' : '2nd choice · where you’d go next'}</p>
         <h2 class="r-headline sm">${esc(secondary.rungLabel)}</h2>
         <p class="r-step-act mono">${esc(secondary.headline)}</p>
         <p class="r-why">${esc(secondary.when)}</p>
@@ -333,30 +633,22 @@ import { questionCountWordCap } from '../data/quiz.js';
 
     // Per-setup save with replace-confirm. Only ONE planned setup at a time — saving one
     // reverts the other card's control back to a button (paintSaveStates re-marks all bands).
+    // NOTE: the stored source values keep their historical 'quiz-*' names — they live in
+    // saved plans, and renaming them would orphan every existing save.
     const saveBands = Array.from(elResult.querySelectorAll('.r-save')).map((el) => ({
       el, rung: el.dataset.rung, label: el.dataset.label, tier: el.dataset.tier, source: el.dataset.source,
       recs: (el.dataset.recs || '').split(',').filter(Boolean),
     }));
     function paintSaveStates() {
       // Match on the BAND, not the rung. Two different recommendations can land on
-      // the same rung — a "start simple, then graduate" first choice and a
-      // "graduate to cold storage" second choice are both single-sig — so rung
-      // matching lit up every band that shared one. `source` is unique per band.
+      // the same rung — `source` is the only thing unique per band.
       const savedSource = plannedSetupSource();
       const savedRung = plannedSetupRung();
-      // The row below is painted from whether a band on THIS page matched, not from
-      // whether a plan exists at all. A saved plan for a setup none of these cards
-      // offers — an older plan, or one saved from a different set of answers — leaves
-      // every band reading "save this setup", and the row must agree with them.
       let anySaved = false;
       saveBands.forEach((b) => {
         const isSaved = savedSource ? b.source === savedSource : Boolean(savedRung && b.rung === savedRung);
         if (isSaved) anySaved = true;
         if (isSaved) {
-          // The band CONFIRMS; the actions live once, in the row below. The band used
-          // to carry its own "Open your plan" and "your checklist is ready too" links
-          // while the row shouted a third link at the checklist — the same two
-          // destinations offered twice on one screen, with the loud one wrong.
           b.el.innerHTML = `<span class="r-saved">✓ This is your saved plan.</span>`;
         } else {
           b.el.innerHTML = `<button class="btn-save js-save" type="button">＋ Save this setup to my plan</button>
@@ -366,8 +658,7 @@ import { questionCountWordCap } from '../data/quiz.js';
             const curLabel = plannedSetupLabel();
             const newKeys = keysForSetup({ rungSlug: b.rung, label: b.label, tier: b.tier });
             // Confirm on ANY change of setup, not just a change of rung — a fork's
-            // DIY 2-of-3 and a 3-of-5 step-up share the rung slug 'multisig', and
-            // the rung-only check replaced one with the other silently.
+            // DIY 2-of-3 and a 3-of-5 step-up share the rung slug 'multisig'.
             const differs = curRung !== b.rung || curLabel !== b.label ||
               (plannedKeysNeeded() != null && plannedKeysNeeded() !== newKeys);
             if (curLabel && curRung && differs) {
@@ -379,7 +670,7 @@ import { questionCountWordCap } from '../data/quiz.js';
               });
               if (!ok) return;
             }
-            const fromQuiz = b.source.indexOf('quiz') === 0;
+            const fromFinder = b.source.indexOf('quiz') === 0;
             const ownedSlugs = Array.isArray(answers.ownedDevices) ? answers.ownedDevices : [];
             // The chosen device (the tapped card) leads the saved recommendations,
             // so /my-plan suggests it first — the tap's whole promise.
@@ -390,10 +681,13 @@ import { questionCountWordCap } from '../data/quiz.js';
             }
             const saved = savePlannedSetup({
               rung: b.rung, label: b.label, tier: b.tier, source: b.source,
-              answers: fromQuiz ? answers : null,
+              // The saved answers carry the assessment with them — scores,
+              // checked prompts, skipped sections — so a resumed visit (and
+              // Phase C's checklist emphasis) can rebuild the whole picture.
+              answers: fromFinder ? { ...answers, ...assessAnswers() } : null,
               keysNeeded: newKeys,
-              owned: fromQuiz ? ownedSlugs : undefined,
-              ownPrivate: fromQuiz ? !!answers.ownPrivate : undefined,
+              owned: fromFinder ? ownedSlugs : undefined,
+              ownPrivate: fromFinder ? !!answers.ownPrivate : undefined,
               recommendedDevices: recs,
             });
             if (!saved) {
@@ -407,15 +701,6 @@ import { questionCountWordCap } from '../data/quiz.js';
       paintNextRow(anySaved);
     }
     // The one loud action on this page, and it depends on whether anything is saved.
-    //
-    // THREE PHASES: choosing a setup here, BUILDING it on /my-plan (which hardware
-    // fills each slot, what you already own, the custodian), then working through
-    // /checklist. So the step after saving is the plan, not the checklist — a
-    // checklist reached before the plan is built names no devices in its steps.
-    //
-    // Before anything is saved there is no plan for the checklist to be trimmed to,
-    // so neither is offered: the primary action is the save button in the card above,
-    // and a second primary here would compete with it.
     function paintNextRow(saved) {
       const row = document.getElementById('r-next');
       if (!row) return;
@@ -424,14 +709,9 @@ import { questionCountWordCap } from '../data/quiz.js';
            <a class="btn-ghost" href="/checklist">Your checklist</a>`
         : '';
       // Deliberately NOT toggling [hidden]: #r-next is display:contents, so an empty
-      // one generates no box and no flex gap on its own. Adding [hidden] alongside an
-      // author display rule is the combination that renders an empty element as a
-      // visible gap, because the author rule wins.
+      // one generates no box and no flex gap on its own.
     }
     paintSaveStates();
-    // The device buttons used to re-render a per-device checklist in place. That
-    // checklist is gone (one generator, on /checklist), so they now only mark the
-    // selection — which is all the save band ever read from them.
     if (adaptive) {
       elResult.querySelectorAll('.r-dev').forEach((btn) => {
         btn.addEventListener('click', () => {
@@ -442,23 +722,33 @@ import { questionCountWordCap } from '../data/quiz.js';
     }
     document.getElementById('q-restart').addEventListener('click', () => {
       for (const k in answers) delete answers[k];
-      idx = 0;
-      renderQuestion();
-      document.getElementById('quiz').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      checked.clear(); skipped.clear();
+      for (const k in overrides) delete overrides[k];
+      estimatedConcerns.clear();
+      assessDone = false; assessEstimated = false;
+      pos = 0;
+      render();
+      document.getElementById('finder').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
-    // Non-destructive path back into the questions — answers stay put, so each
-    // question renders with "your answer" marked and Continue re-reaches the result.
+    // Non-destructive path back — answers and the assessment stay put, so each
+    // screen renders with your state marked and Continue re-reaches the result.
     document.getElementById('q-edit').addEventListener('click', () => {
-      idx = questions.length - 1;
-      renderQuestion();
-      document.getElementById('quiz').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      pos = steps().length - 1;
+      render();
+      document.getElementById('finder').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
   }
 
-  // ── Cross-site continuity: prefill from anything already saved elsewhere (wallets
-  // owned, a chosen custodian, a prior quiz, the ladder self-locator). Reads ONLY
-  // explicitly-saved plan data, so "nothing saved unless you save" still holds — and
-  // a "welcome back" banner makes the tracking visible.
+  // ── Cross-site continuity: prefill from anything already saved elsewhere.
+  // Reads ONLY explicitly-saved plan data, so "nothing saved unless you save"
+  // still holds — and a "welcome back" banner makes the tracking visible.
+  //
+  // TWO SAVED SHAPES are accepted:
+  //  • new (2026-07-31+): answers carry scores / checkedPrompts / skippedSections
+  //    → the assessment state rebuilds exactly; by-hand review adjustments are
+  //    recovered by diffing the saved scores against the prompt-derived ones.
+  //  • old: answers carry a ranked worries[] only → the picture is ESTIMATED via
+  //    shimScores and marked as such — walk any section to replace the estimate.
   const CURRENT_VALUES = ['pre', 'single-sig', 'passphrase', 'multisig', 'collaborative'];
   function prefillFromPlan() {
     const saved = loadLocal();
@@ -467,8 +757,34 @@ import { questionCountWordCap } from '../data/quiz.js';
     if (Array.isArray(saved.owned) && saved.owned.length) { answers.ownedDevices = saved.owned.slice(); got.push('owned'); }
     if (saved.ownPrivate) answers.ownPrivate = true;
     if (saved.quiz && saved.quiz.answers && typeof saved.quiz.answers === 'object') {
-      for (const [k, v] of Object.entries(saved.quiz.answers)) { if (v != null) answers[k] = Array.isArray(v) ? v.slice() : v; }
+      const a = saved.quiz.answers;
+      for (const [k, v] of Object.entries(a)) {
+        if (v == null || k === 'scores' || k === 'checkedPrompts' || k === 'skippedSections') continue;
+        answers[k] = Array.isArray(v) ? v.slice() : v;
+      }
       got.push('answers');
+      if (Array.isArray(a.checkedPrompts) || (a.scores && typeof a.scores === 'object')) {
+        (Array.isArray(a.checkedPrompts) ? a.checkedPrompts : []).forEach((id) => { if (promptById[id]) checked.add(id); });
+        (Array.isArray(a.skippedSections) ? a.skippedSections : []).forEach((c) => { if (CONCERN_KEYS.includes(c)) skipped.add(c); });
+        if (a.scores && typeof a.scores === 'object') {
+          const base = promptDerived();
+          for (const c of CONCERN_KEYS) {
+            const v = a.scores[c];
+            if (typeof v === 'number' && !skipped.has(c) && Math.abs(v - base[c]) > 1) {
+              overrides[c] = Math.min(100, Math.max(0, Math.round(v)));
+            }
+          }
+        }
+        assessDone = true;
+      } else if (Array.isArray(a.worry) && a.worry.length) {
+        const est = shimScores({ ...answers });
+        const d = defaultsFor(stakesNow());
+        for (const c of CONCERN_KEYS) {
+          if (est[c] !== d[c]) { overrides[c] = est[c]; estimatedConcerns.add(c); }
+        }
+        assessDone = true;
+        assessEstimated = true;
+      }
     }
     if (answers.current == null && saved.ladder && CURRENT_VALUES.includes(saved.ladder.rung)) {
       answers.current = saved.ladder.rung; got.push('ladder');
@@ -477,7 +793,7 @@ import { questionCountWordCap } from '../data/quiz.js';
     return { any: got.length > 0, got };
   }
   function allAnswered() {
-    return questions.every((q) => answers[q.id] != null && (q.type !== 'rank' || (Array.isArray(answers[q.id]) && answers[q.id].length)));
+    return fitQuestions.every((q) => answers[q.id] != null) && assessDone;
   }
   function renderResume(pf) {
     const box = document.getElementById('q-resume');
@@ -488,29 +804,27 @@ import { questionCountWordCap } from '../data/quiz.js';
     else if (pf.got.includes('ladder')) bits.push('where you are on the ladder');
     if (pf.got.includes('custodian')) bits.push('your chosen custodian');
     const list = bits.length ? bits.join(' · ') : 'your earlier choices';
-    // When a planned setup exists, this button clears far more than the answers on
-    // this page — so it says so, and it confirms first (same dialog family as
-    // /my-plan's "Clear my plan"). The lightweight "Start fresh" label is honest
-    // only when there is nothing saved to lose.
+    const estLine = assessEstimated
+      ? ' Your risk picture is <strong>estimated from your earlier answers</strong> — walk the assessment anytime to sharpen it.'
+      : '';
     const heavy = Boolean(plannedSetupRung());
     box.hidden = false;
     box.innerHTML = `
       <div class="q-resume-in">
         <span class="q-resume-k mono">👋 Welcome back — we kept track</span>
-        <p>We've prefilled what you told us elsewhere (<strong>${esc(list)}</strong>). Walk through and change anything${allAnswered() ? ', or jump straight to your result.' : ' — or just confirm as you go.'}</p>
+        <p>We've prefilled what you told us elsewhere (<strong>${esc(list)}</strong>).${estLine} Walk through and change anything${allAnswered() ? ', or jump straight to your result.' : ' — or just confirm as you go.'}</p>
         <div class="q-resume-acts">
           ${allAnswered() ? `<button class="btn-primary" id="q-jump" type="button">See your result →</button>` : ''}
           <button class="q-fresh" id="q-fresh" type="button">${heavy ? 'Clear my plan and start again' : 'Start fresh'}</button>
         </div>
       </div>`;
     const jump = document.getElementById('q-jump');
-    // The jump lands on the result, so the progress line must agree — leaving idx at
-    // 0 kept it reading "Question 1 of 6" above a finished result.
-    if (jump) jump.addEventListener('click', () => { idx = questions.length; atOwned = false; renderResult(); document.getElementById('quiz').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
+    // The jump lands on the result, so the progress line must agree.
+    if (jump) jump.addEventListener('click', () => { pos = steps().length; renderResult(); document.getElementById('finder').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
     document.getElementById('q-fresh').addEventListener('click', async () => {
-      // Re-answering the questions while a stale SETUP sits saved is incoherent —
-      // the selection was derived from the answers you are throwing away. Owned
-      // hardware survives, because it is a fact about you, not a plan choice.
+      // Re-answering while a stale SETUP sits saved is incoherent — the selection
+      // was derived from the answers you are throwing away. Owned hardware
+      // survives, because it is a fact about you, not a plan choice.
       if (plannedSetupRung()) {
         const ok = await confirmDialog({
           title: 'Clear your plan and start again?',
@@ -521,13 +835,17 @@ import { questionCountWordCap } from '../data/quiz.js';
         clearPlanSelection();
       }
       for (const k in answers) delete answers[k];
-      idx = 0; atOwned = false; box.hidden = true;
-      renderQuestion();
+      checked.clear(); skipped.clear();
+      for (const k in overrides) delete overrides[k];
+      estimatedConcerns.clear();
+      assessDone = false; assessEstimated = false;
+      pos = 0; box.hidden = true;
+      render();
     });
   }
 
   renderResume(prefillFromPlan());
-  renderQuestion();
+  render();
 </script>
 
 <style>
@@ -540,146 +858,213 @@ import { questionCountWordCap } from '../data/quiz.js';
 </style>
 
 <style is:global>
-  /* The quiz card/options/result are injected by client JS, so they never receive Astro's scoped attribute — these must be global. Namespaced under #quiz to not leak. */
-  #quiz { margin-top: 2rem; max-width: 44rem; }
+  /* The finder card/options/result are injected by client JS, so they never receive Astro's scoped attribute — these must be global. Namespaced under #finder to not leak. */
+  #finder { margin-top: 2rem; max-width: 44rem; }
+  /* screen-reader-only text (the bars' aria-live word alternative) */
+  #finder .vh { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
   /* "Welcome back" resume banner — cross-site continuity made visible */
-  #quiz #q-resume { margin-bottom: 1rem; }
-  #quiz .q-resume-in { border: 1px solid var(--safe); background: var(--safe-dim); border-radius: var(--radius); padding: 1rem 1.2rem; }
-  #quiz .q-resume-k { display: block; color: var(--safe); font-size: 0.74rem; letter-spacing: 0.05em; margin-bottom: 0.35rem; }
-  #quiz .q-resume-in p { margin: 0 0 0.8rem; color: var(--muted); font-size: 0.92rem; line-height: 1.55; }
-  #quiz .q-resume-in p strong { color: var(--text); }
-  #quiz .q-resume-acts { display: flex; flex-wrap: wrap; gap: 0.7rem; align-items: center; }
-  #quiz .q-resume-acts .btn-primary { font-size: 0.9rem; padding: 0.55rem 1rem; }
-  #quiz .q-fresh { background: none; border: none; color: var(--muted); font-family: var(--sans); font-size: 0.86rem; cursor: pointer; padding: 0.55rem 0.2rem; text-decoration: underline; }
-  #quiz .q-fresh:hover { color: var(--accent); }
+  #finder #q-resume { margin-bottom: 1rem; }
+  #finder .q-resume-in { border: 1px solid var(--safe); background: var(--safe-dim); border-radius: var(--radius); padding: 1rem 1.2rem; }
+  #finder .q-resume-k { display: block; color: var(--safe); font-size: 0.74rem; letter-spacing: 0.05em; margin-bottom: 0.35rem; }
+  #finder .q-resume-in p { margin: 0 0 0.8rem; color: var(--muted); font-size: 0.92rem; line-height: 1.55; }
+  #finder .q-resume-in p strong { color: var(--text); }
+  #finder .q-resume-acts { display: flex; flex-wrap: wrap; gap: 0.7rem; align-items: center; }
+  #finder .q-resume-acts .btn-primary { font-size: 0.9rem; padding: 0.55rem 1rem; }
+  #finder .q-fresh { background: none; border: none; color: var(--muted); font-family: var(--sans); font-size: 0.86rem; cursor: pointer; padding: 0.55rem 0.2rem; text-decoration: underline; }
+  #finder .q-fresh:hover { color: var(--accent); }
   /* prior-answer marker on a prefilled option (inline pill — no layout change) */
-  #quiz .q-opt.sel { border-color: var(--accent); background: var(--accent-soft); }
-  #quiz .q-prior { display: inline-block; margin-left: 0.5rem; vertical-align: middle; color: var(--accent); font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.06em; border: 1px solid var(--accent-dim); border-radius: 999px; padding: 0.1rem 0.5rem; }
+  #finder .q-opt.sel { border-color: var(--accent); background: var(--accent-soft); }
+  #finder .q-prior { display: inline-block; margin-left: 0.5rem; vertical-align: middle; color: var(--accent); font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.06em; border: 1px solid var(--accent-dim); border-radius: 999px; padding: 0.1rem 0.5rem; }
   /* "Your journey" — leads the result, framing the destination from where they are now. */
-  #quiz .r-journey { border: 1px solid var(--accent-dim); background: var(--accent-soft); border-radius: var(--radius); padding: 1.3rem 1.4rem; margin-bottom: 1rem; }
-  #quiz .r-journey.j-there, #quiz .r-journey.j-ahead { border-color: var(--safe); background: var(--safe-dim); }
-  #quiz .rj-path { display: flex; align-items: stretch; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.95rem; }
-  #quiz .rj-node { display: flex; flex-direction: column; gap: 0.25rem; border: 1px solid var(--line); border-radius: 0.6rem;
+  #finder .r-journey { border: 1px solid var(--accent-dim); background: var(--accent-soft); border-radius: var(--radius); padding: 1.3rem 1.4rem; margin-bottom: 1rem; }
+  #finder .r-journey.j-there, #finder .r-journey.j-ahead { border-color: var(--safe); background: var(--safe-dim); }
+  #finder .rj-path { display: flex; align-items: stretch; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.95rem; }
+  #finder .rj-node { display: flex; flex-direction: column; gap: 0.25rem; border: 1px solid var(--line); border-radius: 0.6rem;
     background: var(--surface-2); padding: 0.6rem 0.8rem; flex: 1 1 9rem; min-width: 8rem; }
-  #quiz .rj-node.rj-dest { border-color: var(--accent); }
-  #quiz .rj-node.ok { border-color: var(--safe); }
-  #quiz .rj-k { color: var(--faint); font-size: 0.64rem; letter-spacing: 0.08em; text-transform: uppercase; }
-  #quiz .rj-lbl { font-weight: 600; font-size: 0.92rem; color: var(--text); line-height: 1.3; }
-  #quiz .rj-arrow { align-self: center; color: var(--accent); font-size: 1.3rem; flex: 0 0 auto; }
-  #quiz .rj-headline { font-size: 1.25rem; margin: 0 0 0.5rem; line-height: 1.25; }
-  #quiz .rj-msg { color: var(--muted); font-size: 0.96rem; line-height: 1.6; margin: 0; }
-  @media (max-width: 480px) { #quiz .rj-arrow { transform: rotate(90deg); width: 100%; text-align: center; align-self: auto; } }
-  #quiz .quiz-progress { color: var(--faint); font-size: 0.8rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.6rem; }
-  #quiz .dots { display: inline-flex; gap: 0.35rem; }
-  #quiz .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line); display: inline-block; }
-  #quiz .dot.done { background: var(--safe); }
-  #quiz .dot.now { background: var(--accent); }
+  #finder .rj-node.rj-dest { border-color: var(--accent); }
+  #finder .rj-node.ok { border-color: var(--safe); }
+  #finder .rj-k { color: var(--faint); font-size: 0.64rem; letter-spacing: 0.08em; text-transform: uppercase; }
+  #finder .rj-lbl { font-weight: 600; font-size: 0.92rem; color: var(--text); line-height: 1.3; }
+  #finder .rj-arrow { align-self: center; color: var(--accent); font-size: 1.3rem; flex: 0 0 auto; }
+  #finder .rj-headline { font-size: 1.25rem; margin: 0 0 0.5rem; line-height: 1.25; }
+  #finder .rj-msg { color: var(--muted); font-size: 0.96rem; line-height: 1.6; margin: 0; }
+  @media (max-width: 480px) { #finder .rj-arrow { transform: rotate(90deg); width: 100%; text-align: center; align-self: auto; } }
+  #finder .f-progress { color: var(--faint); font-size: 0.8rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.6rem; }
+  #finder .dots { display: inline-flex; gap: 0.35rem; }
+  #finder .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--line); display: inline-block; }
+  #finder .dot.done { background: var(--safe); }
+  #finder .dot.now { background: var(--accent); }
 
-  #quiz .q-card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface-2); padding: 1.6rem; box-shadow: var(--shadow); }
-  #quiz .q-title { font-size: 1.3rem; margin: 0 0 0.5rem; line-height: 1.25; }
-  #quiz .q-help { color: var(--muted); font-size: 0.9rem; margin: 0 0 1.2rem; }
-  #quiz .q-opts { display: grid; gap: 0.6rem; }
-  #quiz .q-opt { text-align: left; width: 100%; font-family: var(--sans); font-size: 1rem; color: var(--text); cursor: pointer;
+  #finder .q-card { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface-2); padding: 1.6rem; box-shadow: var(--shadow); }
+  #finder .q-title { font-size: 1.3rem; margin: 0 0 0.5rem; line-height: 1.25; }
+  #finder .q-help { color: var(--muted); font-size: 0.9rem; margin: 0 0 1.2rem; }
+  #finder .q-help a { color: var(--accent); }
+  #finder .q-opts { display: grid; gap: 0.6rem; }
+  #finder .q-opt { text-align: left; width: 100%; font-family: var(--sans); font-size: 1rem; color: var(--text); cursor: pointer;
     background: var(--raise); border: 1px solid var(--line); border-radius: 0.6rem; padding: 0.9rem 1.1rem; transition: border-color 0.15s, background 0.15s; }
-  #quiz .q-opt:hover { border-color: var(--accent); background: var(--accent-soft); }
-  #quiz .q-back { margin-top: 1.2rem; background: none; border: none; color: var(--muted); font-size: 0.9rem; cursor: pointer; padding: 0; }
-  #quiz .q-back:hover { color: var(--accent); }
+  #finder .q-opt:hover { border-color: var(--accent); background: var(--accent-soft); }
+  #finder .q-back { margin-top: 1.2rem; background: none; border: none; color: var(--muted); font-size: 0.9rem; cursor: pointer; padding: 0.75rem 0.6rem 0.75rem 0; }
+  #finder .q-back:hover { color: var(--accent); }
 
-  #quiz .r-card { border: 1px solid var(--accent); border-radius: var(--radius); background: var(--surface-2); padding: 1.8rem; box-shadow: var(--shadow); }
-  #quiz .r-tier { color: var(--accent); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; margin: 0 0 0.4rem; }
-  #quiz .r-headline { font-size: 1.5rem; margin: 0 0 0.8rem; line-height: 1.2; }
-  #quiz .r-why { color: var(--text); margin: 0 0 1.2rem; }
-  #quiz .r-k { display: block; color: var(--faint); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.4rem; }
-  #quiz .r-holdback { border-left: 3px solid var(--warn); background: var(--warn-dim); border-radius: 0.5rem; padding: 0.9rem 1.1rem; margin: 0 0 1.2rem; }
-  #quiz .r-holdback p { margin: 0; font-size: 0.92rem; color: var(--muted); }
-  /* The multisig fork — two EQUAL paths (self-sovereign DIY vs collaborative). Both
-     cards share the same treatment so neither reads as "the answer"; the lead gets only
-     a small tag. Stacked full-width with an "or" divider so each has room for its list. */
-  #quiz .r-leadnote { color: var(--muted); font-size: 0.95rem; font-style: italic; margin: 0 0 1.2rem; padding-top: 1.1rem; border-top: 1px solid var(--line-soft); }
-  #quiz .r-paths { display: grid; gap: 0; }
-  #quiz .r-path { border: 1px solid var(--line); border-radius: 0.7rem; background: var(--surface); padding: 1.3rem 1.4rem; }
-  #quiz .r-path.lead { border-color: var(--accent); }
-  #quiz .r-or { text-align: center; color: var(--faint); font-size: 0.78rem; letter-spacing: 0.15em; padding: 0.8rem 0; }
-  #quiz .r-path-tag { display: inline-block; color: var(--accent); background: var(--accent-soft); border-radius: 0.4rem; padding: 0.15rem 0.55rem; font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.55rem; }
-  #quiz .r-path-label { font-size: 1.18rem; margin: 0 0 0.5rem; line-height: 1.25; }
-  #quiz .r-path-essence { color: var(--text); font-size: 0.96rem; margin: 0 0 0.9rem; }
-  #quiz .r-tradeoff { border-left: 3px solid var(--faint); background: var(--raise); border-radius: 0.5rem; padding: 0.8rem 1rem; margin: 0 0 0.9rem; }
-  #quiz .r-tradeoff p { margin: 0; font-size: 0.9rem; color: var(--muted); }
-  #quiz .r-inherit { border-left: 3px solid var(--safe); background: var(--safe-dim); border-radius: 0.5rem; padding: 0.8rem 1rem; margin: 0 0 0.9rem; }
-  #quiz .r-inherit p { margin: 0; font-size: 0.9rem; color: var(--muted); }
-  #quiz .r-wallet { border-top: 1px solid var(--line-soft); padding-top: 1.1rem; margin-bottom: 1.1rem; }
-  #quiz .r-wallet p { margin: 0 0 0.5rem; }
-  #quiz .r-devs { list-style: none; margin: 0 0 0.6rem; padding: 0; display: grid; gap: 0.5rem; }
-  #quiz .r-devs li { color: var(--text); font-size: 0.95rem; padding-left: 0.9rem; position: relative; }
-  #quiz .r-devs li::before { content: "•"; color: var(--accent); position: absolute; left: 0; }
-  #quiz .r-devs.adaptive { display: grid; gap: 0.6rem; }
-  #quiz .r-dev { text-align: left; width: 100%; font-family: var(--sans); font-size: 0.95rem; color: var(--text); cursor: pointer;
+  /* ── the assessment ── bars + words (the words ARE the scale — never numbers) */
+  #finder .as-meter { border: 1px solid var(--line); border-radius: 0.7rem; background: var(--raise); padding: 0.95rem 1.05rem; margin: 0 0 1.2rem; }
+  #finder .as-meter-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.6rem; margin-bottom: 0.55rem; }
+  #finder .as-k { color: var(--faint); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; }
+  #finder .as-bar { position: relative; height: 12px; border-radius: 999px; background: var(--line-soft); overflow: hidden; }
+  #finder .as-ghost { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; background: var(--faint); opacity: 0.3; }
+  #finder .as-ghost.lit { opacity: 0.55; }
+  #finder .as-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; transition: width 0.35s ease, background-color 0.35s ease; }
+  #finder .as-fill.w-low { background: var(--safe); }
+  #finder .as-fill.w-typical { background: var(--accent); }
+  #finder .as-fill.w-elevated { background: var(--warn); }
+  #finder .as-fill.w-high { background: var(--danger); }
+  #finder .as-word { font-family: var(--mono); text-transform: uppercase; font-size: 0.68rem; letter-spacing: 0.08em; font-weight: 600;
+    padding: 0.14rem 0.55rem; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+  #finder .as-word.w-low { color: var(--safe); }
+  #finder .as-word.w-typical { color: var(--muted); }
+  #finder .as-word.w-elevated { color: var(--warn); }
+  #finder .as-word.w-high { color: var(--danger); }
+  #finder .as-legend { color: var(--faint); font-size: 0.76rem; margin: 0.55rem 0 0; }
+  #finder .as-estnote { color: var(--muted); font-size: 0.88rem; margin: 0 0 1.2rem; }
+  #finder .as-estnote strong { color: var(--text); }
+  /* intro + profile rows: label + word on one line, full-width bar below */
+  #finder .as-prow { display: grid; grid-template-columns: 1fr auto; gap: 0.3rem 0.6rem; align-items: center; padding: 0.42rem 0; }
+  #finder .as-prow .as-bar { grid-column: 1 / -1; }
+  #finder .as-plabel { color: var(--text); font-size: 0.9rem; font-weight: 600; line-height: 1.3; }
+  /* prompts — tappable check-statements with their receipts */
+  #finder .as-instr { color: var(--faint); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; margin: 0 0 0.6rem; }
+  #finder .as-prompts { display: grid; gap: 0.6rem; }
+  #finder .as-prompt { display: flex; gap: 0.75rem; align-items: flex-start; text-align: left; width: 100%; cursor: pointer;
+    font-family: var(--sans); background: var(--raise); border: 1px solid var(--line); border-radius: 0.6rem; padding: 0.85rem 1rem;
+    transition: border-color 0.15s, background 0.15s; }
+  #finder .as-prompt:hover { border-color: var(--accent); }
+  #finder .as-prompt.on { border-color: var(--accent); background: var(--accent-soft); }
+  #finder .as-tick { flex: 0 0 auto; width: 1.35rem; height: 1.35rem; margin-top: 0.1rem; border: 1px solid var(--line); border-radius: 0.4rem;
+    display: inline-flex; align-items: center; justify-content: center; color: var(--accent-ink); font-size: 0.8rem; font-weight: 700; }
+  #finder .as-prompt.on .as-tick { background: var(--accent); border-color: var(--accent); }
+  #finder .as-stmt { display: block; color: var(--text); font-size: 0.95rem; line-height: 1.45; }
+  #finder .as-why { display: block; color: var(--muted); font-size: 0.8rem; line-height: 1.5; margin-top: 0.28rem; }
+  #finder .as-gated { border-left: 3px solid var(--accent-dim); padding-left: 0.7rem; }
+  #finder .as-gate-tag { display: block; color: var(--accent); font-size: 0.66rem; letter-spacing: 0.08em; text-transform: uppercase; margin: 0.1rem 0 0.35rem; }
+  /* section actions */
+  #finder .as-skiprow { text-align: right; margin: 0.9rem 0 0; }
+  #finder .as-skip, #finder .as-walk, #finder .as-reset { background: none; border: none; color: var(--muted); font-family: var(--sans);
+    font-size: 0.85rem; cursor: pointer; padding: 0.8rem 0.2rem; text-decoration: underline; }
+  #finder .as-skip:hover, #finder .as-walk:hover, #finder .as-reset:hover { color: var(--accent); }
+  #finder .as-walk, #finder .as-reset { font-size: 0.8rem; padding: 0.7rem 0.2rem; }
+  #finder .as-acts { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-top: 1.2rem; flex-wrap: wrap; }
+  #finder .as-acts .q-back { margin-top: 0; }
+  /* review rows — bars flanked by the −/＋ word-detent steppers */
+  #finder .as-review { margin: 0 0 0.4rem; }
+  #finder .as-row { padding: 0.85rem 0; border-top: 1px solid var(--line-soft); }
+  #finder .as-row:first-child { border-top: 0; padding-top: 0.2rem; }
+  #finder .as-row-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.6rem; margin-bottom: 0.5rem; }
+  #finder .as-row-label { color: var(--text); font-size: 0.95rem; font-weight: 600; }
+  #finder .as-row-mid { display: flex; align-items: center; gap: 0.65rem; }
+  #finder .as-row-mid .as-bar { flex: 1; }
+  #finder .as-step { flex: 0 0 auto; width: 2.6rem; height: 2.6rem; border-radius: 0.55rem; border: 1px solid var(--line); background: var(--raise);
+    color: var(--text); font-size: 1.15rem; line-height: 1; cursor: pointer; font-family: var(--sans); }
+  #finder .as-step:hover:not([disabled]) { border-color: var(--accent); color: var(--accent); }
+  #finder .as-step[disabled] { opacity: 0.35; cursor: default; }
+  #finder .as-recap { color: var(--faint); font-size: 0.8rem; margin: 0.5rem 0 0; }
+
+  /* result: the profile strip — the picture the recommendation came from */
+  #finder .r-profile { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface-2); padding: 1.1rem 1.3rem 1.2rem; margin-bottom: 1rem; box-shadow: var(--shadow); }
+  #finder .r-profile .r-k { margin-bottom: 0.6rem; }
+  /* result: "because of your answers" + the either/or banner */
+  #finder .r-because { border-left: 3px solid var(--accent); background: var(--accent-soft); border-radius: 0.5rem; padding: 0.9rem 1.1rem; margin: 0 0 1.2rem; }
+  #finder .r-because ul { margin: 0; padding-left: 1.1rem; }
+  #finder .r-because li { color: var(--muted); font-size: 0.92rem; line-height: 1.55; margin: 0.4rem 0; }
+  #finder .r-because li::marker { color: var(--accent); }
+  #finder .r-tie { border: 1px dashed var(--accent); background: var(--accent-soft); border-radius: var(--radius); padding: 1rem 1.2rem; margin-bottom: 1rem; }
+  #finder .r-tie p { margin: 0; color: var(--muted); font-size: 0.92rem; line-height: 1.55; }
+  #finder .r-tie strong { color: var(--text); }
+
+  #finder .r-card { border: 1px solid var(--accent); border-radius: var(--radius); background: var(--surface-2); padding: 1.8rem; box-shadow: var(--shadow); }
+  #finder .r-tier { color: var(--accent); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; margin: 0 0 0.4rem; }
+  #finder .r-headline { font-size: 1.5rem; margin: 0 0 0.8rem; line-height: 1.2; }
+  #finder .r-why { color: var(--text); margin: 0 0 1.2rem; }
+  #finder .r-k { display: block; color: var(--faint); font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 0.4rem; }
+  #finder .r-holdback { border-left: 3px solid var(--warn); background: var(--warn-dim); border-radius: 0.5rem; padding: 0.9rem 1.1rem; margin: 0 0 1.2rem; }
+  #finder .r-holdback p { margin: 0; font-size: 0.92rem; color: var(--muted); }
+  /* The multisig fork — two EQUAL paths (self-sovereign DIY vs collaborative). */
+  #finder .r-leadnote { color: var(--muted); font-size: 0.95rem; font-style: italic; margin: 0 0 1.2rem; padding-top: 1.1rem; border-top: 1px solid var(--line-soft); }
+  #finder .r-paths { display: grid; gap: 0; }
+  #finder .r-path { border: 1px solid var(--line); border-radius: 0.7rem; background: var(--surface); padding: 1.3rem 1.4rem; }
+  #finder .r-path.lead { border-color: var(--accent); }
+  #finder .r-or { text-align: center; color: var(--faint); font-size: 0.78rem; letter-spacing: 0.15em; padding: 0.8rem 0; }
+  #finder .r-path-tag { display: inline-block; color: var(--accent); background: var(--accent-soft); border-radius: 0.4rem; padding: 0.15rem 0.55rem; font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.55rem; }
+  #finder .r-path-label { font-size: 1.18rem; margin: 0 0 0.5rem; line-height: 1.25; }
+  #finder .r-path-essence { color: var(--text); font-size: 0.96rem; margin: 0 0 0.9rem; }
+  #finder .r-tradeoff { border-left: 3px solid var(--faint); background: var(--raise); border-radius: 0.5rem; padding: 0.8rem 1rem; margin: 0 0 0.9rem; }
+  #finder .r-tradeoff p { margin: 0; font-size: 0.9rem; color: var(--muted); }
+  #finder .r-inherit { border-left: 3px solid var(--safe); background: var(--safe-dim); border-radius: 0.5rem; padding: 0.8rem 1rem; margin: 0 0 0.9rem; }
+  #finder .r-inherit p { margin: 0; font-size: 0.9rem; color: var(--muted); }
+  #finder .r-wallet { border-top: 1px solid var(--line-soft); padding-top: 1.1rem; margin-bottom: 1.1rem; }
+  #finder .r-wallet p { margin: 0 0 0.5rem; }
+  #finder .r-devs { list-style: none; margin: 0 0 0.6rem; padding: 0; display: grid; gap: 0.5rem; }
+  #finder .r-devs li { color: var(--text); font-size: 0.95rem; padding-left: 0.9rem; position: relative; }
+  #finder .r-devs li::before { content: "•"; color: var(--accent); position: absolute; left: 0; }
+  #finder .r-devs.adaptive { display: grid; gap: 0.6rem; }
+  #finder .r-dev { text-align: left; width: 100%; font-family: var(--sans); font-size: 0.95rem; color: var(--text); cursor: pointer;
     background: var(--raise); border: 1px solid var(--line); border-radius: 0.6rem; padding: 0.8rem 1rem; transition: border-color 0.15s, background 0.15s; }
-  #quiz .r-dev:hover { border-color: var(--accent); }
-  #quiz .r-dev.sel { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
-  #quiz .r-devnote { color: var(--muted); font-size: 0.86rem; margin: 0 0 0.5rem; }
-  #quiz .r-price { color: var(--accent); font-family: var(--mono); font-size: 0.9rem; }
-  #quiz .r-compare { color: var(--muted); font-size: 0.88rem; text-decoration: none; }
-  #quiz .r-compare:hover { color: var(--accent); }
-  #quiz .r-handoff { border-top: 1px solid var(--line-soft); padding-top: 1.1rem; margin-top: 1.1rem; }
-  #quiz .r-handoff p { color: var(--muted); font-size: 0.94rem; margin: 0 0 0.6rem; }
-  #quiz .r-owned { border-left: 3px solid var(--line); background: var(--raise); border-radius: 0.5rem;
+  #finder .r-dev:hover { border-color: var(--accent); }
+  #finder .r-dev.sel { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+  #finder .r-devnote { color: var(--muted); font-size: 0.86rem; margin: 0 0 0.5rem; }
+  #finder .r-price { color: var(--accent); font-family: var(--mono); font-size: 0.9rem; }
+  #finder .r-compare { color: var(--muted); font-size: 0.88rem; text-decoration: none; }
+  #finder .r-compare:hover { color: var(--accent); }
+  #finder .r-handoff { border-top: 1px solid var(--line-soft); padding-top: 1.1rem; margin-top: 1.1rem; }
+  #finder .r-handoff p { color: var(--muted); font-size: 0.94rem; margin: 0 0 0.6rem; }
+  #finder .r-owned { border-left: 3px solid var(--line); background: var(--raise); border-radius: 0.5rem;
     padding: 0.9rem 1.1rem; margin: 0 0 1.1rem; }
-  #quiz .r-owned.warn { border-left-color: var(--warn); background: var(--warn-dim); }
-  #quiz .r-owned.ok { border-left-color: var(--safe); background: var(--safe-dim); }
-  #quiz .r-owned p { margin: 0 0 0.5rem; font-size: 0.94rem; color: var(--text); }
-  #quiz .r-owned p:last-child { margin-bottom: 0; }
-  #quiz .r-how { color: var(--accent); text-decoration: none; font-size: 0.8rem; font-family: var(--mono); white-space: nowrap; }
-  #quiz .r-how:hover { text-decoration: underline; }
-  #quiz .r-save { border-top: 1px solid var(--line-soft); margin-top: 1.4rem; padding-top: 1.2rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 0.9rem; }
-  #quiz .btn-save { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-dim); font-family: var(--sans); font-weight: 600; font-size: 0.9rem;
+  #finder .r-owned.warn { border-left-color: var(--warn); background: var(--warn-dim); }
+  #finder .r-owned.ok { border-left-color: var(--safe); background: var(--safe-dim); }
+  #finder .r-owned p { margin: 0 0 0.5rem; font-size: 0.94rem; color: var(--text); }
+  #finder .r-owned p:last-child { margin-bottom: 0; }
+  #finder .r-how { color: var(--accent); text-decoration: none; font-size: 0.8rem; font-family: var(--mono); white-space: nowrap; }
+  #finder .r-how:hover { text-decoration: underline; }
+  #finder .r-save { border-top: 1px solid var(--line-soft); margin-top: 1.4rem; padding-top: 1.2rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 0.9rem; }
+  #finder .btn-save { background: var(--accent-soft); color: var(--accent); border: 1px solid var(--accent-dim); font-family: var(--sans); font-weight: 600; font-size: 0.9rem;
     cursor: pointer; padding: 0.6rem 1rem; border-radius: 0.55rem; }
-  #quiz .btn-save:hover { border-color: var(--accent); }
-  #quiz .r-save-note { color: var(--faint); font-size: 0.8rem; }
-  #quiz .r-save-note a { color: var(--accent); text-decoration: none; }
-  #quiz .r-save-note a:hover { text-decoration: underline; }
-  #quiz .r-saved { color: var(--safe); font-weight: 600; font-size: 0.92rem; }
-  #quiz .r-save-err { color: var(--danger); font-weight: 600; font-size: 0.92rem; }
-  #quiz .r-links { display: flex; flex-wrap: wrap; gap: 0.8rem; align-items: center; margin: 1.5rem 0 0; }
+  #finder .btn-save:hover { border-color: var(--accent); }
+  #finder .r-save-note { color: var(--faint); font-size: 0.8rem; }
+  #finder .r-save-note a { color: var(--accent); text-decoration: none; }
+  #finder .r-save-note a:hover { text-decoration: underline; }
+  #finder .r-saved { color: var(--safe); font-weight: 600; font-size: 0.92rem; }
+  #finder .r-save-err { color: var(--danger); font-weight: 600; font-size: 0.92rem; }
+  #finder .r-links { display: flex; flex-wrap: wrap; gap: 0.8rem; align-items: center; margin: 1.5rem 0 0; }
   /* the state-dependent actions sit in the same flex row as the static ones */
-  #quiz #r-next { display: contents; }
-  #quiz .btn-primary { background: var(--accent); color: var(--accent-ink); font-weight: 600; font-size: 0.95rem; text-decoration: none; padding: 0.7rem 1.2rem; border-radius: 0.55rem; display: inline-block; }
-  #quiz .btn-primary:hover { opacity: 0.9; }
-  #quiz .btn-ghost { background: none; border: 1px solid var(--line); color: var(--muted); font-family: var(--sans); font-size: 0.9rem; cursor: pointer; padding: 0.7rem 1.1rem; border-radius: 0.55rem; }
-  #quiz .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
-  #quiz .r-foot { color: var(--faint); font-size: 0.78rem; margin: 1.3rem 0 0; }
+  #finder #r-next { display: contents; }
+  #finder .btn-primary { background: var(--accent); color: var(--accent-ink); font-weight: 600; font-size: 0.95rem; text-decoration: none; padding: 0.7rem 1.2rem; border-radius: 0.55rem; display: inline-block; border: none; cursor: pointer; font-family: var(--sans); }
+  #finder .btn-primary:hover { opacity: 0.9; }
+  #finder .btn-ghost { background: none; border: 1px solid var(--line); color: var(--muted); font-family: var(--sans); font-size: 0.9rem; cursor: pointer; padding: 0.7rem 1.1rem; border-radius: 0.55rem; }
+  #finder .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+  #finder .r-foot { color: var(--faint); font-size: 0.78rem; margin: 1.3rem 0 0; }
 
-  /* ranking question */
-  #quiz .q-opts.rank .q-opt { display: flex; align-items: center; gap: 0.7rem; }
-  #quiz .q-opt.ranked { border-color: var(--accent); background: var(--accent-soft); }
-  #quiz .rank-badge { flex: 0 0 auto; width: 1.5rem; height: 1.5rem; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
-    font-family: var(--mono); font-size: 0.8rem; font-weight: 600; background: var(--accent); color: var(--accent-ink); }
-  #quiz .rank-badge.empty { background: transparent; border: 1px dashed var(--line); color: transparent; }
-  #quiz .rank-actions { display: flex; align-items: center; justify-content: space-between; margin-top: 1.2rem; gap: 1rem; }
-  #quiz .rank-right { display: inline-flex; align-items: center; gap: 0.8rem; }
-  #quiz .q-reset { background: none; border: none; color: var(--muted); font-size: 0.85rem; cursor: pointer; padding: 0; }
-  #quiz .q-reset:hover { color: var(--accent); }
-  #quiz .q-continue[disabled] { opacity: 0.4; cursor: not-allowed; }
+  /* owned-wallets interstitial actions */
+  #finder .rank-actions { display: flex; align-items: center; justify-content: space-between; margin-top: 1.2rem; gap: 1rem; }
+  #finder .rank-actions .q-back { margin-top: 0; }
 
-  /* secondary (2nd choice) card */
-  #quiz .r-card.secondary { border-color: var(--line); background: var(--surface); margin-top: 1rem; }
-  #quiz .r-tier.muted { color: var(--muted); }
-  #quiz .r-headline.sm { font-size: 1.2rem; }
-  #quiz .r-step-act { color: var(--accent); font-size: 0.78rem; letter-spacing: 0.04em; margin: 0.2rem 0 0.7rem; }
-  #quiz .r-how2 { display: inline-block; margin-top: 0.6rem; color: var(--accent); text-decoration: none; font-size: 0.9rem; }
-  #quiz .r-how2:hover { text-decoration: underline; }
+  /* secondary (2nd choice / other-half-of-the-tie) card */
+  #finder .r-card.secondary { border-color: var(--line); background: var(--surface); margin-top: 1rem; }
+  #finder .r-tier.muted { color: var(--muted); }
+  #finder .r-headline.sm { font-size: 1.2rem; }
+  #finder .r-step-act { color: var(--accent); font-size: 0.78rem; letter-spacing: 0.04em; margin: 0.2rem 0 0.7rem; }
+  #finder .r-how2 { display: inline-block; margin-top: 0.6rem; color: var(--accent); text-decoration: none; font-size: 0.9rem; }
+  #finder .r-how2:hover { text-decoration: underline; }
 
   /* collaborative-custody vendor list */
-  #quiz .r-vendors { border-top: 1px solid var(--line-soft); padding-top: 1.1rem; margin-top: 1.1rem; }
-  #quiz .v-intro { color: var(--muted); font-size: 0.88rem; margin: 0 0 0.9rem; }
-  #quiz .v-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.9rem; }
-  #quiz .v-list li { border: 1px solid var(--line); border-radius: 0.6rem; padding: 0.9rem 1.1rem; background: var(--raise); }
-  #quiz .v-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; }
-  #quiz .v-head a { color: var(--text); font-weight: 600; text-decoration: none; }
-  #quiz .v-head a:hover { color: var(--accent); }
-  #quiz .v-meta { color: var(--faint); font-size: 0.76rem; }
-  #quiz .v-model { color: var(--accent); font-size: 0.78rem; margin: 0.25rem 0 0.4rem; }
-  #quiz .v-list p { margin: 0 0 0.3rem; color: var(--muted); font-size: 0.9rem; }
-  #quiz .v-hw { font-size: 0.82rem; color: var(--faint); }
-  #quiz .v-hw .mono { font-family: var(--mono); color: var(--muted); }
+  #finder .r-vendors { border-top: 1px solid var(--line-soft); padding-top: 1.1rem; margin-top: 1.1rem; }
+  #finder .v-intro { color: var(--muted); font-size: 0.88rem; margin: 0 0 0.9rem; }
+  #finder .v-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.9rem; }
+  #finder .v-list li { border: 1px solid var(--line); border-radius: 0.6rem; padding: 0.9rem 1.1rem; background: var(--raise); }
+  #finder .v-head { display: flex; align-items: baseline; justify-content: space-between; gap: 0.6rem; flex-wrap: wrap; }
+  #finder .v-head a { color: var(--text); font-weight: 600; text-decoration: none; }
+  #finder .v-head a:hover { color: var(--accent); }
+  #finder .v-meta { color: var(--faint); font-size: 0.76rem; }
+  #finder .v-model { color: var(--accent); font-size: 0.78rem; margin: 0.25rem 0 0.4rem; }
+  #finder .v-list p { margin: 0 0 0.3rem; color: var(--muted); font-size: 0.9rem; }
+  #finder .v-hw { font-size: 0.82rem; color: var(--faint); }
+  #finder .v-hw .mono { font-family: var(--mono); color: var(--muted); }
 </style>
