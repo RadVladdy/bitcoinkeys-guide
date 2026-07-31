@@ -11,6 +11,12 @@ export const changelog = [
   {
     date: '2026-07-30',
     type: 'content',
+    title: 'Your plan now says what to do next, instead of announcing a checklist that isn’t ready',
+    detail: 'A saved plan with no hardware wallet chosen was still telling you "your checklist is ready — 16 steps", which was backwards: the first thing that checklist would have said is to go and choose the device you had not chosen. The next step is now whatever is actually next. No wallet picked yet and it says choose your hardware wallet, and explains that your checklist gets built around that exact device once you have. Multisig with one of three chosen says choose two more, and mentions that different makers is the point. A collaborative plan with its own wallets set says the last piece is who holds the service key. The page also stopped talking about keys where it meant hardware wallets — "needs 1 key" and "1 more key to add" now say what they mean, and the slots read Wallet 1, Wallet 2 rather than Key 1, Key 2. The only place that still says key is the collaborative service key, which genuinely is one and is not a device you buy. "Rework devices" no longer appears when there are no devices to rework, and the link out to a rung walkthrough has left the top of your plan, where it was a detour at the moment you most wanted a next step.',
+  },
+  {
+    date: '2026-07-30',
+    type: 'content',
     title: 'Fixed: saving one recommendation marked both of them as your plan',
     detail: 'When the setup finder gave you a first and a second choice, saving either one put a green "this is your saved plan" tick on both. Only one was actually saved — the page was deciding which band to mark by comparing the rung each recommendation lands on, and two different recommendations can honestly land on the same rung. Starting simple on a phone and graduating to cold storage, and going straight to cold storage, are both single-signature setups; they differ in where you begin, not in where you end up. The page now matches on which recommendation you actually saved. In the same pass, the wording after you save puts your plan first and the checklist second, which is the order they happen in — and before you save, the page no longer offers you a checklist, because until there is a plan the checklist is just the full list of everything, which is not yours in any meaningful sense.',
   },

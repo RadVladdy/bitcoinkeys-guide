@@ -57,14 +57,14 @@ import WhereAmI from '../components/WhereAmI.astro';
     const v = VERDICT[d.verdict];
     return `<a class="ps-verdict ${v.cls}" href="/standard" title="${esc(d.why)}">${v.label}</a>`;
   }
-  import {
+  import { getPlannedDevices,
     loadLocal, hasLocal, clearLocal, clearPlanSelection, saveLocal, downloadPlan, parsePlanText,
     planHasContent, emptyPlan, PLAN_FILENAME, setOwnedAndPrivacy,
     assignToPlan, removeFromPlan, retireOwned, getRecommendedDevices,
     encryptPlanToEnvelope, decryptEnvelope, downloadEncryptedPlan, isEncryptedEnvelope,
   } from '../data/plan.js';
   import { getRung, rungAnchor } from '../data/ladder.js';
-  import { assessDevices, ownedName, deviceBySlug } from '../data/wallets.js';
+  import { keysForSetup, assessDevices, ownedName, deviceBySlug } from '../data/wallets.js';
   import { custodianName, custodianBySlug } from '../data/custodians.js';
   import { mountOwnedPicker } from '../data/owned-picker.js';
   import { checklistLabels, checklistCount, checklistItems, itemApplies } from '../data/checklist.js';
@@ -187,6 +187,37 @@ import WhereAmI from '../components/WhereAmI.astro';
   // said nothing about whether it meets the standard the rest of the site judges
   // hardware by — so someone could plan around a Ledger and never be told. The
   // reasoning is pulled from assessDevices(), never restated here. (the owner, 7/30.)
+
+  // Is the saved plan actually finished? A plan with an unchosen hardware wallet, or
+  // a collaborative plan with no custodian, is a plan in progress — and the page
+  // should say what is missing rather than hand over a checklist built on a blank.
+  function planGaps() {
+    const plan = loadLocal() || emptyPlan();
+    const need = keysForSetup({ rungSlug: plan.quiz?.rung, label: plan.quiz?.primaryLabel, tier: plan.quiz?.primaryTier });
+    const assigned = getPlannedDevices().filter(Boolean);
+    const missing = Math.max(0, need - assigned.length);
+    const isCollab = plan.quiz?.rung === 'collaborative';
+    if (missing > 0) {
+      return {
+        label: missing === 1
+          ? 'Choose your hardware wallet'
+          : `Choose ${missing} more hardware wallet${missing > 1 ? 's' : ''}`,
+        note: missing === 1
+          ? 'Your plan needs one hardware wallet. Pick it and your checklist is built around that exact device — which model, which steps, named throughout.'
+          : `Your plan needs ${missing} more. Best practice for multisig is different makers, so one firmware problem can never reach more than one of them.`,
+        href: '/wallets', cta: 'Compare wallets',
+      };
+    }
+    if (isCollab && !plan.custodian) {
+      return {
+        label: 'Choose who holds the service key',
+        note: 'Your own hardware wallets are set. The last piece is which Bitcoin service holds the third key.',
+        href: '/collaborative', cta: 'Compare custodians',
+      };
+    }
+    return null;
+  }
+  const planIncomplete = () => planGaps() !== null;
   function roadmapHtml(plan) {
     if (!plan.quiz || !(plan.quiz.primaryLabel || plan.quiz.rung)) return '';
     const need = typeof plan.quiz.keysNeeded === 'number' ? plan.quiz.keysNeeded : null;
@@ -212,9 +243,9 @@ import WhereAmI from '../components/WhereAmI.astro';
       if (slug) {
         const isOwned = owned.includes(slug);
         const tag = isOwned ? 'you own' : 'to buy';
-        slots += `<div class="ps-slot filled"><span class="ps-slot-n mono">Key ${i + 1}</span><span class="ps-slot-dev">${esc(ownedName(slug))}</span>${verdictChip(slug)}<span class="ps-slot-tag ${isOwned ? 'own' : 'plan'}">${tag}</span><button class="ps-slot-x" data-act="unassign" data-slug="${esc(slug)}" title="Take out of this plan" type="button">×</button></div>`;
+        slots += `<div class="ps-slot filled"><span class="ps-slot-n mono">Wallet ${i + 1}</span><span class="ps-slot-dev">${esc(ownedName(slug))}</span>${verdictChip(slug)}<span class="ps-slot-tag ${isOwned ? 'own' : 'plan'}">${tag}</span><button class="ps-slot-x" data-act="unassign" data-slug="${esc(slug)}" title="Take out of this plan" type="button">×</button></div>`;
       } else {
-        slots += `<div class="ps-slot empty"><span class="ps-slot-n mono">Key ${i + 1}</span><span class="ps-slot-dev ps-muted">Empty — assign a wallet or get one</span><a class="ps-slot-cta" href="/wallets">Choose →</a></div>`;
+        slots += `<div class="ps-slot empty"><span class="ps-slot-n mono">Wallet ${i + 1}</span><span class="ps-slot-dev ps-muted">Not chosen yet</span><a class="ps-slot-cta" href="/wallets">Choose →</a></div>`;
       }
     }
     if (isCollab) {
@@ -234,9 +265,10 @@ import WhereAmI from '../components/WhereAmI.astro';
     const gaps = Math.max(0, need - assigned.length);
     const custGap = isCollab && !plan.custodian; // collaborative plan missing its custodian
     const multi = need >= 3;
+    // "needs 1 key" meant "you need to buy one hardware wallet" and did not say so.
     const needLabel = isCollab
-      ? `you hold ${need} key${need > 1 ? 's' : ''} + a service key`
-      : `needs ${need} key${need > 1 ? 's' : ''}`;
+      ? `${need} hardware wallet${need > 1 ? 's' : ''} you hold + a service key`
+      : `${need} hardware wallet${need > 1 ? 's' : ''}`;
     let footer;
     if (plan.ownPrivate && !owned.length) {
       footer = `<p class="ps-road-gap">You’d rather not say which wallets you own — so we’ve laid out the full setup. <strong>You may already have some of these.</strong>${multi ? ' Best practice: use a <em>different brand</em> for each key.' : ''} <a href="/wallets">Compare devices →</a></p>`;
@@ -283,14 +315,16 @@ import WhereAmI from '../components/WhereAmI.astro';
     }
     return `
       <div class="ps-road-in">
-        <p class="ps-cur ps-plan-lead">Plan: <strong>${esc(planLabel)}</strong> <span class="ps-need mono">${needLabel}</span>${plan.quiz.rung ? ` <a class="ps-mini-link" href="${rungAnchor(plan.quiz.rung)}">read the walkthrough →</a>` : ''}</p>
-        <span class="ps-sub mono">Your key setup — the wallets in this plan</span>
+        <p class="ps-cur ps-plan-lead">Plan: <strong>${esc(planLabel)}</strong> <span class="ps-need mono">${needLabel}</span></p>
+        <span class="ps-sub mono">The hardware wallets in this plan</span>
         <div class="ps-slots">${slots}</div>
         ${sidelineHtml}
         ${footer}
         ${recHtml}
         ${custAdviceHtml}
-        <a class="ps-rework" href="/wallets">✎ Rework devices — compare &amp; add from the wallets page →</a>
+        ${assigned.length || sidelined.length
+          ? `<a class="ps-rework" href="/wallets">✎ Rework your devices — compare &amp; swap from the wallets page →</a>`
+          : ''}
       </div>`;
   }
 
@@ -323,9 +357,20 @@ import WhereAmI from '../components/WhereAmI.astro';
         `<span class="p-count">${done} of ${total} done</span>${items ? `<ul class="p-mini">${items}</ul>` : ''}`,
         '/checklist', 'Open the checklist',
       ]);
+    } else if (ctx && planIncomplete()) {
+      // THE PLAN ISN'T FINISHED, so the next step is finishing it — not a checklist.
+      // This block used to announce "Your checklist is ready — 16 steps" while a
+      // wallet slot sat empty, which is the opposite of a next step: the first
+      // thing the checklist would tell you is to go and choose the device you have
+      // not chosen. (the owner, 2026-07-30: "the output here should all be contextual.")
+      const g = planGaps();
+      rows.push([
+        `Your next step`,
+        `<span class="p-count">${esc(g.label)}</span><p class="p-mini-note">${esc(g.note)}</p>`,
+        g.href, g.cta,
+      ]);
     } else if (ctx) {
-      // A setup is chosen but nothing ticked yet — this is the hand-off from
-      // "here's your plan" to "here's how to build it," so it must always show.
+      // Plan complete — NOW the checklist is genuinely the next thing.
       rows.push([
         `Your next step`,
         `<span class="p-count">Your checklist is ready — ${total} steps</span><p class="p-mini-note">Trimmed to just what your setup needs, in the order to do them. One clear next action at a time.</p>`,
