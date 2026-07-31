@@ -14,8 +14,10 @@
 //   • Auth: NIP-07 extension (window.nostr) OR NIP-46 bunker (bunker:// URI).
 //     With a bunker the nsec never touches the browser.
 //
-// Chosen over Pubky for the first sovereign backend because Pubky has no
-// private storage yet (see _Decisions / _Product-Ideas-Research 2026-07-16).
+// This is the only sovereign backend: an alternative needs a way for an app to
+// encrypt TO the user's key without the app ever handling key material, which is
+// what NIP-44 plus a NIP-07/46 signer gives. A store that holds only public data,
+// or a signer with no encrypt-to-self primitive, cannot host a private plan here.
 
 import { SimplePool } from 'nostr-tools/pool';
 import { BunkerSigner, parseBunkerInput } from 'nostr-tools/nip46';

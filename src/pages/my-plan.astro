@@ -39,10 +39,6 @@ import WhereAmI from '../components/WhereAmI.astro';
     <p class="soon-foot" id="nostr-privacy">Privacy note: the plan's contents are encrypted, and we store it under a <em>scrambled tag derived from your key</em> — so no one can scan the relays to build a list of this guide's users. But the event is still signed by your key, so anyone who already has <em>your</em> public key could confirm you saved something here. Use a key you're comfortable associating with self-custody. <strong>Want to publish nothing at all? A downloaded file is the most private option.</strong></p>
   </section>
 
-  <section class="prose sovereign2" id="pubky-sec">
-    <h3>Also planned: Pubky</h3>
-    <p><strong>Pubky</strong> <span class="tag mono">on hold</span> — a personal datastore addressed by your key. We're holding this one on purpose. Today a Pubky homeserver stores only <strong>public, unencrypted</strong> data (encrypted storage is on their roadmap), and Pubky Ring signs you in but doesn't offer apps a way to <em>encrypt to your key</em> the way a Nostr signer does — so a private plan would mean this site handling key material, which we won't do. We'll add Pubky the moment it can encrypt to your key. (Verify, don't trust — including us.)</p>
-  </section>
 </Base>
 
 <script>
@@ -107,12 +103,12 @@ import WhereAmI from '../components/WhereAmI.astro';
   }
 
   // Slim the page to the current status: once you're signed in to Nostr, the long
-  // "what is Nostr / how to connect" explainer + the Pubky note are just noise, so
-  // collapse them and keep only the control — slim per state.
+  // "what is Nostr / how to connect" explainer is just noise, so collapse it and
+  // keep only the control — slim per state.
   function slimNostr() {
     const signedIn = !!getSession();
     const hide = (id) => { const e = document.getElementById(id); if (e) e.style.display = signedIn ? 'none' : ''; };
-    hide('nostr-explain'); hide('pubky-sec'); hide('nostr-privacy');
+    hide('nostr-explain'); hide('nostr-privacy');
     const h2 = document.getElementById('nostr-h2');
     if (h2) h2.textContent = signedIn ? 'Your Nostr' : 'Save to your Nostr — encrypted, only you can read it';
   }
@@ -847,15 +843,8 @@ import WhereAmI from '../components/WhereAmI.astro';
   .soon { list-style: none; padding: 0; margin: 1rem 0; display: grid; gap: 0.7rem; }
   .soon li { border: 1px solid var(--line); border-radius: 0.6rem; padding: 0.8rem 1rem; background: var(--surface); color: var(--muted); font-size: 0.94rem; }
   .soon li strong { color: var(--text); }
-  .soon .tag { font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent);
-    border: 1px solid var(--accent-dim); border-radius: 999px; padding: 0.1rem 0.5rem; margin-left: 0.4rem; vertical-align: middle; }
   .soon-foot { color: var(--faint); font-size: 0.86rem; }
 
-  .sovereign2 { margin-top: 1.8rem; }
-  .sovereign2 h3 { font-size: 1.1rem; margin-bottom: 0.4rem; }
-  .sovereign2 p { color: var(--muted); font-size: 0.92rem; }
-  .sovereign2 .tag { font-size: 0.66rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
-    border: 1px solid var(--line); border-radius: 999px; padding: 0.1rem 0.5rem; margin-left: 0.3rem; vertical-align: middle; }
   .ps-verdict { display: inline-block; margin-left: 0.5rem; font-family: var(--mono); font-size: 0.66rem;
     letter-spacing: 0.03em; padding: 0.12rem 0.45rem; border-radius: 0.35rem; text-decoration: none;
     border: 1px solid var(--line); white-space: nowrap; }

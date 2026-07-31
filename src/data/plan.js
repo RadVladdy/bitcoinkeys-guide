@@ -5,12 +5,13 @@
 // dataless: by default NOTHING is written anywhere. Saving is always an
 // explicit, opt-in action the user takes; we never auto-persist or sync.
 //
-// First shippable cut ships two backends behind one shape:
+// Three backends behind one shape:
 //   • local  — this browser's localStorage (survives reloads, one device)
 //   • file   — download / import a plain .json the user holds
+//   • nostr  — NIP-78 event, NIP-44 encrypted to the user's own key
 //
-// Sovereign backends (Pubky homeserver, Nostr NIP-78) layer on later behind
-// the same plan shape — see _Product-Ideas-Research 2026-07-16.
+// Any further backend slots in behind the same plan shape. Nothing about an
+// unshipped one belongs on a page: the site states what it does today.
 
 export const PLAN_VERSION = 1;
 export const APP = 'bitcoinkeys.guide';
