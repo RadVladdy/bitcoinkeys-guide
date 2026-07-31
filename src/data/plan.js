@@ -310,6 +310,20 @@ export function plannedSetupLabel() {
   return p && p.quiz ? p.quiz.primaryLabel || null : null;
 }
 
+/**
+ * WHICH BAND the saved setup came from — 'quiz-primary', 'quiz-secondary',
+ * 'quiz-fork-<key>'. Added 2026-07-30 because the result page was deciding
+ * "is this the saved one?" on the RUNG SLUG alone, and two different
+ * recommendations can legitimately land on the same rung (a "start simple, then
+ * graduate" first choice and a "graduate to cold storage" second choice are both
+ * single-sig). Saving either lit up BOTH bands with "this is your saved plan".
+ * The source is the only thing unique per band. (the owner caught it, 2026-07-30.)
+ */
+export function plannedSetupSource() {
+  const p = loadLocal();
+  return (p && p.quiz && p.quiz.source) || null;
+}
+
 export function saveLadderSlice(rung) {
   const cur = loadLocal() || emptyPlan();
   cur.ladder = rung ? { rung } : null;

@@ -32,7 +32,7 @@ import { questionCountWordCap } from '../data/quiz.js';
   import { questions, recommend } from '../data/quiz.js';
   import { assessDevices, wallets, keysForSetup, slugForName } from '../data/wallets.js';
   import { rungAnchor } from '../data/ladder.js';
-  import { savePlannedSetup, plannedSetupRung, plannedSetupLabel, loadLocal, getOwned, clearPlanSelection } from '../data/plan.js';
+  import { savePlannedSetup, plannedSetupRung, plannedSetupLabel, loadLocal, getOwned, clearPlanSelection, plannedSetupSource } from '../data/plan.js';
   import { mountOwnedPicker } from '../data/owned-picker.js';
   import { confirmDialog } from '../data/ui-dialog.js';
 
@@ -209,9 +209,12 @@ import { questionCountWordCap } from '../data/quiz.js';
   // The result page now hands off instead of duplicating: one page produces the
   // checklist, and it is the one called /checklist. (the owner, 2026-07-30.)
   function checklistHandoff() {
+    // No link to /checklist here. Until they save, there IS no plan, so the
+    // checklist would be the generic everything-list — offering it as "yours" before
+    // it is anyone's was getting the sequence backwards. Say what saving gets you;
+    // the saved state below then offers the plan first and the checklist after it.
     return `<div class="r-handoff"><span class="r-k mono">Next</span>
-      <p>Save this and your checklist is built from it — only the steps your setup needs, in order, with your own hardware named.</p>
-      <a class="r-how2" href="/checklist">Open your checklist →</a></div>`;
+      <p>Save this and it becomes your plan. Your checklist is then built from it — only the steps your setup actually needs, in order, with your own hardware named.</p></div>`;
   }
 
   // ── What you already own, judged against the standard ──────────────────────
@@ -347,10 +350,18 @@ import { questionCountWordCap } from '../data/quiz.js';
       recs: (el.dataset.recs || '').split(',').filter(Boolean),
     }));
     function paintSaveStates() {
+      // Match on the BAND, not the rung. Two different recommendations can land on
+      // the same rung — a "start simple, then graduate" first choice and a
+      // "graduate to cold storage" second choice are both single-sig — so rung
+      // matching lit up every band that shared one. `source` is unique per band.
+      const savedSource = plannedSetupSource();
       const savedRung = plannedSetupRung();
       saveBands.forEach((b) => {
-        if (savedRung && b.rung === savedRung) {
-          b.el.innerHTML = `<span class="r-saved">✓ This is your saved plan.</span> <a class="r-saved-link" href="/checklist">Your checklist is ready →</a> <a class="r-saved-link" href="/my-plan">or open your plan</a>`;
+        const isSaved = savedSource ? b.source === savedSource : Boolean(savedRung && b.rung === savedRung);
+        if (isSaved) {
+          // Plan first, checklist second: the plan is the thing they just made, and
+          // the checklist is built FROM it. (the owner, 2026-07-30.)
+          b.el.innerHTML = `<span class="r-saved">✓ This is your saved plan.</span> <a class="r-saved-link" href="/my-plan">Open your plan →</a> <a class="r-saved-link" href="/checklist">your checklist is ready too</a>`;
         } else {
           b.el.innerHTML = `<button class="btn-save js-save" type="button">＋ Save this setup to my plan</button>
             <span class="r-save-note">One setup at a time — kept only in your browser until you save it. <a href="/my-plan">your data, not ours</a>.</span>`;
