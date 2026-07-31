@@ -2,9 +2,14 @@
 // The "which metal backup" block. Rendered on a lesson that declares `extra: 'metal'`
 // in lessons.js, so nothing is hardcoded to a slug — see src/data/metal.js for why
 // this is framed as someone else's test results rather than our own verdict.
-import { metalCriteria, metalPicks, metalBands, metalFailed, metalSource, metalVerified } from '../data/metal.js';
+import { metalCriteria, metalPicks, metalBands, metalFailed, metalSource, metalVerified,
+         metalTests, metalOutcome } from '../data/metal.js';
 const band = Object.fromEntries(metalBands.map((b) => [b.key, b.label]));
 const badge = { value: 'best value', titanium: 'if you want titanium' };
+// Every figure below derives from metalOutcome — see invariant #10. The percentage is
+// computed rather than written down, because a typed one silently stops matching the
+// counts beside it the first time the source is re-read.
+const pctPoor = Math.round((metalOutcome.poor / metalOutcome.reviewed) * 100);
 ---
 <section class="metal">
   <h2 id="choosing-metal">Choosing a metal backup</h2>
@@ -18,10 +23,25 @@ const badge = { value: 'best value', titanium: 'if you want titanium' };
     <p style="margin:0">
       We rate hardware wallets ourselves, because that judgement is about design and firmware and we can read
       those. <strong>Metal backups are decided by fire, acid and a 20-ton press, and we have not run those
-      tests.</strong> <a href={metalSource.url} target="_blank" rel="noopener">{metalSource.name}</a> has —
-      {metalSource.note} The criteria below are ours; every verdict is his.
+      tests.</strong> <a href={metalSource.url} target="_blank" rel="noopener">{metalSource.name}</a> has, on
+      {' '}{metalOutcome.reviewed} of them — {metalSource.note} <strong>The criteria below are ours; every
+      grade and price is his.</strong>
     </p>
   </div>
+
+  <h3>The good news first</h3>
+  <p class="m-lead">
+    Most of these products are fine. Of the {metalOutcome.reviewed} devices tested, <strong>{metalOutcome.topGrade} came
+    through every test with nothing lost</strong>, and only {metalOutcome.poor} — about {pctPoor}% — did badly.
+    So this is not a minefield, and you do not need to agonise. You need to avoid a
+    <a href="#metal-failures">short list of specific traps</a>, and then pick on the things the stress tests
+    don't measure. That second part is what the rest of this section is for.
+  </p>
+  <ul class="m-tests">
+    {metalTests.map((x) => (
+      <li><span class="mt-k mono">{x.t}</span><span>{x.d}</span></li>
+    ))}
+  </ul>
 
   <h3>What actually matters</h3>
   <ol class="m-crit">
@@ -30,10 +50,11 @@ const badge = { value: 'best value', titanium: 'if you want titanium' };
     ))}
   </ol>
 
-  <h3>A short list that survives</h3>
+  <h3>Five that meet all five</h3>
   <p class="m-sub">
-    Every one of these scored top marks in all four of Lopp’s stress categories. It is a starting point, not a
-    ranking of our own, and deliberately not exhaustive.
+    Every one of these scored top marks in all {metalTests.length} of Lopp’s stress tests <em>and</em> meets the
+    {' '}{metalCriteria.length} criteria above, which he doesn’t test for. Far more than five would qualify on
+    durability alone — this is our shortlist, not a ranking, and deliberately not exhaustive.
   </p>
   <ul class="m-picks">
     {metalPicks.map((p) => (
@@ -53,14 +74,16 @@ const badge = { value: 'best value', titanium: 'if you want titanium' };
     them with a date; we don’t watch these, so a precise number would be a promise we couldn’t keep.
   </p>
 
-  <div class="callout warn">
-    <span class="label">Named because they failed</span>
-    <p style="margin:0">
-      {metalFailed.join(' · ')} — all failed multiple stress tests. Two are sold by companies whose hardware
-      wallets people already own, which is exactly when someone assumes the metal must be fine too. It isn’t
-      automatically.
-    </p>
-  </div>
+  <h3 id="metal-failures">The ones to avoid</h3>
+  <p class="m-sub">
+    The {metalOutcome.poor} that did badly are worth naming, and each failure shows you one of the criteria above
+    doing its job.
+  </p>
+  <ul class="m-failed">
+    {metalFailed.map((f) => (
+      <li><span class="mf-name">{f.name}</span><span class="mf-why" set:html={f.why}></span></li>
+    ))}
+  </ul>
   <p class="m-verified mono">Test results checked against the source, and every link above loaded, on {metalVerified}</p>
 </section>
 
@@ -92,4 +115,19 @@ const badge = { value: 'best value', titanium: 'if you want titanium' };
   .m-note { color: var(--muted); font-size: 0.92rem; line-height: 1.55; }
   .m-price-note { margin-top: 0.8rem; font-size: 0.86rem; }
   .m-verified { color: var(--faint); font-size: 0.74rem; margin-top: 1rem; }
+
+  /* the three stress tests, stated in his parameters rather than our paraphrase */
+  .m-tests { list-style: none; margin: 1rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.45rem; }
+  .m-tests li { display: grid; grid-template-columns: 5.2rem 1fr; gap: 0.8rem; align-items: baseline;
+    font-size: 0.9rem; color: var(--muted); line-height: 1.55; }
+  .m-tests .mt-k { color: var(--accent); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; }
+  @media (max-width: 560px) { .m-tests li { grid-template-columns: 1fr; gap: 0.15rem; } }
+
+  /* the failures, each teaching the criterion it broke */
+  .m-failed { list-style: none; margin: 1rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.6rem; }
+  .m-failed li { border: 1px solid var(--line); border-left: 3px solid var(--warn); border-radius: var(--radius);
+    background: var(--surface); padding: 0.85rem 1.1rem; display: grid; gap: 0.2rem; min-width: 0; }
+  .m-failed .mf-name { color: var(--text); font-weight: 650; }
+  .m-failed .mf-why { color: var(--muted); font-size: 0.92rem; line-height: 1.55; }
+  .m-failed .mf-why a { color: var(--accent); }
 </style>

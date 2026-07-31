@@ -85,6 +85,12 @@
 
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
+/* The nav is position:sticky at top:0, so without this EVERY in-page anchor on the
+   site scrolls its target underneath the header — the reader follows a link to a
+   heading and lands on the paragraph after it, with no sign anything is missing.
+   Applied to any element that can be an anchor target rather than to a list of
+   known ids, so a new anchor can never be added without the offset. */
+:where([id]) { scroll-margin-top: 5.5rem; }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, ::before, ::after { animation-duration: .001ms !important; transition-duration: .001ms !important; } }
 
 body {

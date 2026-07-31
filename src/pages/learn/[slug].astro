@@ -7,6 +7,11 @@ import RuleBand from '../../components/RuleBand.astro';
 import LessonEyebrow from '../../components/LessonEyebrow.astro';
 import LessonCheck from '../../components/LessonCheck.astro';
 import MetalPicker from '../../components/MetalPicker.astro';
+// Page order below is load-bearing: lesson body, then the lesson's own short
+// checklist, then any `extra` reference block, then the knowledge check, then
+// prev/next. The check sits after the material it tests and before the exit.
+// LessonCheck self-locates by rule and renders nothing where a rule has no check;
+// LessonNav walks curriculum.js, so neither is hardcoded per lesson.
 
 export function getStaticPaths() {
   return lessons.map((h, i) => ({
@@ -79,13 +84,9 @@ const accentize = (title, phrase) => {
       hardcoded slug, so moving or renaming the lesson carries it. */}
   {h.extra === 'metal' && <MetalPicker />}
 
-  <!-- The knowledge check sits AFTER the lesson and BEFORE prev/next: you read,
-       you check it landed, then you move on. It self-locates by rule and renders
-       nothing on a lesson whose rule has no check yet. -->
   <LessonCheck href={`/learn/${h.slug}`} />
 
-  <!-- Prev/next now comes from <LessonNav />, which walks the whole course
-       (curriculum.js) rather than just the how-to list. -->
+
 
   <LessonNav />
 </Base>
