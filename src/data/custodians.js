@@ -7,12 +7,38 @@
 // VOLATILE (re-check): fees · minimums · KYC policy · jurisdiction · device lists.
 // STABLE: custody model · insurance existence · open-recovery posture.
 // Ratings: 'yes' | 'partial' | 'no'. RE-VERIFY fees before anyone commits money.
+//
+// ── `kind` — TWO KINDS OF COLLABORATIVE CUSTODY (2026-08-01) ────────────────
+//
+//   'savings'  RUNG 4 of the ladder. You hold two keys of three and a service
+//              holds the third as a backstop for a LONG-TERM VAULT. This is what
+//              the finder means when it recommends collaborative custody.
+//   'spending' A collaborative-custody PRODUCT that is not rung 4. Genuinely
+//              2-of-3 and genuinely a service — but a sealed, single-vendor
+//              stack built for money you are spending, not a savings vault you
+//              assemble and control.
+//
+// WHY THE SPLIT EXISTS: Bitkey is a collaborative-custody provider, and listing
+// it flat alongside the savings services made it a candidate answer to "which
+// service should hold the third key of my vault" — a question it does not
+// answer. It is the same judgement wallets.js already publishes about the same
+// product ('built for spending'), and the two must agree; the assert below is
+// what makes that structural rather than a matter of remembering.
+//
+// A reader is not being warned off it. It is a genuinely good, genuinely
+// no-KYC on-ramp — it is simply answering a different question, and the page
+// now says which.
+
+// One-way: custodians.js reads the device tiers, wallets.js knows nothing about
+// this file, so this cannot create a cycle.
+import { wallets } from './wallets.js';
 
 export const custodiansVerified = '2026-07-20';
 
 export const custodians = [
   {
     slug: 'nunchuk',
+    kind: 'savings',
     name: 'Nunchuk',
     url: 'https://nunchuk.io',
     model: '2-of-3 assisted multisig (also 2-of-4 / 3-of-5) — you hold the keys, Nunchuk holds an assist key',
@@ -30,6 +56,7 @@ export const custodians = [
   },
   {
     slug: 'bitkey',
+    kind: 'spending',
     name: 'Bitkey (by Block)',
     url: 'https://bitkey.world',
     model: '2-of-3 — a phone app key + a hardware device you hold, plus a Block server recovery key',
@@ -51,6 +78,7 @@ export const custodians = [
   },
   {
     slug: 'unchained',
+    kind: 'savings',
     name: 'Unchained',
     url: 'https://unchained.com',
     model: '2-of-3 collaborative multisig — you hold 2 keys, Unchained holds 1 recovery key',
@@ -68,6 +96,7 @@ export const custodians = [
   },
   {
     slug: 'swan-vault',
+    kind: 'savings',
     name: 'Swan Vault',
     url: 'https://swanbitcoin.com/vault',
     model: '2-of-3 multisig — you hold 2 Jade keys, Swan holds 1 cloud key',
@@ -85,6 +114,7 @@ export const custodians = [
   },
   {
     slug: 'bitcoin-adviser',
+    kind: 'savings',
     name: 'The Bitcoin Adviser',
     url: 'https://thebitcoinadviser.com',
     model: 'Collaborative 2-of-3 with an estate protocol — a professional key agent, built on Unchained / Nunchuk / bespoke',
@@ -102,6 +132,7 @@ export const custodians = [
   },
   {
     slug: 'anchorwatch',
+    kind: 'savings',
     name: 'AnchorWatch',
     url: 'https://anchorwatch.com',
     model: 'Insured miniscript multisig (Trident Vault) — you hold your keys, insured up to $100M',
@@ -152,5 +183,46 @@ const _support = {
 };
 custodians.forEach((c) => { const s = _support[c.slug]; if (s) { c.supports = s.supports; c.recommends = s.recommends; } });
 
+// RUNG 4 — the services the finder may recommend as the third key of a savings
+// vault. Everything the ladder's collaborative rung means is in this list.
+export const savingsCustodians = custodians.filter((c) => c.kind === 'savings');
+// Collaborative custody that is NOT rung 4. Presented on /collaborative in its
+// own right, never mixed into the rung-4 comparison.
+export const spendingCustodians = custodians.filter((c) => c.kind === 'spending');
+
+// EVERY custodian must declare a kind, or it would silently fall out of BOTH
+// lists — the exact shape that dropped Bitkey off the seed-generation lesson
+// when `n/a` was a third state neither derived list modelled.
+{
+  const untagged = custodians.filter((c) => !['savings', 'spending'].includes(c.kind));
+  if (untagged.length) {
+    throw new Error(
+      `custodians.js: ${untagged.map((c) => c.slug).join(', ')} — no \`kind\`, so it would appear in neither the rung-4 list nor the spending list`,
+    );
+  }
+}
+
 export const custodianBySlug = Object.fromEntries(custodians.map((c) => [c.slug, c]));
+
+// THE TWO JUDGEMENTS ABOUT ONE PRODUCT MUST AGREE. Where a custodian also ships
+// a device we rate, its custody `kind` and its device `tier` are the same call
+// made twice — "is this for savings or for spending" — and this project's whole
+// bug history is two surfaces answering one question differently. Asserted at
+// build so they cannot drift: flip either one and the site refuses to build.
+{
+  const DEVICE_FOR = { bitkey: 'Bitkey' };
+  for (const [slug, deviceName] of Object.entries(DEVICE_FOR)) {
+    const c = custodianBySlug[slug];
+    const d = wallets.find((w) => w.name === deviceName);
+    if (!c || !d) continue;
+    const want = d.tier === 'spending' ? 'spending' : 'savings';
+    if (c.kind !== want) {
+      throw new Error(
+        `custodians.js: "${c.name}" is kind '${c.kind}' but wallets.js rates the ${deviceName} tier '${d.tier}' — one product, two answers to "savings or spending".`,
+      );
+    }
+  }
+}
+
+export const custodianVendorKinds = { savings: savingsCustodians.length, spending: spendingCustodians.length };
 export function custodianName(slug) { return (custodianBySlug[slug] && custodianBySlug[slug].name) || slug; }

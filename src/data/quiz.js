@@ -121,10 +121,16 @@ export const finderPromiseCap = `${questionCountWordCap} plain questions and a s
 // comparison page can never disagree on fees, KYC, or the service list.
 // Neutral + informational — NOT affiliate links, NOT ranked "best." Casa is
 // deliberately omitted there (it supports other coins), so it's omitted here.
-import { custodians } from './custodians.js';
+// RUNG 4 ONLY. `savingsCustodians`, not `custodians` — the finder recommends
+// collaborative custody as the third key of a LONG-TERM VAULT, and Bitkey is a
+// collaborative-custody product built for SPENDING. Listing it here made it a
+// candidate answer to "which service should hold the third key of my savings",
+// which is not a question it answers. It keeps its place on /collaborative, in
+// its own section, and its place on /wallets as a spending-tier device.
+import { savingsCustodians } from './custodians.js';
 import { deviceBySlug } from './wallets.js';
 const KYC_LABEL = { yes: 'No KYC', no: 'KYC required', partial: 'KYC varies' };
-export const collaborativeVendors = custodians.map((c) => ({
+export const collaborativeVendors = savingsCustodians.map((c) => ({
   name: c.name,
   url: c.url,
   model: c.model,

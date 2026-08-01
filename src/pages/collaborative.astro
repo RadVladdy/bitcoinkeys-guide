@@ -1,6 +1,15 @@
 ---
 import Base from '../layouts/Base.astro';
-import { custodians, custodianBadges, custodianCompare, custodiansVerified } from '../data/custodians.js';
+// TWO SECTIONS, NOT ONE LIST (2026-08-01). `savingsCustodians` is rung 4 of the
+// ladder — a service holding the third key of a long-term vault. Bitkey is a
+// collaborative-custody product too, and a good one, but it answers a different
+// question: money you are spending, in a sealed single-vendor stack. Listed flat
+// among the others it read as a candidate for "who should hold the third key of
+// my savings", which it is not. Both lists are derived, and custodians.js throws
+// if a service declares neither kind.
+import {
+  savingsCustodians, spendingCustodians, custodianBadges, custodianCompare, custodiansVerified,
+} from '../data/custodians.js';
 
 const mark = { yes: '✓', partial: '~', no: '✗' };
 const markCls = { yes: 'y', partial: 'p', no: 'n' };
@@ -33,7 +42,7 @@ const markCls = { yes: 'y', partial: 'p', no: 'n' };
       <span class="tbadge n"><span class="tbm">✗</span> no</span>
     </p>
     <div class="cards">
-      {custodians.map((c) => (
+      {savingsCustodians.map((c) => (
         <article class="wcard">
           <div class="wc-top">
             <div class="wc-main">
@@ -76,7 +85,7 @@ const markCls = { yes: 'y', partial: 'p', no: 'n' };
           <tr><th>Service</th>{custodianCompare.map((c) => <th class="ctr">{c.label}</th>)}</tr>
         </thead>
         <tbody>
-          {custodians.map((c) => (
+          {savingsCustodians.map((c) => (
             <tr>
               <td class="dev"><span class="dname">{c.name}</span></td>
               {custodianCompare.map((col) => (
@@ -94,12 +103,45 @@ const markCls = { yes: 'y', partial: 'p', no: 'n' };
     <p class="legend mono"><span class="r-yes">✓</span> yes · <span class="r-partial">~</span> partial / caveat · <span class="r-no">✗</span> no</p>
   </section>
 
+  {spendingCustodians.length > 0 && (
+    <section class="prose sp-sec">
+      <h2>A different kind: collaborative custody built for spending</h2>
+      <p>
+        Everything above is collaborative custody for <strong>savings</strong> — the fourth rung of
+        <a href="/learn/ladder#rung-4"> the ladder</a>, where you assemble a vault, hold two keys yourself, and a
+        service holds the third. {spendingCustodians.length === 1 ? 'The service below is' : 'The services below are'}
+        genuinely collaborative custody too — a real 2-of-3, with a real third party — but built around
+        <strong> money you are spending</strong> rather than money you are locking away for a decade.
+      </p>
+      <p>
+        That is not a lesser thing, and it is not a warning. It is a different question, and mixing the two
+        would make it look like a candidate for a job it is not applying for. We rate the hardware the same way
+        on <a href="/wallets">the wallet comparison</a> — <a href="/standard#built-for-spending">built for
+        spending</a> — and the two ratings are the same judgement, so the site refuses to build if they ever
+        disagree.
+      </p>
+      {spendingCustodians.map((c) => (
+        <div class="sp-card">
+          <h3><a href={c.url} target="_blank" rel="noopener noreferrer">{c.name} ↗</a></h3>
+          <p class="cmodel mono">{c.model}</p>
+          <p><strong>Good fit:</strong> {c.bestFor}</p>
+          <p class="sp-watch"><strong>Worth knowing:</strong> {c.watch}</p>
+          <p class="sp-meta mono">{c.fee} · {c.devices}</p>
+        </div>
+      ))}
+      <p class="sp-foot">
+        Holding long-term savings? Use the comparison above instead — a sealed single-vendor stack is a
+        different bet from a vault you assemble and could rebuild yourself.
+      </p>
+    </section>
+  )}
+
   <section class="prose">
     <div class="callout safe">
       <span class="label">Collaborative isn’t the only way up</span>
       <p>Running your own <a href="/learn/ladder#rung-3">multisig (rung 3)</a> keeps every key in your hands — no company, no KYC, maximum privacy. Collaborative custody trades a little of that sovereignty for far less to manage and built-in recovery. Neither is “more correct” — it’s a real trade-off. Not sure which fits? <a href="/find-your-setup">Find your setup →</a></p>
     </div>
-    <p class="sub">One service here is also a device in our hardware comparison: Bitkey. We judge it in both places against the job it’s doing — a capable collaborative setup, and a signer <a href="/standard#built-for-spending">built for spending</a> rather than a cold-storage vault.</p>
+
     <p class="sub">Verify, don’t trust — including us. Fees and KYC policies change; we re-check them on a schedule and log every change in the <a href="/changelog">what’s-changed log</a>. Always confirm the current terms on the provider’s own site before committing.</p>
   </section>
 </Base>
@@ -156,6 +198,17 @@ const markCls = { yes: 'y', partial: 'p', no: 'n' };
 </script>
 
 <style>
+  /* The spending section is deliberately NOT a wcard — it must not read as a
+     sixth entry in the comparison it sits below. Different container, no badge
+     grid, no comparison row. */
+  .sp-sec { margin-top: 2.4rem; }
+  .sp-card { border: 1px solid var(--line); border-left: 3px solid var(--warn, #b7791f); border-radius: var(--radius);
+    padding: 1.1rem 1.3rem; margin: 1.2rem 0; background: var(--surface-2, var(--raise)); }
+  .sp-card h3 { margin: 0 0 .3rem; font-size: 1.08rem; }
+  .sp-card p { margin: 0 0 .55rem; }
+  .sp-watch { color: var(--muted); font-size: .92rem; }
+  .sp-meta { color: var(--faint); font-size: .78rem; margin: 0 !important; }
+  .sp-foot { color: var(--muted); font-size: .9rem; }
   /* View tabs */
   .wtabs { display: inline-flex; gap: 0.25rem; margin: 0 0 1.6rem; padding: 0.25rem; border: 1px solid var(--line); border-radius: 0.6rem; background: var(--surface); }
   .wtab { font-family: var(--sans); font-size: 0.92rem; color: var(--muted); cursor: pointer; background: none; border: 0; border-radius: 0.45rem; padding: 0.5rem 1.05rem; transition: background 0.15s, color 0.15s; }
