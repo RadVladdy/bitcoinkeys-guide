@@ -372,6 +372,76 @@ export const promptsFor = (concern) => prompts.filter((p) => p.concern === conce
 const CEILING = { custodial: 88, 'self-loss': 88, remote: 90, physical: 80 };
 const H_SAT = { custodial: 25, 'self-loss': 29, remote: 36, physical: 28 };
 
+// ── THE EXPECTED BUNDLE — what the typical holder actually carries ──────────
+//
+// The defaults above are a SHARE of expected loss for a typical holder, and
+// they sum to 100. The bug this fixes: prompts only ever added, so checking
+// nothing scored the default exactly — which silently asserted that the
+// typical holder carries ZERO risk factors. That is the one thing we know is
+// false. Everyone drained on 30 July had at least one.
+//
+// It also made a walked-and-cleared section indistinguishable from a SKIPPED
+// one, and those are opposite signals from the reader.
+//
+// So the baseline needs a model of what the typical holder has. EXPECTED_RAW
+// is that model, in the same raw-weight points the prompts accumulate: the
+// prevalence-weighted sum of each section's prompts. Score above it and the
+// bar rises; below it and the bar falls; hit it exactly and you sit on the
+// published default, which is what "typical" is supposed to mean.
+//
+// WHY POINTS AND NOT A COUNT: prompts carry small/medium/large weights, so
+// "three of eight" describes different people depending on which three.
+//
+// HOW THESE WERE ESTIMATED, and how solid each is. Four prompts carry a
+// published prevalence in their own receipt (s-forgot ~40%, s-nobody-knows
+// ~87%, r-quick 80%, and c-exchange's figure is about EXCHANGES failing, not
+// about readers, so it is NOT usable here). The remaining 28 are house
+// estimates of how common the situation is among self-custody holders. They
+// are estimates, they are the softest numbers in this engine, and
+// /how-we-weigh-risk must publish them as estimates rather than as research.
+//
+//   custodial 22 of 74 available — most holders still have some on an
+//     exchange and few can name their auditor, but our mid-stakes reader is
+//     mid-migration by construction
+//   self-loss 42 of 88 — deliberately the highest share, because this is the
+//     thing holders are genuinely worst at: the large majority have never
+//     test-restored, and ~87% have told nobody
+//   remote 36 of 108 — driven by near-universal overconfidence (r-quick's
+//     own 80%) and ordinary habits like app-store searching
+//   physical 22 of 84 — the lowest, matching physical's small default share;
+//     most holders are known to somebody but very few are targets
+//
+// EVERY VALUE HERE IS EVEN, and must stay even. WEIGHT_POINTS are 6/10/16, so
+// an odd target is unreachable by any combination of prompts — which would
+// make C6 untestable end-to-end and reduce it to checking the formula against
+// itself. Estimated 35 and 23 for remote and physical; both moved one point
+// to the nearest reachable sum, which is far inside these numbers' real
+// uncertainty. If a prompt weight ever becomes odd, this constraint relaxes.
+//
+// NOT STAKE-SHIFTED, deliberately. The stake bands already move the DEFAULT.
+// Shifting the expected bundle as well would let stakes move the same bar
+// twice — the exact double-count this file already had to strip out of the
+// gain term and the sovereignty cost.
+export const EXPECTED_RAW = { custodial: 22, 'self-loss': 42, remote: 36, physical: 22 };
+
+// Where a fully-cleared section lands, as a fraction of that concern's
+// default. Not zero: a careful holder still retains irreducible exposure —
+// you can still be scammed, hardware still fails, and you can still die
+// without a plan. Nothing here goes to nothing.
+//
+// 0.3 is chosen so a cleared section reads 'low' rather than 'typical' on the
+// word scale — it must land below d − HALF_BAND or the reader gets no signal
+// back for having answered honestly.
+const FLOOR_FRAC = 0.3;
+
+// PHYSICAL floors at zero instead. Its half-band (4) is almost its whole
+// default (5), so 'low' means "below 1" — a 30% floor could never reach it
+// and the bar would read 'typical' for someone with no targeting factors at
+// all. Flooring at zero is also the honest reading: a holder nobody can
+// connect to bitcoin is not a target. This is a quirk of physical's tiny
+// share in the word scale, not something the expected-bundle model creates.
+const floorFor = (concern, dc) => (concern === 'physical' ? 0 : Math.round(dc * FLOOR_FRAC));
+
 /**
  * Score vector from checked prompts. Sections in skippedSections keep the
  * standard estimate (decided § 11.3). A gated prompt whose gate was never
@@ -398,9 +468,29 @@ export function scoreFromPrompts(checkedPrompts = [], stakes = 'meaningful', ski
   // the page recommend single-sig where a direct call recommended multisig for
   // identical answers. Omit what you do not know; do not report it as null.
   for (const c of SECTION_ORDER) {
-    scores[c] = skippedSections.includes(c)
-      ? d[c]
-      : Math.round(d[c] + (CEILING[c] - d[c]) * (raw[c] / (raw[c] + H_SAT[c]) || 0));
+    // A SKIPPED section keeps the standard estimate. This is now meaningfully
+    // different from a section walked and cleared, which lands at the floor —
+    // before the expected bundle they were the same number, so the engine
+    // could not tell "none of this is me" from "I did not answer".
+    if (skippedSections.includes(c)) { scores[c] = d[c]; continue; }
+
+    const expected = EXPECTED_RAW[c] || 0;
+    const excess = raw[c] - expected;
+
+    if (excess >= 0) {
+      // ABOVE the typical bundle — saturating toward the band ceiling, so
+      // there is always somewhere further to go and the bar never reads 100.
+      scores[c] = Math.round(d[c] + (CEILING[c] - d[c]) * (excess / (excess + H_SAT[c]) || 0));
+    } else {
+      // BELOW it — LINEAR to the floor, not saturating. Deliberately
+      // asymmetric: exposure has no natural limit, but safety does, and the
+      // floor is a place you can actually arrive at. It also makes the scale
+      // explainable in one sentence on /how-we-weigh-risk: clear the whole
+      // section and you sit at the floor, carry the typical bundle and you
+      // sit on the published default.
+      const floor = floorFor(c, d[c]);
+      scores[c] = Math.round(d[c] - (d[c] - floor) * (expected ? -excess / expected : 0));
+    }
   }
   return scores;
 }

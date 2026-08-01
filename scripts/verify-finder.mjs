@@ -21,6 +21,7 @@ import { recommend } from '../src/data/quiz.js';
 import {
   recommendV2, shimScores, fitFor, defaultsFor, scoreWord, scoreFromPrompts,
   CONCERN_KEYS, SECTION_ORDER, SETUP_KEYS, PROTECTION, FAMILY, TIE_MARGIN, prompts,
+  EXPECTED_RAW, WEIGHT_POINTS,
 } from '../src/data/finder.js';
 
 let failures = 0;
@@ -312,6 +313,50 @@ for (const stakes of STAKES) for (const tech of TECH) for (const sovereignty of 
 }
 console.log(`  C5 near-ties — ${c5n} lattice points checked (${c5ties} genuine either/ors flagged)`);
 
+// ── C6 · THE EXPECTED BUNDLE — the baseline means what it says ──────────────
+// The scoring used to only ever ADD, so checking nothing scored the published
+// default and the engine silently asserted that a typical holder carries zero
+// risk factors. Three properties, asserted end-to-end through real prompt ids
+// rather than by re-deriving the formula:
+//
+//   (a) a reader carrying the expected bundle scores the default EXACTLY
+//   (b) a reader who walks a section and clears it scores strictly BELOW the
+//       default — far enough below to read 'low', or they get no signal back
+//   (c) cleared is NOT the same as skipped; before this they were identical,
+//       and they are opposite statements from the reader
+let c6n = 0;
+for (const c of SECTION_ORDER) {
+  const inSection = prompts.filter((p) => p.concern === c && !p.gatedBy);
+  // Smallest subset of this section's own prompts summing to the expected
+  // bundle. Reachability is a real constraint on EXPECTED_RAW, not a detail:
+  // every WEIGHT_POINTS value is even, so an odd target has no subset and C6
+  // would quietly degrade into checking the formula against itself.
+  let bundle = null;
+  const walk = (i, acc, ids) => {
+    if (bundle) return;
+    if (acc === EXPECTED_RAW[c]) { bundle = ids; return; }
+    if (acc > EXPECTED_RAW[c] || i >= inSection.length) return;
+    walk(i + 1, acc + WEIGHT_POINTS[inSection[i].weight], [...ids, inSection[i].id]);
+    walk(i + 1, acc, ids);
+  };
+  walk(0, 0, []);
+  if (!bundle) { fail(`C6 ${c}: EXPECTED_RAW ${EXPECTED_RAW[c]} is unreachable by any combination of prompts`); continue; }
+
+  const d = defaultsFor('meaningful')[c];
+  const atBundle = scoreFromPrompts(bundle, 'meaningful', [])[c];
+  if (atBundle !== d) fail(`C6a ${c}: expected bundle scores ${atBundle}, default is ${d} — the baseline does not mean "typical"`);
+
+  const cleared = scoreFromPrompts([], 'meaningful', [])[c];
+  if (!(cleared < d)) fail(`C6b ${c}: cleared section scores ${cleared}, not below the default ${d}`);
+  if (scoreWord(cleared, c, 'meaningful') !== 'low') fail(`C6b ${c}: cleared section reads '${scoreWord(cleared, c, 'meaningful')}', not 'low'`);
+
+  const skipped = scoreFromPrompts([], 'meaningful', [c])[c];
+  if (skipped === cleared) fail(`C6c ${c}: skipping and clearing both score ${skipped} — the engine cannot tell them apart`);
+  if (skipped !== d) fail(`C6c ${c}: skipped section scores ${skipped}, should keep the standard estimate ${d}`);
+  c6n += 1;
+}
+console.log(`  C6 expected bundle — ${c6n} concerns: bundle scores the default, cleared reads low, cleared ≠ skipped`);
+
 // ── prompt-bank sanity: gating, cross-bucket, saturation below 100 ──────────
 const allIds = prompts.map((p) => p.id);
 const allChecked = scoreFromPrompts(allIds, 'meaningful', []);
@@ -322,8 +367,22 @@ for (const c of SECTION_ORDER) {
   if (allChecked[c] >= 100) fail(`saturation: ${c} hits ${allChecked[c]} with everything checked (must stay <100)`);
   if (scoreWord(allChecked[c], c, 'meaningful') !== 'high') fail(`saturation: ${c} at ${allChecked[c]} with everything checked is not 'high'`);
 }
+// GATING. This used to assert that a gated-out prompt left the section at the
+// DEFAULT — which stopped being the right expectation once clearing a section
+// scores the floor instead. The property was never about the default: it is
+// that a gated prompt contributes NOTHING until its gate is satisfied, and
+// something once it is. Asserted both directions so it cannot pass by the
+// prompt being inert.
+const clearedAll = scoreFromPrompts([], 'meaningful', []);
 const gatedAlone = scoreFromPrompts(['p-family'], 'meaningful', []);
-if (gatedAlone.physical !== defaultsFor('meaningful').physical) fail('gating: p-family scored without any gate prompt checked');
+if (gatedAlone.physical !== clearedAll.physical) fail('gating: p-family scored without any gate prompt checked');
+const gateId = prompts.find((p) => p.id === 'p-family')?.gatedBy?.[0];
+if (!gateId) fail('gating: p-family has no gatedBy — the gate test is checking nothing');
+else {
+  const gateOnly = scoreFromPrompts([gateId], 'meaningful', []).physical;
+  const gatePlus = scoreFromPrompts([gateId, 'p-family'], 'meaningful', []).physical;
+  if (!(gatePlus > gateOnly)) fail(`gating: p-family did not move physical once gated by ${gateId} (${gateOnly} → ${gatePlus})`);
+}
 const skipAll = scoreFromPrompts(allIds, 'meaningful', [...SECTION_ORDER]);
 for (const c of SECTION_ORDER) {
   if (skipAll[c] !== defaultsFor('meaningful')[c]) fail(`skip: ${c} moved despite section skip`);
