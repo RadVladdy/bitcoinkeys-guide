@@ -51,6 +51,17 @@ const fitCountCap = questionCountWordCap;
   const fitQuestions = questions;
   const questionById = Object.fromEntries(fitQuestions.map((q) => [q.id, q]));
   const CONCERN_BY_KEY = Object.fromEntries(CONCERNS.map((c) => [c.key, c]));
+  // The four WALKED risks — shares of expected loss, each with its own section
+  // and prompt bank. Distinct from the two concerns marked `preference: true`
+  // (stakes and exposure), which are scored the same way but come straight from
+  // a question the reader already answered rather than from prompts.
+  //
+  // These must not be mixed: the intro says "here's what actually goes wrong"
+  // and presents the bars as base rates, which is true of the four and false of
+  // the other two. Rendering all six there also produced two broken bars, since
+  // their defaults need the sovereignty and stakes answers to exist at all.
+  const RISK_CONCERNS = SECTION_ORDER.map((k) => CONCERN_BY_KEY[k]);
+  const ANSWER_CONCERNS = CONCERNS.filter((c) => c.preference);
 
   // ── state ──
   // Answers ride in memory only, exactly as before — nothing persists unless the
@@ -176,6 +187,10 @@ const fitCountCap = questionCountWordCap;
   // ── the assessment ──────────────────────────────────────────────────────────
 
   const stakesNow = () => answers.stakes || 'meaningful';
+  // The sovereignty answer seeds the `exposure` concern's default, so anything
+  // asking for defaults or a word for that concern has to pass it — omit it and
+  // the default comes back undefined and the bar renders empty.
+  const sovNow = () => answers.sovereignty || 'lean-self';
   function promptDerived() { return scoreFromPrompts([...checked], stakesNow(), [...skipped]); }
   function scoresNow() {
     const s = promptDerived();
@@ -212,8 +227,8 @@ const fitCountCap = questionCountWordCap;
   };
 
   function renderAssessIntro() {
-    const d = defaultsFor(stakesNow());
-    const rows = CONCERNS.map((c) => `<div class="as-prow">
+    const d = defaultsFor(stakesNow(), sovNow());
+    const rows = RISK_CONCERNS.map((c) => `<div class="as-prow">
       <span class="as-plabel">${esc(c.label)}</span>
       ${wordTag(c.key, 'typical')}
       <div class="as-bar" aria-hidden="true"><span class="as-ghost lit" style="width:${barW(d[c.key])}%"></span></div>
@@ -350,10 +365,10 @@ const fitCountCap = questionCountWordCap;
 
   function renderReview() {
     assessDone = true;
-    const d = defaultsFor(stakesNow());
-    const rows = CONCERNS.map((c) => {
+    const d = defaultsFor(stakesNow(), sovNow());
+    const rows = RISK_CONCERNS.map((c) => {
       const s = scoresNow()[c.key];
-      const w = scoreWord(s, c.key, stakesNow());
+      const w = scoreWord(s, c.key, stakesNow(), sovNow());
       return `<div class="as-row" data-row="${c.key}">
         <div class="as-row-head"><span class="as-row-label">${esc(c.label)}</span>${wordTag(c.key, w)}</div>
         <div class="as-row-mid">
@@ -523,22 +538,37 @@ const fitCountCap = questionCountWordCap;
     </div>`;
   }
 
-  // The profile strip — the result leads with the picture that produced it:
-  // your four levels over the typical holder's, words only, never numbers.
+  // The profile strip — the result leads with the whole picture that produced
+  // it, words only, never numbers. TWO groups, because they are two different
+  // kinds of thing and one heading cannot honestly cover both:
+  //
+  //   the four RISKS   — shares of expected loss, shown against the typical
+  //                      holder, because there IS a base rate to compare to
+  //   the two ANSWERS  — what you told us matters to you. There is no "typical"
+  //                      amount at stake and no typical appetite for a third
+  //                      party, so showing a ghost bar behind them would be
+  //                      inventing a norm nobody measured.
+  //
+  // Both groups feed the recommendation identically. They are separated here
+  // for honesty about where each number came from, not to rank them.
   function profileStrip(profile) {
-    const rows = CONCERNS.map((c) => {
+    const row = (c, ghost) => {
       const s = profile.scores[c.key];
       const w = profile.words[c.key];
       return `<div class="as-prow">
         <span class="as-plabel">${esc(c.label)}</span>
         ${wordTag(c.key, w)}
-        ${barHtml(c.key, s, profile.defaults[c.key], w)}
+        ${ghost ? barHtml(c.key, s, profile.defaults[c.key], w)
+                : `<div class="as-bar"><span class="as-fill lit" style="width:${barW(s)}%"></span></div>`}
       </div>`;
-    }).join('');
+    };
+    const risks = RISK_CONCERNS.map((c) => row(c, true)).join('');
+    const answered = ANSWER_CONCERNS.map((c) => row(c, false)).join('');
     const spoken = CONCERNS.map((c) => `${c.label}: ${profile.words[c.key]}`).join('. ');
     return `<div class="r-profile">
       <span class="r-k mono">Your risk picture — you against the typical holder</span>
-      ${rows}
+      ${risks}
+      ${answered ? `<span class="r-k mono r-k-sub">And what you told us matters to you</span>${answered}` : ''}
       <span class="vh">${esc(spoken)}</span>
     </div>`;
   }
@@ -1012,6 +1042,7 @@ const fitCountCap = questionCountWordCap;
   #finder .r-because ul { margin: 0; padding-left: 1.1rem; }
   #finder .r-because li { color: var(--muted); font-size: 0.92rem; line-height: 1.55; margin: 0.4rem 0; }
   #finder .r-because li::marker { color: var(--accent); }
+  #finder .r-k-sub { display: block; margin-top: 1rem; padding-top: .8rem; border-top: 1px solid var(--line); }
   #finder .r-tie { border: 1px dashed var(--accent); background: var(--accent-soft); border-radius: var(--radius); padding: 1rem 1.2rem; margin-bottom: 1rem; }
   #finder .r-tie p { margin: 0; color: var(--muted); font-size: 0.92rem; line-height: 1.55; }
   #finder .r-tie strong { color: var(--text); }

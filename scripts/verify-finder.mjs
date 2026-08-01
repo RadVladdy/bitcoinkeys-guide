@@ -20,7 +20,7 @@
 import { recommend } from '../src/data/quiz.js';
 import {
   recommendV2, shimScores, fitFor, defaultsFor, scoreWord, scoreFromPrompts,
-  CONCERN_KEYS, SETUP_KEYS, PROTECTION, FAMILY, TIE_MARGIN, prompts,
+  CONCERN_KEYS, SECTION_ORDER, SETUP_KEYS, PROTECTION, FAMILY, TIE_MARGIN, prompts,
 } from '../src/data/finder.js';
 
 let failures = 0;
@@ -315,14 +315,17 @@ console.log(`  C5 near-ties — ${c5n} lattice points checked (${c5ties} genuine
 // ── prompt-bank sanity: gating, cross-bucket, saturation below 100 ──────────
 const allIds = prompts.map((p) => p.id);
 const allChecked = scoreFromPrompts(allIds, 'meaningful', []);
-for (const c of CONCERN_KEYS) {
+// SECTION_ORDER, not CONCERN_KEYS: scoreFromPrompts derives only the four
+// walked risks. The other two come from questions and this function has, and
+// should have, nothing to say about them.
+for (const c of SECTION_ORDER) {
   if (allChecked[c] >= 100) fail(`saturation: ${c} hits ${allChecked[c]} with everything checked (must stay <100)`);
   if (scoreWord(allChecked[c], c, 'meaningful') !== 'high') fail(`saturation: ${c} at ${allChecked[c]} with everything checked is not 'high'`);
 }
 const gatedAlone = scoreFromPrompts(['p-family'], 'meaningful', []);
 if (gatedAlone.physical !== defaultsFor('meaningful').physical) fail('gating: p-family scored without any gate prompt checked');
-const skipAll = scoreFromPrompts(allIds, 'meaningful', [...CONCERN_KEYS]);
-for (const c of CONCERN_KEYS) {
+const skipAll = scoreFromPrompts(allIds, 'meaningful', [...SECTION_ORDER]);
+for (const c of SECTION_ORDER) {
   if (skipAll[c] !== defaultsFor('meaningful')[c]) fail(`skip: ${c} moved despite section skip`);
 }
 console.log(`  prompt bank — ${prompts.length} prompts (${CONCERN_KEYS.map((c) => `${c}:${prompts.filter((p) => p.concern === c).length}`).join(' · ')}); gating, skip and saturation checked`);

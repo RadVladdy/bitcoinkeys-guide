@@ -388,7 +388,16 @@ export function scoreFromPrompts(checkedPrompts = [], stakes = 'meaningful', ski
     for (const x of p.also || []) raw[x.concern] += WEIGHT_POINTS[x.weight];
   }
   const scores = {};
-  for (const c of CONCERN_KEYS) {
+  // SECTION_ORDER, not CONCERN_KEYS. This function derives scores from PROMPTS,
+  // and only the four walked risks have any — the other two come from questions
+  // the reader answered directly, so this has nothing to say about them.
+  //
+  // Iterating every concern emitted `stakes: null` and `exposure: null`, and an
+  // explicit null is not the same as an absent key: it travelled into the engine
+  // as a supplied value, resolved differently from a genuine default, and made
+  // the page recommend single-sig where a direct call recommended multisig for
+  // identical answers. Omit what you do not know; do not report it as null.
+  for (const c of SECTION_ORDER) {
     scores[c] = skippedSections.includes(c)
       ? d[c]
       : Math.round(d[c] + (CEILING[c] - d[c]) * (raw[c] / (raw[c] + H_SAT[c]) || 0));
@@ -696,6 +705,7 @@ const CAVEAT_TEXT = {
   // Two different weaknesses wear the same concern, so the text is chosen by
   // which one applies. Handing a company your ID is not the same failing as a
   // seed that reveals your whole balance, and one sentence cannot cover both.
+  stakes: 'The trade you are making: how much is riding on this is {word}, and this is the lightest setup on the ladder. It asks the least of you, which is a real virtue — but it also has the least in reserve if something goes wrong.',
   exposure: 'The trade you are making: how much you mind being known to hold Bitcoin is {word}, and a seed someone obtains — or compels you to hand over — reveals everything in this wallet. A passphrase is the one setup that answers that, by opening a decoy instead.',
   exposureCustodial: 'The trade you are making: how much you mind being known to hold Bitcoin is {word}, and this setup brings a company inside it. Most require ID verification, which ties your name to your holdings, and they can see what this wallet holds.',
 };
@@ -712,6 +722,10 @@ const REASON_TEXT = {
   remote: {
     single: 'Your scams-and-remote-theft concern is {word}. A hardware wallet answers the part that matters most: the key never touches an internet-connected device, and every payment is confirmed on a screen no scammer can reach.',
     fork: 'Your scams-and-remote-theft concern is {word}. With 2-of-3, one phished or malware-compromised key still can’t move a single coin — the attack that empties a one-key wallet stops at the second signature.',
+  },
+  stakes: {
+    single: 'How much is riding on this is {word}. At this level the win is a setup you will actually operate correctly — one key, one tested backup, and nothing else to get wrong.',
+    fork: 'How much is riding on this is {word}, and that is the case for more than one key. When the consequence of losing it is this large, spreading the keys stops being over-engineering and starts being proportionate.',
   },
   exposure: {
     single: 'How much you mind being known to hold Bitcoin is {word}. This setup keeps it to you — no company checks your ID, no third party can see your balance, and with a passphrase a seed someone obtains does not reveal what you actually hold.',
