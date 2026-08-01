@@ -458,6 +458,19 @@ const SIMPLICITY_EDGE = { learning: 1.15, meaningful: 1.05, serious: 1.0, lifech
 // Passphrase takes a PARTIAL share, not the full bonus: it is the second-
 // simplest setup, not the simplest — one device, but one more secret.
 const SIMPLICITY_SHARE = { 'single-sig': 1, passphrase: 1 };
+// How much of the simplicity bonus the PASSPHRASE keeps, by stakes. Single-sig
+// always keeps all of it (it is the simplest thing there is); this scales only
+// the passphrase's share.
+//
+// Why it has to taper: a flat full share made the passphrase the DEFAULT answer
+// at life-changing stakes — one device and one memory holding life-changing
+// money, beating multisig for a reader who had not adjusted a single bar. That
+// cuts against the ladder's own logic that more at stake means more keys, and
+// the passphrase's single point of failure is exactly what stops being
+// affordable as consequences grow. Simplicity is a real virtue at small stakes
+// and a weaker argument at large ones, so its bonus fades the same way
+// SIMPLICITY_EDGE already does.
+const PASSPHRASE_SHARE_BY_STAKES = { learning: 1, meaningful: 1, serious: 0.75, lifechanging: 0.25 };
 const TECH_FACTOR = { simple: 0.9, careful: 0.65, technical: 0.4 };
 const STAKES_FACTOR = { learning: 1.3, meaningful: 1.1, serious: 0.8, lifechanging: 0.4 };
 const COMPLEXITY_BASE = 0.9;
@@ -503,7 +516,9 @@ export function fitFor(scores, answers = {}) {
       complexity: Math.round(P.complexity * TECH_FACTOR[tech] * STAKES_FACTOR[stakes] * COMPLEXITY_BASE * 100) / 100,
       sovereignty: setup === 'collaborative' ? SOV_COST[sov] : 0,
       budget: Math.round((P.devices - 1) * BUDGET_FACTOR[stakes] * 100) / 100,
-      simplicityEdge: Math.round((SIMPLICITY_EDGE[stakes] * (SIMPLICITY_SHARE[setup] || 0)) * 100) / 100,
+      simplicityEdge: Math.round((SIMPLICITY_EDGE[stakes]
+        * (SIMPLICITY_SHARE[setup] || 0)
+        * (setup === 'passphrase' ? PASSPHRASE_SHARE_BY_STAKES[stakes] : 1)) * 100) / 100,
     };
     return {
       setup,
