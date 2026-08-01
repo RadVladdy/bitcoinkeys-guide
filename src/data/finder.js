@@ -54,8 +54,8 @@ export const CONCERNS = [
   },
   {
     key: 'exposure',
-    label: 'Your identity tied to your coins',
-    blurb: 'A company inside your setup that knows who you are and can see what you hold — ID checks that end up in a database, a service that can be compelled, a permanent link between your name and your balance.',
+    label: 'Being known to hold Bitcoin',
+    blurb: 'Who can tie you to your coins, and how much they can see — ID checks that end up in a database, a service that can be compelled, a permanent link between your name and your balance, or a seed that reveals everything you own the moment someone gets it.',
     // NOT a share of expected loss like the other four, and the assessment must
     // not present it as one. The others answer "how does Bitcoin get taken from
     // you"; this one answers "how much do you mind being known". It is scored
@@ -78,10 +78,20 @@ export const SECTION_ORDER = ['custodial', 'self-loss', 'remote', 'physical'];
 // large stakes skew physical (perceived-worth targeting) and shrink custodial
 // (large holders are mostly off-exchange already).
 
+// FOUR entries, not five. `exposure` deliberately has no stakes-based default:
+// it is seeded by the SOVEREIGNTY answer instead (EXPOSURE_BY_SOV, below).
+//
+// It briefly carried a neutral 50 here so the shape stayed whole, and that was
+// a real bug rather than a tidy placeholder. The engine amplifies a score's
+// DEVIATION from its default — so a caller passing the neutral 50 against a
+// sovereignty-derived default of 20 read as "this reader deliberately raised
+// it", and the passphrase's exposure score came out HIGHEST for the reader who
+// had just said they mind exposure LEAST. Backwards, and invisible until the
+// contributions were printed side by side.
 const DEFAULTS = {
-  small: { custodial: 33, 'self-loss': 30, remote: 35, physical: 2, exposure: 50 },
-  mid:   { custodial: 20, 'self-loss': 35, remote: 40, physical: 5, exposure: 50 },
-  large: { custodial: 10, 'self-loss': 35, remote: 35, physical: 20, exposure: 50 },
+  small: { custodial: 33, 'self-loss': 30, remote: 35, physical: 2 },
+  mid:   { custodial: 20, 'self-loss': 35, remote: 40, physical: 5 },
+  large: { custodial: 10, 'self-loss': 35, remote: 35, physical: 20 },
 };
 
 // `exposure` is seeded by the SOVEREIGNTY answer, not by stakes — the reader
@@ -97,8 +107,13 @@ export const EXPOSURE_BY_SOV = { pure: 85, 'lean-self': 55, 'open-help': 20 };
 // life-changing consequence, not "a big chunk of my savings".
 const STAKES_BAND = { learning: 'small', meaningful: 'mid', serious: 'mid', lifechanging: 'large' };
 
-export function defaultsFor(stakes) {
-  return { ...DEFAULTS[STAKES_BAND[stakes] || 'mid'] };
+export function defaultsFor(stakes, sovereignty) {
+  const d = { ...DEFAULTS[STAKES_BAND[stakes] || 'mid'] };
+  // Exposure's default is the sovereignty answer, so it only appears once the
+  // caller says which answer was given. Callers that omit it get the four
+  // research-based concerns and nothing invented.
+  if (sovereignty && EXPOSURE_BY_SOV[sovereignty] !== undefined) d.exposure = EXPOSURE_BY_SOV[sovereignty];
+  return d;
 }
 
 // ── 3 · The word scale ──────────────────────────────────────────────────────
@@ -120,8 +135,8 @@ export function defaultsFor(stakes) {
 
 export const HALF_BAND = { custodial: 10, 'self-loss': 10, remote: 10, physical: 4, exposure: 15 };
 
-export function scoreWord(n, concern, stakes = 'meaningful') {
-  const d = defaultsFor(stakes)[concern];
+export function scoreWord(n, concern, stakes = 'meaningful', sovereignty = 'lean-self') {
+  const d = defaultsFor(stakes, sovereignty)[concern];
   const h = HALF_BAND[concern];
   if (n < d - h) return 'low';
   if (n <= d + h) return 'typical';
@@ -400,10 +415,23 @@ export function scoreFromPrompts(checkedPrompts = [], stakes = 'meaningful', ski
 //   collaborative 3 redundancy PLUS a service whose job is helping you recover
 export const PROTECTION = {
   // ── the `exposure` column, added 2026-08-01 ──────────────────────────────
-  // Positive = keeps your name away from your coins. NEGATIVE = actively
-  // creates the link, the same way the passphrase carries a negative on
-  // self-loss. Collaborative custody is the only setup here that hands a
+  // Positive = limits who can tie you to your coins and how much they see.
+  // NEGATIVE = actively creates the link, the same way the passphrase carries a
+  // negative on self-loss. Collaborative custody is the only setup that hands a
   // company your identity, so it is the only negative.
+  //
+  // THE PASSPHRASE SCORES HIGHEST HERE (3.5), above even a self-run multisig,
+  // and that is not a typo. It is the only setup on the ladder that offers
+  // DENIABILITY: the decoy wallet means a seed someone obtains — or compels —
+  // does not reveal what you actually hold. Every other setup protects the
+  // coins while still disclosing that they exist. Multisig requires more keys
+  // to move funds; it hides nothing.
+  //
+  // First pass scored it 2, level with single-sig, on the reasoning that a
+  // passphrase does not stop KYC. True but beside the point: the concern is not
+  // only "does a company know your name", it is "how much can anyone learn
+  // about what you hold". The definition was too narrow, and the weight
+  // inherited the error.
   //
   // And collaborative's `remote` drops 3 -> 2. KYC is not risk-free: an ID
   // database is a phishing and extortion list the moment it leaks, and the
@@ -428,7 +456,7 @@ export const PROTECTION = {
   // top recovery-firm caseload, and a wrong one shows an empty wallet with no
   // error. That penalty, plus the C4 gate, is now the ONLY thing holding the
   // passphrase back — which is the honest place for the brake to sit.
-  passphrase:      { weights: { custodial: 3, 'self-loss': -1, remote: 2.5, physical: 3, exposure: 2 }, complexity: 0, devices: 1 },
+  passphrase:      { weights: { custodial: 3, 'self-loss': -1, remote: 2.5, physical: 3, exposure: 3.5 }, complexity: 0, devices: 1 },
   multisig:        { weights: { custodial: 3, 'self-loss': 2,  remote: 3, physical: 3, exposure: 3 }, complexity: 2, devices: 3 },
   collaborative:   { weights: { custodial: 3, 'self-loss': 3,  remote: 2, physical: 3, exposure: -2 }, complexity: 1, devices: 2 },
   'three-of-five': { weights: { custodial: 3, 'self-loss': 2.5, remote: 3, physical: 3, exposure: 3 }, complexity: 3, devices: 5 },
@@ -595,14 +623,13 @@ export function fitFor(scores, answers = {}) {
   const stakes = STAKES_FACTOR[answers.stakes] ? answers.stakes : 'meaningful';
   const tech = TECH_FACTOR[answers.tech] ? answers.tech : 'careful';
   const sov = SOV_VALUES[answers.sovereignty] ? answers.sovereignty : 'lean-self';
-  const d = defaultsFor(stakes);
+  const d = defaultsFor(stakes, sov);
   // `exposure` defaults to whatever the sovereignty ANSWER implies, not to the
   // neutral 50 in DEFAULTS — that neutral only exists so the shape stays whole
   // for callers that pass no answers. An explicit score always wins, so a
   // reader who nudges the bar on the review screen overrides their own earlier
   // answer, exactly as they can for the other four.
   const dEff = { ...d };
-  if (EXPOSURE_BY_SOV[sov] !== undefined) dEff.exposure = EXPOSURE_BY_SOV[sov];
 
   const eff = {};
   for (const c of CONCERN_KEYS) {
@@ -666,7 +693,7 @@ const WORRY_TO_CONCERN = {
 
 export function shimScores(answers = {}) {
   const stakes = answers.stakes || 'meaningful';
-  const d = defaultsFor(stakes);
+  const d = defaultsFor(stakes, answers.sovereignty);
   const scores = { ...d };
   const worries = Array.isArray(answers.worry) ? answers.worry : (answers.worry ? [answers.worry] : []);
   // Pass 1 — theft's physical spillover (explicit 'targeted' ranks overwrite it).
@@ -702,6 +729,10 @@ const REASON_TEXT = {
   remote: {
     single: 'Your scams-and-remote-theft concern is {word}. A hardware wallet answers the part that matters most: the key never touches an internet-connected device, and every payment is confirmed on a screen no scammer can reach.',
     fork: 'Your scams-and-remote-theft concern is {word}. With 2-of-3, one phished or malware-compromised key still can’t move a single coin — the attack that empties a one-key wallet stops at the second signature.',
+  },
+  exposure: {
+    single: 'How much you mind being known to hold Bitcoin is {word}. This setup keeps it to you — no company checks your ID, no third party can see your balance, and with a passphrase a seed someone obtains does not reveal what you actually hold.',
+    fork: 'How much you mind being known to hold Bitcoin is {word}. Running the keys yourself keeps every one of them out of a company’s records — no ID check, no account, nobody who can be asked what you own.',
   },
   physical: {
     single: 'Your targeted-theft concern is {word}. At this level the setup stays simple and the win is a low profile: nothing at home needs to reveal what you hold, and the checklist’s privacy steps carry most of the weight.',
@@ -745,7 +776,7 @@ function passphraseHoldback(word) {
 
 function normalizedScores(answers) {
   if (answers.scores && typeof answers.scores === 'object') {
-    const d = defaultsFor(answers.stakes || 'meaningful');
+    const d = defaultsFor(answers.stakes || 'meaningful', answers.sovereignty);
     const skipped = Array.isArray(answers.skippedSections) ? answers.skippedSections : [];
     const out = {};
     for (const c of CONCERN_KEYS) {
@@ -857,7 +888,7 @@ function secondaryFor(runnerUp, words, answers) {
 export function recommendV2(answers = {}) {
   const stakes = STAKES_FACTOR[answers.stakes] ? answers.stakes : 'meaningful';
   const scores = normalizedScores(answers);
-  const d = defaultsFor(stakes);
+  const d = defaultsFor(stakes, answers.sovereignty);
   const words = {};
   const deltas = {};
   for (const c of CONCERN_KEYS) {
@@ -958,7 +989,11 @@ export function recommendV2(answers = {}) {
   const reasons = named.map((x) => ({
     concern: x.concern,
     setup: primary.rungSlug,
-    text: REASON_TEXT[x.concern][isMultiKey(family) ? 'fork' : 'single'].replace('{word}', words[x.concern]),
+    // Guarded: a concern added without a REASON_TEXT entry used to throw here,
+    // and the harness reported ZERO failures because it died before running a
+    // single constraint. A crash that reads as a pass is worse than a failure.
+    text: ((REASON_TEXT[x.concern] || {})[isMultiKey(family) ? 'fork' : 'single'] || '')
+      .replace('{word}', words[x.concern]),
   }));
   if (!reasons.length) {
     reasons.push({
