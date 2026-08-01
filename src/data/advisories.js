@@ -40,18 +40,44 @@ export const advisories = [
     exposure: [
       {
         band: 'Highest risk',
-        who: 'Seeds generated on a Coldcard Mk3 running firmware 4.0.1 through 5.0.3.',
-        detail: 'Roughly 40 bits of effective randomness instead of 128 — within reach of an offline brute-force search. This is the group the 30 July sweeps came from.',
+        who: 'Seeds generated on a Coldcard Mk2 or Mk3 running any 4.x firmware before 4.2.0 — that is 4.0.1 through 4.1.9.',
+        detail: 'Roughly 40 bits of effective randomness instead of 128 — within reach of an offline brute-force search. This is the group the 30 July sweeps came from. Coinkite gives the Mk3 range as 4.0.1–4.1.9 and Block’s analysis puts the Mk2 and Mk3 range at 4.0.0–4.1.9; either way, anything below the 4.2.0 fix is in scope.',
       },
       {
         band: 'Also affected',
-        who: 'Seeds generated on a Coldcard Mk4, Mk5 or Q before the emergency firmware (5.6.0+ for Mk4/Mk5, 1.5.0Q+ for Q).',
-        detail: 'Partial secure-element mixing left these stronger — around 72 bits — but that is still far below what a seed is supposed to have, and far below what we would call safe. Treat it as serious, not as cleared.',
+        who: 'Seeds generated on a Coldcard Mk4, Mk5 or Q before the fixed firmware for your release track — standard 5.6.0+ (Mk4/Mk5) or 1.5.0Q+ (Q), Edge 6.6.0X+ (Mk4/Mk5) or 6.6.0QX+ (Q).',
+        detail: 'Partial secure-element mixing left these stronger — around 72 bits by Coinkite’s reckoning — but that is still far below what a seed is supposed to have. Block’s analysis is harsher: once the fallback state and call history are pinned down, it puts the securely-distinguished search space at no more than 2³². Treat this band as serious, not as cleared.',
       },
       {
-        band: 'Not affected by this flaw',
-        who: 'Seeds generated before the vulnerable firmware window; seeds you created with at least 50 of your own dice rolls; seeds protected by a strong, unique BIP-39 passphrase; multisig where at least one key was generated somewhere unaffected; and TAPSIGNER, OPENDIME and SATSCARD, which run different code.',
-        detail: 'A passphrase helps here because it is mixed in after seed generation — an attacker who guesses a weak seed still cannot reach coins behind a phrase they do not have.',
+        // The trap Coinkite calls out by name: Edge version numbers run AHEAD of
+        // the standard track, so arithmetic on the version number gives the wrong
+        // answer. Stated as its own band because a reader who gets this wrong
+        // concludes they are safe and stops reading.
+        band: 'The version-number trap',
+        who: 'Anyone on the Edge release track.',
+        detail: 'Standard and Edge are separate tracks and Edge numbers are higher. An Edge 6.x release is not fixed merely because 6 is greater than 5.6.0 — only 6.6.0X (Mk4/Mk5) and 6.6.0QX (Q) and later carry the fix. Check your track, then your version, in that order.',
+      },
+      {
+        // A seed is affected by where it was BORN, so moving it elsewhere carries
+        // the weakness along. Without this, a reader who migrated to another
+        // maker reads the bands above and correctly concludes none apply to them.
+        band: 'Still affected even though you left',
+        who: 'Anyone who generated a seed on an affected Coldcard and later restored it onto a different wallet — another maker’s device, a phone wallet, or software.',
+        detail: 'The weakness is in the seed itself, not in the device holding it. Restoring a weak seed somewhere else copies the weakness across. Your exposure is decided by where and when the seed was first generated, and nothing you do afterwards short of generating a new one changes that.',
+      },
+      {
+        band: 'Out of scope, or genuinely protected',
+        who: 'Seeds generated before the vulnerable firmware window (Mk2 and Mk3 through 3.2.2 used the hardware generator directly); seeds you created with at least 50 of your own dice rolls, rolled independently and privately and never written down anywhere digital; and TAPSIGNER, OPENDIME and SATSCARD, which run different code entirely.',
+        detail: 'On affected firmware the device hashed your dice in alongside its own weak randomness, so your rolls still count: Coinkite puts 50–98 independent private rolls at 128 bits or better from the dice alone, and 99+ at roughly 256. If you cannot remember how many you rolled, or whether the sequence was recorded, treat the seed as in scope.',
+      },
+      {
+        // Deliberately NOT filed under the clear band. A passphrase blocks this
+        // attack but leaves a weak seed underneath it, and the vendor's own
+        // guidance is to migrate anyway. Filing it as "safe" would be the
+        // difference between a reader acting and a reader stopping here.
+        band: 'Protected for now, but still migrate',
+        who: 'Seeds behind a strong, unique BIP-39 passphrase, and multisig wallets where at least one key was generated somewhere unaffected.',
+        detail: 'These are real mitigations and they are why nothing was taken from wallets that had them — a guessed seed does not reach coins behind a phrase the attacker does not have, and one weak key out of several does not move a multisig. But the weak seed is still underneath, so the protection is only as good as the passphrase. A short, common, patterned, quoted or reused passphrase is guessable; if that describes yours, treat the funds as at risk today. Everyone in this band should migrate in their own time rather than treat it as closed.',
       },
     ],
 
@@ -63,10 +89,14 @@ export const advisories = [
         'Updating does not repair a seed that already exists. Your exposure was decided by the firmware running at the moment the seed was first generated — not by the firmware on the device today, and not by when you bought it. Restoring a weak seed onto a brand-new device leaves it exactly as weak. The only fix for an affected seed is to generate a new one on fixed firmware and move the coins.',
     },
 
+    // Both release tracks, because Edge numbers are HIGHER than standard ones
+    // and a reader comparing version numbers alone reaches the wrong answer.
     fixedFirmware: [
       { model: 'Mk3', version: '4.2.0 or later' },
-      { model: 'Mk4 and Mk5', version: '5.6.0 or later' },
-      { model: 'Q', version: '1.5.0Q or later' },
+      { model: 'Mk4 and Mk5 (standard track)', version: '5.6.0 or later' },
+      { model: 'Mk4 and Mk5 (Edge track)', version: '6.6.0X or later' },
+      { model: 'Q (standard track)', version: '1.5.0Q or later' },
+      { model: 'Q (Edge track)', version: '6.6.0QX or later' },
     ],
 
     // What we tell a reader to actually DO, in order. Deliberately calm: the
