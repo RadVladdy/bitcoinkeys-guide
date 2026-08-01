@@ -958,14 +958,6 @@ import WhereAmI from '../components/WhereAmI.astro';
   .soon li strong { color: var(--text); }
   .soon-foot { color: var(--faint); font-size: 0.86rem; }
 
-  .ps-verdict { display: inline-block; margin-left: 0.5rem; font-family: var(--mono); font-size: 0.66rem;
-    letter-spacing: 0.03em; padding: 0.12rem 0.45rem; border-radius: 0.35rem; text-decoration: none;
-    border: 1px solid var(--line); white-space: nowrap; }
-  .ps-verdict.v-ok   { color: var(--safe);   border-color: color-mix(in srgb, var(--safe) 45%, var(--line));   background: var(--safe-dim); }
-  .ps-verdict.v-warn { color: var(--warn);   border-color: color-mix(in srgb, var(--warn) 45%, var(--line));   background: var(--warn-dim); }
-  .ps-verdict.v-bad  { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, var(--line)); background: var(--danger-dim); }
-  .ps-verdict.v-un   { color: var(--faint); }
-  .ps-verdict:hover  { filter: brightness(1.1); }
 </style>
 
 <style is:global>
@@ -980,8 +972,32 @@ import WhereAmI from '../components/WhereAmI.astro';
   /* owned wallets — display-only chips + an edit toggle */
   #plan .ps-owned-display .ps-sub { display: block; margin-bottom: 0.5rem; }
   #plan .ps-owned-chips { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-bottom: 0.6rem; }
-  #plan .ps-owned-chip { font-size: 0.85rem; font-weight: 600; background: var(--safe-dim); color: var(--safe);
-    border: 1px solid color-mix(in srgb, var(--safe) 40%, var(--line)); border-radius: 999px; padding: 0.35rem 0.8rem; }
+  /* THE CHIP IS NEUTRAL; THE VERDICT CARRIES THE COLOUR. It used to be green for
+     every device you own — so a Ledger, which fails our security floor, rendered
+     as an approved green pill with a small warning inside it. Owning something
+     is not a verdict on it, and the surrounding colour was making one. Same
+     family as the "✓ every slot is filled" line that printed above a slot
+     flagged as not clearing the bar. */
+  #plan .ps-owned-chip { font-size: 0.85rem; font-weight: 600; background: var(--raise); color: var(--text);
+    border: 1px solid var(--line); border-radius: 999px; padding: 0.35rem 0.8rem; }
+
+  /* THESE LIVE IN THE GLOBAL BLOCK ON PURPOSE, and did not until 2026-08-01.
+     Astro compiles a scoped rule to `.ps-verdict[data-astro-cid-…]`, and every
+     one of these chips is injected by client JS with no such attribute — so the
+     entire verdict palette matched NOTHING. The chips rendered unstyled and
+     inherited the colour of whatever wrapped them, which is why "doesn't clear
+     our bar" was showing green inside a green owned-chip.
+     A scoped style for client-injected markup is a style that does not exist;
+     the block comment above already says so, and this rule set had drifted out
+     of it. */
+  #plan .ps-verdict { display: inline-block; margin-left: 0.5rem; font-family: var(--mono); font-size: 0.66rem;
+    letter-spacing: 0.03em; padding: 0.12rem 0.45rem; border-radius: 0.35rem; text-decoration: none;
+    border: 1px solid var(--line); white-space: nowrap; }
+  #plan .ps-verdict.v-ok   { color: var(--safe);   border-color: color-mix(in srgb, var(--safe) 45%, var(--line));   background: var(--safe-dim); }
+  #plan .ps-verdict.v-warn { color: var(--warn);   border-color: color-mix(in srgb, var(--warn) 45%, var(--line));   background: var(--warn-dim); }
+  #plan .ps-verdict.v-bad  { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, var(--line)); background: var(--danger-dim); font-weight: 700; }
+  #plan .ps-verdict.v-un   { color: var(--faint); }
+  #plan .ps-verdict:hover  { filter: brightness(1.1); }
   #plan .ps-edit-own { background: none; border: none; color: var(--accent); font-family: var(--sans); font-size: 0.83rem; cursor: pointer; padding: 0.2rem 0; text-decoration: underline; }
   #plan .ps-edit-own:hover { opacity: 0.85; }
   #plan .ps-owned-display .ps-muted button { color: var(--accent); }
