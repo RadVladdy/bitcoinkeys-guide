@@ -75,24 +75,25 @@ function checkShape(res, label) {
   if (typeof p.rungLabel !== 'string') bad('primary.rungLabel not string');
   if (typeof p.headline !== 'string') bad('primary.headline not string');
   if (typeof p.why !== 'string') bad('primary.why not string');
-  if (p.fork) {
-    if (!['diy', 'collab'].includes(p.fork.lead)) bad('fork.lead invalid');
-    if (typeof p.fork.leadNote !== 'string') bad('fork.leadNote not string');
-    if (!Array.isArray(p.fork.paths) || p.fork.paths.length !== 2) bad('fork.paths not a 2-array');
-    else for (const path of p.fork.paths) {
-      for (const f of ['key', 'label', 'rungSlug', 'rungLabel', 'essence', 'tradeoff']) {
-        if (typeof path[f] !== 'string') bad(`fork path.${f} not string`);
-      }
-      if (path.key === 'collab' && (!Array.isArray(path.vendors) || !path.vendors.length)) bad('collab path missing vendors');
-      if (path.key === 'diy' && (!Array.isArray(path.wallets) || !path.wallets.length)) bad('diy path missing wallets');
-    }
-  } else {
-    if (!Array.isArray(p.wallets) || !p.wallets.length) bad('non-fork primary missing wallets');
-    else for (const w of p.wallets) {
-      if (typeof w.name !== 'string' || typeof w.why !== 'string') bad('primary wallet missing name/why');
-    }
-    if (p.holdback != null && typeof p.holdback !== 'string') bad('primary.holdback not string|null');
+  // THE FORK IS GONE (2026-08-01) and its absence is asserted, not assumed. A
+  // combined card is what stopped the two multi-key rungs from placing 1st and
+  // 2nd against each other, so a fork reappearing is a regression, not a shape
+  // variant to tolerate.
+  if (p.fork) bad('primary carries a fork — the card layer should emit one rung per card');
+  // Every card offers something to act on: devices, or — on the collaborative
+  // rung, where the service is chosen before the hardware — services. Never
+  // neither, and never both, because the reader would not know which to pick first.
+  const hasWallets = Array.isArray(p.wallets) && p.wallets.length > 0;
+  const hasVendors = Array.isArray(p.vendors) && p.vendors.length > 0;
+  if (!hasWallets && !hasVendors) bad('primary offers neither devices nor services');
+  if (hasWallets && hasVendors) bad('primary offers both devices and services — which comes first?');
+  if (hasWallets) for (const w of p.wallets) {
+    if (typeof w.name !== 'string' || typeof w.why !== 'string') bad('primary wallet missing name/why');
   }
+  if (p.rungSlug === 'collaborative' && !hasVendors) bad('collaborative primary carries no services');
+  if (p.rungSlug !== 'collaborative' && !hasWallets) bad(`${p.rungSlug} primary carries no devices`);
+  if (typeof p.tradeoff !== 'string' || !p.tradeoff) bad('primary.tradeoff missing — every card states its trade');
+  if (p.holdback != null && typeof p.holdback !== 'string') bad('primary.holdback not string|null');
   if (!s || typeof s !== 'object') bad('no secondary');
   else for (const f of ['rungSlug', 'rungLabel', 'headline', 'when']) {
     if (typeof s[f] !== 'string') bad(`secondary.${f} not string`);
@@ -162,7 +163,8 @@ for (const [key, { count, example }] of sorted) {
 console.log('\nB · Score grid — calibration constraints');
 
 const baseAnswers = { current: 'pre', recovery: 'just-me', worry: ['unsure'] };
-const isFork = (res) => Boolean(res.primary.fork);
+// Rung 3 or 4, read from the rung itself now that there is no combined card.
+const isFork = (res) => ['multisig', 'collaborative'].includes(res.primary.rungSlug);
 
 // C1 — the DEFAULT-PROFILE REPORT. Rewritten 2026-08-01 with the gates.
 //
@@ -271,8 +273,12 @@ for (const stakes of STAKES) for (const tech of TECH) for (const sovereignty of 
   const scores = { ...defaultsFor(stakes, sovereignty), 'self-loss': selfScore };
   const res = recommendV2({ ...baseAnswers, stakes, tech, sovereignty, scores });
   const where = `C4 self=${selfScore} ${stakes}/${tech}/${sovereignty} (${word})`;
-  const chosen = res.fit.find((r) => r.setup === (res.primary.fork ? res.primary.fork.paths[0].rungSlug : res.primary.rungSlug))
-    || res.fit[0];
+  // The primary's rung IS a setup key now, so this resolves directly. It used to
+  // reach through a fork's lead path and fall back to res.fit[0] when the lookup
+  // missed — and fit[0] is not necessarily the chosen setup once the near-tie
+  // policy has promoted the runner-up, so a miss silently checked the wrong row.
+  const chosen = res.fit.find((r) => r.setup === res.primary.rungSlug);
+  if (!chosen) { fail(`C4: primary rung '${res.primary.rungSlug}' is not a scored setup`); continue; }
   const mine = PROTECTION[chosen.setup].weights['self-loss'];
   const best = Math.max(...SETUP_KEYS.map((k) => PROTECTION[k].weights['self-loss']));
   if (best - mine >= CAVEAT_GAP && !res.holdbacks.some((h) => h.concern === 'self-loss')) {

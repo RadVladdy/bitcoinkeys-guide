@@ -24,7 +24,9 @@
 // Verified by scripts/verify-finder.mjs — the 3,240-combo legacy diff grid plus
 // the score grid asserting the five calibration constraints (C1–C5, § below).
 
-import { recommend } from './quiz.js';
+import {
+  DEV, singleSigDevices, journeyFrom, collaborativeVendors,
+} from './quiz.js';
 
 // ── 1 · The four concerns ───────────────────────────────────────────────────
 // Same buckets the finder has always used, now scored independently — "two
@@ -912,11 +914,13 @@ function passphraseHoldback(word) {
 //   tie:       null | { a, b, margin, note } — C5 genuine either/or
 //   fit:       the full fitFor() ranking (per-setup breakdowns for the UI)
 //
-// HARD GATES PRESERVED: single-sig cold is the floor for everyone (the engine
-// only ever ranks the five ladder setups — "stay on the exchange" is not an
-// outcome); the fork's lead is collaborative iff sovereignty is open-help AND
-// tech is not technical, exactly as today (inherited by construction — see
-// makeLegacyAnswers); sovereignty steers via SOV_COST; no dollar amounts.
+// THE FLOOR IS STRUCTURAL: the engine only ever ranks the four ladder setups, so
+// "stay on the exchange" is not an outcome it can produce. No dollar amounts, ever.
+//
+// NO GATES, and no fork. Every rung competes on score, and the two multi-key
+// rungs place against each other like any other pair — which is what the old
+// fork card could not express. Sovereignty is scored through `exposure` rather
+// than applied as a hidden cost.
 
 // Fill the two PREFERENCE rows (stakes, exposure) from the answers that seed
 // them, for any score source that cannot know about them. Never overwrites a
@@ -971,70 +975,123 @@ function normalizedScores(answers) {
   return withPreferenceDefaults(shimScores(answers), answers);
 }
 
-/**
- * Synthesize a legacy answer object that forces quiz.js recommend() to emit
- * the card structure for the family the fit engine chose. The card COPY that
- * depends on answers we fake gets replaced (why / holdback); everything real
- * flows through untouched: current (→ journey), tech + stakes (→ device
- * pairs), sovereignty + tech (→ fork lead, the preserved gate), recovery
- * (→ the fork's inheritance note).
- */
-// Rung 3 or 4 — a setup built on more than one key. Replaces the old 'fork'
-// family test now that DIY multisig and collaborative custody are separate
-// rungs that compete with each other.
+// Rung 3 or 4 — a setup built on more than one key. This selects the VOICE of a
+// reason line ("a 2-of-3 answers it structurally…" versus "one key, one tested
+// backup…"), which is a question about how many keys the copy is talking to. The
+// REASON_TEXT keys are still named `fork`/`single` for that reason and mean
+// multi-key/single-key; renaming them is churn for no gain.
 const isMultiKey = (fam) => fam === 'multisig' || fam === 'collaborative';
 
-function makeLegacyAnswers(family, a) {
-  const worry = Array.isArray(a.worry) && a.worry.length ? a.worry : ['unsure'];
-  if (family === 'passphrase') {
-    // RUNG 2 of the ladder, and it has a real card in quiz.js already — the
-    // gap was never the copy, it was that nothing could ever reach it. That
-    // card fires on worry 'theft'/'targeted' provided the multisig gate is not
-    // tripped, so:
-    //   worry  → 'targeted'  (the honest mapping: the fit engine only ever
-    //            ranks passphrase first when PHYSICAL is elevated and
-    //            self-loss sits at the bottom — which is precisely "someone
-    //            coming after me", and it makes the card's own why-copy true)
-    //   stakes → 'meaningful' (serious/lifechanging trip wantsMultisig and
-    //            would bounce us into the fork. The passphrase card reads only
-    //            `tech` for its device pair and never reads stakes, so the
-    //            card content is identical — nothing real is lost.)
-    // current/tech/recovery flow through untouched, so journey framing and the
-    // device pick stay honest.
-    return { ...a, worry: ['targeted'], stakes: 'meaningful' };
+// ── THE RESULT CARDS, BUILT HERE (2026-08-01) ───────────────────────────────
+//
+// This replaces makeLegacyAnswers(), which synthesized a fake answer set to make
+// quiz.js recommend() emit a card. That produced three reader-visible defects and
+// they were all the same defect: the card was built from answers nobody gave.
+//
+//   · THE COMBINED FORK CARD. DIY multisig and collaborative custody rendered as
+//     ONE card with two paths, so a result could never say "1st: multisig ·
+//     2nd: collaborative" even when the ranking said exactly that. They are
+//     separate rungs here and they are separate cards now.
+//   · A FABRICATED WORRY. The legacy passphrase card fires only on
+//     worry: 'targeted', so the synthesis forced it — and a reader whose own
+//     profile read "targeted physical theft: LOW" on the same screen was told
+//     "because your worry is being targeted or coerced".
+//   · A DESTINATION THAT FOLLOWED A FAKED LEAD, because the journey framing read
+//     the fork rather than the rung.
+//
+// THE SPLIT THAT MAKES THIS WORK: a card's `why` says what the setup IS and what
+// it does. It never says why it was chosen — `reasons` does that, from the
+// reader's actual profile. Nothing here needs to know anything about their
+// answers except `tech` (which devices suit them) and `recovery` (whether heirs
+// are in the picture), and both are read directly.
+//
+// quiz.js still owns the device copy, the vendor rows and the journey framing.
+// Those are imported as DATA. It no longer emits a card.
+
+const CARD = {
+  'single-sig': {
+    rungSlug: 'single-sig',
+    rungLabel: 'Single-signature cold storage',
+    headline: 'Single-signature cold storage',
+    why: 'One key, held by you, on a device that never goes online. Your seed phrase is the backup, and the device signs every payment on a screen no scammer can reach. This is the simplest setup that isn’t negligent, and for most holders it is the right home for a long time.',
+    tradeoff: 'Everything rests on one backup. There is no second key to fall back on, so the seed has to be written correctly, stored somewhere fire and water can’t reach, and — the step almost everyone skips — actually restored once to prove it works.',
+  },
+  passphrase: {
+    rungSlug: 'passphrase',
+    rungLabel: 'Single-sig + a passphrase (the “25th word”)',
+    headline: 'Single-sig cold storage + a passphrase',
+    why: 'The same single key, with a secret of your own mixed in on top of the seed. The seed alone opens a small decoy wallet; the seed <strong>plus</strong> your passphrase opens the real one — so a backup someone finds, or a seed pulled off a compromised device, cannot spend your coins. Still one device, still one seed to write down.',
+    tradeoff: 'You are adding a second secret, and it is the one whose failure is silent: a wrong passphrase gives no error, just an empty wallet. It has to be backed up as carefully as the seed, stored somewhere the seed is not, and named in your recovery notes so it can’t die with you.',
+  },
+  multisig: {
+    rungSlug: 'multisig',
+    rungLabel: 'Do-it-yourself multisig (2-of-3)',
+    headline: 'Do-it-yourself multisig (2-of-3)',
+    why: 'Three keys, all of them yours, on three devices from three different makers — any two together can move or recover your coins. No single key that is lost, stolen or coerced can touch them, and losing one is not fatal. No company, no ID check, nobody who can freeze your coins or even see what you hold.',
+    tradeoff: 'The trade is responsibility. You buy three devices, back up every key <em>and</em> the wallet descriptor — the map of your keys, without which the coins are unreachable — test recovery yourself, and act as your own support desk. Done carefully it is rock-solid; done carelessly it adds ways to lose access.',
+  },
+  collaborative: {
+    rungSlug: 'collaborative',
+    rungLabel: 'Collaborative custody (2-of-3)',
+    headline: 'Collaborative custody (2-of-3)',
+    why: 'Three keys again, but you hold two and a Bitcoin-only service holds the third as a safety net. Any two together can move the coins, so the service can <strong>never</strong> move them on its own — and if you lose one of yours, recovery is built in rather than improvised. Far less for you to run, and inheritance is a solved problem instead of a project.',
+    tradeoff: 'The trade is trust and privacy. You are bringing an outside institution into your setup: most require ID verification, which ties your name to your holdings, and most charge an ongoing fee. They can never take your coins — but they are now part of your plan, and they can see it.',
+  },
+};
+
+// Which devices a card offers, and the note under them. All of it reads REAL
+// answers: `tech` decides ordering and capability, `stakes` decides budget. The
+// collaborative card offers services rather than devices, because on that path
+// the service is chosen first and it tells you which hardware it supports.
+function devicesFor(setup, a) {
+  if (setup === 'single-sig') {
+    const ssd = singleSigDevices(a);
+    return { wallets: ssd.devices, walletNote: ssd.note, headline: ssd.headline };
   }
-  if (isMultiKey(family)) {
-    // 'lifechanging' is the one stakes value that always forks in the old
-    // engine; fork content never reads stakes, so nothing else shifts.
-    //
-    // THE LEAD IS FORCED FROM THE WINNING SETUP — the last piece of the old
-    // gate. quiz.js picks which path leads from `sovereignty === 'open-help' &&
-    // tech !== 'technical'`, so a reader who answered 'pure' got a DIY-led card
-    // even when COLLABORATIVE was the setup that actually won the scoring. The
-    // visible result then contradicted the ranking behind it, and the second
-    // card could come back 'multisig' underneath a card already leading
-    // multisig — the same setup twice.
-    //
-    // Sovereignty and tech are synthesized here PURELY to steer that lead;
-    // the reader's real answers already did their work in the scoring, where
-    // sovereignty now feeds the `exposure` concern. Nothing else in the fork
-    // card reads either field.
-    const leadCollab = family === 'collaborative';
+  if (setup === 'passphrase') {
+    const power = a.tech === 'technical' || a.tech === 'careful';
     return {
-      ...a, worry, stakes: 'lifechanging',
-      sovereignty: leadCollab ? 'open-help' : 'pure',
-      tech: leadCollab ? 'simple' : a.tech,
+      wallets: power ? [DEV.coldcard, DEV.trezor] : [DEV.trezor, DEV.coldcard],
+      walletNote: 'Both of these make a passphrase easy to live with — the Coldcard Q has a full keyboard, the Trezor Safe 5 a touchscreen. You type a strong passphrase painlessly, with no on-screen fiddling and nothing typed into a computer.',
     };
   }
-  // single family. Keep real stakes for the device economics — except
-  // lifechanging (always forks in the old engine), which maps to 'serious'
-  // (same big-stakes device tier). Worry 'unsure' selects the worry-neutral
-  // copy branch; recovery 'heirs' at serious would trigger the old multisig
-  // rule, so it degrades to 'partner' (identical behavior in every branch the
-  // single-sig card actually reads).
-  const stakes = a.stakes === 'lifechanging' ? 'serious' : (a.stakes || 'meaningful');
-  const recovery = stakes === 'serious' && a.recovery === 'heirs' ? 'partner' : (a.recovery || 'just-me');
-  return { ...a, worry: ['unsure'], stakes, recovery };
+  if (setup === 'multisig') {
+    return {
+      wallets: [DEV.coldcard, DEV.bitbox],
+      // THREE makers, not two. With two makers across three keys one vendor's
+      // flaw reaches two of them, and two keys spend a 2-of-3.
+      walletNote: 'Use a DIFFERENT maker for each key — one brand, one key. With only two makers across three keys, a single vendor’s flaw reaches two of them, and two keys is enough to spend a 2-of-3. These two are strong picks; add a third from another maker on the wallets page. And if you already started single-sig on one of these, it carries over as one of your three.',
+    };
+  }
+  return {
+    vendors: collaborativeVendors,
+    walletNote: '<strong>Choose your service first — it comes before the hardware.</strong> Each service lists the devices it supports, and some send you one.',
+  };
+}
+
+/**
+ * The primary card for a setup. Pure: the same setup and answers always give the
+ * same card, and nothing about the reader's assessment reaches it — that is what
+ * `reasons` and `holdbacks` are for.
+ */
+function primaryCard(setup, a) {
+  const base = CARD[setup] || CARD['single-sig'];
+  const d = devicesFor(setup, a);
+  const card = {
+    ...base,
+    headline: d.headline || base.headline,
+    wallets: d.wallets,
+    vendors: d.vendors,
+    walletNote: d.walletNote,
+    holdback: null,
+  };
+  // A self-custodied inheritance plan is achievable on the DIY path and worth
+  // saying out loud, but only to a reader who told us someone else needs to be
+  // able to recover it.
+  if (setup === 'multisig' && a.recovery && a.recovery !== 'just-me') {
+    card.inheritanceNote = 'A fully self-custodied inheritance plan is entirely achievable here — your heirs recover from the keys plus a plain-English guide, with no company in the loop. It takes deliberate planning, but sovereignty and a real estate plan are not a trade-off you have to make.';
+  }
+  return card;
 }
 
 // The step-up (2nd-choice) card, computed from the profile rather than from a
@@ -1064,8 +1121,15 @@ function secondaryFor(runnerUp, words, answers) {
       return S('passphrase', 'Single-sig + passphrase', 'Add a passphrase (the “25th word”)',
         'The step that stays on one device: a phrase only you know is mixed in on top of your seed, so a seed someone finds — or one your device generated badly — opens only a small decoy wallet, not the real balance. Take it on once you are confident you can back the passphrase up as carefully as the seed itself, because forgetting it loses everything.');
     case 'collaborative':
-      return S('collaborative', 'Collaborative custody (2-of-3)', 'Let a service hold one key',
-        'The same 2-of-3 protection with far less for you to run: a Bitcoin-only service holds one of the three keys as a safety net, and recovery — including for your heirs — is built in by design. The trade is trust and privacy: most require ID verification, and you are bringing an outside institution into your setup.');
+      // VENDORS RIDE WITH IT. "Let a service hold one key" with no services named
+      // is advice the reader cannot act on — and the page already renders
+      // secondary.vendors when the primary has none, so this was a card asking
+      // for a list that nothing supplied. Only reachable now that collaborative
+      // custody can be a second choice in its own right; under the old fork card
+      // it was never a standalone secondary.
+      return { ...S('collaborative', 'Collaborative custody (2-of-3)', 'Let a service hold one key',
+        'The same 2-of-3 protection with far less for you to run: a Bitcoin-only service holds one of the three keys as a safety net, and recovery — including for your heirs — is built in by design. The trade is trust and privacy: most require ID verification, and you are bringing an outside institution into your setup.'),
+        vendors: collaborativeVendors };
     case 'multisig':
     default:
       if (sov === 'pure') {
@@ -1178,9 +1242,11 @@ export function recommendV2(answers = {}) {
 
   // ── the card structure, from the legacy engine (fork paths, device pairs,
   //    journey framing — everything the current UI renders) ──
-  const legacy = recommend(makeLegacyAnswers(family, { ...answers, stakes }));
-  const primary = legacy.primary;
-  const journey = legacy.journey;
+  const primary = primaryCard(top.setup, { ...answers, stakes });
+  // The journey frames the destination from where the reader is today. It takes
+  // the RUNG now, not a card — it used to read `primary.fork` to work out where a
+  // combined card was heading, which only made sense while two rungs shared one.
+  const journey = journeyFrom(answers.current, primary.rungSlug);
 
   // ── computed reasons (the profile explains the pick) ──
   const isElevated = (c) => words[c] === 'elevated' || words[c] === 'high';
