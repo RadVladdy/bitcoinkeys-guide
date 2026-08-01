@@ -43,6 +43,19 @@ import { diceVerified } from '../data/dice.js';
       <a class="btn ghost" href="/dice-word-table.pdf" download>Download as PDF</a></p>
   </section>
 
+  {/* PRINT-ONLY HEADER. The screen intro is hidden when printing, which left
+      the PDF with no instructions on it at all — including the one thing a
+      reader cannot infer from the table, that 5s and 6s are rerolled. A
+      print-out of a lookup table has to carry its own method: the reader is
+      holding paper, away from the page that explained it. */}
+  <p class="dwt-printhead">
+    <strong>Dice → word table.</strong>
+    Throw one die {DICE_PER_WORD}× — <strong>reroll every 5 and 6</strong>, so each throw is a 1–4 — then
+    flip a coin (<span class="mono">H</span> = heads, <span class="mono">T</span> = tails).
+    Find the block headed by your first {PREFIX_THROWS} throws, then read down.
+    Repeat for each word. bitcoinkeys.guide/roll-your-own-seed
+  </p>
+
   <section class="dwt-wrap">
     {blocks.map((b) => (
       <div class="dwt-block">
@@ -63,6 +76,7 @@ import { diceVerified } from '../data/dice.js';
 </script>
 
 <style>
+  .dwt-printhead { display: none; }
   .dwt-how { border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem 1.2rem; margin: 1.2rem 0; }
   .dwt-how p { margin: 0 0 .5rem; }
   .dwt-note { color: var(--muted); font-size: .9rem; margin: 0 !important; }
@@ -91,6 +105,8 @@ import { diceVerified } from '../data/dice.js';
        method lives on the procedure page, which is where a reader who needs
        it is standing anyway. */
     .dwt-intro { display: none; }
+    .dwt-printhead { display: block; font-size: 7.4pt; line-height: 1.35; color: #000;
+      margin: 0 0 .35rem; padding-bottom: .2rem; border-bottom: .5pt solid #999; }
     /* Site chrome off the print-out. The nav and footer are wasted ink, and
        the advisory banner would stamp a dated incident onto an artifact that
        is otherwise good forever — the BIP-39 wordlist never changes, so a
@@ -102,7 +118,7 @@ import { diceVerified } from '../data/dice.js';
        six 8rem columns on A4 quietly produced four. Keep the minimum below
        (page width − margins) ÷ N or the count is a suggestion. */
     .dwt-wrap { columns: 6 5rem; column-gap: 0.8rem; margin: 0; }
-    .dwt-rows { font-size: 6.6pt; line-height: 1.07; }
+    .dwt-rows { font-size: 6.6pt; line-height: 1.03; }
     .dwt-rows li { color: #000; }
     .dwt-k { color: #444; margin-right: .25rem; }
     .dwt-h { font-size: 7pt; color: #000; margin-bottom: .04rem; margin-top: .08rem; }
