@@ -119,7 +119,47 @@ export const advisories = [
 
     // Our own position, kept separate from the reporting above.
     ourTake:
-      'We rate the Coldcard in our cold-storage tier and recommend it in the setup finder, so this lands on our own recommendation and we are not going to be quiet about it. Two things are true at once, and conflating them helps nobody. A device bought today, running fixed firmware, generates a proper seed — the defect is in seeds already created, not in every Coldcard forever. But a five-year-old flaw in open-source firmware that nobody caught, in the single most security-critical function a signing device performs, is a serious mark against a maker, and we are re-reading it against our published standard rather than assuming our rating still holds. What we will not do is quietly change a rating and hope nobody noticed the old one.',
+      'We rate the Coldcard in our cold-storage tier and recommend it in the setup finder, so this lands on our own recommendation and we are not going to be quiet about it. Two things are true at once, and conflating them helps nobody. A device bought today, running fixed firmware, generates a proper seed — the defect is in seeds already created, not in every Coldcard forever. But a five-year-old flaw in open-source firmware that nobody caught, in the single most security-critical function a signing device performs, is a serious mark against a maker, We said we would re-read it against our published standard rather than assume our rating still held, and that whatever we concluded would be published rather than quietly applied. That review is below.',
+
+    // ── THE PROMISED REVIEW, DISCHARGED ─────────────────────────────────────
+    // The advisory promised in writing that the cold-tier rating was being
+    // re-read against /standard and that the conclusion would be published
+    // rather than quietly applied. This is that conclusion. It stays on the
+    // page rather than becoming a silent rating change, which is the whole
+    // point of having made the promise.
+    ratingReview: {
+      published: '2026-08-01',
+      verdict: 'The Coldcard keeps its place in our cold-storage tier.',
+      intro:
+        'We said we would re-read the Coldcard against our published standard rather than assume the old rating survived, and that we would publish whatever we found. Here it is, gate by gate. The short version is that nothing in our standard fails — and that the reasoning is more uncomfortable than the verdict.',
+      gates: [
+        {
+          gate: 'Your keys can never leave over the internet',
+          holds: true,
+          note: 'Holds. No Coldcard feature exports your seed to anyone, and none did here. The flaw made seeds guessable from the outside; it never shipped one anywhere. The distinction matters for the rating even though the outcome for the victims was the same.',
+        },
+        {
+          gate: 'Verifiable — not a closed black box',
+          holds: true,
+          note: 'Holds, and this is the uncomfortable one. The firmware is source-available and independently reproducible, and it still is. But the defect sat in that public source for five years, and researchers were able to link the exact lines the day it surfaced. Reproducible builds did their job perfectly: they guaranteed the shipped binary faithfully matched the source, and the source had the bug in it.',
+        },
+        { gate: 'Bitcoin-only firmware', holds: true, note: 'Unaffected.' },
+        { gate: 'A minimal, single-purpose signer', holds: true, note: 'Unaffected.' },
+        { gate: 'Self-sovereign, portable recovery', holds: true, note: 'Unaffected — a standard BIP-39 seed, restorable anywhere.' },
+      ],
+      // The honest reckoning, kept separate from the gate-by-gate so it cannot
+      // read as one more box being ticked.
+      reckoning:
+        'We are not going to pretend the verdict is a clean bill of health. A five-year-old flaw in the single most security-critical function a signing device performs, in open code that anyone could read, is a serious mark against a maker — and it is a mark against the rest of us too, because "it is open, so someone would have caught it" is exactly what everybody assumed, including us. Nobody had. What verifiability actually buys you is the ability to find out afterwards, quickly and precisely, which is genuinely worth having and is not the same thing as prevention.',
+      // Why the standard is NOT changing — the decision, stated as a decision.
+      whyNoNewGate:
+        'The obvious move would be to add a criterion about entropy: where a device gets its randomness, and whether anyone outside the company can check it. We considered it and decided against, and it is worth saying why, because the argument is not that the gap does not exist. Open, reproducible code is the highest bar available today — there is no stronger standard to hold a maker to, and the Coldcard already clears it. A rule written now would be a rule written against the specific thing that just went wrong, and the next failure will be something nobody has thought of yet. A standard that grows a new clause after every incident stops being a standard and becomes a list of past events.',
+      // What changed instead. Only claims things that have actually shipped.
+      instead:
+        'What we changed is what we tell you to do about it. The people whose coins survived this were the ones who had not left the randomness entirely to the device — their own dice, a passphrase the device never saw, or a key from a different maker. So we have published a full procedure for generating a seed from your own dice rolls, on the devices we rate, checked against each maker\'s own current documentation. That is a thing you can act on today, and unlike a new gate it would have helped against this failure and against ones we have not imagined.',
+      insteadHref: '/roll-your-own-seed',
+      insteadLabel: 'Roll your own seed with dice',
+    },
 
     // The wider lesson — this is the part that outlives the incident.
     lesson:
