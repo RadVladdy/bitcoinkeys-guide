@@ -194,10 +194,23 @@ const fitCountCap = questionCountWordCap;
   // Bars are decorative (aria-hidden); the WORD is the scale, and it's the only
   // scale — never a number. Tiny floor width so "low"/near-zero still draws.
   const barW = (n) => Math.max(n, 1.5);
+  // THE TYPICAL HOLDER IS A TICK, NOT A BAR BEHIND (2026-08-01).
+  //
+  // It used to be a dim bar starting at the same left edge as the fill, with
+  // the fill absolutely positioned on top — so the moment your score reached
+  // the default, the fill covered the ghost completely and it was NEVER VISIBLE.
+  // Which is most of the time: on the shipped engine an untouched section scores
+  // exactly the default, so the reference the legend promised was hidden by
+  // construction on the first screen every reader sees.
+  //
+  // A tick also says the thing more precisely. A bar behind a bar asks the
+  // reader to compare two lengths that share an origin; a mark says "typical is
+  // HERE" and lets the fill land short of it or past it.
+  const tickAt = (n) => Math.min(98.5, Math.max(1.5, n));
   function barHtml(c, s, d, w) {
     return `<div class="as-bar" aria-hidden="true" data-bar="${c}">
-      <span class="as-ghost" style="width:${barW(d)}%"></span>
       <span class="as-fill w-${w}" style="width:${barW(s)}%"></span>
+      <span class="as-typ" style="left:${tickAt(d)}%"></span>
     </div>`;
   }
   function wordTag(c, w) { return `<span class="as-word w-${w}" data-word="${c}">${w}</span>`; }
@@ -275,7 +288,7 @@ const fitCountCap = questionCountWordCap;
       <div class="as-meter as-live">
         <div class="as-meter-head"><span class="as-k mono">Your level</span>${wordTag(c, w)}</div>
         ${barHtml(c, s, d, w)}
-        <p class="as-legend">The dim bar behind is the typical holder — you start there.</p>
+        <p class="as-legend">The mark shows the typical holder — you start there.</p>
         <span class="vh" aria-live="polite" data-live="${c}">${esc(info.label)}: ${w}</span>
       </div>
       <p class="as-instr mono">Tap everything that’s true of you</p>
@@ -917,9 +930,19 @@ const fitCountCap = questionCountWordCap;
   #finder .as-meter { border: 1px solid var(--line); border-radius: 0.7rem; background: var(--raise); padding: 0.95rem 1.05rem; margin: 0 0 1.2rem; }
   #finder .as-meter-head { display: flex; justify-content: space-between; align-items: baseline; gap: 0.6rem; margin-bottom: 0.55rem; }
   #finder .as-k { color: var(--faint); font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; }
-  #finder .as-bar { position: relative; height: 12px; border-radius: 999px; background: var(--line-soft); overflow: hidden; }
+  #finder .as-bar { position: relative; height: 12px; border-radius: 999px; background: var(--line-soft); }
+  #finder .as-fill { overflow: hidden; }
   #finder .as-ghost { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; background: var(--faint); opacity: 0.3; }
   #finder .as-ghost.lit { opacity: 0.55; }
+  /* THE TYPICAL MARK. A 2px rule the full height of the track, in the text
+     colour rather than a tint, so it reads against every fill colour the scale
+     can produce (safe / accent / warn / danger). The tiny cap above the track
+     is what makes it legible when the fill lands exactly on it — without it the
+     mark and the fill edge coincide and the reader sees nothing. */
+  /* NOT .as-tick — that class is already the prompt checkbox's ✓ mark, and both
+     are scoped #finder, so reusing it made the two rules fight. */
+  #finder .as-typ { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px;
+    background: var(--text); opacity: .55; border-radius: 1px; pointer-events: none; }
   #finder .as-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; transition: width 0.35s ease, background-color 0.35s ease; }
   #finder .as-fill.w-low { background: var(--safe); }
   #finder .as-fill.w-typical { background: var(--accent); }
