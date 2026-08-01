@@ -19,19 +19,20 @@
 //   2^11 = 2048 = exactly the size of the wordlist, so every outcome maps to
 //   one word and nothing is ever discarded or rerolled for being out of range.
 //
-// NO COIN? One extra throw of the same die replaces it: 1–3 is heads, 4–6 is
-// tails. Exactly fair, and NOT for the same reason the other throws are.
-// A bit needs two equally likely outcomes and 6 divides by 2, so every face
-// counts and nothing is rerolled — where the 1–4 values need four outcomes
-// from six faces, which does not divide, which is why 5s and 6s are discarded
-// there. Same distribution as a coin, so the table is unchanged and the two
-// methods are interchangeable.
+// A DIE THROW COULD REPLACE THE COIN — 1–3 heads, 4–6 tails — and it is
+// exactly fair: a bit needs two equally likely outcomes and six divides by
+// two, so nothing is rerolled. CONSIDERED AND REJECTED, deliberately.
 //
-// TWO THINGS THE COPY MUST SAY, because both are ways to silently halve a
-// word's randomness: this throw is NEVER rerolled, and it is an EXTRA throw —
-// reusing one of the five 1–4 values as the bit would spend the same
-// randomness twice.
+// It buys a reader nothing but not owning a coin, and costs two things worth
+// more. It splits the reroll rule: five throws where 5s and 6s are discarded,
+// one where every face counts — and a reader applying the wrong rule to
+// either either biases every word or throws away half their results. And it
+// breaks exact correspondence with BitBox's published procedure, which is
+// what lets this method be checked against a second independent source
+// instead of taken on our word.
 //
+// Do not re-add it. The method stays coin-and-die, identical to theirs.
+
 // WHY NOT A VENDOR'S TABLE: Blockstream's needs two 16-sided dice and an
 // eight-sided one; BitBox's needs its own arrangement. Both are fine, and both
 // make the reader's method depend on which brand's PDF they happened to open.

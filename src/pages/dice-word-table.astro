@@ -41,21 +41,15 @@ const shortChosen = seedCosts.find((c) => c.words === 12).chosen;
       {DICE_PER_WORD - PREFIX_THROWS} throws and your flip.</p>
       <p><strong class="mono">H</strong> is heads and <strong class="mono">T</strong> is tails. The die gives
       you {DICE_PER_WORD * 2} of the 11 bits each word needs and the coin gives the last one — which is why
-      there are exactly two lines for every dice combination, and why that eleventh bit is not optional.</p>
-      <p><strong>No coin? Use the die.</strong> Throw it once more: <strong>1, 2 or 3 is heads; 4, 5 or 6 is
-      tails.</strong> That is exactly fair — a coin needs two equally likely outcomes and six divides by two,
-      so <strong>this throw is never rerolled</strong> and every face counts. It is the opposite of the other
-      throws, which discard 5s and 6s because six does not divide by four. It must be an <strong>extra</strong>
-      throw, though: reusing one of your five 1–4 values would spend the same randomness twice.</p>
+      there are exactly two lines for every dice combination, and why the coin is not optional.</p>
       <p class="dwt-note">This table is public and contains no secret — it is the standard wordlist in a
       fixed order. Your <em>throws</em> and the <em>words</em> they give you are the secret.</p>
       <p class="dwt-note"><strong>This is the same table
       <a href="https://bitbox.swiss/bitbox02/BitBox_Diceware_LookupTable.pdf" rel="noopener noreferrer" target="_blank">BitBox publishes</a></strong>
       for its own devices. We generated ours independently from the word list and then checked every one of the
       {tableRowCount.toLocaleString()} entries against theirs — all of them match. Two tables built separately
-      agreeing on every row is the reason to trust either. Their published method uses a coin; using a die
-      throw instead is ours, and it changes neither the table nor the word you land on. Use one table for a
-      whole seed, though, not a mix.</p>
+      agreeing on every row is the reason to trust either. Use one of them for a whole seed, though, not a
+      mix.</p>
     </div>
     <p class="dwt-print"><button type="button" id="dwt-print" class="btn">Print this table</button>
       <a class="btn ghost" href="/dice-word-table.pdf" download>Download as PDF</a></p>
@@ -79,7 +73,7 @@ const shortChosen = seedCosts.find((c) => c.words === 12).chosen;
     </p>
 
     <h3 class="ds-sh">What you need</h3>
-    <p>One six-sided die, pen and paper. A coin is handy but not required — the die can do its job too, see step 2. No computer, no phone.</p>
+    <p>One six-sided die, one coin, pen and paper. No computer, no phone.</p>
 
     <h3 class="ds-sh">For each word</h3>
     <ol class="ds-steps">
@@ -87,13 +81,9 @@ const shortChosen = seedCosts.find((c) => c.words === 12).chosen;
         do not count and are not written down. Keep throwing until you have {DICE_PER_WORD} results that are
         each 1, 2, 3 or 4. This is why no entry in the table contains a 5 or a 6.</li>
       <li><strong>Flip the coin once.</strong> <span class="mono">H</span> is heads,
-        <span class="mono">T</span> is tails. This is not optional: the die gives ten of the eleven bits a
+        <span class="mono">T</span> is tails. The coin is not optional: the die gives ten of the eleven bits a
         word needs and the coin gives the eleventh. Always taking the same side halves the randomness of every
-        word you pick.
-        <br /><strong>No coin?</strong> Throw the die once more instead — <strong>1–3 is heads, 4–6 is
-        tails</strong>. Do <strong>not</strong> reroll this throw: unlike the five above, every face counts,
-        because a coin needs two outcomes and six divides by two evenly. It has to be an <em>extra</em> throw,
-        not one of the five you already wrote down.</li>
+        word you pick.</li>
       <li><strong>Find your word.</strong> Blocks are headed by your first {PREFIX_THROWS} throws. Find that
         block, then read down to the line matching your remaining
         {DICE_PER_WORD - PREFIX_THROWS} throws and your flip.</li>
@@ -115,11 +105,10 @@ const shortChosen = seedCosts.find((c) => c.words === 12).chosen;
       <em>throws</em> and the <em>words</em> they produce are the secret, and those never touch a screen.
     </p>
     <p>
-      <strong>This is the same table BitBox publishes</strong> for its own devices. We generated ours
-      independently from the word list and checked all {tableRowCount.toLocaleString()} entries against
-      theirs: every one matches, so either table gives the same word for the same throws. Their written
-      method uses a coin; substituting a die throw for it is ours, and it does not change the table or the
-      result. Use one table for a whole seed, not a mix.
+      <strong>This is the same method and the same table BitBox publishes</strong> for its own devices. We
+      generated ours independently from the word list and checked all {tableRowCount.toLocaleString()} entries
+      against theirs: every one matches. Either table gives the same word for the same throws — but use one
+      table for a whole seed, not a mix.
     </p>
   </section>
 
