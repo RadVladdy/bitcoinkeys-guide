@@ -459,9 +459,15 @@ export const PROTECTION = {
   passphrase:      { weights: { custodial: 3, 'self-loss': -1, remote: 2.5, physical: 3, exposure: 3.5 }, complexity: 0, devices: 1 },
   multisig:        { weights: { custodial: 3, 'self-loss': 2,  remote: 3, physical: 3, exposure: 3 }, complexity: 2, devices: 3 },
   collaborative:   { weights: { custodial: 3, 'self-loss': 3,  remote: 2, physical: 3, exposure: -2 }, complexity: 1, devices: 2 },
-  'three-of-five': { weights: { custodial: 3, 'self-loss': 2.5, remote: 3, physical: 3, exposure: 3 }, complexity: 3, devices: 5 },
 };
 
+// FOUR setups, one per ladder rung. 3-of-5 was scored here as a fifth option
+// until 2026-08-01 and is not any more: it is a SIZE of do-it-yourself
+// multisig, not a rung of its own, and scoring it separately let it compete
+// against its own rung — which is how the result page ended up able to show
+// "multisig" as both the first and the second choice. The teaching about 3-of-5
+// stays on the ladder lesson where it belongs; the recommendation says
+// multisig, and how many keys is a decision inside that.
 export const SETUP_KEYS = Object.keys(PROTECTION);
 
 // Which LADDER RUNG a setup sits on. One entry per rung, and every rung is
@@ -478,7 +484,7 @@ export const SETUP_KEYS = Object.keys(PROTECTION);
 // not two rungs. Which one shows is a fit result between them.
 export const FAMILY = {
   'single-sig': 'single', passphrase: 'passphrase',
-  multisig: 'multisig', 'three-of-five': 'multisig', collaborative: 'collaborative',
+  multisig: 'multisig', collaborative: 'collaborative',
 };
 
 // Each family's position ON THE LADDER (/learn/ladder rungs 1–4), which is the
@@ -859,7 +865,25 @@ function makeLegacyAnswers(family, a) {
   if (isMultiKey(family)) {
     // 'lifechanging' is the one stakes value that always forks in the old
     // engine; fork content never reads stakes, so nothing else shifts.
-    return { ...a, worry, stakes: 'lifechanging' };
+    //
+    // THE LEAD IS FORCED FROM THE WINNING SETUP — the last piece of the old
+    // gate. quiz.js picks which path leads from `sovereignty === 'open-help' &&
+    // tech !== 'technical'`, so a reader who answered 'pure' got a DIY-led card
+    // even when COLLABORATIVE was the setup that actually won the scoring. The
+    // visible result then contradicted the ranking behind it, and the second
+    // card could come back 'multisig' underneath a card already leading
+    // multisig — the same setup twice.
+    //
+    // Sovereignty and tech are synthesized here PURELY to steer that lead;
+    // the reader's real answers already did their work in the scoring, where
+    // sovereignty now feeds the `exposure` concern. Nothing else in the fork
+    // card reads either field.
+    const leadCollab = family === 'collaborative';
+    return {
+      ...a, worry, stakes: 'lifechanging',
+      sovereignty: leadCollab ? 'open-help' : 'pure',
+      tech: leadCollab ? 'simple' : a.tech,
+    };
   }
   // single family. Keep real stakes for the device economics — except
   // lifechanging (always forks in the old engine), which maps to 'serious'
@@ -901,9 +925,6 @@ function secondaryFor(runnerUp, words, answers) {
     case 'collaborative':
       return S('collaborative', 'Collaborative custody (2-of-3)', 'Let a service hold one key',
         'The same 2-of-3 protection with far less for you to run: a Bitcoin-only service holds one of the three keys as a safety net, and recovery — including for your heirs — is built in by design. The trade is trust and privacy: most require ID verification, and you are bringing an outside institution into your setup.');
-    case 'three-of-five':
-      return S('multisig', '3-of-5 multisig', 'Spread the keys wider (3-of-5)',
-        'As holdings grow, a self-run 3-of-5 across separate locations tolerates more lost or stolen keys before anything is at risk — the same self-sovereign technology as a 2-of-3, just more keys and more resilience. No company required, and more to manage.');
     case 'multisig':
     default:
       if (sov === 'pure') {
