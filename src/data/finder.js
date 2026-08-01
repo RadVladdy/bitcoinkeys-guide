@@ -35,7 +35,17 @@ export const CONCERNS = [
   {
     key: 'custodial',
     label: 'A company failing you',
-    blurb: 'Your exchange or custodian going under, freezing your account, or losing your coins — the Mt. Gox to FTX class of loss.',
+    // THE QUESTION IS ABOUT A MEANINGFUL SHARE, not about having an account.
+    // Almost every holder has SOME Bitcoin on an exchange, so asked loosely this
+    // section climbed for readers whose savings were already cold. What the
+    // Mt. Gox and FTX losses have in common is not that people had an account;
+    // it is how much of their stack was in it.
+    //
+    // NOTE FOR EXPECTED_RAW: the custodial estimate of 22 was reasoned from
+    // "most holders still have some on an exchange". Under the narrower wording
+    // that prevalence is LOWER, so 22 is now the softest number in a set of soft
+    // numbers and should be revisited when the bundle is next calibrated.
+    blurb: 'A meaningful share of your Bitcoin sitting with an exchange or custodian that goes under, freezes your account, or loses your coins — the Mt. Gox to FTX class of loss. Small change on an app is not what this is about.',
   },
   {
     key: 'self-loss',
@@ -180,22 +190,22 @@ export const prompts = [
   // ── custodial ── (raises: exchange/custodian failure)
   {
     id: 'c-exchange', concern: 'custodial', weight: 'large',
-    statement: 'My Bitcoin sits on an exchange or app, not in a wallet I control.',
+    statement: 'A meaningful share of my Bitcoin sits on an exchange or app, not in a wallet I control.',
     why: 'Roughly six in ten exchanges ever launched have closed. While a company holds the keys, its problems are your problems.',
   },
   {
     id: 'c-multicoin', concern: 'custodial', weight: 'small',
-    statement: 'The place holding it also sells lots of other coins and tokens.',
+    statement: 'The place holding that share also sells lots of other coins and tokens.',
     why: 'The multi-coin, trading-first profile is the FTX profile — trading businesses fail differently than vaults do.',
   },
   {
     id: 'c-yield', concern: 'custodial', weight: 'large',
-    statement: 'I’m earning interest or “rewards” on my Bitcoin.',
+    statement: 'Some meaningful part of my Bitcoin is earning interest or “rewards”.',
     why: 'Every 2022 bankruptcy that froze retail funds was a yield platform. Yield means your coins are out working — and not for you.',
   },
   {
     id: 'c-audit', concern: 'custodial', weight: 'small',
-    statement: 'I couldn’t say who audits my platform, or whether it publishes proof of reserves.',
+    statement: 'I couldn’t say who audits the platform holding it, or whether it publishes proof of reserves.',
     why: 'Platforms that show their reserves can be checked; platforms that don’t can only be believed.',
   },
   {
