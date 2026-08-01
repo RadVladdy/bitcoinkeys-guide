@@ -38,7 +38,7 @@ const fitCountCap = questionCountWordCap;
     prompts, promptsFor, promptById, scoreFromPrompts, shimScores, recommendV2, FAMILY,
   } from '../data/finder.js';
   import { numberWord } from '../data/numbers.js';
-  import { wallets, keysForSetup, slugForName } from '../data/wallets.js';
+  import { wallets, keysForSetup, slugForName, assessDevices, ownableDevices } from '../data/wallets.js';
   import { rungAnchor } from '../data/ladder.js';
   import { savePlannedSetup, plannedSetupRung, plannedSetupLabel, plannedKeysNeeded, loadLocal, clearPlanSelection, plannedSetupSource } from '../data/plan.js';
   import { mountOwnedPicker } from '../data/owned-picker.js';
@@ -79,6 +79,91 @@ const fitCountCap = questionCountWordCap;
   // The finder recommends devices by NAME; map a recommendation's wallet list → slugs
   // (saved as recommendedDevices → suggested in empty slots + annotated on /wallets).
   function recSlugsFrom(list) { return (list || []).map((d) => slugForName(d.name)).filter(Boolean); }
+
+  // ── WHAT YOU ALREADY OWN, read against the setup we just recommended ────────
+  //
+  // The finder has always ASKED which hardware the reader owns and then made
+  // device suggestions as though it had not. This closes that: it names what
+  // they own, says which of it works for this setup and which does not, counts
+  // how many keys short they are, and suggests only devices they do not already
+  // have.
+  //
+  // READ-ONLY, DELIBERATELY. No "I own this" control, no picker, no add or
+  // remove. Choosing and editing hardware is /my-plan's job — the three-phase
+  // split (SELECT → BUILD THE PLAN → EXECUTE) exists to stop this page becoming
+  // the place you do it. Surfacing a verdict is fine; offering an action on it
+  // is what would break the split.
+  const brandOf = (slug) => (ownableDevices.find((d) => d.slug === slug) || {}).brand || null;
+  const listNames = (arr) => {
+    const n = arr.map((d) => esc(d.name));
+    if (n.length <= 1) return n[0] || '';
+    return `${n.slice(0, -1).join(', ')} and ${n[n.length - 1]}`;
+  };
+
+  function ownedContext(primary) {
+    const owned = Array.isArray(answers.ownedDevices) ? answers.ownedDevices : [];
+    // Nothing to say: they skipped the step, or chose not to tell us. "Rather
+    // not say" is an answer we asked for and it gets respected in silence.
+    if (answers.ownPrivate || !owned.length) return '';
+
+    const assessed = assessDevices(owned);
+    if (!assessed.length) return '';
+    const clears = assessed.filter((d) => d.verdict === 'cold');
+    const spending = assessed.filter((d) => d.verdict === 'spending');
+    const below = assessed.filter((d) => d.verdict === 'disqualified');
+    const unrated = assessed.filter((d) => d.verdict === 'unrated');
+
+    // Keys YOU hold. For collaborative custody that is two of the three — the
+    // service holds the other one, and it is not something you go and buy.
+    const need = keysForSetup({ rungSlug: primary.rungSlug, label: primary.rungLabel, tier: primary.tier }) || 1;
+    const short = Math.max(0, need - clears.length);
+
+    const parts = [];
+    parts.push(`<p><strong>You told us you own ${listNames(assessed)}.</strong> Here is how that lands against this setup — nothing to change here, this is just what we can already see.</p>`);
+
+    if (clears.length) {
+      parts.push(`<p><span class="ro-k ok mono">Works here</span> ${listNames(clears)} — ${clears.length === 1 ? 'it clears' : 'they clear'} our bar, so ${clears.length === 1 ? 'it can be' : 'they can be'} ${need > 1 ? 'one of your keys' : 'the key'} for this setup. No need to buy ${clears.length === 1 ? 'another' : 'more'} on ${clears.length === 1 ? 'its' : 'their'} account.</p>`);
+    }
+    if (spending.length) {
+      parts.push(`<p><span class="ro-k warn mono">Not for this</span> ${listNames(spending)} — we rate ${spending.length === 1 ? 'it' : 'them'} <a href="/standard#built-for-spending">built for spending</a> rather than a long-term vault. Genuinely useful for money you are moving; not what we would put savings behind.</p>`);
+    }
+    if (below.length) {
+      parts.push(`<p><span class="ro-k bad mono">Doesn’t clear our bar</span> ${listNames(below)} — <a href="/standard">why we say so</a>. You are not obliged to replace ${below.length === 1 ? 'it' : 'them'}, and nothing here says throw ${below.length === 1 ? 'it' : 'them'} away; we would not build this setup on ${below.length === 1 ? 'it' : 'them'}.</p>`);
+    }
+    if (unrated.length) {
+      parts.push(`<p><span class="ro-k mono">Not rated by us</span> ${listNames(unrated)} — we have not reviewed ${unrated.length === 1 ? 'this model' : 'these models'}, which is not the same as failing. Most models never have been, and inventing a verdict would be worse than saying so.</p>`);
+    }
+
+    // THE COUNT. This is the sentence the reader came for.
+    if (short === 0) {
+      parts.push(`<p class="ro-count"><strong>You already have the hardware for this.</strong> ${need > 1 ? `This setup needs ${numberWord(need)} keys of your own, and ${clears.length === need ? 'that is exactly what you hold' : `you hold ${numberWord(clears.length)} that clear the bar`}.` : 'This setup needs one key, and you have one that clears the bar.'}</p>`);
+    } else {
+      parts.push(`<p class="ro-count"><strong>You are ${numberWord(short)} short.</strong> This setup needs ${need > 1 ? `${numberWord(need)} keys of your own` : 'one key'}${primary.rungSlug === 'collaborative' ? ' — the service holds the third, so that one is not yours to buy' : ''}, and ${clears.length ? `you hold ${numberWord(clears.length)} that ${clears.length === 1 ? 'clears' : 'clear'} our bar` : 'nothing you own clears our bar yet'}.</p>`);
+    }
+
+    // ONE BRAND, ONE KEY — only worth saying where it changes what to buy.
+    if (need > 2 && clears.length > 1) {
+      const brands = new Set(clears.map((d) => brandOf(d.slug)).filter(Boolean));
+      if (brands.size < clears.length) {
+        parts.push(`<p class="ro-note">One thing worth knowing: <strong>use a different maker for each key.</strong> Some of what you own is from the same maker, and with one maker covering two of three keys, a single vendor’s flaw reaches enough of them to spend your coins.</p>`);
+      }
+    }
+
+    const cls = below.length ? 'warn' : (short === 0 ? 'ok' : '');
+    return `<div class="r-owned ${cls}"><span class="r-k mono">What you already own</span>${parts.join('')}</div>`;
+  }
+
+  // The devices we suggest, minus anything the reader already owns — suggesting
+  // someone buy a device sitting in their drawer is the whole reason this block
+  // exists.
+  function unownedWallets(list) {
+    const owned = new Set(Array.isArray(answers.ownedDevices) ? answers.ownedDevices : []);
+    if (!owned.size) return list || [];
+    const left = (list || []).filter((d) => !owned.has(slugForName(d.name)));
+    // If they own BOTH suggestions, keep the list rather than render an empty
+    // block — the owned panel above has already told them they are covered.
+    return left.length ? left : (list || []);
+  }
 
   // ── the step machine ──
   // The flow: current → (owned interstitial) → stakes → assessment intro → four
@@ -485,7 +570,9 @@ const fitCountCap = questionCountWordCap;
 
   function walletCard(rec, adaptive, sel) {
     if (rec.wallets && rec.wallets.length) {
-      const items = rec.wallets.map((d, i) => {
+      // ONLY WHAT THEY DO NOT ALREADY OWN. Telling a reader to buy the device
+      // sitting in their drawer is the defect this whole block exists to fix.
+      const items = unownedWallets(rec.wallets).map((d, i) => {
         const w = wallets.find((x) => x.name === d.name);
         const price = w ? ` <span class="r-price">${esc(w.price)}</span>` : '';
         const body = `<strong>${esc(d.name)}</strong>${price} — ${esc(d.why)}`;
@@ -667,6 +754,13 @@ const fitCountCap = questionCountWordCap;
         <p class="r-why">${primary.why}</p>
         ${reasonsHtml}
         ${holdbacksHtml}
+        ${/* ABOVE the fork branch, not inside it — the fork's two paths are two
+             ways to hold the same three keys, so what the reader owns reads the
+             same against both and saying it twice would be noise. Hoisted here
+             after it first shipped inside the non-fork branch only, which meant
+             the readers most likely to already own hardware — the ones being
+             sent to multisig — were the ones who never saw it. */''}
+        ${ownedContext(primary)}
         ${primary.fork ? forkHtml(primary.fork, primary.tier, saveControl) : `
         ${walletCard(primary, adaptive, sel)}
         ${checklistHandoff()}
@@ -1115,6 +1209,16 @@ const fitCountCap = questionCountWordCap;
   #finder .r-owned.ok { border-left-color: var(--safe); background: var(--safe-dim); }
   #finder .r-owned p { margin: 0 0 0.5rem; font-size: 0.94rem; color: var(--text); }
   #finder .r-owned p:last-child { margin-bottom: 0; }
+  /* A verdict chip per line, so the panel is scannable — which one works, which
+     one doesn't — without reading every sentence. */
+  #finder .ro-k { display: inline-block; font-size: 0.64rem; letter-spacing: 0.07em; text-transform: uppercase;
+    padding: 0.1rem 0.4rem; border-radius: 0.3rem; margin-right: 0.4rem; vertical-align: 0.05rem;
+    border: 1px solid var(--line); color: var(--muted); }
+  #finder .ro-k.ok  { color: var(--safe);   border-color: color-mix(in srgb, var(--safe) 45%, var(--line));   background: var(--safe-dim); }
+  #finder .ro-k.warn{ color: var(--warn);   border-color: color-mix(in srgb, var(--warn) 45%, var(--line));   background: var(--warn-dim); }
+  #finder .ro-k.bad { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, var(--line)); background: var(--danger-dim); }
+  #finder .r-owned .ro-count { border-top: 1px solid var(--line-soft); padding-top: 0.6rem; margin-top: 0.7rem; }
+  #finder .r-owned .ro-note { color: var(--muted); font-size: 0.88rem; }
   #finder .r-how { color: var(--accent); text-decoration: none; font-size: 0.8rem; font-family: var(--mono); white-space: nowrap; }
   #finder .r-how:hover { text-decoration: underline; }
   #finder .r-save { border-top: 1px solid var(--line-soft); margin-top: 1.4rem; padding-top: 1.2rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 0.9rem; }
