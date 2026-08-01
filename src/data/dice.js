@@ -148,13 +148,42 @@ export const deviceProcedures = [
     dice: 'One ordinary six-sided die.',
     path: ['New Seed Words', 'Advanced', '12 Word Dice Roll  or  24 Word Dice Roll'],
     pathNote:
-      'On a device with no seed on it yet. Older write-ups send you to Import Existing → Dice Rolls; that was the menu in firmware 2.1.1 and it is not where the option lives today.',
+      'On a device with no seed on it yet. This is the route on current Q, Mk4 and Mk5 firmware — the Mk3 is a different menu entirely, and has its own entry below.',
     rolls: coldcardRolls,
     detail:
       'Each roll changes the running SHA-256 on screen, so you can watch your own entropy accumulate. With zero rolls entered the display always reads e3b0c4…8b855, which is SHA-256 of the empty string — the vendor points this out so you can confirm the device is hashing exactly what you gave it and nothing else.',
     verify:
       'Coinkite publishes rolls.py and rolls12.py so you can reproduce the whole calculation from your sequence and confirm the words match. Their own instruction is to do that on an offline machine — an amnesic live system with no network and no disk — and never on your everyday computer.',
     source: { label: 'Coinkite — Master Seed', url: 'https://coldcard.com/docs/import#dice-rolls-only' },
+    source2: { label: 'Coinkite — Verifying Dice Roll Math', url: 'https://coldcard.com/docs/verifying-dice-roll-math/' },
+  },
+  {
+    // THE MK3 IS A SEPARATE ENTRY BECAUSE ITS MENU IS SEPARATE. The vendor's
+    // own current security advisory routes the Mk3 through Import Existing >
+    // Dice Rolls, which is NOT the path on Q/Mk4/Mk5 — treating one model's
+    // menu as the maker's menu would send a reader hunting a screen their
+    // device does not have, while holding their savings.
+    //
+    // It carries no `covers` because this guide does not rate the Mk3, and it
+    // is here anyway: it is the model with the least entropy under the 2026
+    // seed-generation advisory, so its owners are the readers most likely to
+    // be regenerating a seed on the day they arrive here.
+    key: 'coldcard-mk3',
+    vendor: 'Coinkite',
+    label: 'Coldcard Mk3',
+    covers: [],
+    family: 'hashed',
+    dice: 'One ordinary six-sided die.',
+    path: ['Import Existing', 'Dice Rolls'],
+    pathNote:
+      'On an empty Mk3 running firmware 4.2.0 or later — update first, or the device you are about to trust is the one with the defect. Coinkite calls this an advanced procedure and says so plainly; the ordinary New Wallet flow on 4.2.0 is already fixed and is the safer choice unless you specifically want the device to have no hand in your entropy.',
+    rolls:
+      'At least 99 independent rolls, per Coinkite’s advisory. Fewer than that and this path is not worth taking.',
+    detail:
+      'This is a dedicated dice-only route: it hashes your roll sequence directly and does not touch the device’s random-number generator at all. That is the whole point of using it on this model — the generator is exactly what the advisory is about.',
+    verify:
+      'Verify the written backup and the wallet fingerprint of the old seed before erasing anything, verify a receive address on the new one, and send a small test transaction before moving the rest. If the Mk3 is your only device you have to alternate between the two seeds to do this, which is the part people get wrong.',
+    source: { label: 'Coinkite — security advisory (Mk3 dice-only migration)', url: 'https://blog.coinkite.com/coldcard-mk3-seed-generation-warning/' },
     source2: { label: 'Coinkite — Verifying Dice Roll Math', url: 'https://coldcard.com/docs/verifying-dice-roll-math/' },
   },
   {
