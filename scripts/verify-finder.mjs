@@ -244,7 +244,12 @@ for (const stakes of STAKES) for (const tech of TECH) for (const sovereignty of 
   const scores = { ...defaultsFor(stakes), 'self-loss': v, remote: w };
   const res = recommendV2({ ...baseAnswers, stakes, tech, sovereignty, scores });
   // Mirror the engine's primary gates (C4 + the learning continuity gate).
-  const eligible = res.fit.filter((r) => !r.gated && !(stakes === 'learning' && r.family === 'fork'));
+  // Mirrors the engine's widened learning gate: at learning stakes the primary
+  // stays in the SINGLE family — not merely "not the fork". It was `family ===
+  // 'fork'` here and in the engine while the passphrase could never win
+  // anything; once it became reachable that wording let it through, so both
+  // sides moved to "anything outside the simple family" (2026-08-01).
+  const eligible = res.fit.filter((r) => !r.gated && !(stakes === 'learning' && r.family !== 'single'));
   const top = eligible[0];
   const rival = eligible.find((r) => r.family !== top.family);
   const shouldTie = rival && top.fit - rival.fit < TIE_MARGIN;

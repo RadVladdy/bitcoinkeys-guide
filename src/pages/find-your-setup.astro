@@ -560,6 +560,18 @@ const fitCountCap = questionCountWordCap;
   const tieLabel = (setup) =>
     (FAMILY[setup] === 'fork' ? '2-of-3 multisig' : (SETUP_TIE_LABEL[setup] || setup));
 
+  // Ladder position of a rendered card. Needed because the second choice is now
+  // derived from the SCORES rather than a rule, so it can legitimately be a
+  // LOWER rung than the first — "you could also just do less, and here is what
+  // that costs you". The old label ("where you'd go next") was written when a
+  // step-down was structurally impossible, and would be a plain lie on those.
+  const LADDER_POS = { 'single-sig': 1, passphrase: 2, multisig: 3, collaborative: 4, 'three-of-five': 3 };
+  const cardRung = (c) => {
+    if (!c) return null;
+    if (c.fork) return /collaborat/i.test(c.rungLabel || '') ? 4 : 3;
+    return LADDER_POS[c.rungSlug] || null;
+  };
+
   function renderResult() {
     renderProgress(null);
     const rb = document.getElementById('q-resume');
@@ -631,7 +643,11 @@ const fitCountCap = questionCountWordCap;
         ${saveControl(primary.rungSlug, primary.rungLabel || primary.headline, primary.tier, 'quiz-primary', recSlugsFrom(primary.wallets))}`}
       </div>
       ${secondary ? `<div class="r-card secondary">
-        <p class="r-tier mono muted">${secondaryIsRival ? '2nd choice · equally valid — here’s the trade' : '2nd choice · where you’d go next'}</p>
+        <p class="r-tier mono muted">${secondaryIsRival
+          ? '2nd choice · equally valid — here’s the trade'
+          : (cardRung(secondary) !== null && cardRung(primary) !== null && cardRung(secondary) < cardRung(primary)
+              ? '2nd choice · the simpler alternative'
+              : '2nd choice · where you’d go next')}</p>
         <h2 class="r-headline sm">${esc(secondary.rungLabel)}</h2>
         <p class="r-step-act mono">${esc(secondary.headline)}</p>
         <p class="r-why">${esc(secondary.when)}</p>
