@@ -707,7 +707,16 @@ const fitCountCap = questionCountWordCap;
         const isSaved = savedSource ? b.source === savedSource : Boolean(savedRung && b.rung === savedRung);
         if (isSaved) anySaved = true;
         if (isSaved) {
-          b.el.innerHTML = `<span class="r-saved">✓ This is your saved plan.</span>`;
+          // SAVING IS NOT THE END OF THE JOURNEY, and the confirmation used to
+          // read like it was: a tick, a sentence, and no way forward. The next
+          // thing the reader has to do — choose the hardware that fills the plan
+          // — lives on /my-plan, and this is the moment they are ready for it.
+          // The CTA goes here rather than at the foot of the page because it is
+          // the reward for the action they just took, and it appears only once
+          // there is a plan to open.
+          b.el.innerHTML = `<span class="r-saved">✓ This is your saved plan.</span>
+            <a class="btn-save r-open" href="/my-plan">Open your plan <span class="arw">→</span></a>
+            <span class="r-save-note">Next: pick the hardware that fills it — and we'll say whether anything you already own clears our bar.</span>`;
         } else {
           b.el.innerHTML = `<button class="btn-save js-save" type="button">＋ Save this setup to my plan</button>
             <span class="r-save-note">One setup at a time — kept only in your browser until you save it. <a href="/my-plan">Your data, not ours</a>.</span>`;
@@ -1109,6 +1118,12 @@ const fitCountCap = questionCountWordCap;
   #finder .r-save-note a { color: var(--accent); text-decoration: none; }
   #finder .r-save-note a:hover { text-decoration: underline; }
   #finder .r-saved { color: var(--safe); font-weight: 600; font-size: 0.92rem; }
+  /* The onward CTA, which is an <a> rather than a <button> and so needs the
+     text-decoration and layout the shared .btn-save rule does not carry. Filled
+     rather than soft: it is the primary action on the card once a plan exists. */
+  #finder a.btn-save.r-open { text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;
+    background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  #finder a.btn-save.r-open:hover { filter: brightness(1.06); }
   #finder .r-save-err { color: var(--danger); font-weight: 600; font-size: 0.92rem; }
   #finder .r-links { display: flex; flex-wrap: wrap; gap: 0.8rem; align-items: center; margin: 1.5rem 0 0; }
   /* the state-dependent actions sit in the same flex row as the static ones */
