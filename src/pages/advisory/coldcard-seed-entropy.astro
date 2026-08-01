@@ -57,6 +57,16 @@ const fmt = (iso) => new Date(iso + 'T12:00:00Z').toLocaleDateString('en-US', { 
       {a.whatToDo.map((step) => <li>{step}</li>)}
     </ol>
 
+    <div class="callout">
+      <span class="label">If you are generating a fresh seed this week</span>
+      <p style="margin:0">
+        Dice are why some people were never in scope, and the migration is the one moment the extra hour costs
+        you nothing you were not already spending. <a href="/roll-your-own-seed">Roll your own seed with dice</a>
+        walks the procedure, with the current menu path for each device we rate — and, as everywhere on this
+        site, it never asks what you rolled.
+      </p>
+    </div>
+
     <h2>The fixed firmware</h2>
     <ul class="adv-fw">
       {a.fixedFirmware.map((f) => <li><strong>{f.model}</strong> — {f.version}</li>)}
