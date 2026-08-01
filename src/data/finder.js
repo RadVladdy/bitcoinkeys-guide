@@ -43,6 +43,11 @@ export const CONCERNS = [
     // common is not that people had an account; it is how much of their stack
     // was sitting in it. Every prompt in this section is worded that way.
     blurb: 'A meaningful share of your Bitcoin sitting with an exchange or custodian that goes under, freezes your account, or loses your coins — the Mt. Gox to FTX class of loss. Small change on an app is not what this is about.',
+    // EVERY SETUP ANSWERS THIS COMPLETELY, so the section shapes the reader's
+    // picture rather than the recommendation, and the copy says so rather than
+    // letting them infer otherwise from a bar that visibly moves. Stated on the
+    // concern itself so /how-we-weigh-risk and the walked section cannot drift.
+    settled: 'Every setup here takes this one to zero — that is what holding your own keys means. Even the collaborative option: the service holds one key of three, so if it fails you still hold two and your coins still move. What you would lose is the safety net, not the money.',
   },
   {
     key: 'self-loss',
@@ -132,6 +137,26 @@ export const WEIGHT_POINTS = { small: 6, medium: 10, large: 16 };
 
 export const prompts = [
   // ── custodial ── (raises: exchange/custodian failure)
+  //
+  // FOUR PROMPTS, trimmed from seven on 2026-08-01. This section cannot change
+  // the recommendation and is not supposed to: all four setups score 3 here,
+  // because holding your own keys takes company failure to zero whichever setup
+  // you hold them in. What the section does is build the reader's PICTURE and
+  // set up the custody-trade argument, and seven questions is a lot to ask for
+  // that — in the first section they meet, before anything has been decided.
+  //
+  // The three dropped (who audits it · a withdrawal you saw delayed · is it
+  // regulated where you live) are all VENUE-QUALITY refinements: they only
+  // matter once you have established there is a venue, which the first prompt
+  // already does. The closest call was the delayed-withdrawal one, which is the
+  // best early-warning signal there is — withdrawal friction preceded Celsius
+  // by about a month — but it is a TIMING signal ("get out now"), and the
+  // checklist already says get out.
+  //
+  // KEEP THE 6-POINT PROMPT. The expected-bundle target for this section is 22
+  // and WEIGHT_POINTS are 6/10/16, so 16 + 6 is the only way to reach it — drop
+  // the small one and C6 has no reachable subset and degrades to checking the
+  // formula against itself.
   {
     id: 'c-exchange', concern: 'custodial', weight: 'large',
     statement: 'A meaningful share of my Bitcoin sits on an exchange or app, not in a wallet I control.',
@@ -148,24 +173,9 @@ export const prompts = [
     why: 'Every 2022 bankruptcy that froze retail funds was a yield platform. Yield means your coins are out working — and not for you.',
   },
   {
-    id: 'c-audit', concern: 'custodial', weight: 'small',
-    statement: 'I couldn’t say who audits the platform holding it, or whether it publishes proof of reserves.',
-    why: 'Platforms that show their reserves can be checked; platforms that don’t can only be believed.',
-  },
-  {
-    id: 'c-friction', concern: 'custodial', weight: 'medium',
-    statement: 'I’ve had a withdrawal delayed, an account frozen, or a surprise re-verification.',
-    why: 'Withdrawal friction preceded the Celsius collapse by about a month — it is the classic early warning.',
-  },
-  {
     id: 'c-never-withdrawn', concern: 'custodial', weight: 'medium',
     statement: 'I’ve never actually withdrawn to a wallet of my own.',
     why: 'In a bank-run the withdrawal window is days. An exit you have never practised is not an exit plan.',
-  },
-  {
-    id: 'c-unregulated', concern: 'custodial', weight: 'medium',
-    statement: 'My exchange isn’t regulated where I live.',
-    why: 'Of the exchanges that vanished with no explanation at all, almost every one was an unregulated venue.',
   },
 
   // ── self-loss ── (raises: self-inflicted loss)

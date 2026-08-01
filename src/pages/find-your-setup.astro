@@ -305,6 +305,7 @@ const fitCountCap = questionCountWordCap;
     elCard.innerHTML = `<div class="q-card as-card">
       <h2 class="q-title">${esc(info.label)}</h2>
       <p class="q-help">${esc(SECTION_RECAP[c])}</p>
+      ${info.settled ? `<p class="as-settled">${esc(info.settled)} <em>These questions shape your picture, not the recommendation.</em></p>` : ''}
       <div class="as-meter as-live">
         <div class="as-meter-head"><span class="as-k mono">Your level</span>${wordTag(c, w)}</div>
         ${barHtml(c, s, d, w)}
@@ -1009,6 +1010,12 @@ const fitCountCap = questionCountWordCap;
   #finder .as-word.w-elevated { color: var(--warn); }
   #finder .as-word.w-high { color: var(--danger); }
   #finder .as-legend { color: var(--faint); font-size: 0.76rem; margin: 0.55rem 0 0; }
+  /* Reassurance, not a caveat — the `safe` token rather than `warn`, because
+     "every setup fixes this" is good news and should not read as a hedge. */
+  #finder .as-settled { border-left: 3px solid color-mix(in srgb, var(--safe) 55%, var(--line));
+    background: var(--safe-dim); border-radius: 0.4rem; padding: 0.6rem 0.85rem;
+    margin: 0 0 1rem; font-size: 0.86rem; line-height: 1.55; color: var(--muted); }
+  #finder .as-settled em { color: var(--text); font-style: normal; font-weight: 600; }
   #finder .as-estnote { color: var(--muted); font-size: 0.88rem; margin: 0 0 1.2rem; }
   #finder .as-estnote strong { color: var(--text); }
   /* the quiet methodology pointer on the intro + review screens */
