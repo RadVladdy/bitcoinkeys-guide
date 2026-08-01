@@ -52,6 +52,18 @@ export const CONCERNS = [
     label: 'Targeted physical theft',
     blurb: 'Someone coming after you specifically — coercion, burglary for devices and backups, insider theft by people who know you.',
   },
+  {
+    key: 'exposure',
+    label: 'Your identity tied to your coins',
+    blurb: 'A company inside your setup that knows who you are and can see what you hold — ID checks that end up in a database, a service that can be compelled, a permanent link between your name and your balance.',
+    // NOT a share of expected loss like the other four, and the assessment must
+    // not present it as one. The others answer "how does Bitcoin get taken from
+    // you"; this one answers "how much do you mind being known". It is scored
+    // the same way and multiplies against protection the same way, but its
+    // default comes from the sovereignty ANSWER rather than from research base
+    // rates, because it is a preference, not a frequency.
+    preference: true,
+  },
 ];
 
 export const CONCERN_KEYS = CONCERNS.map((c) => c.key);
@@ -67,10 +79,18 @@ export const SECTION_ORDER = ['custodial', 'self-loss', 'remote', 'physical'];
 // (large holders are mostly off-exchange already).
 
 const DEFAULTS = {
-  small: { custodial: 33, 'self-loss': 30, remote: 35, physical: 2 },
-  mid:   { custodial: 20, 'self-loss': 35, remote: 40, physical: 5 },
-  large: { custodial: 10, 'self-loss': 35, remote: 35, physical: 20 },
+  small: { custodial: 33, 'self-loss': 30, remote: 35, physical: 2, exposure: 50 },
+  mid:   { custodial: 20, 'self-loss': 35, remote: 40, physical: 5, exposure: 50 },
+  large: { custodial: 10, 'self-loss': 35, remote: 35, physical: 20, exposure: 50 },
 };
+
+// `exposure` is seeded by the SOVEREIGNTY answer, not by stakes — the reader
+// already tells us how much they mind a third party, and until now that answer
+// was spent on a flat cost multiplier applied to one setup plus a hard gate
+// deciding which path led a card. Both were the model compensating for a
+// concern it could not express. Scored, it behaves like every other answer:
+// it moves a bar, and the bar moves the recommendation.
+export const EXPOSURE_BY_SOV = { pure: 85, 'lean-self': 55, 'open-help': 20 };
 
 // Consequence-of-loss answer → default band. 'serious' is still "mid": the
 // design's large band is $1M+/public-footprint territory, which maps to
@@ -98,7 +118,7 @@ export function defaultsFor(stakes) {
 // deliberate — its default share is small, so it takes little evidence of
 // being a target to be genuinely "high" for you.
 
-export const HALF_BAND = { custodial: 10, 'self-loss': 10, remote: 10, physical: 4 };
+export const HALF_BAND = { custodial: 10, 'self-loss': 10, remote: 10, physical: 4, exposure: 15 };
 
 export function scoreWord(n, concern, stakes = 'meaningful') {
   const d = defaultsFor(stakes)[concern];
@@ -361,7 +381,17 @@ export function scoreFromPrompts(checkedPrompts = [], stakes = 'meaningful', ski
 // collaborative's self-loss 3 is the provider key-replacement backstop.
 
 export const PROTECTION = {
-  'single-sig':    { weights: { custodial: 3, 'self-loss': 1,  remote: 2, physical: 0 }, complexity: 0, devices: 1 },
+  // ── the `exposure` column, added 2026-08-01 ──────────────────────────────
+  // Positive = keeps your name away from your coins. NEGATIVE = actively
+  // creates the link, the same way the passphrase carries a negative on
+  // self-loss. Collaborative custody is the only setup here that hands a
+  // company your identity, so it is the only negative.
+  //
+  // And collaborative's `remote` drops 3 -> 2. KYC is not risk-free: an ID
+  // database is a phishing and extortion list the moment it leaks, and the
+  // holder is on it through no fault of their own. Scoring it level with a
+  // setup that never collected the data said something untrue.
+  'single-sig':    { weights: { custodial: 3, 'self-loss': 1,  remote: 2, physical: 0, exposure: 2 }, complexity: 0, devices: 1 },
   // The passphrase row, re-weighted 2026-08-01.
   //   physical 3 — a passphrase is a full duress defence (the decoy/hidden
   //     wallet), not a partial one. Level with multisig: both mean what is on
@@ -380,10 +410,10 @@ export const PROTECTION = {
   // top recovery-firm caseload, and a wrong one shows an empty wallet with no
   // error. That penalty, plus the C4 gate, is now the ONLY thing holding the
   // passphrase back — which is the honest place for the brake to sit.
-  passphrase:      { weights: { custodial: 3, 'self-loss': -0.5, remote: 2.5, physical: 3 }, complexity: 0, devices: 1 },
-  multisig:        { weights: { custodial: 3, 'self-loss': 0,  remote: 3, physical: 3 }, complexity: 2, devices: 3 },
-  collaborative:   { weights: { custodial: 3, 'self-loss': 3,  remote: 3, physical: 3 }, complexity: 1, devices: 2 },
-  'three-of-five': { weights: { custodial: 3, 'self-loss': 1,  remote: 3, physical: 3 }, complexity: 3, devices: 5 },
+  passphrase:      { weights: { custodial: 3, 'self-loss': -0.5, remote: 2.5, physical: 3, exposure: 2.5 }, complexity: 0, devices: 1 },
+  multisig:        { weights: { custodial: 3, 'self-loss': 0,  remote: 3, physical: 3, exposure: 3 }, complexity: 2, devices: 3 },
+  collaborative:   { weights: { custodial: 3, 'self-loss': 3,  remote: 2, physical: 3, exposure: -2 }, complexity: 1, devices: 2 },
+  'three-of-five': { weights: { custodial: 3, 'self-loss': 1,  remote: 3, physical: 3, exposure: 3 }, complexity: 3, devices: 5 },
 };
 
 export const SETUP_KEYS = Object.keys(PROTECTION);
@@ -502,7 +532,14 @@ const COMPLEXITY_BASE = 0.9;
 // Collaborative custody's fee/KYC/trust preference cost, scaled by the
 // sovereignty answer. It steers, it never gates: even 'pure' users get the
 // fork when their scores demand it — with the DIY path leading (the gate).
-const SOV_COST = { pure: 1.0, 'lean-self': 0.8, 'open-help': 0.45 };
+// RETIRED 2026-08-01 — kept only to validate the sovereignty answer. It used to
+// be a flat penalty applied to collaborative custody alone, which is how the
+// model expressed "you said you want sovereignty" without ever scoring it. That
+// job now belongs to the `exposure` concern (EXPOSURE_BY_SOV), where the reader
+// can see the bar, adjust it, and watch it move the answer — like every other
+// input. A preference applied as a hidden discount is not a preference the
+// reader can argue with.
+const SOV_VALUES = { pure: 1, 'lean-self': 1, 'open-help': 1 };
 // Extra hardware beyond the first device weighs on a budget; consequence-of-
 // loss is the only budget proxy we have (never an amount).
 const BUDGET_FACTOR = { learning: 0.25, meaningful: 0.15, serious: 0.05, lifechanging: 0 };
@@ -519,12 +556,20 @@ export const TIE_MARGIN = 0.15;
 export function fitFor(scores, answers = {}) {
   const stakes = STAKES_FACTOR[answers.stakes] ? answers.stakes : 'meaningful';
   const tech = TECH_FACTOR[answers.tech] ? answers.tech : 'careful';
-  const sov = SOV_COST[answers.sovereignty] ? answers.sovereignty : 'lean-self';
+  const sov = SOV_VALUES[answers.sovereignty] ? answers.sovereignty : 'lean-self';
   const d = defaultsFor(stakes);
+  // `exposure` defaults to whatever the sovereignty ANSWER implies, not to the
+  // neutral 50 in DEFAULTS — that neutral only exists so the shape stays whole
+  // for callers that pass no answers. An explicit score always wins, so a
+  // reader who nudges the bar on the review screen overrides their own earlier
+  // answer, exactly as they can for the other four.
+  const dEff = { ...d };
+  if (EXPOSURE_BY_SOV[sov] !== undefined) dEff.exposure = EXPOSURE_BY_SOV[sov];
+
   const eff = {};
   for (const c of CONCERN_KEYS) {
-    const s = typeof scores[c] === 'number' ? scores[c] : d[c];
-    eff[c] = Math.min(100, Math.max(0, d[c] + DEVIATION_GAIN * (s - d[c]))) / 100;
+    const s = typeof scores[c] === 'number' ? scores[c] : dEff[c];
+    eff[c] = Math.min(100, Math.max(0, dEff[c] + DEVIATION_GAIN * (s - dEff[c]))) / 100;
   }
   const selfWord = scoreWord(
     typeof scores['self-loss'] === 'number' ? scores['self-loss'] : d['self-loss'],
@@ -539,7 +584,7 @@ export function fitFor(scores, answers = {}) {
     const protection = contributions.reduce((t, x) => t + x.points, 0);
     const costs = {
       complexity: Math.round(P.complexity * TECH_FACTOR[tech] * STAKES_FACTOR[stakes] * COMPLEXITY_BASE * 100) / 100,
-      sovereignty: setup === 'collaborative' ? SOV_COST[sov] : 0,
+      sovereignty: 0,
       budget: Math.round((P.devices - 1) * BUDGET_FACTOR[stakes] * 100) / 100,
       simplicityEdge: Math.round((SIMPLICITY_EDGE[stakes]
         * (SIMPLICITY_SHARE[setup] || 0)
