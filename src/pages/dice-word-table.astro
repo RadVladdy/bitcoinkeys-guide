@@ -42,19 +42,12 @@ import { diceVerified } from '../data/dice.js';
   <section class="dwt-wrap">
     {blocks.map((b) => (
       <div class="dwt-block">
-        <h2 class="dwt-h">Throws 1–2: <span class="mono">{b.prefix}</span></h2>
-        <table class="dwt">
-          <thead><tr><th>Throws</th><th>Flip</th><th>Word</th></tr></thead>
-          <tbody>
-            {b.items.map((r) => (
-              <tr>
-                <td class="mono">{r.dice}</td>
-                <td class="mono">{r.coin}</td>
-                <td>{r.word}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <h2 class="dwt-h">{b.prefix}<span class="dwt-hx">·</span></h2>
+        <ul class="dwt-rows">
+          {b.items.map((r) => (
+            <li><span class="dwt-k mono">{r.dice}{r.coin}</span>{r.word}</li>
+          ))}
+        </ul>
       </div>
     ))}
   </section>
@@ -76,20 +69,44 @@ import { diceVerified } from '../data/dice.js';
   .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
   .btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
 
-  /* Multi-column so 2,048 rows are a handful of sheets rather than fifty. */
-  .dwt-wrap { columns: 4 14rem; column-gap: 1.4rem; margin-top: 1.4rem; }
-  .dwt-block { break-inside: avoid-column; margin-bottom: 1.2rem; }
-  .dwt-h { font-size: .82rem; margin: 0 0 .25rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
-  .dwt { width: 100%; border-collapse: collapse; font-size: .78rem; }
-  .dwt th { text-align: left; font-size: .68rem; text-transform: uppercase; letter-spacing: .05em;
-    color: var(--muted); border-bottom: 1px solid var(--line); padding: .1rem .3rem; }
-  .dwt td { padding: .06rem .3rem; border-bottom: 1px solid var(--line-soft, transparent); }
+  /* One compact line per word rather than a table. A 3-cell table row carries
+     its own padding and borders 2,048 times over, which is what turned this
+     into a 26-page print-out. Same markup for screen and print — a separate
+     print-only rendering of 2,048 rows is two places for a word to be wrong. */
+  .dwt-wrap { columns: 4 13rem; column-gap: 1.5rem; margin-top: 1.4rem; }
+  .dwt-block { break-inside: avoid-column; margin-bottom: .8rem; }
+  .dwt-h { font-size: .74rem; margin: 0 0 .15rem; letter-spacing: .06em; color: var(--muted);
+    font-family: var(--mono); font-weight: 600; }
+  .dwt-hx { opacity: .45; margin-left: .3rem; }
+  .dwt-rows { list-style: none; padding: 0; margin: 0; font-size: .76rem; line-height: 1.35; }
+  .dwt-rows li { white-space: nowrap; }
+  .dwt-k { color: var(--muted); margin-right: .4rem; }
 
   @media print {
-    /* Ink and paper: black on white, no page furniture, no controls. */
-    .dwt-intro .lead, .dwt-print, .dwt-how { display: none; }
-    .dwt-wrap { columns: 5 10rem; }
-    .dwt td, .dwt th { color: #000; }
-    .dwt-h { color: #000; }
+    /* Ink and paper. Everything above the table is screen furniture; the
+       method lives on the procedure page, which is where a reader who needs
+       it is standing anyway. */
+    .dwt-intro { display: none; }
+    /* Site chrome off the print-out. The nav and footer are wasted ink, and
+       the advisory banner would stamp a dated incident onto an artifact that
+       is otherwise good forever — the BIP-39 wordlist never changes, so a
+       printed copy of this should never go stale. Global selectors because
+       the elements belong to the layout, not to this page's scope. */
+    :global(.adv-banner), :global(header.nav), :global(footer.foot) { display: none !important; }
+    /* The min column width is load-bearing: `columns: N <min>` silently drops
+       to fewer columns when N × min exceeds the printable width, so asking for
+       six 8rem columns on A4 quietly produced four. Keep the minimum below
+       (page width − margins) ÷ N or the count is a suggestion. */
+    .dwt-wrap { columns: 7 4.6rem; column-gap: 0.75rem; margin: 0; }
+    .dwt-rows { font-size: 6.2pt; line-height: 1.1; }
+    .dwt-rows li { color: #000; }
+    .dwt-k { color: #444; margin-right: .25rem; }
+    .dwt-h { font-size: 6pt; color: #000; margin-bottom: .05rem; }
+    /* MUST flow across columns in print. Each block is 128 rows — taller than
+       a printed page — so avoid-column cannot be honoured and instead leaves
+       most of every column empty. That, not the font size, is what made this
+       a 26-page document. */
+    .dwt-block { margin-bottom: .28rem; break-inside: auto; }
+    @page { margin: 8mm; }
   }
 </style>
