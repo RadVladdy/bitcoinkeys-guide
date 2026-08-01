@@ -1,0 +1,107 @@
+---
+// Security advisory — the Coldcard seed-generation flaw exploited 2026-07-30.
+//
+// This page exists because the guide RATES the affected device in its top tier
+// and recommends it in the setup finder. A guide that sends readers to a device
+// and then goes quiet when that device's seeds turn out to be guessable is not
+// worth reading. Everything factual here derives from advisories.js so the
+// banner, the device cards and this page cannot drift apart.
+//
+// TONE: calm and specific. The vendor's own guidance is that panicked migration
+// causes its own losses, and that matches everything this guide teaches. The
+// page answers two DIFFERENT questions in two different places — "is my seed at
+// risk" and "is this device still worth buying" — because a worried reader will
+// otherwise collapse them into one and get both wrong.
+import Base from '../../layouts/Base.astro';
+import { advisories } from '../../data/advisories.js';
+const a = advisories.find((x) => x.id === 'coldcard-seed-entropy-2026');
+const fmt = (iso) => new Date(iso + 'T12:00:00Z').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+---
+<Base
+  title={`${a.title} · BitcoinKeys.guide`}
+  description="A firmware flaw made some Coldcard seed phrases guessable, and wallets were drained on 30 July 2026. Which devices and firmware are affected, what protected people, and exactly what to do — in plain English."
+  verified={a.lastUpdated}
+>
+  <section class="prose">
+    <p class="eyebrow">Security advisory</p>
+    <h1>Coldcard seed-generation flaw — <span class="accent">check whether your seed is affected</span></h1>
+
+    <div class="adv-status">
+      <span class="adv-pill mono">Active</span>
+      <span class="adv-meta mono">Published {fmt(a.published)} · affects {a.affectsDevices.join(' · ')}</span>
+    </div>
+
+    <p class="lead">{a.summary}</p>
+
+    <div class="adv-box adv-urgent">
+      <p class="adv-k mono">The thing most people get wrong</p>
+      <p class="adv-claim">“{a.keyMisunderstanding.claim}”</p>
+      <p>{a.keyMisunderstanding.truth}</p>
+    </div>
+
+    <h2>Is your seed affected?</h2>
+    <p>
+      This depends on <strong>which device you generated the seed on</strong> and <strong>roughly when</strong> —
+      not on the firmware you are running today.
+    </p>
+    {a.exposure.map((e) => (
+      <div class={'adv-band' + (e.band === 'Not affected by this flaw' ? ' is-ok' : e.band === 'Highest risk' ? ' is-bad' : '')}>
+        <p class="adv-k mono">{e.band}</p>
+        <p class="adv-who">{e.who}</p>
+        <p class="adv-detail">{e.detail}</p>
+      </div>
+    ))}
+
+    <h2>What to do</h2>
+    <ol class="adv-steps">
+      {a.whatToDo.map((step) => <li>{step}</li>)}
+    </ol>
+
+    <h2>The fixed firmware</h2>
+    <ul class="adv-fw">
+      {a.fixedFirmware.map((f) => <li><strong>{f.model}</strong> — {f.version}</li>)}
+    </ul>
+    <p class="adv-detail">
+      Update before you generate anything new, so the device you are about to trust is generating properly.
+      Updating does not repair an existing seed — see above.
+    </p>
+
+    <h2>Where we stand</h2>
+    <p>{a.ourTake}</p>
+
+    <div class="adv-box">
+      <p class="adv-k mono">The lesson worth keeping</p>
+      <p>{a.lesson}</p>
+    </div>
+
+    <h2>Sources</h2>
+    <p class="adv-detail">This is not our research. The technical findings are:</p>
+    <ul class="adv-fw">
+      {a.sources.map((s) => (
+        <li><a href={s.url} rel="noopener noreferrer" target="_blank">{s.label} ↗</a></li>
+      ))}
+    </ul>
+    <p class="adv-detail">
+      Figures were still being revised as researchers mapped the on-chain activity, so treat any single total as provisional.
+      What is not provisional is the flaw, the affected firmware ranges, and what mitigated it.
+    </p>
+  </section>
+</Base>
+
+<style>
+  .adv-status { display: flex; flex-wrap: wrap; gap: .6rem; align-items: center; margin: -.4rem 0 1.4rem; }
+  .adv-pill { background: var(--danger); color: var(--accent-ink); border-radius: 999px; padding: .15rem .7rem; font-size: .78rem; letter-spacing: .04em; text-transform: uppercase; }
+  .adv-meta { color: var(--muted); font-size: .85rem; }
+  .adv-box { border: 1px solid var(--line); border-radius: var(--radius); padding: 1.1rem 1.3rem; margin: 1.6rem 0; background: var(--accent-soft); }
+  .adv-urgent { border: 1px solid var(--danger); background: var(--danger-dim); }
+  .adv-k { font-size: .78rem; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); margin: 0 0 .4rem; }
+  .adv-claim { font-style: italic; font-size: 1.05rem; margin: 0 0 .6rem; }
+  .adv-band { border-left: 3px solid var(--line); padding: .2rem 0 .2rem 1rem; margin: 1.1rem 0; }
+  .adv-band.is-bad { border-left-color: var(--danger); }
+  .adv-band.is-ok { border-left-color: var(--safe); }
+  .adv-who { font-weight: 600; margin: 0 0 .3rem; }
+  .adv-detail { color: var(--muted); }
+  .adv-steps li { margin-bottom: .7rem; }
+  .adv-fw { list-style: none; padding-left: 0; }
+  .adv-fw li { margin-bottom: .4rem; }
+</style>

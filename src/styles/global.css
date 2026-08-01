@@ -236,3 +236,31 @@ tbody tr:last-child td { border-bottom: 0; }
 
 hr { border: 0; border-top: 1px solid var(--line-soft); margin: 2rem 0; }
 .section-gap { height: 1px; }
+
+/* Site-wide security-advisory banner (src/data/advisories.js). Sits above the
+   sticky nav in document order and scrolls away with the page — deliberately
+   NOT sticky: an unclosable bar pinned over every page for days trains readers
+   to ignore it, and this needs to still work the next time. */
+.adv-banner {
+  background: var(--danger-dim);
+  border-bottom: 1px solid var(--danger);
+  padding: .6rem 1rem;
+}
+.adv-banner p {
+  max-width: var(--wrap, 68rem);
+  margin: 0 auto;
+  font-size: .92rem;
+  line-height: 1.45;
+}
+.adv-banner-tag {
+  display: inline-block;
+  background: var(--danger);
+  color: var(--accent-ink);
+  border-radius: 999px;
+  padding: .05rem .6rem;
+  margin-right: .5rem;
+  font-size: .72rem;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.adv-banner a { font-weight: 600; white-space: nowrap; }

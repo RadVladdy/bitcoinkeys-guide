@@ -9,6 +9,12 @@
 // Entry types: 'price' | 'device' | 'spec' | 'security' | 'feature' | 'content'
 export const changelog = [
   {
+    date: '2026-08-01',
+    type: 'security',
+    title: 'Security advisory: Coldcard seed-generation flaw — and it lands on a device we recommend',
+    detail: 'A build-configuration error introduced into Coldcard firmware in March 2021 made seed generation fall back to a non-cryptographic random number generator. Seeds created on affected firmware carry far less randomness than they should — on a Mk3 running 4.0.1 through 5.0.3, little enough to be guessed offline — and on 30 July 2026 an attacker did exactly that, sweeping hundreds of wallets in under an hour. Every one of them was single-signature with no passphrase. We rate the Coldcard Q and Coldcard Mk5 in our cold-storage tier and the setup finder recommends the Q by name, so this lands squarely on our own advice and we are not going to be quiet about it. There is now a full advisory on the site, linked from a banner on every page: which devices and firmware are in scope, the thing almost everyone gets wrong (updating your firmware does NOT repair a seed that already exists — exposure was fixed at the moment the seed was generated), what actually protected people, and what to do, in order, without rushing. What protected people is the part worth keeping: a strong unique passphrase, 50+ of your own dice rolls, or a multisig holding a key from another maker. Each of them meant this flaw could not reach the coins on its own. We are re-reading the Coldcard against our published standard rather than assuming the old rating still holds, and whatever we conclude will be published here rather than quietly edited in.',
+  },
+  {
     date: '2026-07-31',
     type: 'feature',
     title: 'The finder now runs a real risk assessment',
