@@ -31,7 +31,9 @@ import {
   seedLengths, seedLengthByKey, recommendedLength,
   methodFamilies, familyByKey, deviceProcedures, noDicePath,
   kit, failureModes, walkSteps, walkStepCount, failureModeCount,
+  methods, ratedDevicesForMethod, devicesWithNoDicePath, methodCount,
 } from '../data/dice.js';
+import { seedCosts, tableRowCount } from '../data/dice-table.js';
 import { activeAdvisories } from '../data/advisories.js';
 import { numberWord, numberWordCap } from '../data/numbers.js';
 
@@ -45,6 +47,18 @@ const coldcard = deviceProcedures.find((d) => d.key === 'coldcard');
 const bpr = bitsPerRoll.toFixed(3);
 const withDicePath = deviceProcedures.filter((d) => !d.partial).length;
 const dice1 = (n) => n.toFixed(1);
+
+// Device support per option, joined from the same data /wallets filters on.
+// Names are shortened for the tiles only — the maker is obvious in context and
+// the full names are three words long each.
+const trim = (n) => n.replace(' (BTC-only)', '').replace('Blockstream ', '').replace('Foundation ', '');
+const supportFor = (key) => ratedDevicesForMethod(key).map((d) => trim(d.name));
+const optionTiles = methods.map((m) => ({
+  ...m,
+  devices: m.key === 'device' ? null : supportFor(m.key),
+}));
+const noPath = devicesWithNoDicePath.map((d) => trim(d.name));
+const longCost = seedCosts.find((c) => c.words === 24);
 ---
 <Base
   title="Roll your own seed with dice — the real procedure · BitcoinKeys.guide"
@@ -75,6 +89,49 @@ const dice1 = (n) => n.toFixed(1);
         moment you reload. Nothing here is saved, sent or logged.
         Want to see the mechanism instead, with throwaway numbers? That is
         <a href="/deep-dive/dice">the dice demo</a>, and it is a different thing on purpose.
+      </p>
+    </div>
+  </section>
+
+  <section class="prose">
+    <h2 id="options">Your {numberWord(methodCount)} options, and what your device allows</h2>
+    <p>
+      These run from most of the randomness being yours to none of it. The last one is what almost everybody
+      does, and it is not a wrong answer — but it is a choice, and most people make it without knowing they
+      made it.
+    </p>
+  </section>
+
+  <section>
+    <ul class="opt-grid">
+      {optionTiles.map((m) => (
+        <li class={`opt${m.houseDefault ? ' is-default' : ''}`}>
+          <p class="opt-n mono">Option {m.n}{m.houseDefault && <span class="opt-badge">our default</span>}</p>
+          <h3 class="opt-h">{m.label}</h3>
+          <p class="opt-tag">{m.tagline}</p>
+          <p class="opt-yours"><span class="opt-k">Randomness that is yours</span>{m.yours}</p>
+          <p class="opt-how">{m.how}</p>
+          <p class="opt-trust"><span class="opt-k">What you are trusting</span>{m.trust}</p>
+          {m.devices && (
+            <p class="opt-dev">
+              <span class="opt-k">Devices we rate that can do this</span>
+              {m.devices.length ? m.devices.join(' · ') : 'None of them.'}
+            </p>
+          )}
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="prose">
+    <div class="callout" role="note">
+      <span class="label">The short version</span>
+      <p style="margin:0">
+        Only <strong>Coinkite</strong> lets you roll dice on the device itself, so options 2 and 3 are one
+        maker's. On a <strong>Jade</strong> or a <strong>BitBox02</strong>, option 1 is the only way to get your
+        own randomness in. And on {noPath.length ? <strong>{noPath.join(', ')}</strong> : 'some devices'} there
+        is no way at all — the device generates your seed and that is that. Worth knowing before you buy, and
+        you can <a href="/wallets">filter the comparison by it</a>.
       </p>
     </div>
   </section>
@@ -526,4 +583,23 @@ const dice1 = (n) => n.toFixed(1);
 
   .cta-row { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.4rem; }
   .dverified { color: var(--muted); font-size: 0.78rem; margin-top: 1.4rem; }
+
+  /* The four options. auto-fit rather than a fixed column count, so this goes
+     to one column on a phone without a breakpoint to maintain. */
+  .opt-grid { list-style: none; padding: 0; margin: 0; display: grid; gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
+  .opt { border: 1px solid var(--line); border-radius: var(--radius); padding: 1.1rem 1.2rem;
+    background: var(--card, transparent); display: flex; flex-direction: column; }
+  .opt.is-default { border-color: var(--accent); }
+  .opt-n { font-size: .72rem; letter-spacing: .07em; text-transform: uppercase; color: var(--muted);
+    margin: 0 0 .35rem; display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+  .opt-badge { background: var(--accent); color: var(--accent-ink); border-radius: 999px;
+    padding: .1rem .55rem; font-size: .68rem; letter-spacing: .04em; }
+  .opt-h { margin: 0 0 .2rem; font-size: 1.08rem; line-height: 1.25; }
+  .opt-tag { margin: 0 0 .7rem; color: var(--muted); font-style: italic; }
+  .opt-how { margin: 0 0 .7rem; }
+  .opt-k { display: block; font-size: .7rem; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: .1rem; }
+  .opt-yours, .opt-trust { margin: 0 0 .7rem; }
+  .opt-dev { margin: auto 0 0; padding-top: .7rem; border-top: 1px solid var(--line); }
 </style>
