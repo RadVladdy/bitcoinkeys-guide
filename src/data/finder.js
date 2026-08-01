@@ -916,8 +916,26 @@ export function recommendV2(answers = {}) {
   // that "the fork remains one card away, as the step-up" — so filtering it out
   // here would delete the second choice entirely at learning stakes rather than
   // demote it, which is the opposite of what that gate is for.
-  const runnerUp = (family === fitLeader.family ? fitRival : fitLeader)
-    || ranking.find((r) => !r.gated && r.family !== family) || null;
+  // ── the second card: best score among ADJACENT rungs ────────────────────
+  // Still score-derived — but chosen from the primary's LADDER NEIGHBOURS
+  // first, rather than from the whole board.
+  //
+  // Why adjacency (2026-08-01): "next-best family by score" skipped a rung in
+  // 46.8% of results. It offered "multisig, or bare single-sig" and "single-sig,
+  // or hand a key to a company" — two cards that quietly behave as if the rung
+  // between them did not exist. The ladder is the site's whole mental model of
+  // this decision, so two options a reader is asked to choose between should be
+  // neighbours on it; jumping the middle rung reads as if we forgot it.
+  //
+  // A skip is still possible and still correct when the middle rung is GATED —
+  // most often the passphrase, barred by C4 because locking yourself out is the
+  // reader's elevated concern. That case is deliberate and the primary card
+  // already carries a holdback saying so in words, so the reader is told why
+  // rather than left to notice the gap.
+  const primaryRung = LADDER_RANK[family];
+  const otherFamilies = ranking.filter((r) => !r.gated && r.family !== family);
+  const adjacent = otherFamilies.filter((r) => Math.abs(LADDER_RANK[r.family] - primaryRung) === 1);
+  const runnerUp = adjacent[0] || otherFamilies[0] || null;
   const secondary = secondaryFor(runnerUp, words, { ...answers, stakes });
 
   return {
