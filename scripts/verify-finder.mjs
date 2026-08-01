@@ -216,9 +216,22 @@ for (const concern of CONCERN_KEYS) {
 }
 console.log(`  C3 monotonicity — ${c3n} score-sweeps checked`);
 
-// C4 — anti-passphrase honesty: self-loss at/above 'elevated' → passphrase is
-// never primary AND never the step-up card, and a computed self-loss holdback
-// is present on single-family results.
+// C4 — anti-passphrase honesty. NARROWED 2026-08-01, deliberately.
+//
+// Was: self-loss at or above 'elevated' hard-gated the passphrase out of both
+// the primary and the step-up. That double-charged the same concern — the
+// protection matrix ALREADY prices forgetting a passphrase (a negative
+// self-loss weight, the only negative in the matrix), and the gate then banned
+// it outright on top. It also over-claimed: a reader is at least as likely to
+// mismanage three keys as to forget one phrase, so an absolute ban at merely
+// 'elevated' asserted a certainty the evidence does not support.
+//
+// Now: the hard gate fires only at 'high'. Between 'elevated' and 'high' the
+// negative weight does the work, so the passphrase can still surface when the
+// rest of a reader's picture genuinely argues for it — but a result that
+// recommends one must STILL carry the computed self-loss holdback naming the
+// silent-lockout risk in words. The honesty requirement never relaxes; only
+// the ban does.
 let c4n = 0;
 for (const selfScore of [52, 65, 80])
 for (const stakes of STAKES) for (const tech of TECH) for (const sovereignty of SOV) {
@@ -227,12 +240,17 @@ for (const stakes of STAKES) for (const tech of TECH) for (const sovereignty of 
   c4n++;
   const scores = { ...defaultsFor(stakes), 'self-loss': selfScore };
   const res = recommendV2({ ...baseAnswers, stakes, tech, sovereignty, scores });
-  const where = `C4 self=${selfScore} ${stakes}/${tech}/${sovereignty}`;
-  if (res.primary.rungSlug === 'passphrase') fail(`${where}: passphrase primary`);
-  if (res.secondary.rungSlug === 'passphrase') fail(`${where}: passphrase step-up offered`);
+  const where = `C4 self=${selfScore} ${stakes}/${tech}/${sovereignty} (${word})`;
+  if (word === 'high') {
+    if (res.primary.rungSlug === 'passphrase') fail(`${where}: passphrase primary at HIGH`);
+    if (res.secondary && res.secondary.rungSlug === 'passphrase') fail(`${where}: passphrase step-up at HIGH`);
+  }
+  // At every level at or above 'elevated', the reader must be told about the
+  // lockout trade in words — whether we are refusing the passphrase or
+  // recommending it.
   if (!res.holdbacks.some((h) => h.concern === 'self-loss')) fail(`${where}: no computed self-loss holdback`);
 }
-console.log(`  C4 anti-passphrase — ${c4n} elevated/high self-loss combos checked`);
+console.log(`  C4 anti-passphrase — ${c4n} elevated/high self-loss combos checked (hard gate at HIGH only)`);
 
 // C5 — near-ties: whenever the top two distinct eligible families sit within
 // TIE_MARGIN, the result must carry the either/or flag naming both — and never

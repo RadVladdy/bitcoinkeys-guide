@@ -380,7 +380,7 @@ export const PROTECTION = {
   // top recovery-firm caseload, and a wrong one shows an empty wallet with no
   // error. That penalty, plus the C4 gate, is now the ONLY thing holding the
   // passphrase back — which is the honest place for the brake to sit.
-  passphrase:      { weights: { custodial: 3, 'self-loss': -1, remote: 2.5, physical: 3 }, complexity: 0, devices: 1 },
+  passphrase:      { weights: { custodial: 3, 'self-loss': -0.5, remote: 2.5, physical: 3 }, complexity: 0, devices: 1 },
   multisig:        { weights: { custodial: 3, 'self-loss': 0,  remote: 3, physical: 3 }, complexity: 2, devices: 3 },
   collaborative:   { weights: { custodial: 3, 'self-loss': 3,  remote: 3, physical: 3 }, complexity: 1, devices: 2 },
   'three-of-five': { weights: { custodial: 3, 'self-loss': 1,  remote: 3, physical: 3 }, complexity: 3, devices: 5 },
@@ -471,6 +471,31 @@ const SIMPLICITY_SHARE = { 'single-sig': 1, passphrase: 1 };
 // and a weaker argument at large ones, so its bonus fades the same way
 // SIMPLICITY_EDGE already does.
 const PASSPHRASE_SHARE_BY_STAKES = { learning: 1, meaningful: 1, serious: 0.75, lifechanging: 0.25 };
+
+// LADDER PULL — how hard the consequence-of-loss answer pushes up the rungs.
+// Added as (rung − 1) × the stakes value, so the effect is SEQUENTIAL: rung 2
+// gets one dose, rung 3 gets two. Nothing at learning stakes.
+//
+// Why it exists as its own term: stakes used to move the result only
+// INDIRECTLY, by making complexity cheaper (STAKES_FACTOR, BUDGET_FACTOR,
+// SIMPLICITY_EDGE all fade as stakes rise). That is a discount on the downside,
+// not an argument for the upside, and it left "more at stake" as a weak,
+// emergent nudge rather than a stated position. The site's own ladder says
+// plainly that more consequence justifies more protection; this makes the
+// engine say it too, and makes it tunable in one visible place.
+// It starts at 'serious', not at 'meaningful'. The term represents "more at
+// stake justifies more protection", and at "I'd be upset, but I'd be okay"
+// that argument is genuinely weak — applying it there pulled the passphrase to
+// within 0.05 of single-sig on the untouched default and tripped C1's no-
+// near-tie clause. The pull should appear where the reasoning appears.
+//
+// Tuned against C1: at 'serious' a pull of 0.3 flipped the UNTOUCHED DEFAULT
+// profile to multisig, breaking the continuity guarantee that a reader who
+// changes nothing still lands on single-sig cold. 0.15 keeps that intact while
+// still leaning up. Life-changing is outside C1 by design and stays strong.
+// If serious-by-default should move to multisig, that is a C1 decision, not a
+// tuning one — change the constraint deliberately, don't quietly outweigh it.
+const LADDER_PULL = { learning: 0, meaningful: 0, serious: 0.15, lifechanging: 0.6 };
 const TECH_FACTOR = { simple: 0.9, careful: 0.65, technical: 0.4 };
 const STAKES_FACTOR = { learning: 1.3, meaningful: 1.1, serious: 0.8, lifechanging: 0.4 };
 const COMPLEXITY_BASE = 0.9;
@@ -519,12 +544,13 @@ export function fitFor(scores, answers = {}) {
       simplicityEdge: Math.round((SIMPLICITY_EDGE[stakes]
         * (SIMPLICITY_SHARE[setup] || 0)
         * (setup === 'passphrase' ? PASSPHRASE_SHARE_BY_STAKES[stakes] : 1)) * 100) / 100,
+      ladderPull: Math.round((LADDER_PULL[stakes] * (LADDER_RANK[FAMILY[setup]] - 1)) * 100) / 100,
     };
     return {
       setup,
       family: FAMILY[setup],
-      fit: Math.round((protection - costs.complexity - costs.sovereignty - costs.budget + costs.simplicityEdge) * 1000) / 1000,
-      gated: setup === 'passphrase' && (selfWord === 'elevated' || selfWord === 'high'),
+      fit: Math.round((protection - costs.complexity - costs.sovereignty - costs.budget + costs.simplicityEdge + costs.ladderPull) * 1000) / 1000,
+      gated: setup === 'passphrase' && selfWord === 'high',
       contributions, costs,
     };
   });
