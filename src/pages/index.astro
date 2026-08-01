@@ -176,7 +176,14 @@ const optional = levels.filter((lv) => lv.optional);
           <strong>{umbrella.rule}</strong> {umbrella.body}
         </li>
       </ul>
-      <p class="sub">All of it comes down to <a href="/learn/rules">{ruleCountWord} rules</a> — the first lesson of the course, and two minutes to read. Every lesson after it is one rule in full.</p>
+      {/* "Every lesson after it is one rule in full" was FALSE and shipped that
+          way. Six of the seventeen lessons carry no rule at all, and
+          /learn/privacy carries two. The true direction is the other one: every
+          rule has a lesson that teaches it in full — which is the claim worth
+          making anyway, because it is the promise that the list is not just a
+          list. Asserted by the rules chain check, which fails on any unplaced
+          rule; nothing ever asserted the reverse, because the reverse is not so. */}
+      <p class="sub">All of it comes down to <a href="/learn/rules">{ruleCountWord} rules</a> — the first lesson of the course, and two minutes to read. Every one of them has a full lesson behind it.</p>
     </div>
   </section>
 

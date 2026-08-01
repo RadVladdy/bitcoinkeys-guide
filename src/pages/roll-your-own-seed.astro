@@ -63,6 +63,17 @@ const shortCost = seedCosts.find((c) => c.words === 12);
         >
           <span class="tab-n">Option {m.n}</span>
           <span class="tab-l">{m.label}</span>
+          {/* The CHOOSING line and the device list, both on the tab. Before this
+              the tabs carried a number and a label, so picking between three
+              procedures meant opening each one and reading a panel — and the
+              single most decisive fact, whether your own hardware can do it at
+              all, was buried inside. Both come from dice.js, so a tab can never
+              claim a device the procedure does not cover. */}
+          <span class="tab-p">{m.pick}</span>
+          <span class="tab-d">
+            <span class="tab-dk">Devices</span>
+            {devicesFor(m.key).length ? devicesFor(m.key).join(' · ') : 'None of the ones we rate.'}
+          </span>
         </button>
       ))}
     </div>
@@ -173,9 +184,23 @@ const shortCost = seedCosts.find((c) => c.words === 12);
   .tab-n { display: block; font-family: var(--mono); font-size: .7rem; letter-spacing: .07em;
     text-transform: uppercase; color: var(--muted); }
   .tab-l { display: block; font-weight: 600; margin-top: .15rem; }
-  .tab-badge { display: inline-block; margin-top: .35rem; background: var(--accent);
-    color: var(--accent-ink); border-radius: 999px; padding: .05rem .5rem; font-size: .66rem;
-    letter-spacing: .04em; font-family: var(--mono); }
+  /* The tab is now a CARD you choose from, so the three have to be the same
+     height or the shortest reads as the lesser option. Flex column + the
+     device line pushed to the bottom with margin-top:auto does that without
+     a fixed height, which would clip on a narrow phone. */
+  .tab { display: flex; flex-direction: column; }
+  .tab-p { display: block; margin-top: .4rem; font-size: .86rem; line-height: 1.45;
+    color: var(--muted); font-weight: 400; }
+  /* MINIMISED, not hidden. Small mono type at the foot of the card — enough to
+     scan for your own device, not enough to compete with the choosing line.
+     Deliberately not a <details>: interactive content cannot nest inside a
+     <button>, and turning the tab into a div would cost the keyboard semantics
+     the tablist depends on. */
+  .tab-d { display: block; margin-top: auto; padding-top: .55rem; font-family: var(--mono);
+    font-size: .68rem; line-height: 1.5; color: var(--faint, var(--muted)); }
+  .tab-dk { display: block; font-size: .6rem; letter-spacing: .09em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: .1rem; }
+  .tab[aria-selected='true'] .tab-p { color: var(--text); }
   .p-tag { color: var(--muted); font-style: italic; margin-top: -.4rem; }
   .p-meta { margin: 0 0 .9rem; }
   .p-k { display: block; font-size: .7rem; letter-spacing: .06em; text-transform: uppercase;

@@ -127,15 +127,33 @@ const shortChosen = seedCosts.find((c) => c.words === 12).chosen;
       safely on their permanent backup and you have restored from that backup successfully, destroy this sheet
       — shred or burn it. Do not simply bin it.
     </p>
+    {/* THE THROW BOXES ARE GROUPED 3 + 2, matching how the table is actually
+        read: the first three throws find the block, the last two plus the flip
+        find the line inside it. A flat run of five boxes made the reader hold
+        that split in their head while looking at a sheet that did not show it.
+        The gap is the one piece of formatting here doing real work.
+        Row bands every five keep your place on a 23-row sheet — the mistake
+        this artifact exists to prevent is a word written on the wrong line. */}
     <table class="dw">
       <thead>
-        <tr><th class="dw-n">#</th><th colspan={DICE_PER_WORD}>Throws (reroll 5s and 6s)</th><th class="dw-f">Flip</th><th class="dw-w">Word</th></tr>
+        <tr>
+          <th class="dw-n">#</th>
+          <th colspan={PREFIX_THROWS}>Block <span class="dw-th-s">first {PREFIX_THROWS} throws</span></th>
+          <th colspan={DICE_PER_WORD - PREFIX_THROWS} class="dw-g">Line <span class="dw-th-s">next {DICE_PER_WORD - PREFIX_THROWS}</span></th>
+          <th class="dw-f">Flip</th>
+          <th class="dw-w">Word</th>
+        </tr>
       </thead>
       <tbody>
         {Array.from({ length: longChosen }, (_, i) => (
-          <tr class={i + 1 === shortChosen ? 'dw-mark' : undefined}>
+          <tr class:list={[
+            i + 1 === shortChosen ? 'dw-mark' : null,
+            (i + 1) % 5 === 0 ? 'dw-five' : null,
+          ]}>
             <td class="dw-n">{i + 1}</td>
-            {Array.from({ length: DICE_PER_WORD }, () => (<td class="dw-b"></td>))}
+            {Array.from({ length: DICE_PER_WORD }, (_, j) => (
+              <td class:list={['dw-b', j === PREFIX_THROWS ? 'dw-g' : null]}></td>
+            ))}
             <td class="dw-b dw-f"></td>
             <td class="dw-w"></td>
           </tr>
@@ -209,18 +227,41 @@ const shortChosen = seedCosts.find((c) => c.words === 12).chosen;
     .dwt-sheet { display: block; color: #000; break-after: page; font-size: 10pt; line-height: 1.45; }
     .dwt-work { display: block; color: #000; break-after: page; font-size: 10pt; }
     .dw-warn { border: 1pt solid #000; padding: .4rem .6rem; margin: 0 0 .6rem; font-size: 9pt; line-height: 1.35; }
-    .dw { width: 100%; border-collapse: collapse; font-size: 9pt; }
-    .dw th { font-size: 7.5pt; text-transform: uppercase; letter-spacing: .05em; font-weight: 600;
-      border-bottom: 1pt solid #000; padding: .1rem .2rem; text-align: left; }
-    .dw td { border: .5pt solid #888; height: 20pt; padding: 0 .2rem; }
-    .dw-n { width: 5%; border: none !important; text-align: right; font-size: 8pt; color: #444; }
-    .dw-b { width: 5.5%; }
-    .dw-f { width: 6%; }
-    .dw-w { width: 40%; }
-    .dw-mark td { border-bottom-width: 1.5pt !important; border-bottom-color: #000 !important; }
-    .dw-last td { background: #eee; }
+    .dw { width: 100%; border-collapse: separate; border-spacing: 2pt 2.5pt; font-size: 9pt; }
+    .dw th { font-size: 7pt; text-transform: uppercase; letter-spacing: .07em; font-weight: 700;
+      padding: 0 .1rem .18rem; text-align: left; color: #000; border: none; }
+    /* The label carries the instruction, so the sheet says how to use itself. */
+    .dw-th-s { display: block; text-transform: none; letter-spacing: 0; font-weight: 400;
+      font-size: 6.4pt; color: #555; }
+    /* Boxes, not table cells. A hairline box with real space around it reads as
+       somewhere to write; a ruled grid reads as a spreadsheet, and people write
+       smaller and straddle the lines. */
+    /* 22pt is the CEILING, not a preference. At 23pt the worksheet spills onto a
+       second sheet and the whole artifact goes from six pages to seven — the
+       reader then prints two half-empty pages for one worksheet. Measured
+       against the rebuilt PDF at 21/22/23/24/25.5pt; do not raise it by eye. */
+    .dw td { border: .6pt solid #9a9a9a; border-radius: 2pt; height: 22pt; padding: 0 .2rem; }
+    .dw-n { width: 4.5%; border: none !important; text-align: right; font-size: 7.5pt;
+      color: #666; font-weight: 600; padding-right: .25rem; }
+    .dw-b { width: 5.2%; }
+    .dw-f { width: 6.5%; background: #f4f4f4; }
+    .dw-w { width: 41%; }
+    /* THE 3 + 2 SPLIT, drawn. Extra left space on the fourth box separates the
+       block lookup from the line lookup, which is the shape of the procedure. */
+    .dw td.dw-g { margin-left: 6pt; box-shadow: -4pt 0 0 0 #fff; }
+    .dw th.dw-g { padding-left: .32rem; }
+    /* Place-keeping. Every fifth row is tinted so a glance tells you which
+       ten you are in — the failure this sheet exists to prevent is a word
+       written one line off. */
+    .dw-five td { background: #f7f7f7; }
+    .dw-five .dw-f { background: #ededed; }
+    /* Where a 12-word seed stops: a rule across the sheet, not a heavier cell
+       border, so it reads as a finish line. */
+    .dw-mark td { border-bottom: 1.6pt solid #000 !important; }
+    .dw-last td { background: #e8e8e8; border-color: #666; }
     .dw-note { font-size: 7.5pt; color: #333; text-align: center; }
-    .dw-foot { font-size: 8pt; margin-top: .5rem; line-height: 1.4; }
+    .dw-foot { font-size: 8pt; margin-top: .55rem; line-height: 1.45; padding-top: .35rem;
+      border-top: .6pt solid #bbb; }
     .ds-h { font-size: 15pt; margin: 0 0 .5rem; color: #000; }
     .ds-sh { font-size: 11pt; margin: .9rem 0 .25rem; color: #000; }
     .ds-lead { margin: 0 0 .6rem; }
@@ -249,7 +290,17 @@ const shortChosen = seedCosts.find((c) => c.words === 12).chosen;
        could not be honoured and instead left most of every column empty,
        which is what made this a 26-page document. Revisit if the prefix
        length changes again. */
-    .dwt-block { margin-bottom: .1rem; break-inside: avoid-column; }
+    /* BREATHING ROOM BETWEEN BLOCKS. This was .1rem, which packed 64 blocks
+       into a wall — with the last page left part-empty, so the space was
+       already paid for and simply not being used. A hairline above each block
+       gives the eye something to land on when scanning for a prefix.
+       THE PAGE COUNT IS THE CONSTRAINT: this is the one value here that can
+       push the table from four pages to five, so it is tuned against the
+       rebuilt PDF and not by eye. Re-run scripts/build-dice-pdf.sh and check
+       the count after touching it. */
+    .dwt-block { margin-bottom: .42rem; padding-top: .2rem; break-inside: avoid-column;
+      border-top: .4pt solid #d5d5d5; }
+    .dwt-block:first-child { border-top: none; padding-top: 0; }
     @page { margin: 8mm; }
   }
 </style>

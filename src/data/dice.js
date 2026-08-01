@@ -455,6 +455,12 @@ export const methods = [
     tradeoff:
       'The most work by a distance, and the most places to slip: a mis-read row, two words swapped, a dropped reroll. Nothing about it is secret, though — the table is public and so is the arithmetic, so every step can be checked.',
     trust: 'Nothing but arithmetic you can verify yourself.',
+    // `pick` is the CHOOSING line — it renders on the tab, above the fold, so
+    // the reader can compare the three without opening each one. It states the
+    // differentiator and the cost in one breath, because those are the two
+    // things the choice actually turns on. Kept to one sentence deliberately:
+    // a tab that needs a paragraph is a tab nobody reads.
+    pick: 'Every word is yours, and nothing about it needs trusting — but it is an evening\u2019s work with a printed table.',
   },
   {
     key: 'dice-only',
@@ -467,6 +473,7 @@ export const methods = [
     tradeoff:
       'Far fewer ways to go wrong than option 1 — no table, no transcription, no arithmetic — and the result is reproducible, so you can check the words afterwards on an offline computer. You are trusting the device to hash honestly rather than to be random.',
     trust: 'The device to do arithmetic faithfully.',
+    pick: 'The device’s own generator plays no part, and there is nothing to look up or transcribe — but only Coinkite devices take dice on the device.',
   },
   {
     key: 'enrich',
@@ -479,6 +486,7 @@ export const methods = [
     tradeoff:
       'The cheapest real protection here. If the device’s randomness turns out to be broken, your rolls save you; if your rolls are sloppy, its randomness saves you. Coinkite states in its own documentation that this cannot produce worse entropy than letting the device do it alone.',
     trust: 'Either source alone is enough for it to be safe.',
+    pick: 'The cheapest real protection here: a few minutes, no lookup table, and it cannot make the result worse than leaving it to the device.',
     // THE HOUSE RECOMMENDATION — never rendered as a badge.
     //
     // A default is the wrong shape for this choice. Which option is right
