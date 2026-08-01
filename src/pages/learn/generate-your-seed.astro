@@ -14,7 +14,7 @@ import LessonEyebrow from '../../components/LessonEyebrow.astro';
 import RuleRef from '../../components/RuleRef.astro';
 import {
   diceVerified, methods, methodCount,
-  ratedDevicesForMethod, devicesWithNoDicePath,
+  ratedDevicesForMethod, devicesWithNoDicePath, devicesOutsideDiceQuestion,
   kit, failureModes, failureModeCount,
 } from '../../data/dice.js';
 import { seedCosts } from '../../data/dice-table.js';
@@ -31,6 +31,11 @@ const optionTiles = methods.map((m) => ({
   devices: m.key === 'device' ? null : ratedDevicesForMethod(m.key).map((d) => trim(d.name)),
 }));
 const noPath = devicesWithNoDicePath.map((d) => trim(d.name));
+// The THIRD state — devices the question does not apply to. Derived, because the
+// two lists above are derived and a hand-typed third would be the one that rots.
+// Bitkey fell out of both until 2026-08-01: eleven of the twelve devices we rate
+// were enumerated on this page and the twelfth was simply absent.
+const outside = devicesOutsideDiceQuestion.map((d) => ({ name: trim(d.name) }));
 const longCost = seedCosts.find((c) => c.words === 24);
 ---
 <Base
@@ -59,8 +64,8 @@ const longCost = seedCosts.find((c) => c.words === 24);
   <section>
     <ul class="opt-grid">
       {optionTiles.map((m) => (
-        <li class={`opt${m.houseDefault ? ' is-default' : ''}`}>
-          <p class="opt-n mono">Option {m.n}{m.houseDefault && <span class="opt-badge">our default</span>}</p>
+        <li class="opt">
+          <p class="opt-n mono">Option {m.n}</p>
           <h3 class="opt-h">{m.label}</h3>
           <p class="opt-tag">{m.tagline}</p>
           <p class="opt-yours"><span class="opt-k">Randomness that is yours</span>{m.yours}</p>
@@ -90,6 +95,15 @@ const longCost = seedCosts.find((c) => c.words === 24);
       choose your own backup, because people are far worse at randomness than they believe. That is a real
       argument and the losses back it up. It is simply worth knowing before you buy, rather than after.
     </p>
+    {outside.length > 0 && (
+      <p>
+        And for {outside.map((d) => <strong>{d.name}</strong>)} the question does not arise at all.
+        {' '}{outside.length === 1 ? 'It' : 'They'} {outside.length === 1 ? 'has' : 'have'} no seed phrase to
+        build: {outside.length === 1 ? 'it is' : 'they are'} multisig by design, and the recovery kit holds an
+        encrypted key rather than words. There is nothing here to opt into and nothing being withheld —
+        {' '}{outside.length === 1 ? 'it sits' : 'they sit'} outside this decision rather than at the bottom of it.
+      </p>
+    )}
   </section>
 
   <section class="prose">
@@ -114,12 +128,19 @@ const longCost = seedCosts.find((c) => c.words === 24);
       and it hands you a different one, which is that you now have to do this carefully.
     </p>
     <p>
-      Which is why <strong>option 3 is our default rather than option 1</strong>. Adding your own throws to the
-      device's own randomness cannot make the result worse — Coinkite says so in its own documentation — and it
-      costs you a few minutes and no bookkeeping. Option 1 is the honest maximum, and it is a real evening's
-      work: for a 24-word seed, about {longCost.throws} throws and {longCost.flips} coin flips, each one read
-      off a printed table by hand. Do that because you want the one thing it buys, not because it sounds more
-      serious.
+      So there is no single right answer here, and we are not going to pretend there is one.
+      <strong>Where your device allows it, add your own throws</strong> — that much is our position, because
+      mixing your randomness into the device's own cannot make the result worse (Coinkite says so in its own
+      documentation) and it costs a few minutes and no bookkeeping. Which of the {numberWord(methodCount)}
+      options that means for you depends on the device in front of you and how far you want to go.
+    </p>
+    <p>
+      Option 1 is the honest maximum, and it is a real evening's work: for a 24-word seed, about
+      {' '}{longCost.throws} throws and {longCost.flips} coin flips, each one read off a printed table by hand.
+      Do that because you want the one thing it buys, not because it sounds more serious. And option 4 —
+      letting the device do it — is not a failure. Far more coins are lost to a botched setup than to faulty
+      randomness, and a seed generated normally and backed up properly beats a sovereign seed you lost count
+      halfway through.
     </p>
   </section>
 
@@ -156,13 +177,13 @@ const longCost = seedCosts.find((c) => c.words === 24);
 <style>
   .opt-grid { list-style: none; padding: 0; margin: 0; display: grid; gap: 1rem;
     grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
-  .opt { border: 1px solid var(--line); border-radius: var(--radius); padding: 1.1rem 1.2rem;
+  /* All four tiles carry the same frame. One of them used to be outlined in the
+     accent with an "our default" badge, which made the other three read as
+     runners-up before the reader knew which their own device could even do. */
+  .opt { border: 1px solid var(--accent); border-radius: var(--radius); padding: 1.1rem 1.2rem;
     display: flex; flex-direction: column; }
-  .opt.is-default { border-color: var(--accent); }
   .opt-n { font-size: .72rem; letter-spacing: .07em; text-transform: uppercase; color: var(--muted);
     margin: 0 0 .35rem; display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
-  .opt-badge { background: var(--accent); color: var(--accent-ink); border-radius: 999px;
-    padding: .1rem .55rem; font-size: .68rem; letter-spacing: .04em; }
   .opt-h { margin: 0 0 .2rem; font-size: 1.08rem; line-height: 1.25; }
   .opt-tag { margin: 0 0 .7rem; color: var(--muted); font-style: italic; }
   .opt-how { margin: 0 0 .7rem; }

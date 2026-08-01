@@ -55,6 +55,12 @@ export const navGroups = [
       { href: '/advisory/coldcard-seed-entropy', label: 'Security advisory — Coldcard' },
       { href: '/standard', label: 'How we rate them' },
       { href: '/how-we-weigh-risk', label: 'How we weigh risk' },
+      // The build-time shelf, in the order a reader meets it: the words get made
+      // (roll your own seed), then they get stored (metal backups). Deliberately
+      // NOT in "Your setup": that group is one straight line — finder → plan →
+      // checklist — and a tool dropped into it reads as a branch off the path.
+      // This is reference you dip into while building, which is what this group is.
+      { href: '/roll-your-own-seed', label: 'Roll your own seed' },
       { href: '/metal-backups', label: 'Metal backups' },
       { href: '/collaborative', label: 'Collaborative custody' },
     ],

@@ -336,7 +336,10 @@ export const kit = [
   },
   {
     t: 'Something to write on that is not a phone',
-    d: 'Paper and a pen for the seed words. Not a notes app, not a photo, not a password manager, not a laptop. Metal comes later, once the words are confirmed.',
+    // Names the worksheet, deliberately WITHOUT restating what it is — the
+    // failure-modes list further down the same page already explains it, and
+    // the first draft of this line repeated that sentence almost word for word.
+    d: 'Paper and a pen for the seed words — our printable worksheet is made for exactly this. Not a notes app, not a photo, not a password manager, not a laptop. Metal comes later, once the words are confirmed.',
   },
   {
     t: 'An hour you are not being interrupted in',
@@ -476,6 +479,17 @@ export const methods = [
     tradeoff:
       'The cheapest real protection here. If the device’s randomness turns out to be broken, your rolls save you; if your rolls are sloppy, its randomness saves you. Coinkite states in its own documentation that this cannot produce worse entropy than letting the device do it alone.',
     trust: 'Either source alone is enough for it to be safe.',
+    // THE HOUSE RECOMMENDATION — never rendered as a badge.
+    //
+    // A default is the wrong shape for this choice. Which option is right
+    // depends on the device the reader owns and how far they want to go, so a
+    // rosette on one tile makes the other three read as runners-up before the
+    // reader knows which their own hardware can even perform.
+    //
+    // The STANCE is unchanged: where your device allows it, add your own
+    // throws. This flag is what a tailored recommendation reads to suggest and
+    // order the options. It stays for that reason — remove it and the stance
+    // has no enforcement point in the data at all.
     houseDefault: true,
   },
   {
@@ -606,6 +620,37 @@ export const anyDiceSupport = (deviceName) => {
   const c = diceCapability(deviceName);
   return !!c && ['sovereign', 'dice-only', 'enrich'].some((k) => SUPPORTED.has(c[k]));
 };
+
+// Devices for which the QUESTION DOES NOT APPLY — 'n/a', a third state that is
+// neither "can" nor "cannot". Bitkey has no seed phrase to build at all: it is a
+// 2-of-3 whose recovery kit holds an encrypted key rather than words.
+//
+// This exists because `ratedDevicesForMethod` and `devicesWithNoDicePath` are
+// both derived and neither models 'n/a', so a device sitting in that state fell
+// out of BOTH lists — and the lesson enumerated eleven of the twelve devices we
+// rate with no mention of the twelfth. The data held the honest answer the whole
+// time; nothing published it.
+//
+// ASSERTED BELOW: every rated device must appear in exactly one of the three
+// lists, so the next third state cannot vanish the same way.
+export const devicesOutsideDiceQuestion = deviceDice.filter(
+  (d) => d.rated && DICE_METHOD_KEYS.every((k) => d[k] === 'n/a'),
+);
+
+{
+  const rated = deviceDice.filter((d) => d.rated);
+  const listed = new Set([
+    ...DICE_METHOD_KEYS.flatMap((k) => ratedDevicesForMethod(k).map((d) => d.name)),
+    ...devicesWithNoDicePath.map((d) => d.name),
+    ...devicesOutsideDiceQuestion.map((d) => d.name),
+  ]);
+  const orphans = rated.filter((d) => !listed.has(d.name)).map((d) => d.name);
+  if (orphans.length) {
+    throw new Error(
+      `dice.js: ${orphans.join(', ')} — rated device(s) in none of the three published lists (can / cannot / does not apply). A page that enumerates every rated device would silently omit them.`,
+    );
+  }
+}
 
 // ── THE TWO LISTS MUST AGREE ────────────────────────────────────────────────
 //

@@ -4,7 +4,7 @@ import Ladder from '../components/Ladder.astro';
 import DemoMotif from '../components/DemoMotif.astro';
 import { lessonCount, levels } from '../data/curriculum.js';
 import { finderPromiseCap } from '../data/quiz.js';
-import { ruleByKey, ruleCountWord } from '../data/rules.js';
+import { ruleByKey, ruleCountWord, umbrella } from '../data/rules.js';
 import { deepDives, featuredDives } from '../data/deepdives.js';
 import { custodians } from '../data/custodians.js';
 import { wallets, coldWallets, spendingWallets, disqualifiedWallets, tierCountWord } from '../data/wallets.js';
@@ -138,14 +138,42 @@ const optional = levels.filter((lv) => lv.optional);
   </section>
 
   <section>
-    <h2>The rule the whole guide rests on</h2>
+    <h2>How we see all of this</h2>
     <div class="prose">
-      <div class="callout">
-        <span class="label">Rule {String(simplest.n).padStart(2, '0')} of {ruleCountWord}</span>
-        <p class="rule-line">{simplest.rule}</p>
-        <p set:html={simplest.body}></p>
-      </div>
-      <p class="sub">It’s one of <a href="/learn/rules">{ruleCountWord} rules</a> that hold up everything here — the first lesson of the course, and two minutes to read. Every lesson after it is one rule in full.</p>
+      <p class="sub" style="margin-bottom:1.2rem;">Every guide has a point of view, whether it says so or not. Here is ours, in full, before you read a word of the rest.</p>
+      <ul class="phil">
+        <li>
+          <strong>We hold no keys and sell no device.</strong> No affiliate links, no referral codes, no
+          hardware brand of our own — not now, not later. It is the one thing the best-funded guides in
+          this space structurally cannot say, and it is why you can take the device ratings at face value.
+        </li>
+        <li>
+          <strong>{simplest.rule}</strong> Not the most impressive setup, and not the one a vendor is
+          selling. More keys and more clever schemes are the single biggest cause of lost Bitcoin, so
+          complexity you don’t fully control is itself a threat. Climb a rung when your situation
+          genuinely outgrows the one you’re on — not because the next one sounds more serious.
+        </li>
+        <li>
+          <strong>Every choice trades one risk for another.</strong> What makes it harder for a thief to
+          reach your coins usually makes it easier to lock yourself out. There is no arrangement without a
+          downside — only the one whose downsides you picked on purpose. We will always tell you which
+          you’re picking.
+        </li>
+        <li>
+          <strong>We never ask what you hold, and nothing leaves your browser.</strong> No accounts, no
+          analytics, no trackers, ever. Every tool here runs on your own device, and saving anything is a
+          separate choice you make deliberately.
+        </li>
+        <li>
+          <strong>We publish our conclusions — including the ones that don’t flatter us.</strong> When we
+          get something wrong we say so, with a date, rather than quietly editing the page. That is what
+          the <a href="/changelog">change log</a> is for.
+        </li>
+        <li>
+          <strong>{umbrella.rule}</strong> {umbrella.body}
+        </li>
+      </ul>
+      <p class="sub">All of it comes down to <a href="/learn/rules">{ruleCountWord} rules</a> — the first lesson of the course, and two minutes to read. Every lesson after it is one rule in full.</p>
     </div>
   </section>
 
@@ -253,8 +281,12 @@ const optional = levels.filter((lv) => lv.optional);
   .d-go { margin-top: 0.9rem; color: var(--accent); font-size: 0.74rem;
     letter-spacing: 0.05em; font-weight: 700; }
 
-  /* The rule states itself at the same size it does in the band and on the rules
-     page — one sentence, one size, everywhere the guide states a rule. */
-  .rule-line { font-size: 1.18rem; font-weight: 650; line-height: 1.38; color: var(--text); margin-bottom: 0.6rem; }
-  @media (max-width: 640px) { .rule-line { font-size: 1.08rem; } }
+  /* The philosophy list. Each item leads with the claim in bold and then earns
+     it in a sentence or two — the claim alone reads as a slogan, and the
+     explanation alone reads as filler. */
+  .phil { list-style: none; padding: 0; margin: 0 0 1.4rem; display: grid; gap: 1rem; }
+  .phil li { border-left: 3px solid var(--accent); padding: 0.1rem 0 0.1rem 1rem;
+    line-height: 1.65; }
+  .phil li strong { color: var(--text); }
+  @media (max-width: 640px) { .phil li { padding-left: 0.8rem; } }
 </style>
