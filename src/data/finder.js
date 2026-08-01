@@ -533,9 +533,9 @@ export function scoreFromPrompts(checkedPrompts = [], stakes = 'meaningful', ski
 export const PROTECTION = {
   //                custodial  self-loss  remote  physical  exposure  stakes
   'single-sig':    { weights: { custodial: 3, 'self-loss': 1, remote: 1,   physical: 0,   exposure: 3,    stakes: 0   }, complexity: 0, devices: 1 },
-  passphrase:      { weights: { custodial: 3, 'self-loss': 0, remote: 2,   physical: 2,   exposure: 3,    stakes: 2.5 }, complexity: 0, devices: 1 },
-  multisig:        { weights: { custodial: 3, 'self-loss': 2, remote: 2.5, physical: 2.5, exposure: 3,    stakes: 5.5 }, complexity: 2, devices: 3 },
-  collaborative:   { weights: { custodial: 3, 'self-loss': 2.5, remote: 3, physical: 3,   exposure: -0.5, stakes: 6   }, complexity: 1, devices: 2 },
+  passphrase:      { weights: { custodial: 3, 'self-loss': 0, remote: 2,   physical: 2,   exposure: 3,    stakes: 2   }, complexity: 0, devices: 1 },
+  multisig:        { weights: { custodial: 3, 'self-loss': 2, remote: 2.5, physical: 2.5, exposure: 3,    stakes: 5   }, complexity: 2, devices: 3 },
+  collaborative:   { weights: { custodial: 3, 'self-loss': 2.5, remote: 3, physical: 3,   exposure: -0.5, stakes: 5.5 }, complexity: 1, devices: 2 },
 };
 
 
