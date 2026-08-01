@@ -44,6 +44,8 @@ export const walletsVerified = '2026-07-31';
 // reproducible · recoverability), it needs a caveat saying so in words.
 
 // rating scale used in the compare table + chooser badges: 'yes' | 'partial' | 'no'
+import { diceCapability, SUPPORTED, DICE_METHOD_KEYS } from './dice.js';
+
 export const wallets = [
   {
     name: 'Coldcard Q',
@@ -414,6 +416,29 @@ export const tiers = [
   },
 ];
 
+// ── Can you supply your own randomness on this device? ──────────────────────
+//
+// DERIVED from dice.js, never stated on the wallet row. The dice page and this
+// filter answer the same question, and typed twice they would disagree the
+// first time a maker shipped a firmware update.
+//
+// The import runs ONE WAY — dice.js knows nothing about wallets.js — so adding
+// this cannot create a cycle.
+//
+// The assertion is the point: a device added to this file with no entry in
+// dice.js FAILS THE BUILD rather than quietly displaying as "no dice support",
+// which is a claim we would be making by omission and would never notice.
+// Bitkey maps to 'no' for filtering because you genuinely cannot do this on it
+// — it has no seed phrase at all — but its reason is different from Trezor's
+// refusal, and the dice page draws that distinction where there is room for it.
+for (const w of wallets) {
+  const cap = diceCapability(w.name);
+  if (!cap) {
+    throw new Error(`wallets.js: "${w.name}" has no entry in dice.js deviceDice — add one, or the dice filter silently answers "no" for it`);
+  }
+  w.diceEntropy = DICE_METHOD_KEYS.some((k) => SUPPORTED.has(cap[k])) ? 'yes' : 'no';
+}
+
 // Derived groupings — nothing here is hand-maintained.
 export const tierOf = (w) => w.tier || 'cold';
 export const gateByKey = Object.fromEntries(standardGates.map((g) => [g.key, g]));
@@ -457,6 +482,8 @@ export const chooserFilters = [
   { key: 'openSource',     label: 'Open-source' },
   { key: 'reproducible',   label: 'Reproducible build' },
   { key: 'recoverability', label: 'Portable recovery' },
+  // Derived from dice.js — see the diceEntropy loop above.
+  { key: 'diceEntropy',    label: 'Your own dice entropy' },
 ];
 
 // Use-case chips narrow by fit (OR within this facet).

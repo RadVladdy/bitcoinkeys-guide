@@ -382,3 +382,181 @@ export const kitCount = kit.length;
 export const failureModeCount = failureModes.length;
 export const diceDeviceCount = deviceProcedures.length;
 export const noDiceCount = noDicePath.length;
+
+// ── THE FOUR OPTIONS ────────────────────────────────────────────────────────
+//
+// The page leads on these, in order of how much of the randomness is yours.
+// They are FOUR because "let the device do it" is a real choice that most
+// readers will make, and a page that lists only the effortful options reads as
+// disapproval and gets closed.
+//
+// Support is stated PER DEVICE below and joined here, never typed into the
+// copy — the whole point of the tiles is that they answer "can mine do this?"
+// and an answer that drifts from the device data is worse than no answer.
+
+export const methods = [
+  {
+    key: 'sovereign',
+    n: 1,
+    label: 'You pick every word',
+    tagline: 'The device never generates anything.',
+    yours: 'All of it.',
+    how:
+      'You roll for each word and read it off a printed table, then type all but the last word into the device. The device computes only the final word, which carries the checksum and cannot be worked out by hand. Your randomness never touches a machine.',
+    tradeoff:
+      'The most work by a distance, and the most places to slip: a mis-read row, two words swapped, a dropped reroll. Nothing about it is secret, though — the table is public and so is the arithmetic, so every step can be checked.',
+    trust: 'Nothing but arithmetic you can verify yourself.',
+  },
+  {
+    key: 'dice-only',
+    n: 2,
+    label: 'Your rolls, hashed by the device',
+    tagline: 'Its random number generator plays no part.',
+    yours: 'All of it.',
+    how:
+      'You press each roll into the device as it happens. It hashes the sequence and turns that into your words. None of its own randomness is mixed in.',
+    tradeoff:
+      'Far fewer ways to go wrong than option 1 — no table, no transcription, no arithmetic — and the result is reproducible, so you can check the words afterwards on an offline computer. You are trusting the device to hash honestly rather than to be random.',
+    trust: 'The device to do arithmetic faithfully.',
+  },
+  {
+    key: 'enrich',
+    n: 3,
+    label: 'Your rolls added to the device’s own',
+    tagline: 'Belt and braces.',
+    yours: 'Mixed in with the device’s.',
+    how:
+      'The device generates as usual, and you add as many rolls as you like on top. The two are combined.',
+    tradeoff:
+      'The cheapest real protection here. If the device’s randomness turns out to be broken, your rolls save you; if your rolls are sloppy, its randomness saves you. Coinkite states in its own documentation that this cannot produce worse entropy than letting the device do it alone.',
+    trust: 'Either source alone is enough for it to be safe.',
+    houseDefault: true,
+  },
+  {
+    key: 'device',
+    n: 4,
+    label: 'Let the device do it',
+    tagline: 'The ordinary way, and not a wrong answer.',
+    yours: 'None of it.',
+    how:
+      'You choose "create a new wallet" and write down the words it shows you.',
+    tradeoff:
+      'Nothing to get wrong, which genuinely matters — far more coins are lost to botched setups than to faulty randomness. The cost is that the device is a single point of failure for the one number everything else rests on, and you have no way to check it from outside.',
+    trust: 'The maker, completely, on the thing you cannot inspect.',
+  },
+];
+
+export const methodByKey = Object.fromEntries(methods.map((m) => [m.key, m]));
+export const methodCount = methods.length;
+
+// ── WHAT EACH DEVICE ACTUALLY ALLOWS ────────────────────────────────────────
+//
+// `name` matches wallets.js exactly where we rate the device, so /wallets can
+// join on it. Entries with rated:false are here because readers own them, not
+// because this guide recommends them.
+//
+// EVERY CLAIM IS PER MODEL. A maker's other model doing something is not
+// evidence, and treating one model's menu as the maker's menu has already
+// produced one defect on this page. Where the finding is derived from firmware
+// source rather than a vendor sentence, `sourceDerived` says so and the page
+// prints that rather than implying a vendor confirmed it.
+//
+// 'partial' is a real value and is not a soft yes: on Passport Core the device
+// picks the final word's leftover entropy bits with its OWN generator and shows
+// you one word, where Jade, BitBox02 and Coldcard hand you the full set of
+// valid final words and let you choose. It looks like option 1 and is not.
+
+export const deviceDice = [
+  {
+    name: 'Coldcard Q', rated: true, vendor: 'Coinkite',
+    sovereign: 'yes', 'dice-only': 'yes', enrich: 'yes',
+    note: 'The only maker here that takes dice on the device itself, and it supports all three.',
+  },
+  {
+    name: 'Coldcard Mk5', rated: true, vendor: 'Coinkite',
+    sovereign: 'yes', 'dice-only': 'yes', enrich: 'yes',
+    note: 'Coinkite states the Mk5 runs the same firmware image as the Mk4, which is where this comes from — there is no Mk5-specific menu documentation.',
+    sourceDerived: true,
+  },
+  {
+    name: 'Blockstream Jade', rated: true, vendor: 'Blockstream',
+    sovereign: 'yes', 'dice-only': 'no', enrich: 'no',
+    note: 'Blockstream publishes its own dice guide, though it asks for two 16-sided dice and an eight-sided one rather than an ordinary die.',
+  },
+  {
+    name: 'Blockstream Jade Plus', rated: true, vendor: 'Blockstream',
+    sovereign: 'yes', 'dice-only': 'no', enrich: 'no',
+    note: 'Same firmware tree as the Jade; the final-word feature is not restricted by board type.',
+    sourceDerived: true,
+  },
+  {
+    name: 'Blockstream Jade Core', rated: true, vendor: 'Blockstream',
+    sovereign: 'yes', 'dice-only': 'no', enrich: 'no',
+    note: 'Confirmed from Blockstream’s own firmware source and its published list of build targets, which names the Core. No Blockstream help page mentions the Core by name in this context, so we are telling you where this comes from rather than implying they said it.',
+    sourceDerived: true,
+  },
+  {
+    name: 'BitBox02 (BTC-only)', rated: true, vendor: 'BitBox',
+    sovereign: 'yes', 'dice-only': 'no', enrich: 'no',
+    note: 'BitBox publishes a lookup table and a walkthrough, and its firmware source says this case exists specifically so a seed can be made with dice and no external software.',
+  },
+  {
+    name: 'Trezor Safe 3', rated: true, vendor: 'Trezor',
+    sovereign: 'no', 'dice-only': 'no', enrich: 'no',
+    note: 'Not an omission — a position. Trezor’s protocol has no way to accept your entropy or a partial phrase, and the company’s published advice is that you should never choose your own backup.',
+  },
+  {
+    name: 'Trezor Safe 5', rated: true, vendor: 'Trezor',
+    sovereign: 'no', 'dice-only': 'no', enrich: 'no',
+    note: 'Same across the whole Safe line.',
+  },
+  {
+    name: 'Trezor Safe 7', rated: true, vendor: 'Trezor',
+    sovereign: 'no', 'dice-only': 'no', enrich: 'no',
+    note: 'Same across the whole Safe line.',
+  },
+  {
+    name: 'Foundation Passport Prime', rated: true, vendor: 'Foundation',
+    sovereign: 'no', 'dice-only': 'no', enrich: 'no',
+    note: 'Restoring requires a complete valid phrase. Its predecessor the Passport Core does offer a final word; the Prime runs different software and does not.',
+  },
+  {
+    name: 'Bitkey', rated: true, vendor: 'Block',
+    sovereign: 'n/a', 'dice-only': 'n/a', enrich: 'n/a',
+    note: 'There is no seed phrase to build. Bitkey is a 2-of-3 multisig and its recovery kit holds an encrypted key, not words — so none of this applies to it in either direction.',
+  },
+  {
+    name: 'Ledger Nano family', rated: true, vendor: 'Ledger',
+    sovereign: 'no', 'dice-only': 'no', enrich: 'no',
+    note: 'Restoring requires every word. Ledger’s recovery-check tool only validates a phrase you already have, and the company publishes an argument against mixing entropy sources at all.',
+  },
+  {
+    name: 'Coldcard Mk3', rated: false, vendor: 'Coinkite',
+    sovereign: 'yes', 'dice-only': 'yes', enrich: 'yes',
+    note: 'All three, but 24-word seeds only, and every menu path differs from the newer Coldcards. Included because the Mk3 is the model worst affected by the 2026 seed-generation flaw, so its owners are the most likely to be doing this.',
+  },
+  {
+    name: 'Foundation Passport Core', rated: false, vendor: 'Foundation',
+    sovereign: 'partial', 'dice-only': 'no', enrich: 'no',
+    note: 'It will give you a final word, but it chooses that word’s leftover randomness with its own generator instead of offering you the valid options. That is a meaningful difference from every other device here, and Foundation’s own documentation says to use the feature with extreme caution.',
+  },
+];
+
+// The three keys that mean "your randomness got in". 'device' is deliberately
+// NOT one of them — it is the option where none of it is yours.
+export const DICE_METHOD_KEYS = ['sovereign', 'dice-only', 'enrich'];
+export const SUPPORTED = new Set(['yes', 'partial']);
+export const diceCapability = (deviceName) => deviceDice.find((d) => d.name === deviceName) || null;
+export const devicesForMethod = (key) =>
+  deviceDice.filter((d) => SUPPORTED.has(d[key]));
+export const ratedDevicesForMethod = (key) =>
+  devicesForMethod(key).filter((d) => d.rated);
+// Devices that allow NOTHING — worth naming, because "your device will not let
+// you" is the answer for a large share of readers and nobody publishes it.
+export const devicesWithNoDicePath = deviceDice.filter(
+  (d) => d.rated && ['sovereign', 'dice-only', 'enrich'].every((k) => !SUPPORTED.has(d[k])) && d.sovereign !== 'n/a',
+);
+export const anyDiceSupport = (deviceName) => {
+  const c = diceCapability(deviceName);
+  return !!c && ['sovereign', 'dice-only', 'enrich'].some((k) => SUPPORTED.has(c[k]));
+};
