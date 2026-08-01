@@ -380,6 +380,24 @@ export function scoreFromPrompts(checkedPrompts = [], stakes = 'meaningful', ski
 // an incident record (funds not reachable at the scene ended real attacks);
 // collaborative's self-loss 3 is the provider key-replacement backstop.
 
+// THE SELF-LOSS COLUMN, rebuilt 2026-08-01 around what actually protects you
+// from locking yourself out — REDUNDANCY — rather than around making the
+// constraints pass.
+//
+// It used to read single-sig 1, multisig 0, which asserted that ONE key
+// protects you against lockout better than THREE do. That is false on its face:
+// a 2-of-3 survives losing any single key, and a lone seed survives nothing.
+// The 0 existed because multisig's setup complexity is a real lockout risk and
+// the column was netting the two effects into one number — so the redundancy
+// disappeared and only the complexity showed. Complexity already has its own
+// cost term; it does not need to be charged twice.
+//   single-sig 0.5  one seed, no redundancy at all — a tested backup is the
+//                   only thing standing between you and a total loss
+//   passphrase -0.5 strictly worse than single-sig: one more secret, and the
+//                   only one whose failure is silent
+//   multisig 2      lose any one key and you are still fine
+//   3-of-5 2.5      lose any two
+//   collaborative 3 redundancy PLUS a service whose job is helping you recover
 export const PROTECTION = {
   // ── the `exposure` column, added 2026-08-01 ──────────────────────────────
   // Positive = keeps your name away from your coins. NEGATIVE = actively
@@ -391,7 +409,7 @@ export const PROTECTION = {
   // database is a phishing and extortion list the moment it leaks, and the
   // holder is on it through no fault of their own. Scoring it level with a
   // setup that never collected the data said something untrue.
-  'single-sig':    { weights: { custodial: 3, 'self-loss': 1,  remote: 2, physical: 0, exposure: 2 }, complexity: 0, devices: 1 },
+  'single-sig':    { weights: { custodial: 3, 'self-loss': 0.5, remote: 2, physical: 0, exposure: 2 }, complexity: 0, devices: 1 },
   // The passphrase row, re-weighted 2026-08-01.
   //   physical 3 — a passphrase is a full duress defence (the decoy/hidden
   //     wallet), not a partial one. Level with multisig: both mean what is on
@@ -410,21 +428,29 @@ export const PROTECTION = {
   // top recovery-firm caseload, and a wrong one shows an empty wallet with no
   // error. That penalty, plus the C4 gate, is now the ONLY thing holding the
   // passphrase back — which is the honest place for the brake to sit.
-  passphrase:      { weights: { custodial: 3, 'self-loss': -0.5, remote: 2.5, physical: 3, exposure: 2.5 }, complexity: 0, devices: 1 },
-  multisig:        { weights: { custodial: 3, 'self-loss': 0,  remote: 3, physical: 3, exposure: 3 }, complexity: 2, devices: 3 },
+  passphrase:      { weights: { custodial: 3, 'self-loss': -1, remote: 2.5, physical: 3, exposure: 2 }, complexity: 0, devices: 1 },
+  multisig:        { weights: { custodial: 3, 'self-loss': 2,  remote: 3, physical: 3, exposure: 3 }, complexity: 2, devices: 3 },
   collaborative:   { weights: { custodial: 3, 'self-loss': 3,  remote: 2, physical: 3, exposure: -2 }, complexity: 1, devices: 2 },
-  'three-of-five': { weights: { custodial: 3, 'self-loss': 1,  remote: 3, physical: 3, exposure: 3 }, complexity: 3, devices: 5 },
+  'three-of-five': { weights: { custodial: 3, 'self-loss': 2.5, remote: 3, physical: 3, exposure: 3 }, complexity: 3, devices: 5 },
 };
 
 export const SETUP_KEYS = Object.keys(PROTECTION);
 
-// Which recommendation FAMILY a setup belongs to. Both 2-of-3 flavors (and the
-// 3-of-5 step-up) collapse into the multisig FORK — the fork card always shows
-// both paths, and who LEADS is a preserved hard gate (see recommendV2), never
-// a fit result.
+// Which LADDER RUNG a setup sits on. One entry per rung, and every rung is
+// scored on its own merits.
+//
+// It used to collapse DIY multisig, collaborative custody and 3-of-5 into a
+// single 'fork', so the two could never place 1st and 2nd against each other,
+// and which of them LED was decided by a hard rule on the sovereignty answer
+// rather than by their scores. That was the model compensating for a concern it
+// could not express — now that third-party exposure is scored, collaborative
+// can compete honestly and lose honestly.
+//
+// 2-of-3 and 3-of-5 DO still share rung 3: they are the same idea at two sizes,
+// not two rungs. Which one shows is a fit result between them.
 export const FAMILY = {
   'single-sig': 'single', passphrase: 'passphrase',
-  multisig: 'fork', collaborative: 'fork', 'three-of-five': 'fork',
+  multisig: 'multisig', 'three-of-five': 'multisig', collaborative: 'collaborative',
 };
 
 // Each family's position ON THE LADDER (/learn/ladder rungs 1–4), which is the
@@ -432,7 +458,7 @@ export const FAMILY = {
 // → collaborative. The fork's two rungs share a rank because they are presented
 // as two equal paths, never as a hierarchy. Used ONLY to resolve near-ties
 // upward (C6) — it never reorders anything the scores actually separated.
-export const LADDER_RANK = { single: 1, passphrase: 2, fork: 3 };
+export const LADDER_RANK = { single: 1, passphrase: 2, multisig: 3, collaborative: 4 };
 
 // ── Tuning constants ── (the calibration outcome — see the contract below)
 //
@@ -487,7 +513,13 @@ const SIMPLICITY_EDGE = { learning: 1.15, meaningful: 1.05, serious: 1.0, lifech
 // be reachable by the assessment that is supposed to find it.
 // Passphrase takes a PARTIAL share, not the full bonus: it is the second-
 // simplest setup, not the simplest — one device, but one more secret.
-const SIMPLICITY_SHARE = { 'single-sig': 1, passphrase: 1 };
+// The passphrase keeps most of the simplicity bonus — it is genuinely one
+// device with no coordinator — but not ALL of it. It is the second-simplest
+// setup, not the simplest: there is one more secret than bare single-sig, and
+// the bonus represents "simplest thing that covers you". At a full share it
+// took the untouched default away from single-sig, which is not a tuning
+// artefact so much as the number claiming something untrue.
+const SIMPLICITY_SHARE = { 'single-sig': 1, passphrase: 0.7 };
 // How much of the simplicity bonus the PASSPHRASE keeps, by stakes. Single-sig
 // always keeps all of it (it is the simplest thing there is); this scales only
 // the passphrase's share.
@@ -525,7 +557,13 @@ const PASSPHRASE_SHARE_BY_STAKES = { learning: 1, meaningful: 1, serious: 0.75, 
 // still leaning up. Life-changing is outside C1 by design and stays strong.
 // If serious-by-default should move to multisig, that is a C1 decision, not a
 // tuning one — change the constraint deliberately, don't quietly outweigh it.
-const LADDER_PULL = { learning: 0, meaningful: 0, serious: 0.15, lifechanging: 0.6 };
+// NEGATIVE at learning stakes. This replaces the hard gate that used to bar a
+// novice from anything but single-sig: same intent, expressed as a weight the
+// scores can outvote rather than a wall they cannot. Somebody still learning
+// pays a real price for extra keys and extra secrets — they are the least
+// equipped to run them — but if their own answers argue loudly enough for a
+// step up, the model can now say so instead of refusing to.
+const LADDER_PULL = { learning: -0.45, meaningful: 0, serious: 0.15, lifechanging: 0.6 };
 const TECH_FACTOR = { simple: 0.9, careful: 0.65, technical: 0.4 };
 const STAKES_FACTOR = { learning: 1.3, meaningful: 1.1, serious: 0.8, lifechanging: 0.4 };
 const COMPLEXITY_BASE = 0.9;
@@ -595,7 +633,12 @@ export function fitFor(scores, answers = {}) {
       setup,
       family: FAMILY[setup],
       fit: Math.round((protection - costs.complexity - costs.sovereignty - costs.budget + costs.simplicityEdge + costs.ladderPull) * 1000) / 1000,
-      gated: setup === 'passphrase' && selfWord === 'high',
+      // NO HARD GATES. Every setup competes on score alone — the negative
+      // self-loss weight is what argues against a passphrase for a reader who
+      // is likely to forget, and it argues proportionally instead of absolutely.
+      // A ban cannot express "somewhat", and every one of these risks is a
+      // matter of degree.
+      gated: false,
       contributions, costs,
     };
   });
@@ -728,6 +771,11 @@ function normalizedScores(answers) {
  * pairs), sovereignty + tech (→ fork lead, the preserved gate), recovery
  * (→ the fork's inheritance note).
  */
+// Rung 3 or 4 — a setup built on more than one key. Replaces the old 'fork'
+// family test now that DIY multisig and collaborative custody are separate
+// rungs that compete with each other.
+const isMultiKey = (fam) => fam === 'multisig' || fam === 'collaborative';
+
 function makeLegacyAnswers(family, a) {
   const worry = Array.isArray(a.worry) && a.worry.length ? a.worry : ['unsure'];
   if (family === 'passphrase') {
@@ -747,7 +795,7 @@ function makeLegacyAnswers(family, a) {
     // device pick stay honest.
     return { ...a, worry: ['targeted'], stakes: 'meaningful' };
   }
-  if (family === 'fork') {
+  if (isMultiKey(family)) {
     // 'lifechanging' is the one stakes value that always forks in the old
     // engine; fork content never reads stakes, so nothing else shifts.
     return { ...a, worry, stakes: 'lifechanging' };
@@ -837,7 +885,7 @@ export function recommendV2(answers = {}) {
   // novice is the reader least able to carry it. Gate by "is this the simple
   // family", not by naming one rival.
   const eligible = ranking.filter(
-    (r) => !r.gated && !(stakes === 'learning' && r.family !== 'single')
+    (r) => !r.gated
   );
   const fitLeader = eligible[0];
 
@@ -910,7 +958,7 @@ export function recommendV2(answers = {}) {
   const reasons = named.map((x) => ({
     concern: x.concern,
     setup: primary.rungSlug,
-    text: REASON_TEXT[x.concern][family === 'fork' ? 'fork' : 'single'].replace('{word}', words[x.concern]),
+    text: REASON_TEXT[x.concern][isMultiKey(family) ? 'fork' : 'single'].replace('{word}', words[x.concern]),
   }));
   if (!reasons.length) {
     reasons.push({
@@ -928,7 +976,7 @@ export function recommendV2(answers = {}) {
   const holdbacks = [];
   if (isElevated('self-loss')) {
     if (family === 'single') holdbacks.push(passphraseHoldback(words['self-loss']));
-    if (family === 'fork') {
+    if (isMultiKey(family)) {
       holdbacks.push({
         concern: 'self-loss',
         text: `We stopped at 2-of-3 — no passphrase on top, no fourth or fifth key. Every extra secret and every extra key is another way to lock yourself out, and locking yourself out is already your ${words['self-loss']} concern. Two-of-three removes the single point of failure; going further would put one back.`,
@@ -955,7 +1003,12 @@ export function recommendV2(answers = {}) {
       concern: 'self-loss',
       text: 'The honest cost of this one: a passphrase is a brand-new way to lose everything. Forget it and the seed alone will not save you — there is no error message, just an empty wallet. We are recommending it because locking yourself out scored low for you, so this is the trade you can afford. It only stays true if you back the passphrase up as carefully as the seed itself, and somewhere separate from it.',
     });
-  } else if (family === 'fork' && isElevated('physical')) {
+  } else if (isMultiKey(family) && isElevated('self-loss')) {
+    holdbacks.push({
+      concern: 'self-loss',
+      text: `We stopped where we did — no passphrase on top, no extra keys beyond this. Every additional secret and every additional key is one more way to lock yourself out, and locking yourself out is already your ${words['self-loss']} concern. More keys spread the risk; more secrets concentrate it.`,
+    });
+  } else if (isMultiKey(family) && isElevated('physical')) {
     // THE SILENT CASE. When self-loss is NOT elevated, none of the branches
     // above fire — so a reader whose physical risk pushed them to multisig was
     // shown three devices with NO explanation of why the simpler one-device
