@@ -53,6 +53,17 @@ export const CONCERNS = [
     blurb: 'Someone coming after you specifically — coercion, burglary for devices and backups, insider theft by people who know you.',
   },
   {
+    key: 'stakes',
+    label: 'How much is riding on this',
+    blurb: 'What losing it would actually cost you — not an amount, the consequence. The more that is riding on it, the more protection is worth its cost.',
+    // Like `exposure`, a preference rather than a frequency: seeded by the
+    // stakes ANSWER. It used to be a multiplier scattered across four different
+    // terms (a complexity discount, a device-budget discount, a shrinking
+    // simplicity bonus, and a ladder pull). Scored as a row instead, it is
+    // visible, tunable in one place, and cannot double-count itself.
+    preference: true,
+  },
+  {
     key: 'exposure',
     label: 'Being known to hold Bitcoin',
     blurb: 'Who can tie you to your coins, and how much they can see — ID checks that end up in a database, a service that can be compelled, a permanent link between your name and your balance, or a seed that reveals everything you own the moment someone gets it.',
@@ -102,6 +113,12 @@ const DEFAULTS = {
 // it moves a bar, and the bar moves the recommendation.
 export const EXPOSURE_BY_SOV = { pure: 85, 'lean-self': 55, 'open-help': 20 };
 
+// The stakes answer as a 0–100 score. Deliberately reaching the top of the
+// scale: this row carries roughly double the weight of the others (0 / 2.5 / 5
+// / 6 against their 0–3), which is what "more at stake justifies more
+// protection" looks like when it is stated rather than implied.
+export const STAKES_SCORE = { learning: 0, meaningful: 40, serious: 75, lifechanging: 100 };
+
 // Consequence-of-loss answer → default band. 'serious' is still "mid": the
 // design's large band is $1M+/public-footprint territory, which maps to
 // life-changing consequence, not "a big chunk of my savings".
@@ -113,6 +130,7 @@ export function defaultsFor(stakes, sovereignty) {
   // caller says which answer was given. Callers that omit it get the four
   // research-based concerns and nothing invented.
   if (sovereignty && EXPOSURE_BY_SOV[sovereignty] !== undefined) d.exposure = EXPOSURE_BY_SOV[sovereignty];
+  if (STAKES_SCORE[stakes] !== undefined) d.stakes = STAKES_SCORE[stakes];
   return d;
 }
 
@@ -133,7 +151,7 @@ export function defaultsFor(stakes, sovereignty) {
 // deliberate — its default share is small, so it takes little evidence of
 // being a target to be genuinely "high" for you.
 
-export const HALF_BAND = { custodial: 10, 'self-loss': 10, remote: 10, physical: 4, exposure: 15 };
+export const HALF_BAND = { custodial: 10, 'self-loss': 10, remote: 10, physical: 4, exposure: 15, stakes: 20 };
 
 export function scoreWord(n, concern, stakes = 'meaningful', sovereignty = 'lean-self') {
   const d = defaultsFor(stakes, sovereignty)[concern];
@@ -414,52 +432,13 @@ export function scoreFromPrompts(checkedPrompts = [], stakes = 'meaningful', ski
 //   3-of-5 2.5      lose any two
 //   collaborative 3 redundancy PLUS a service whose job is helping you recover
 export const PROTECTION = {
-  // ── the `exposure` column, added 2026-08-01 ──────────────────────────────
-  // Positive = limits who can tie you to your coins and how much they see.
-  // NEGATIVE = actively creates the link, the same way the passphrase carries a
-  // negative on self-loss. Collaborative custody is the only setup that hands a
-  // company your identity, so it is the only negative.
-  //
-  // THE PASSPHRASE SCORES HIGHEST HERE (3.5), above even a self-run multisig,
-  // and that is not a typo. It is the only setup on the ladder that offers
-  // DENIABILITY: the decoy wallet means a seed someone obtains — or compels —
-  // does not reveal what you actually hold. Every other setup protects the
-  // coins while still disclosing that they exist. Multisig requires more keys
-  // to move funds; it hides nothing.
-  //
-  // First pass scored it 2, level with single-sig, on the reasoning that a
-  // passphrase does not stop KYC. True but beside the point: the concern is not
-  // only "does a company know your name", it is "how much can anyone learn
-  // about what you hold". The definition was too narrow, and the weight
-  // inherited the error.
-  //
-  // And collaborative's `remote` drops 3 -> 2. KYC is not risk-free: an ID
-  // database is a phishing and extortion list the moment it leaks, and the
-  // holder is on it through no fault of their own. Scoring it level with a
-  // setup that never collected the data said something untrue.
-  'single-sig':    { weights: { custodial: 3, 'self-loss': 0.5, remote: 2, physical: 0, exposure: 2 }, complexity: 0, devices: 1 },
-  // The passphrase row, re-weighted 2026-08-01.
-  //   physical 3 — a passphrase is a full duress defence (the decoy/hidden
-  //     wallet), not a partial one. Level with multisig: both mean what is on
-  //     the device is not what an attacker gets.
-  //   remote 2.5 — above single-sig's 2, because a passphrase also blunts a
-  //     seed pulled off a compromised machine or generated by a device you
-  //     cannot fully trust. The 2026-07 Coldcard entropy flaw is the case in
-  //     point: a strong unique passphrase was one of only three things that
-  //     kept coins out of the sweep, because it is mixed in AFTER the device's
-  //     random number generator has done its work.
-  //   complexity 0 and a FULL simplicity share — it is one device, no extra
-  //     hardware, no coordinator, no quorum to manage. Charging it a complexity
-  //     cost while single-sig collected a simplicity bonus was double-counting
-  //     the same property, and it is what made the rung unreachable.
-  // The self-loss −1 is unchanged and deliberate: forgotten passphrases are the
-  // top recovery-firm caseload, and a wrong one shows an empty wallet with no
-  // error. That penalty, plus the C4 gate, is now the ONLY thing holding the
-  // passphrase back — which is the honest place for the brake to sit.
-  passphrase:      { weights: { custodial: 3, 'self-loss': -1, remote: 2.5, physical: 3, exposure: 3.5 }, complexity: 0, devices: 1 },
-  multisig:        { weights: { custodial: 3, 'self-loss': 2,  remote: 3, physical: 3, exposure: 3 }, complexity: 2, devices: 3 },
-  collaborative:   { weights: { custodial: 3, 'self-loss': 3,  remote: 2, physical: 3, exposure: -2 }, complexity: 1, devices: 2 },
+  //                custodial  self-loss  remote  physical  exposure  stakes
+  'single-sig':    { weights: { custodial: 3, 'self-loss': 1, remote: 1,   physical: 0,   exposure: 3, stakes: 0   }, complexity: 0, devices: 1 },
+  passphrase:      { weights: { custodial: 3, 'self-loss': 0, remote: 2,   physical: 2,   exposure: 3, stakes: 2.5 }, complexity: 0, devices: 1 },
+  multisig:        { weights: { custodial: 3, 'self-loss': 2, remote: 2.5, physical: 2.5, exposure: 3, stakes: 5   }, complexity: 2, devices: 3 },
+  collaborative:   { weights: { custodial: 3, 'self-loss': 3, remote: 3,   physical: 3,   exposure: 1, stakes: 6   }, complexity: 1, devices: 2 },
 };
+
 
 // FOUR setups, one per ladder rung. 3-of-5 was scored here as a fifth option
 // until 2026-08-01 and is not any more: it is a SIZE of do-it-yourself
@@ -535,7 +514,10 @@ export const LADDER_RANK = { single: 1, passphrase: 2, multisig: 3, collaborativ
 //     flagged as a genuine either/or (result.tie), never a false winner.
 
 const DEVIATION_GAIN = 1.6;
-const SIMPLICITY_EDGE = { learning: 1.15, meaningful: 1.05, serious: 1.0, lifechanging: 0.45 };
+// FLAT. It used to fade as stakes rose, which was one of four places stakes
+// quietly multiplied something. Stakes is a scored row now; letting it also
+// shrink this would count it twice.
+const SIMPLICITY_EDGE = 1.0;
 // WHO gets the simplicity bonus, and how much of it. It used to be single-sig
 // ONLY — which double-charged the passphrase for simplicity it actually has:
 // one device, like single-sig, yet it paid a complexity cost AND forfeited the
@@ -566,45 +548,11 @@ const SIMPLICITY_SHARE = { 'single-sig': 1, passphrase: 0.7 };
 // affordable as consequences grow. Simplicity is a real virtue at small stakes
 // and a weaker argument at large ones, so its bonus fades the same way
 // SIMPLICITY_EDGE already does.
-const PASSPHRASE_SHARE_BY_STAKES = { learning: 1, meaningful: 1, serious: 0.75, lifechanging: 0.25 };
 
-// LADDER PULL — how hard the consequence-of-loss answer pushes up the rungs.
-// Added as (rung − 1) × the stakes value, so the effect is SEQUENTIAL: rung 2
-// gets one dose, rung 3 gets two. Nothing at learning stakes.
-//
-// Why it exists as its own term: stakes used to move the result only
-// INDIRECTLY, by making complexity cheaper (STAKES_FACTOR, BUDGET_FACTOR,
-// SIMPLICITY_EDGE all fade as stakes rise). That is a discount on the downside,
-// not an argument for the upside, and it left "more at stake" as a weak,
-// emergent nudge rather than a stated position. The site's own ladder says
-// plainly that more consequence justifies more protection; this makes the
-// engine say it too, and makes it tunable in one visible place.
-// It starts at 'serious', not at 'meaningful'. The term represents "more at
-// stake justifies more protection", and at "I'd be upset, but I'd be okay"
-// that argument is genuinely weak — applying it there pulled the passphrase to
-// within 0.05 of single-sig on the untouched default and tripped C1's no-
-// near-tie clause. The pull should appear where the reasoning appears.
-//
-// Tuned against C1: at 'serious' a pull of 0.3 flipped the UNTOUCHED DEFAULT
-// profile to multisig, breaking the continuity guarantee that a reader who
-// changes nothing still lands on single-sig cold. 0.15 keeps that intact while
-// still leaning up. Life-changing is outside C1 by design and stays strong.
-// If serious-by-default should move to multisig, that is a C1 decision, not a
-// tuning one — change the constraint deliberately, don't quietly outweigh it.
-// NEGATIVE at learning stakes. This replaces the hard gate that used to bar a
-// novice from anything but single-sig: same intent, expressed as a weight the
-// scores can outvote rather than a wall they cannot. Somebody still learning
-// pays a real price for extra keys and extra secrets — they are the least
-// equipped to run them — but if their own answers argue loudly enough for a
-// step up, the model can now say so instead of refusing to.
-// Deliberately SIGNIFICANT, and proportional to the rung: (rung − 1) × the
-// stakes value, so rung 2 gets one dose and rung 4 gets three. This is the
-// site's own position — more at stake justifies more protection — stated as a
-// weight rather than left to emerge from complexity discounts. It is the term
-// to reach for first when the results look wrong by stakes.
-const LADDER_PULL = { learning: -0.5, meaningful: 0.15, serious: 0.55, lifechanging: 1.2 };
+
+
 const TECH_FACTOR = { simple: 0.9, careful: 0.65, technical: 0.4 };
-const STAKES_FACTOR = { learning: 1.3, meaningful: 1.1, serious: 0.8, lifechanging: 0.4 };
+
 const COMPLEXITY_BASE = 0.9;
 // Collaborative custody's fee/KYC/trust preference cost, scaled by the
 // sovereignty answer. It steers, it never gates: even 'pure' users get the
@@ -619,7 +567,8 @@ const COMPLEXITY_BASE = 0.9;
 const SOV_VALUES = { pure: 1, 'lean-self': 1, 'open-help': 1 };
 // Extra hardware beyond the first device weighs on a budget; consequence-of-
 // loss is the only budget proxy we have (never an amount).
-const BUDGET_FACTOR = { learning: 0.25, meaningful: 0.15, serious: 0.05, lifechanging: 0 };
+// Flat: extra hardware costs what it costs, whatever is at stake.
+const BUDGET_FACTOR = 0.15;
 export const TIE_MARGIN = 0.15;
 
 /**
@@ -631,7 +580,7 @@ export const TIE_MARGIN = 0.15;
  * not by reordering, so monotonicity stays inspectable.
  */
 export function fitFor(scores, answers = {}) {
-  const stakes = STAKES_FACTOR[answers.stakes] ? answers.stakes : 'meaningful';
+  const stakes = STAKES_SCORE[answers.stakes] !== undefined ? answers.stakes : 'meaningful';
   const tech = TECH_FACTOR[answers.tech] ? answers.tech : 'careful';
   const sov = SOV_VALUES[answers.sovereignty] ? answers.sovereignty : 'lean-self';
   const d = defaultsFor(stakes, sov);
@@ -659,13 +608,11 @@ export function fitFor(scores, answers = {}) {
     }));
     const protection = contributions.reduce((t, x) => t + x.points, 0);
     const costs = {
-      complexity: Math.round(P.complexity * TECH_FACTOR[tech] * STAKES_FACTOR[stakes] * COMPLEXITY_BASE * 100) / 100,
+      complexity: Math.round(P.complexity * TECH_FACTOR[tech] * COMPLEXITY_BASE * 100) / 100,
       sovereignty: 0,
-      budget: Math.round((P.devices - 1) * BUDGET_FACTOR[stakes] * 100) / 100,
-      simplicityEdge: Math.round((SIMPLICITY_EDGE[stakes]
-        * (SIMPLICITY_SHARE[setup] || 0)
-        * (setup === 'passphrase' ? PASSPHRASE_SHARE_BY_STAKES[stakes] : 1)) * 100) / 100,
-      ladderPull: Math.round((LADDER_PULL[stakes] * (LADDER_RANK[FAMILY[setup]] - 1)) * 100) / 100,
+      budget: Math.round((P.devices - 1) * BUDGET_FACTOR * 100) / 100,
+      simplicityEdge: Math.round((SIMPLICITY_EDGE * (SIMPLICITY_SHARE[setup] || 0)) * 100) / 100,
+      ladderPull: 0,
     };
     return {
       setup,
@@ -937,7 +884,7 @@ function secondaryFor(runnerUp, words, answers) {
 }
 
 export function recommendV2(answers = {}) {
-  const stakes = STAKES_FACTOR[answers.stakes] ? answers.stakes : 'meaningful';
+  const stakes = STAKES_SCORE[answers.stakes] !== undefined ? answers.stakes : 'meaningful';
   const scores = normalizedScores(answers);
   const d = defaultsFor(stakes, answers.sovereignty);
   const words = {};
