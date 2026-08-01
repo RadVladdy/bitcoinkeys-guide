@@ -1,0 +1,95 @@
+---
+// THE PRINT ARTIFACT. Not a page you read — a page you print, or open on a
+// second screen while you work. Deliberately almost wordless: everything that
+// explains the method lives on the procedure page, and duplicating it here
+// would give two places for the instructions to disagree.
+//
+// THE TABLE IS NOT SECRET. It is a deterministic mapping of the published
+// BIP-39 wordlist that anyone can regenerate, so there is no risk in printing
+// it, photographing it, or keeping it on a phone. Only the reader's ROLLS and
+// the WORDS they produce are secret. Do not add a warning here — a false
+// warning teaches readers to discount the real one on the procedure page.
+//
+// Every row is derived at build time and the generator asserts the table is
+// bijective onto the wordlist, so a broken table fails the build.
+import Base from '../layouts/Base.astro';
+import { blocks, rows, tableRowCount, DICE_PER_WORD } from '../data/dice-table.js';
+import { diceVerified } from '../data/dice.js';
+---
+<Base
+  title="Dice → word table (printable) · BitcoinKeys.guide"
+  description="A printable table turning five dice throws and a coin flip into a BIP-39 word. Derived from the standard wordlist. Print it before you begin."
+  verified={diceVerified}
+>
+  <section class="prose dwt-intro">
+    <p class="eyebrow">A print-out, not a page</p>
+    <h1>Dice → word table</h1>
+    <p class="lead">
+      Every one of the {tableRowCount.toLocaleString()} words in the standard list, reachable from
+      {DICE_PER_WORD} throws of an ordinary die and one coin flip. Print it, or open it on a second
+      screen. The procedure is on <a href="/roll-your-own-seed">the tool page</a>.
+    </p>
+    <div class="dwt-how">
+      <p><strong>Throw the die {DICE_PER_WORD} times, rerolling any 5 or 6, then flip a coin.</strong>
+      Find the block for your first two throws, then read down to your remaining three and your flip.</p>
+      <p class="dwt-note">This table is public and contains no secret — it is the standard wordlist in a
+      fixed order. Your <em>throws</em> and the <em>words</em> they give you are the secret.</p>
+    </div>
+    <p class="dwt-print"><button type="button" id="dwt-print" class="btn">Print this table</button>
+      <a class="btn ghost" href="/dice-word-table.pdf" download>Download as PDF</a></p>
+  </section>
+
+  <section class="dwt-wrap">
+    {blocks.map((b) => (
+      <div class="dwt-block">
+        <h2 class="dwt-h">Throws 1–2: <span class="mono">{b.prefix}</span></h2>
+        <table class="dwt">
+          <thead><tr><th>Throws</th><th>Flip</th><th>Word</th></tr></thead>
+          <tbody>
+            {b.items.map((r) => (
+              <tr>
+                <td class="mono">{r.dice}</td>
+                <td class="mono">{r.coin}</td>
+                <td>{r.word}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    ))}
+  </section>
+</Base>
+
+<script>
+  const b = document.getElementById('dwt-print');
+  if (b) b.addEventListener('click', () => window.print());
+</script>
+
+<style>
+  .dwt-how { border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem 1.2rem; margin: 1.2rem 0; }
+  .dwt-how p { margin: 0 0 .5rem; }
+  .dwt-note { color: var(--muted); font-size: .9rem; margin: 0 !important; }
+  .dwt-print { display: flex; gap: .7rem; flex-wrap: wrap; margin-top: 1rem; }
+  .btn { display: inline-flex; align-items: center; background: var(--accent); color: var(--accent-ink);
+    font-weight: 700; font-family: var(--mono); font-size: .9rem; padding: .65rem 1rem;
+    border-radius: .6rem; text-decoration: none; border: none; cursor: pointer; }
+  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+  .btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Multi-column so 2,048 rows are a handful of sheets rather than fifty. */
+  .dwt-wrap { columns: 4 14rem; column-gap: 1.4rem; margin-top: 1.4rem; }
+  .dwt-block { break-inside: avoid-column; margin-bottom: 1.2rem; }
+  .dwt-h { font-size: .82rem; margin: 0 0 .25rem; letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+  .dwt { width: 100%; border-collapse: collapse; font-size: .78rem; }
+  .dwt th { text-align: left; font-size: .68rem; text-transform: uppercase; letter-spacing: .05em;
+    color: var(--muted); border-bottom: 1px solid var(--line); padding: .1rem .3rem; }
+  .dwt td { padding: .06rem .3rem; border-bottom: 1px solid var(--line-soft, transparent); }
+
+  @media print {
+    /* Ink and paper: black on white, no page furniture, no controls. */
+    .dwt-intro .lead, .dwt-print, .dwt-how { display: none; }
+    .dwt-wrap { columns: 5 10rem; }
+    .dwt td, .dwt th { color: #000; }
+    .dwt-h { color: #000; }
+  }
+</style>
