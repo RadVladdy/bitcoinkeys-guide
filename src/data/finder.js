@@ -737,19 +737,31 @@ export function recommendV2(answers = {}) {
   const fitRival = eligible.find((r) => r.family !== fitLeader.family);
   const isTie = Boolean(fitRival && fitLeader.fit - fitRival.fit < TIE_MARGIN);
 
-  // ── C6 ties resolve UPWARD ───────────────────────────────────────────────
-  // When two setups are within a hair of each other the arithmetic is not the
-  // thing deciding it — noise is. So the tiebreak is a POLICY, not a number:
-  // lead with the setup that is HIGHER ON THE LADDER, i.e. the more protective
-  // one. "Simplest that adequately covers you" still governs everywhere the
-  // scores are actually separated; it just stops being the tiebreak when they
-  // are not. The rule: safe over simple — at equal fit, the upgrade is the
-  // justifiable default, never the downgrade.
-  // Both remain first-class choices on the page; this only decides which is
-  // presented FIRST, and the copy says plainly that either is right.
-  const top = isTie && LADDER_RANK[fitRival.family] > LADDER_RANK[fitLeader.family]
-    ? fitRival
-    : fitLeader;
+  // ── C6 ties resolve UPWARD, but ONLY away from bare single-sig ───────────
+  // When two setups land within a hair of each other the arithmetic is not the
+  // thing deciding it — noise is. So the tiebreak is a POLICY, not a number.
+  //
+  // SCOPE (narrowed 2026-07-31, deliberately): the policy fires only when the
+  // fit leader is SINGLE-SIG. That is the one rung with no layer at all — one
+  // key, one seed, nothing behind it — so a coin-flip between "bare" and
+  // "bare + a layer" should not land on bare. A passphrase in particular is a
+  // cheap upgrade on one device that answers seed exposure and theft, which is
+  // exactly the trade worth defaulting to when it is close.
+  //
+  // It does NOT fire between two already-layered setups (passphrase vs the
+  // multisig fork). Both carry real protection and real cost, the choice
+  // between them is a genuine preference, and forcing the more complex one
+  // there would be complexity for its own sake rather than covering a bare
+  // risk. Those ties keep the fit order and are presented as the either/or
+  // they are.
+  //
+  // "Simplest that adequately covers you" still governs everywhere the scores
+  // actually separate; this only decides which of two near-equals is presented
+  // FIRST, and the copy says plainly that either is right.
+  const upgradeFromBare = isTie
+    && fitLeader.family === 'single'
+    && LADDER_RANK[fitRival.family] > LADDER_RANK[fitLeader.family];
+  const top = upgradeFromBare ? fitRival : fitLeader;
   const family = top.family;
   const rival = isTie ? (top === fitLeader ? fitRival : fitLeader) : fitRival;
 
