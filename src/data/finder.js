@@ -46,6 +46,9 @@ export const CONCERNS = [
     // that prevalence is LOWER, so 22 is now the softest number in a set of soft
     // numbers and should be revisited when the bundle is next calibrated.
     blurb: 'A meaningful share of your Bitcoin sitting with an exchange or custodian that goes under, freezes your account, or loses your coins — the Mt. Gox to FTX class of loss. Small change on an app is not what this is about.',
+    // EVERY SETUP ANSWERS THIS COMPLETELY — stated on the concern so the walked
+    // section and /how-we-weigh-risk cannot drift apart about it.
+    settled: 'Every setup here takes this one to zero — that is what holding your own keys means. Even the collaborative option: the service holds one key of three, so if it fails you still hold two and your coins still move. What you would lose is the safety net, not the money.',
   },
   {
     key: 'self-loss',
@@ -188,6 +191,18 @@ export const WEIGHT_POINTS = { small: 6, medium: 10, large: 16 };
 
 export const prompts = [
   // ── custodial ── (raises: exchange/custodian failure)
+  //
+  // FOUR PROMPTS, trimmed from seven on 2026-08-01. This section cannot change
+  // the recommendation and is not meant to: all four setups score 3 here,
+  // because holding your own keys takes company failure to zero whichever setup
+  // holds them. The section builds the reader's PICTURE and sets up the
+  // custody-trade argument, and seven questions is a lot to ask for that in the
+  // first section they meet.
+  //
+  // KEEP THE 6-POINT PROMPT. EXPECTED_RAW.custodial is 22 and WEIGHT_POINTS are
+  // 6/10/16, so 16 + 6 is the ONLY subset that reaches it — drop the small one
+  // and C6 has no reachable bundle and quietly degrades to checking the formula
+  // against itself, which is the failure it was written to prevent.
   {
     id: 'c-exchange', concern: 'custodial', weight: 'large',
     statement: 'A meaningful share of my Bitcoin sits on an exchange or app, not in a wallet I control.',
@@ -204,24 +219,9 @@ export const prompts = [
     why: 'Every 2022 bankruptcy that froze retail funds was a yield platform. Yield means your coins are out working — and not for you.',
   },
   {
-    id: 'c-audit', concern: 'custodial', weight: 'small',
-    statement: 'I couldn’t say who audits the platform holding it, or whether it publishes proof of reserves.',
-    why: 'Platforms that show their reserves can be checked; platforms that don’t can only be believed.',
-  },
-  {
-    id: 'c-friction', concern: 'custodial', weight: 'medium',
-    statement: 'I’ve had a withdrawal delayed, an account frozen, or a surprise re-verification.',
-    why: 'Withdrawal friction preceded the Celsius collapse by about a month — it is the classic early warning.',
-  },
-  {
     id: 'c-never-withdrawn', concern: 'custodial', weight: 'medium',
     statement: 'I’ve never actually withdrawn to a wallet of my own.',
     why: 'In a bank-run the withdrawal window is days. An exit you have never practised is not an exit plan.',
-  },
-  {
-    id: 'c-unregulated', concern: 'custodial', weight: 'medium',
-    statement: 'My exchange isn’t regulated where I live.',
-    why: 'Of the exchanges that vanished with no explanation at all, almost every one was an unregulated venue.',
   },
 
   // ── self-loss ── (raises: self-inflicted loss)
