@@ -63,17 +63,32 @@ if (rows.some((r) => !r.word)) {
 
 export const tableRowCount = rows.length;
 
-// Grouped by the first two throws, which is what makes it usable on paper —
-// you find your block, then read down. 16 blocks of 128.
+// Grouped by the first THREE throws: 64 blocks of 32 rows.
+//
+// Two throws would give 16 blocks of 128, which packs tighter but makes you
+// scan 128 near-identical lines to find one row. Thirty-two lines under a
+// heading you can match at a glance is the point of a lookup table — density
+// that costs you the lookup is not a saving.
+export const PREFIX_THROWS = 3;
+
 export const blocks = (() => {
   const map = new Map();
   for (const r of rows) {
-    const k = r.dice.slice(0, 2);
+    const k = r.dice.slice(0, PREFIX_THROWS);
     if (!map.has(k)) map.set(k, []);
     map.get(k).push(r);
   }
   return [...map.entries()].map(([prefix, items]) => ({ prefix, items }));
 })();
+
+// Asserted, because a prefix length and a block size that disagree would give
+// a table that still looks right and sends readers to the wrong row.
+if (blocks.length !== DIE_FACES ** PREFIX_THROWS) {
+  throw new Error(`dice-table: ${blocks.length} blocks for a ${PREFIX_THROWS}-throw prefix`);
+}
+if (blocks.some((b) => b.items.length !== rows.length / blocks.length)) {
+  throw new Error('dice-table: blocks are not all the same size');
+}
 
 export const blockCount = blocks.length;
 

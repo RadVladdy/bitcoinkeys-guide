@@ -13,7 +13,7 @@
 // Every row is derived at build time and the generator asserts the table is
 // bijective onto the wordlist, so a broken table fails the build.
 import Base from '../layouts/Base.astro';
-import { blocks, rows, tableRowCount, DICE_PER_WORD } from '../data/dice-table.js';
+import { blocks, rows, tableRowCount, DICE_PER_WORD, PREFIX_THROWS } from '../data/dice-table.js';
 import { diceVerified } from '../data/dice.js';
 ---
 <Base
@@ -30,8 +30,12 @@ import { diceVerified } from '../data/dice.js';
       screen. The procedure is on <a href="/roll-your-own-seed">the tool page</a>.
     </p>
     <div class="dwt-how">
-      <p><strong>Throw the die {DICE_PER_WORD} times, rerolling any 5 or 6, then flip a coin.</strong>
-      Find the block for your first two throws, then read down to your remaining three and your flip.</p>
+      <p><strong>Throw the die {DICE_PER_WORD} times, rerolling any 5 or 6, then flip a coin once.</strong>
+      Find the block headed by your first {PREFIX_THROWS} throws, then read down to your remaining
+      {DICE_PER_WORD - PREFIX_THROWS} throws and your flip.</p>
+      <p><strong class="mono">H</strong> is heads and <strong class="mono">T</strong> is tails. The die gives
+      you {DICE_PER_WORD * 2} of the 11 bits each word needs and the coin gives the last one — which is why
+      there are exactly two lines for every dice combination, and why the coin is not optional.</p>
       <p class="dwt-note">This table is public and contains no secret — it is the standard wordlist in a
       fixed order. Your <em>throws</em> and the <em>words</em> they give you are the secret.</p>
     </div>
@@ -97,16 +101,19 @@ import { diceVerified } from '../data/dice.js';
        to fewer columns when N × min exceeds the printable width, so asking for
        six 8rem columns on A4 quietly produced four. Keep the minimum below
        (page width − margins) ÷ N or the count is a suggestion. */
-    .dwt-wrap { columns: 7 4.6rem; column-gap: 0.75rem; margin: 0; }
-    .dwt-rows { font-size: 6.2pt; line-height: 1.1; }
+    .dwt-wrap { columns: 6 5rem; column-gap: 0.8rem; margin: 0; }
+    .dwt-rows { font-size: 6.6pt; line-height: 1.07; }
     .dwt-rows li { color: #000; }
     .dwt-k { color: #444; margin-right: .25rem; }
-    .dwt-h { font-size: 6pt; color: #000; margin-bottom: .05rem; }
-    /* MUST flow across columns in print. Each block is 128 rows — taller than
-       a printed page — so avoid-column cannot be honoured and instead leaves
-       most of every column empty. That, not the font size, is what made this
-       a 26-page document. */
-    .dwt-block { margin-bottom: .28rem; break-inside: auto; }
+    .dwt-h { font-size: 7pt; color: #000; margin-bottom: .04rem; margin-top: .08rem; }
+    /* Blocks are 32 rows and comfortably shorter than a column, so keeping
+       each one whole is both possible and worth the space — a block split
+       across a column break is the case that makes a lookup table hard to
+       use. This was `auto` while blocks were 128 rows: at that size the rule
+       could not be honoured and instead left most of every column empty,
+       which is what made this a 26-page document. Revisit if the prefix
+       length changes again. */
+    .dwt-block { margin-bottom: .1rem; break-inside: avoid-column; }
     @page { margin: 8mm; }
   }
 </style>
