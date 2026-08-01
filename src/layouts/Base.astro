@@ -3,6 +3,16 @@ import '../styles/global.css';
 import Nav from '../components/Nav.astro';
 import Footer from '../components/Footer.astro';
 import { glossary } from '../data/glossary.js';
+import { activeAdvisories } from '../data/advisories.js';
+
+// An ACTIVE security advisory shows site-wide, above everything, on every page.
+// Reasoning: the people most at risk from a seed-generation flaw are existing
+// holders who already own the device — exactly the readers who arrive on a
+// lesson or the glossary and would never think to open a "hardware" page. A
+// notice only on /wallets reaches the people still shopping, which is close to
+// the opposite of the affected group. It renders from advisories.js and
+// disappears on its own when the entry stops being `status: 'active'`.
+const advisory = activeAdvisories[0] || null;
 
 // The `is:inline` theme script in <head> must STAY inline and STAY in <head>: it
 // applies the saved theme before first paint, and moving it into the bundle brings
@@ -78,6 +88,15 @@ const verifiedLabel = verified
 </head>
 
 <body>
+{advisory && (
+  <aside class="adv-banner" role="region" aria-label="Security advisory">
+    <p>
+      <span class="adv-banner-tag mono">Security advisory</span>
+      {advisory.bannerText}
+      <a href={advisory.href}>read the advisory →</a>
+    </p>
+  </aside>
+)}
 <Nav />
 
 <main class="wrap">

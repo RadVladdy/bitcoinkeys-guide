@@ -49,6 +49,10 @@ export const navGroups = [
     // the published "how we decide" pages — one for devices, one for the finder.
     links: [
       { href: '/wallets', label: 'Hardware wallets' },
+      // Listed directly under the hardware page while an advisory is active: a
+      // reader checking whether their own device is affected should not have to
+      // find it through a banner they may have already scrolled past.
+      { href: '/advisory/coldcard-seed-entropy', label: 'Security advisory — Coldcard' },
       { href: '/standard', label: 'How we rate them' },
       { href: '/how-we-weigh-risk', label: 'How we weigh risk' },
       { href: '/metal-backups', label: 'Metal backups' },

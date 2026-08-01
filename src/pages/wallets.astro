@@ -1,6 +1,7 @@
 ---
 import Base from '../layouts/Base.astro';
 import { wallets, compareCriteria, walletsVerified, badgeDefs, chooserFilters, useCaseChips, budgetBuckets, coldWallets, spendingWallets, disqualifiedWallets, tierOf, tierCountWord } from '../data/wallets.js';
+import { advisoryFor } from '../data/advisories.js';
 
 // PAGE STRUCTURE: view tabs (filter/browse ⇄ comparison table, revealed by JS as
 // progressive enhancement — the browse view works with none) → the interactive
@@ -134,6 +135,9 @@ const tableGroups = [
             })}
           </div>
           <p class="watch"><strong>Watch out:</strong> {w.watch}</p>
+          {advisoryFor(w.name) && (
+            <p class="wadv"><strong>Security advisory:</strong> {advisoryFor(w.name).bannerText} <a href={advisoryFor(w.name).href}>read it →</a></p>
+          )}
           {tierOf(w) !== 'cold' && (
             <p class:list={['tier-reason', tierMeta[tierOf(w)].cls]}><strong>{tierMeta[tierOf(w)].label}:</strong> {w.tierNote.summary} <a href={tierMeta[tierOf(w)].anchor}>Full reasoning →</a></p>
           )}
@@ -486,6 +490,15 @@ const tableGroups = [
   .wcard p { margin: 0 0 0.5rem; font-size: 0.92rem; color: var(--muted); }
   .wcard .best strong { color: var(--safe); }
   .wcard .watch strong { color: var(--warn); }
+  /* An ACTIVE advisory on a device we rate. Sits below the watch-out line and
+     is deliberately louder than it: a watch-out is a trade-off you accept going
+     in, an advisory is a live risk to coins someone already holds. */
+  .wcard .wadv {
+    margin-top: .5rem; padding: .5rem .7rem;
+    border: 1px solid var(--danger); border-radius: var(--radius);
+    background: var(--danger-dim); font-size: .9rem;
+  }
+  .wcard .wadv strong { color: var(--danger); }
   .wcard[hidden] { display: none; }
   .wcard .wc-title h3 { margin: 0; font-size: 1.05rem; }
   .wcard .wc-title .vendor { margin-top: 0.15rem; }
