@@ -38,23 +38,72 @@ import { diceVerified } from '../data/dice.js';
       there are exactly two lines for every dice combination, and why the coin is not optional.</p>
       <p class="dwt-note">This table is public and contains no secret — it is the standard wordlist in a
       fixed order. Your <em>throws</em> and the <em>words</em> they give you are the secret.</p>
+      <p class="dwt-note"><strong>This is the same method and the same table
+      <a href="https://bitbox.swiss/bitbox02/BitBox_Diceware_LookupTable.pdf" rel="noopener noreferrer" target="_blank">BitBox publishes</a></strong>
+      for its own devices. We generated ours independently from the word list and then checked every one of the
+      {tableRowCount.toLocaleString()} entries against theirs — all of them match. Two tables built separately
+      agreeing on every row is the reason to trust either. Use one of them for a whole seed, though, not a mix.</p>
     </div>
     <p class="dwt-print"><button type="button" id="dwt-print" class="btn">Print this table</button>
       <a class="btn ghost" href="/dice-word-table.pdf" download>Download as PDF</a></p>
   </section>
 
-  {/* PRINT-ONLY HEADER. The screen intro is hidden when printing, which left
-      the PDF with no instructions on it at all — including the one thing a
-      reader cannot infer from the table, that 5s and 6s are rerolled. A
-      print-out of a lookup table has to carry its own method: the reader is
-      holding paper, away from the page that explained it. */}
-  <p class="dwt-printhead">
-    <strong>Dice → word table.</strong>
-    Throw one die {DICE_PER_WORD}× — <strong>reroll every 5 and 6</strong>, so each throw is a 1–4 — then
-    flip a coin (<span class="mono">H</span> = heads, <span class="mono">T</span> = tails).
-    Find the block headed by your first {PREFIX_THROWS} throws, then read down.
-    Repeat for each word. bitcoinkeys.guide/roll-your-own-seed
-  </p>
+  {/* THE METHOD SHEET — print only, and its own page.
+      The table pages stay strictly reference: no instructions interleaved with
+      2,048 rows. But the print-out cannot be method-less either, because the
+      reader is holding paper away from the screen, and one thing here is not
+      inferable from the table at all — that 5s and 6s are rerolled, which is
+      why no heading contains one.
+      It names the site on purpose: this sheet gets passed around, and whoever
+      receives it should land on the full procedure rather than work from a
+      summary. */}
+  <section class="dwt-sheet">
+    <h2 class="ds-h">Rolling your own seed words — the method</h2>
+    <p class="ds-lead">
+      This sheet explains how to use the table on the following pages. The full procedure, including what to
+      do with the words once you have them, is at <strong>bitcoinkeys.guide/roll-your-own-seed</strong> — read
+      it before you begin. Do not work from this sheet alone.
+    </p>
+
+    <h3 class="ds-sh">What you need</h3>
+    <p>One six-sided die, one coin, pen and paper. No computer, no phone.</p>
+
+    <h3 class="ds-sh">For each word</h3>
+    <ol class="ds-steps">
+      <li><strong>Throw the die {DICE_PER_WORD} times.</strong> <strong>Reroll every 5 and 6</strong> — they
+        do not count and are not written down. Keep throwing until you have {DICE_PER_WORD} results that are
+        each 1, 2, 3 or 4. This is why no entry in the table contains a 5 or a 6.</li>
+      <li><strong>Flip the coin once.</strong> <span class="mono">H</span> is heads,
+        <span class="mono">T</span> is tails. The coin is not optional: the die gives ten of the eleven bits a
+        word needs and the coin gives the eleventh. Always taking the same side halves the randomness of every
+        word you pick.</li>
+      <li><strong>Find your word.</strong> Blocks are headed by your first {PREFIX_THROWS} throws. Find that
+        block, then read down to the line matching your remaining
+        {DICE_PER_WORD - PREFIX_THROWS} throws and your flip.</li>
+      <li><strong>Write the word down, in order, by hand.</strong> Never type it, photograph it, or read it
+        aloud in earshot of anything with a microphone.</li>
+    </ol>
+
+    <h3 class="ds-sh">How many words</h3>
+    <p>
+      Twenty-three words for a 24-word seed, or eleven for a 12-word seed. <strong>You do not roll the last
+      word.</strong> It carries a checksum that has to be calculated, and your hardware wallet does that for
+      you — the procedure on the site explains how, for each device.
+    </p>
+
+    <h3 class="ds-sh">Two things worth knowing</h3>
+    <p>
+      <strong>This table holds no secret.</strong> It is the standard BIP-39 word list in a fixed order, and
+      anyone can regenerate it. Printing it, photographing it or keeping it on a phone is harmless. Your
+      <em>throws</em> and the <em>words</em> they produce are the secret, and those never touch a screen.
+    </p>
+    <p>
+      <strong>This is the same method and the same table BitBox publishes</strong> for its own devices. We
+      generated ours independently from the word list and checked all {tableRowCount.toLocaleString()} entries
+      against theirs: every one matches. Either table gives the same word for the same throws — but use one
+      table for a whole seed, not a mix.
+    </p>
+  </section>
 
   <section class="dwt-wrap">
     {blocks.map((b) => (
@@ -76,7 +125,7 @@ import { diceVerified } from '../data/dice.js';
 </script>
 
 <style>
-  .dwt-printhead { display: none; }
+  .dwt-sheet { display: none; }
   .dwt-how { border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem 1.2rem; margin: 1.2rem 0; }
   .dwt-how p { margin: 0 0 .5rem; }
   .dwt-note { color: var(--muted); font-size: .9rem; margin: 0 !important; }
@@ -105,8 +154,15 @@ import { diceVerified } from '../data/dice.js';
        method lives on the procedure page, which is where a reader who needs
        it is standing anyway. */
     .dwt-intro { display: none; }
-    .dwt-printhead { display: block; font-size: 7.4pt; line-height: 1.35; color: #000;
-      margin: 0 0 .35rem; padding-bottom: .2rem; border-bottom: .5pt solid #999; }
+    /* Its own page, so the reference pages that follow carry nothing but
+       the table. */
+    .dwt-sheet { display: block; color: #000; break-after: page; font-size: 10pt; line-height: 1.45; }
+    .ds-h { font-size: 15pt; margin: 0 0 .5rem; color: #000; }
+    .ds-sh { font-size: 11pt; margin: .9rem 0 .25rem; color: #000; }
+    .ds-lead { margin: 0 0 .6rem; }
+    .dwt-sheet p { margin: 0 0 .5rem; }
+    .ds-steps { margin: 0; padding-left: 1.1rem; }
+    .ds-steps li { margin-bottom: .45rem; }
     /* Site chrome off the print-out. The nav and footer are wasted ink, and
        the advisory banner would stamp a dated incident onto an artifact that
        is otherwise good forever — the BIP-39 wordlist never changes, so a
