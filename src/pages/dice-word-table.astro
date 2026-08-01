@@ -13,8 +13,14 @@
 // Every row is derived at build time and the generator asserts the table is
 // bijective onto the wordlist, so a broken table fails the build.
 import Base from '../layouts/Base.astro';
-import { blocks, rows, tableRowCount, DICE_PER_WORD, PREFIX_THROWS } from '../data/dice-table.js';
 import { diceVerified } from '../data/dice.js';
+import { blocks, rows, tableRowCount, DICE_PER_WORD, PREFIX_THROWS, seedCosts } from '../data/dice-table.js';
+
+// Rows come from the seed lengths, never typed: a worksheet with the wrong
+// number of rows is a seed with the wrong number of words.
+const longChosen = seedCosts.find((c) => c.words === 24).chosen;
+const shortChosen = seedCosts.find((c) => c.words === 12).chosen;
+
 ---
 <Base
   title="Dice → word table (printable) · BitcoinKeys.guide"
@@ -105,6 +111,49 @@ import { diceVerified } from '../data/dice.js';
     </p>
   </section>
 
+  {/* THE WORKSHEET — print only, its own page.
+      Unlike the table, THIS SHEET BECOMES THE SEED the moment it is written
+      on, and the warning has to lead rather than sit in a footnote. It is the
+      one artifact here that is dangerous to keep, photograph or throw away
+      intact.
+      One sheet covers both lengths: a 12-word seed stops at row 11, which is
+      marked in place rather than needing a second sheet to print and confuse. */}
+  <section class="dwt-work">
+    <h2 class="ds-h">Worksheet — fill in as you go</h2>
+    <p class="dw-warn">
+      <strong>The moment you write on this sheet it becomes your seed.</strong> Treat it exactly as you would
+      the words themselves: never photograph it, never type it up, never leave it out. When your words are
+      safely on their permanent backup and you have restored from that backup successfully, destroy this sheet
+      — shred or burn it. Do not simply bin it.
+    </p>
+    <table class="dw">
+      <thead>
+        <tr><th class="dw-n">#</th><th colspan={DICE_PER_WORD}>Throws (reroll 5s and 6s)</th><th class="dw-f">Flip</th><th class="dw-w">Word</th></tr>
+      </thead>
+      <tbody>
+        {Array.from({ length: longChosen }, (_, i) => (
+          <tr class={i + 1 === shortChosen ? 'dw-mark' : undefined}>
+            <td class="dw-n">{i + 1}</td>
+            {Array.from({ length: DICE_PER_WORD }, () => (<td class="dw-b"></td>))}
+            <td class="dw-b dw-f"></td>
+            <td class="dw-w"></td>
+          </tr>
+        ))}
+        <tr class="dw-last">
+          <td class="dw-n">{longChosen + 1}</td>
+          <td class="dw-note" colspan={DICE_PER_WORD + 1}>Not rolled — your device calculates this one</td>
+          <td class="dw-w"></td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="dw-foot">
+      <strong>12-word seed:</strong> stop after row {shortChosen} — the device supplies word {shortChosen + 1}.
+      &nbsp;·&nbsp; <strong>24-word seed:</strong> fill all {longChosen}, the device supplies word {longChosen + 1}.
+      <br />Full procedure, and what to do with these words once you have them:
+      <strong>bitcoinkeys.guide/roll-your-own-seed</strong>
+    </p>
+  </section>
+
   <section class="dwt-wrap">
     {blocks.map((b) => (
       <div class="dwt-block">
@@ -125,7 +174,7 @@ import { diceVerified } from '../data/dice.js';
 </script>
 
 <style>
-  .dwt-sheet { display: none; }
+  .dwt-sheet, .dwt-work { display: none; }
   .dwt-how { border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem 1.2rem; margin: 1.2rem 0; }
   .dwt-how p { margin: 0 0 .5rem; }
   .dwt-note { color: var(--muted); font-size: .9rem; margin: 0 !important; }
@@ -157,6 +206,20 @@ import { diceVerified } from '../data/dice.js';
     /* Its own page, so the reference pages that follow carry nothing but
        the table. */
     .dwt-sheet { display: block; color: #000; break-after: page; font-size: 10pt; line-height: 1.45; }
+    .dwt-work { display: block; color: #000; break-after: page; font-size: 10pt; }
+    .dw-warn { border: 1pt solid #000; padding: .4rem .6rem; margin: 0 0 .6rem; font-size: 9pt; line-height: 1.35; }
+    .dw { width: 100%; border-collapse: collapse; font-size: 9pt; }
+    .dw th { font-size: 7.5pt; text-transform: uppercase; letter-spacing: .05em; font-weight: 600;
+      border-bottom: 1pt solid #000; padding: .1rem .2rem; text-align: left; }
+    .dw td { border: .5pt solid #888; height: 20pt; padding: 0 .2rem; }
+    .dw-n { width: 5%; border: none !important; text-align: right; font-size: 8pt; color: #444; }
+    .dw-b { width: 5.5%; }
+    .dw-f { width: 6%; }
+    .dw-w { width: 40%; }
+    .dw-mark td { border-bottom-width: 1.5pt !important; border-bottom-color: #000 !important; }
+    .dw-last td { background: #eee; }
+    .dw-note { font-size: 7.5pt; color: #333; text-align: center; }
+    .dw-foot { font-size: 8pt; margin-top: .5rem; line-height: 1.4; }
     .ds-h { font-size: 15pt; margin: 0 0 .5rem; color: #000; }
     .ds-sh { font-size: 11pt; margin: .9rem 0 .25rem; color: #000; }
     .ds-lead { margin: 0 0 .6rem; }
