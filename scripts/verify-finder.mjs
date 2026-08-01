@@ -21,7 +21,7 @@ import { recommend } from '../src/data/quiz.js';
 import {
   recommendV2, shimScores, fitFor, defaultsFor, scoreWord, scoreFromPrompts,
   CONCERN_KEYS, SECTION_ORDER, SETUP_KEYS, PROTECTION, FAMILY, TIE_MARGIN, prompts,
-  EXPECTED_RAW, WEIGHT_POINTS,
+  EXPECTED_RAW, WEIGHT_POINTS, LADDER_RANK,
 } from '../src/data/finder.js';
 
 let failures = 0;
@@ -356,6 +356,55 @@ for (const c of SECTION_ORDER) {
   c6n += 1;
 }
 console.log(`  C6 expected bundle — ${c6n} concerns: bundle scores the default, cleared reads low, cleared ≠ skipped`);
+
+// ── C7 · SIMPLEST, PLUS ONE — the house bias, made checkable ────────────────
+// The site's rule is the simplest ADEQUATE rung. The house bias is one step
+// past it: unknown risks exist, and a holder's stack is worth more in four
+// years than it is today, so the recommendation leans to protection rather
+// than to the bare minimum a reader's answers strictly justify.
+//
+// This property was true by ACCIDENT — it fell out of the stakes weights and
+// was asserted nowhere, which is how this project has lost properties before
+// (invariants #8, #9 and #10 all record one that was true by luck until a
+// tuning pass quietly ended it). Asserted against the hardest case: a reader
+// who CLEARED the entire assessment, whose answers justify the floor and
+// nothing more.
+//
+// THE LEARNING EXEMPTION IS DELIBERATE. At learning stakes the +1 rung is a
+// passphrase, and a silent lockout is the one failure a beginner is least
+// equipped to survive — the guide says so on several pages. Adding protection
+// that can permanently orphan the coins is not the same kind of "+1" as
+// adding a second key, so the bias starts at meaningful.
+const STAKES_LADDER = ['learning', 'meaningful', 'serious', 'lifechanging'];
+let c7n = 0;
+const c7min = {};
+for (const stakes of STAKES_LADDER) {
+  const cleared = scoreFromPrompts([], stakes, []);
+  let lo = Infinity;
+  for (const tech of ['none', 'some', 'very'])
+    for (const sovereignty of ['pure', 'open-help', 'service'])
+      for (const recovery of ['yes', 'no', 'unsure']) {
+        const top = fitFor(cleared, { stakes, tech, sovereignty, recovery, current: 'some' })[0];
+        const rank = LADDER_RANK[FAMILY[top.setup]];
+        lo = Math.min(lo, rank);
+        const where = `C7 ${stakes}/${tech}/${sovereignty}/${recovery} → ${top.setup} (rung ${rank})`;
+        if (stakes === 'learning') {
+          if (rank !== 1) fail(`${where}: learning stakes must stay on rung 1 — the +1 there is a passphrase, and a beginner is who a silent lockout ruins`);
+        } else if (rank < 2) {
+          fail(`${where}: a cleared reader with real money must land ABOVE the bare floor — the house bias is simplest PLUS ONE`);
+        }
+        c7n += 1;
+      }
+  c7min[stakes] = lo;
+}
+// Monotone in stakes: more at risk can never recommend a SIMPLER rung. Guards
+// the "scaling with what's at stake" half of the bias, which the per-level
+// checks above cannot see.
+for (let i = 1; i < STAKES_LADDER.length; i += 1) {
+  const [prev, cur] = [STAKES_LADDER[i - 1], STAKES_LADDER[i]];
+  if (c7min[cur] < c7min[prev]) fail(`C7 monotonicity: ${cur} floors at rung ${c7min[cur]} but ${prev} floors at ${c7min[prev]} — more at risk recommended something simpler`);
+}
+console.log(`  C7 simplest-plus-one — ${c7n} cleared-reader combos; rung floor by stakes: ${STAKES_LADDER.map((s) => `${s}:${c7min[s]}`).join(' · ')}`);
 
 // ── prompt-bank sanity: gating, cross-bucket, saturation below 100 ──────────
 const allIds = prompts.map((p) => p.id);

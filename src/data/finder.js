@@ -605,12 +605,28 @@ export const LADDER_RANK = { single: 1, passphrase: 2, multisig: 3, collaborativ
 //  C3 monotonicity: raising any concern never lowers the fit-rank of a setup
 //     with the top protection weight for that concern (linear + monotone eff
 //     makes this structural; asserted anyway).
-//  C4 anti-passphrase honesty: self-loss at or above 'elevated' → passphrase
-//     is hard-gated out of primary AND out of the step-up card, and the result
-//     carries a computed holdback naming the reason. (In practice the matrix
-//     already makes passphrase unwinnable as a primary — see note below.)
+//  C4 anti-passphrase honesty — a DISCLOSURE, not a prohibition: self-loss at
+//     or above 'elevated' → if a passphrase still wins on score, the result
+//     must carry a computed caveat naming the reason. Nothing is banned.
+//     (This entry described a hard gate out of primary and the step-up card
+//     long after the gates were removed and the harness had been rewritten to
+//     assert disclosure — the contract block is the one place that must not
+//     drift, because it is what a reader trusts instead of reading the code.)
 //  C5 near-ties: top two distinct families within TIE_MARGIN → the result is
 //     flagged as a genuine either/or (result.tie), never a false winner.
+//  C6 the expected bundle: a reader carrying the typical holder's bundle of
+//     risk factors scores the published default EXACTLY; a reader who walks a
+//     section and clears it scores below it and reads 'low'; and clearing is
+//     never the same as skipping. Guards the meaning of the baseline itself.
+//  C7 simplest PLUS ONE — the house bias: the guide recommends the simplest
+//     ADEQUATE rung, then leans one step past it, because unknown risks exist
+//     and a stack is worth more in four years than today. Asserted against a
+//     reader who cleared the whole assessment: above learning stakes they
+//     never land on the bare floor, the rung never falls as stakes rise, and
+//     LEARNING is exempt — the +1 there is a passphrase, and a silent lockout
+//     is the failure a beginner is least equipped to survive. This held by
+//     accident, falling out of the stakes weights and asserted nowhere,
+//     until it was written down.
 
 const DEVIATION_GAIN = 1.6;
 // FLAT. It used to fade as stakes rose, which was one of four places stakes
