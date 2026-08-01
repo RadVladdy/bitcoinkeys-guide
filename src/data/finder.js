@@ -362,7 +362,13 @@ export function scoreFromPrompts(checkedPrompts = [], stakes = 'meaningful', ski
 
 export const PROTECTION = {
   'single-sig':    { weights: { custodial: 3, 'self-loss': 1,  remote: 2, physical: 0 }, complexity: 0, devices: 1 },
-  passphrase:      { weights: { custodial: 3, 'self-loss': -1, remote: 2, physical: 1 }, complexity: 1, devices: 1 },
+  // physical 2 (was 1): a passphrase is a real duress defence — the decoy/hidden
+  // wallet — not merely a found-seed defence. It stays BELOW multisig's 3
+  // because geographically separated keys beat a secret you must keep defending
+  // while someone is standing in front of you. The self-loss −1 is unchanged and
+  // deliberate: forgotten passphrases are the top recovery-firm caseload, and a
+  // wrong one shows an empty wallet with no error.
+  passphrase:      { weights: { custodial: 3, 'self-loss': -1, remote: 2, physical: 2 }, complexity: 1, devices: 1 },
   multisig:        { weights: { custodial: 3, 'self-loss': 0,  remote: 3, physical: 3 }, complexity: 2, devices: 3 },
   collaborative:   { weights: { custodial: 3, 'self-loss': 3,  remote: 3, physical: 3 }, complexity: 1, devices: 2 },
   'three-of-five': { weights: { custodial: 3, 'self-loss': 1,  remote: 3, physical: 3 }, complexity: 3, devices: 5 },
@@ -421,6 +427,18 @@ export const FAMILY = {
 
 const DEVIATION_GAIN = 1.6;
 const SIMPLICITY_EDGE = { learning: 1.15, meaningful: 1.05, serious: 1.0, lifechanging: 0.45 };
+// WHO gets the simplicity bonus, and how much of it. It used to be single-sig
+// ONLY — which double-charged the passphrase for simplicity it actually has:
+// one device, like single-sig, yet it paid a complexity cost AND forfeited the
+// whole bonus. Combined with a physical weight of 1, that made it STRICTLY
+// DOMINATED: swept over 527,076 answer x score combinations it ranked first
+// ZERO times, and in the exact case it exists for — elevated physical risk,
+// low self-loss, one device, "keep it simple" — it ranked LAST of five while
+// the engine recommended three hardware wallets. A rung the ladder teaches must
+// be reachable by the assessment that is supposed to find it.
+// Passphrase takes a PARTIAL share, not the full bonus: it is the second-
+// simplest setup, not the simplest — one device, but one more secret.
+const SIMPLICITY_SHARE = { 'single-sig': 1, passphrase: 0.6 };
 const TECH_FACTOR = { simple: 0.9, careful: 0.65, technical: 0.4 };
 const STAKES_FACTOR = { learning: 1.3, meaningful: 1.1, serious: 0.8, lifechanging: 0.4 };
 const COMPLEXITY_BASE = 0.9;
@@ -466,7 +484,7 @@ export function fitFor(scores, answers = {}) {
       complexity: Math.round(P.complexity * TECH_FACTOR[tech] * STAKES_FACTOR[stakes] * COMPLEXITY_BASE * 100) / 100,
       sovereignty: setup === 'collaborative' ? SOV_COST[sov] : 0,
       budget: Math.round((P.devices - 1) * BUDGET_FACTOR[stakes] * 100) / 100,
-      simplicityEdge: setup === 'single-sig' ? SIMPLICITY_EDGE[stakes] : 0,
+      simplicityEdge: Math.round((SIMPLICITY_EDGE[stakes] * (SIMPLICITY_SHARE[setup] || 0)) * 100) / 100,
     };
     return {
       setup,
@@ -733,6 +751,17 @@ export function recommendV2(answers = {}) {
     holdbacks.push({
       concern: 'self-loss',
       text: 'We deliberately did NOT add a passphrase or a second key. Nothing in your assessment calls for them — the thing that protects you at this level is a backup you have actually tested, and every extra moving part is one more thing to lose.',
+    });
+  } else if (family === 'fork' && isElevated('physical')) {
+    // THE SILENT CASE. When self-loss is NOT elevated, none of the branches
+    // above fire — so a reader whose physical risk pushed them to multisig was
+    // shown three devices with NO explanation of why the simpler one-device
+    // answer (a passphrase, which their own ladder teaches as the duress rung)
+    // was not it. Every other path explains its holdback; this one just went
+    // quiet. Silence reads as "nobody considered it."
+    holdbacks.push({
+      concern: 'physical',
+      text: `We did consider a passphrase — it is the simpler answer to ${words.physical} physical risk, and a hidden wallet is a real defence. We went with separate keys instead because a passphrase still leaves one device holding everything, and it only protects you for as long as you can keep defending a secret in person. Keys in different places do not depend on that.`,
     });
   }
 
