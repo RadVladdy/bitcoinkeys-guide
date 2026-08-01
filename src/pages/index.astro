@@ -10,12 +10,15 @@ import { custodians } from '../data/custodians.js';
 import { wallets, coldWallets, spendingWallets, disqualifiedWallets, tierCountWord } from '../data/wallets.js';
 
 // SECTION ORDER IS THE ARGUMENT, and it is deliberate: hero → the pledge → what's
-// here → rule 03 → the ladder → the 201 sampler. The PLEDGE comes before anything
+// here → the philosophy → the ladder → the demo sampler. The PLEDGE comes before
 // asks the reader to do something, because independence is the differentiator and
-// the "nothing logged" line is the one a competitor running a beacon structurally
-// cannot copy. The SAMPLER is last because 201 is optional depth, but it is on this
-// page at all because real cryptography running in the reader's own browser, on
-// throwaway keys, is the most distinctive thing here.
+// anything asks the reader to do something, because independence is the
+// differentiator and the "nothing logged" line is the one a competitor running a
+// beacon structurally cannot copy. The SAMPLER is last because the demos are
+// optional depth, but it is on this page at all because real cryptography running
+// in the reader's own browser, on throwaway keys, is the most distinctive thing
+// here. (The demos were level 201 until 2026-08-01; they are a TOOL, not a
+// lesson, and now live in the Tools & demos menu group.)
 //
 // The page this replaces had three problems, all of
 // them found by reading it against itself rather than top to bottom:
@@ -35,8 +38,8 @@ import { wallets, coldWallets, spendingWallets, disqualifiedWallets, tierCountWo
 //
 // And the gap: the page never showed you the SITE. "What's here" is now
 // the three nav sections, so a first-time reader can see the shape of the thing —
-// with 201 broken out of the course visually, because it is optional and should look
-// it before a word is read (the same dashed-border + `safe` token /start uses).
+// with the demos broken out of the course visually, because they are not part of
+// it (the same dashed-border + `safe` token /start uses).
 //
 // Also gone: "The skills, in plain English", which mapped over `lessons` — that is
 // whichever 10 lessons happen to live in lessons.js, not the curriculum, so an
@@ -242,8 +245,9 @@ const optional = levels.filter((lv) => lv.optional);
   .lv-list li { display: grid; grid-template-columns: 2.6rem 1fr auto; gap: 0.8rem;
     align-items: center; border: 1px solid var(--line); border-radius: 0.55rem;
     background: var(--raise); padding: 0.6rem 0.8rem; }
-  /* 201 is optional and should LOOK it before a word is read — the same dashed edge
-     and `safe` token the /start syllabus already uses for it. */
+  /* An optional level should LOOK optional before a word is read — the same dashed
+     edge and `safe` token the /start syllabus uses. No level is flagged optional
+     since 201 was removed 2026-08-01; the rule stays as the switch. */
   .lv-list li.opt { border-style: dashed; }
   .lv-n { font-weight: 700; font-size: 0.82rem; color: var(--accent-ink);
     background: var(--accent); border-radius: 0.35rem; padding: 0.15rem 0; text-align: center; }
@@ -258,7 +262,7 @@ const optional = levels.filter((lv) => lv.optional);
   @media (max-width: 520px) { .lv-cl { display: none; } }
   .w-cta { margin-top: 1.3rem; display: inline-flex; }
 
-  /* ── 201 sampler ────────────────────────────────────────────────────────── */
+  /* ── demo sampler ────────────────────────────────────────────────────────── */
   .d-rail { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
   @media (max-width: 1000px) { .d-rail { grid-template-columns: 1fr 1fr; } }
   /* On a phone it becomes a swipeable rail rather than a tall stack — these are a

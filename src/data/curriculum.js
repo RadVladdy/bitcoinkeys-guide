@@ -54,8 +54,7 @@
 // skippable, "see it for yourself"), which is why it renders in the `safe` token
 // rather than the accent.
 
-import { deepDives } from './deepdives.js';
-import { ruleCountWord, ruleCountWordCap } from './rules.js';
+import { ruleCountWord, ruleCountWordCap, rules, umbrella } from './rules.js';
 
 export const levels = [
   {
@@ -108,20 +107,35 @@ export const levels = [
       { href: '/learn/privacy',            label: 'Privacy / OpSec',                     short: 'Privacy / OpSec' },
       { href: '/learn/inheritance',        label: 'Bitcoin inheritance',                 short: 'Bitcoin inheritance' },
       { href: '/learn/recovery-kit',       label: 'Build the Recovery Kit',              short: 'Build the Recovery Kit' },
-    ],
-  },
-  {
-    id: '201',
-    title: 'Under the hood',
-    optional: true,
-    why: 'You don’t need any of this to hold Bitcoin safely. It’s here so you don’t have to take it on faith.',
-    blurb: 'Verify rather than trust — run the rules yourself, and watch the cryptography work on throwaway keys.',
-    lessons: [
-      { href: '/learn/run-a-node', label: 'Run your own node',   short: 'Run your own node' },
-      { href: '/deep-dive',        label: 'See it for yourself', short: 'The interactive demos', note: `${deepDives.length} interactive demos` },
+      // RUNNING A NODE ENDS THE COURSE (moved from 201, 2026-08-01). It was the
+      // first half of an optional level whose other half was not a lesson at
+      // all, and it is not really optional material: checking the rules with
+      // your own node is the last habit in the practice this level is about,
+      // and it is the umbrella rule ("verify, don't trust") in its fullest
+      // form. As the final lesson it reads as the end of the road rather than
+      // as a bonus track nobody is expected to reach.
+      { href: '/learn/run-a-node',         label: 'Run your own node',                   short: 'Run your own node' },
     ],
   },
 ];
+
+// LEVEL 201 "UNDER THE HOOD" WAS REMOVED 2026-08-01. It held exactly two things
+// and they were different kinds of thing: a real lesson (run a node, now the
+// last lesson of 104) and /deep-dive, which is a TOOL — a hub of eleven
+// interactive demos with no reading position, no rule, and nothing to complete.
+//
+// Counting the demo hub as "lesson 18" is what forced the whole no-forward-links
+// invariant to carry a named exception for /deep-dive/* links: every aside into a
+// demo looked like a link to material further along the course, because
+// structurally it was one. It never was. The demos now live in the Tools & demos
+// menu group where the rest of the interactive material sits, and an aside into
+// one is an aside, not a spoiler.
+//
+// Consequence held deliberately: the course is now FOUR levels and every one of
+// them is required. There is no optional tier, and `optional: true` is no longer
+// set on any level — the `levels.some(l => l.optional)` renderers still work and
+// simply render nothing extra. If an optional level ever comes back, that flag is
+// the switch.
 
 /** Every lesson in reading order, each stamped with the level it belongs to. */
 export const lessonSequence = levels.flatMap((lv, li) =>
@@ -161,3 +175,34 @@ export function lessonFor(pathname) {
 
 /** The level a lesson belongs to, by level id. */
 export const levelById = (id) => levels.find((lv) => lv.id === id) || null;
+
+// ── A RULE'S LEVEL MUST MATCH THE CURRICULUM ────────────────────────────────
+//
+// Each rule (and the umbrella) carries `level` and `lesson` as HAND-TYPED text,
+// because /learn/rules deliberately names where a rule is taught in plain words
+// instead of linking forward to it — that is the whole reason that page has no
+// outbound links. Plain text cannot be a wikilink, so it cannot be checked by
+// following it, which makes it exactly the kind of claim this project keeps
+// finding wrong: true when written, silently false after a move.
+//
+// It went stale the moment level 201 was removed — the umbrella still said 201
+// for a lesson now sitting in 104, and it renders on the page as "In full: 201 ·
+// Run your own node". Asserted here rather than in rules.js because rules.js is
+// imported BY this file and must not import back.
+//
+// Negative-control it by changing any rule's `level` and running the build.
+{
+  const levelOf = {};
+  for (const lv of levels) for (const l of lv.lessons) levelOf[normalize(l.href)] = lv.id;
+  const wrong = [];
+  for (const r of [...rules, umbrella]) {
+    const want = levelOf[normalize(r.href)];
+    if (!want) { wrong.push(`${r.key || 'umbrella'} → ${r.href} is not a lesson in any level`); continue; }
+    if (want !== r.level) wrong.push(`${r.key || 'umbrella'} says level ${r.level}, but ${r.href} is in ${want}`);
+  }
+  if (wrong.length) {
+    throw new Error(
+      `curriculum.js: rules.js level labels disagree with the curriculum — /learn/rules would name the wrong level in plain text:\n  ${wrong.join('\n  ')}`,
+    );
+  }
+}
