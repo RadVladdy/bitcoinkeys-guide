@@ -54,13 +54,6 @@ export const navGroups = [
       // find it through a banner they may have already scrolled past.
       { href: '/advisory/coldcard-seed-entropy', label: 'Security advisory — Coldcard' },
       { href: '/standard', label: 'How we rate them' },
-      // A procedure page rather than a lesson: it carries outbound vendor links,
-      // which is the shape of every page in this group and of no lesson.
-      // The EDUCATION page is the menu entry; the procedures and the printable
-      // table are reached from it and are never listed here as siblings. A
-      // concept, a procedure and a print-out are not comparable choices at one
-      // menu level.
-      { href: '/generate-your-seed', label: 'Where your seed comes from' },
       { href: '/how-we-weigh-risk', label: 'How we weigh risk' },
       { href: '/metal-backups', label: 'Metal backups' },
       { href: '/collaborative', label: 'Collaborative custody' },

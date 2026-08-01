@@ -88,6 +88,11 @@ export const levels = [
     why: 'The hands-on build — the part where coins actually move.',
     blurb: 'Back it up so fire and water can’t destroy it, prove the backup works, and move coins without fumbling.',
     lessons: [
+      // FIRST in the build, because 103 previously opened on backing up a seed
+      // that no lesson had ever told the reader how to create. The order is
+      // chronological: make the seed, back it up, prove the backup, then move
+      // coins.
+      { href: '/learn/generate-your-seed', label: 'Generating your seed', short: 'Generating your seed' },
       { href: '/learn/back-up-your-seed',   label: 'Back up your seed phrase', short: 'Back up your seed phrase' },
       { href: '/learn/test-your-backup',    label: 'Test your backup',         short: 'Test your backup' },
       { href: '/learn/send-bitcoin-safely', label: 'Send Bitcoin safely',      short: 'Send Bitcoin safely' },

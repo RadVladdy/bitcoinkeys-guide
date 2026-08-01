@@ -8,16 +8,18 @@
 // EVERGREEN BY CONSTRUCTION. Nothing here names a specific incident. The
 // advisory callout renders only while an advisory is active, so when one is
 // retired this page does not quietly become a period piece.
-import Base from '../layouts/Base.astro';
-import RuleRef from '../components/RuleRef.astro';
+import Base from '../../layouts/Base.astro';
+import LessonNav from '../../components/LessonNav.astro';
+import LessonEyebrow from '../../components/LessonEyebrow.astro';
+import RuleRef from '../../components/RuleRef.astro';
 import {
   diceVerified, methods, methodCount,
   ratedDevicesForMethod, devicesWithNoDicePath,
   kit, failureModes, failureModeCount,
-} from '../data/dice.js';
-import { seedCosts } from '../data/dice-table.js';
-import { activeAdvisories } from '../data/advisories.js';
-import { numberWord } from '../data/numbers.js';
+} from '../../data/dice.js';
+import { seedCosts } from '../../data/dice-table.js';
+import { activeAdvisories } from '../../data/advisories.js';
+import { numberWord } from '../../data/numbers.js';
 
 const advisory = activeAdvisories.find((a) => a.vendor === 'Coinkite') || null;
 
@@ -37,7 +39,7 @@ const longCost = seedCosts.find((c) => c.words === 24);
   verified={diceVerified}
 >
   <section class="prose">
-    <p class="eyebrow">Hardware &amp; services</p>
+    <LessonEyebrow />
     <h1>Where your seed's <span class="accent">randomness</span> comes from</h1>
     <p class="lead">
       Your seed is one very large random number. Everything else — every address, every key, every coin you
@@ -145,6 +147,7 @@ const longCost = seedCosts.find((c) => c.words === 24);
       <a class="btn" href="/roll-your-own-seed">Take me to the procedures <span class="arw">→</span></a>
     </p>
   </section>
+  <LessonNav />
 </Base>
 
 <style>
