@@ -54,6 +54,9 @@ export const navGroups = [
       // find it through a banner they may have already scrolled past.
       { href: '/advisory/coldcard-seed-entropy', label: 'Security advisory — Coldcard' },
       { href: '/standard', label: 'How we rate them' },
+      // A procedure page rather than a lesson: it carries outbound vendor links,
+      // which is the shape of every page in this group and of no lesson.
+      { href: '/roll-your-own-seed', label: 'Roll your own seed (dice)' },
       { href: '/how-we-weigh-risk', label: 'How we weigh risk' },
       { href: '/metal-backups', label: 'Metal backups' },
       { href: '/collaborative', label: 'Collaborative custody' },
