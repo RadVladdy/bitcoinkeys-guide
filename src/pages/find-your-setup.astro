@@ -207,11 +207,31 @@ const fitCountCap = questionCountWordCap;
   // reader to compare two lengths that share an origin; a mark says "typical is
   // HERE" and lets the fill land short of it or past it.
   const tickAt = (n) => Math.min(98.5, Math.max(1.5, n));
-  function barHtml(c, s, d, w) {
+  // `ans` — where the reader's OWN ANSWERS put this bar, drawn only on the review
+  // screen and only once they have nudged it by hand. Without it, "Set by hand —
+  // your call stands" is a sentence with nothing to point at: the reader can see
+  // where the bar IS but not how far they moved it, and the Reset button offers
+  // to undo something invisible. With it, the override is spatial.
+  //
+  // Deliberately NOT drawn when the reader has not overridden anything: it would
+  // sit exactly under the fill edge and add a mark that means nothing.
+  function barHtml(c, s, d, w, ans) {
+    const answered = typeof ans === 'number' && Math.round(ans) !== Math.round(s);
     return `<div class="as-bar" aria-hidden="true" data-bar="${c}">
       <span class="as-fill w-${w}" style="width:${barW(s)}%"></span>
       <span class="as-typ" style="left:${tickAt(d)}%"></span>
+      ${answered ? `<span class="as-ans" style="left:${tickAt(ans)}%"></span>` : ''}
     </div>`;
+  }
+  // The value to point at: what the prompts produced, but only where that is a
+  // real answer. A SKIPPED section has none, and a legacy plan's ESTIMATED bar
+  // is an override seeded from old answers rather than a walked result — in both
+  // cases the prompt-derived number is the standard estimate, and marking it
+  // would claim the reader said something they never said.
+  function answerMarkFor(c) {
+    if (skipped.has(c) || estimatedConcerns.has(c)) return null;
+    if (typeof overrides[c] !== 'number') return null;
+    return promptDerived()[c];
   }
   function wordTag(c, w) { return `<span class="as-word w-${w}" data-word="${c}">${w}</span>`; }
 
@@ -376,7 +396,7 @@ const fitCountCap = questionCountWordCap;
         <div class="as-row-head"><span class="as-row-label">${esc(c.label)}</span>${wordTag(c.key, w)}</div>
         <div class="as-row-mid">
           <button type="button" class="as-step" data-dir="-1" data-c="${c.key}" aria-label="Lower ${esc(c.label)}">−</button>
-          ${barHtml(c.key, s, d[c.key], w)}
+          ${barHtml(c.key, s, d[c.key], w, answerMarkFor(c.key))}
           <button type="button" class="as-step" data-dir="1" data-c="${c.key}" aria-label="Raise ${esc(c.label)}">＋</button>
         </div>
         <p class="as-recap" data-recap="${c.key}">${recapLine(c.key)}</p>
@@ -385,7 +405,7 @@ const fitCountCap = questionCountWordCap;
     }).join('');
     elCard.innerHTML = `<div class="q-card as-card">
       <h2 class="q-title">Your risk picture</h2>
-      <p class="q-help">Here’s where you landed against the typical holder (the dim bars). The words are the whole scale — low, typical, elevated, high. If a bar doesn’t match how you honestly see it, nudge it with − and ＋: your hand beats our arithmetic, and the recommendation will follow it.</p>
+      <p class="q-help">Here’s where you landed against the typical holder — the mark on each bar. The words are the whole scale — low, typical, elevated, high. If a bar doesn’t match how you honestly see it, nudge it with − and ＋: your hand beats our arithmetic, and the recommendation will follow it.</p>
       <div class="as-review">${rows}</div>
       <p class="as-method"><a href="/how-we-weigh-risk">How we weigh risk →</a></p>
       <div class="as-acts">
@@ -401,6 +421,19 @@ const fitCountCap = questionCountWordCap;
       const fill = row.querySelector('.as-fill');
       fill.style.width = `${barW(s)}%`;
       fill.className = `as-fill w-${w}`;
+      // The answer mark is DERIVED from the same state the buttons change, so it
+      // repaints with them. Leaving it stale is the partial-repaint bug this
+      // project already has a standing note about.
+      const bar = row.querySelector('.as-bar');
+      const old = bar.querySelector('.as-ans');
+      if (old) old.remove();
+      const ans = answerMarkFor(c);
+      if (typeof ans === 'number' && Math.round(ans) !== Math.round(s)) {
+        const mark = document.createElement('span');
+        mark.className = 'as-ans';
+        mark.style.left = `${tickAt(ans)}%`;
+        bar.appendChild(mark);
+      }
       const tag = row.querySelector(`[data-word="${c}"]`);
       tag.textContent = w;
       tag.className = `as-word w-${w}`;
@@ -943,6 +976,13 @@ const fitCountCap = questionCountWordCap;
      are scoped #finder, so reusing it made the two rules fight. */
   #finder .as-typ { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px;
     background: var(--text); opacity: .55; border-radius: 1px; pointer-events: none; }
+  /* Where your own answers put it, before you moved the bar. Accent-coloured and
+     narrower than the typical mark so the two never read as the same kind of
+     thing — one is the base rate, one is you. */
+  #finder .as-ans { position: absolute; top: -4px; bottom: -4px; width: 2px; margin-left: -1px;
+    background: var(--accent); border-radius: 1px; pointer-events: none; }
+  #finder .as-ans::after { content: ''; position: absolute; left: 50%; top: -3px; width: 5px; height: 5px;
+    margin-left: -2.5px; border-radius: 50%; background: var(--accent); }
   #finder .as-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; transition: width 0.35s ease, background-color 0.35s ease; }
   #finder .as-fill.w-low { background: var(--safe); }
   #finder .as-fill.w-typical { background: var(--accent); }
