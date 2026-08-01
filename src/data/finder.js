@@ -385,6 +385,13 @@ export const FAMILY = {
   multisig: 'fork', collaborative: 'fork', 'three-of-five': 'fork',
 };
 
+// Each family's position ON THE LADDER (/learn/ladder rungs 1–4), which is the
+// site's own ordering of protection: single-sig cold → + passphrase → multisig
+// → collaborative. The fork's two rungs share a rank because they are presented
+// as two equal paths, never as a hierarchy. Used ONLY to resolve near-ties
+// upward (C6) — it never reorders anything the scores actually separated.
+export const LADDER_RANK = { single: 1, passphrase: 2, fork: 3 };
+
 // ── Tuning constants ── (the calibration outcome — see the contract below)
 //
 // fit(setup) = Σ_c eff_c · W[c][setup]  −  complexity·TECH·STAKES·0.9
@@ -625,6 +632,23 @@ function normalizedScores(answers) {
  */
 function makeLegacyAnswers(family, a) {
   const worry = Array.isArray(a.worry) && a.worry.length ? a.worry : ['unsure'];
+  if (family === 'passphrase') {
+    // RUNG 2 of the ladder, and it has a real card in quiz.js already — the
+    // gap was never the copy, it was that nothing could ever reach it. That
+    // card fires on worry 'theft'/'targeted' provided the multisig gate is not
+    // tripped, so:
+    //   worry  → 'targeted'  (the honest mapping: the fit engine only ever
+    //            ranks passphrase first when PHYSICAL is elevated and
+    //            self-loss sits at the bottom — which is precisely "someone
+    //            coming after me", and it makes the card's own why-copy true)
+    //   stakes → 'meaningful' (serious/lifechanging trip wantsMultisig and
+    //            would bounce us into the fork. The passphrase card reads only
+    //            `tech` for its device pair and never reads stakes, so the
+    //            card content is identical — nothing real is lost.)
+    // current/tech/recovery flow through untouched, so journey framing and the
+    // device pick stay honest.
+    return { ...a, worry: ['targeted'], stakes: 'meaningful' };
+  }
   if (family === 'fork') {
     // 'lifechanging' is the one stakes value that always forks in the old
     // engine; fork content never reads stakes, so nothing else shifts.
@@ -653,6 +677,13 @@ function secondaryFor(family, words, answers) {
     }
     return S('multisig', 'Wider multisig or an insured vault', 'Spread wider — or add insurance',
       'As holdings grow, a 3-of-5 across more locations adds resilience; or, if you leaned collaborative, an insured vault (AnchorWatch, backed by Lloyd’s of London) is a real backstop for large holdings. More protection, more to manage.');
+  }
+  if (family === 'passphrase') {
+    // The passphrase IS the primary (ladder rung 2), so the step-up must be the
+    // NEXT rung, never another passphrase. Without this the second card offered
+    // the reader the exact setup the first card had already recommended.
+    return S('multisig', '2-of-3 multisig', 'Step up to 2-of-3 multisig',
+      'A passphrase protects the seed you hold; it does not remove the fact that one device and one memory still stand between you and your coins. When your stack grows — or if forgetting the phrase starts to worry you more than someone finding the seed — 2-of-3 multisig is the opposite trade: three keys, any two together can move or recover your coins, and nothing depends on a secret you have to remember. Run it entirely yourself, or let a Bitcoin service hold one key.');
   }
   // Single-sig primary. Offer the passphrase step-up ONLY when it answers the
   // profile (physical exposure elevated) AND self-loss is not — the C4 gate
@@ -686,19 +717,50 @@ export function recommendV2(answers = {}) {
   // kept because pushing someone still learning into multisig trades their
   // named risks for the complexity risk they are least equipped to carry. The
   // fork remains one card away, as the step-up.
+  //
+  // THE GATE COVERS THE PASSPHRASE TOO (added 2026-07-31 with the reachability
+  // change). It used to say `family === 'fork'`, which was complete only while
+  // passphrase could never win anything — the moment it became reachable, that
+  // wording let it through, and the full-grid diff caught it recommending a
+  // passphrase to 2,430 learning-stakes combinations. That is the single worst
+  // place on the site to add a secret with a silent, unrecoverable failure
+  // mode: the legacy learning card refuses one in so many words ("every extra
+  // secret is one more thing to lose while you are still learning"), and a
+  // novice is the reader least able to carry it. Gate by "is this the simple
+  // family", not by naming one rival.
   const eligible = ranking.filter(
-    (r) => !r.gated && !(stakes === 'learning' && r.family === 'fork')
+    (r) => !r.gated && !(stakes === 'learning' && r.family !== 'single')
   );
-  const top = eligible[0];
-  const family = top.family;
+  const fitLeader = eligible[0];
 
   // ── C5 near-tie: top two DISTINCT families within the margin ──
-  const rival = eligible.find((r) => r.family !== family);
-  const tie = rival && top.fit - rival.fit < TIE_MARGIN
+  const fitRival = eligible.find((r) => r.family !== fitLeader.family);
+  const isTie = Boolean(fitRival && fitLeader.fit - fitRival.fit < TIE_MARGIN);
+
+  // ── C6 ties resolve UPWARD ───────────────────────────────────────────────
+  // When two setups are within a hair of each other the arithmetic is not the
+  // thing deciding it — noise is. So the tiebreak is a POLICY, not a number:
+  // lead with the setup that is HIGHER ON THE LADDER, i.e. the more protective
+  // one. "Simplest that adequately covers you" still governs everywhere the
+  // scores are actually separated; it just stops being the tiebreak when they
+  // are not. The rule: safe over simple — at equal fit, the upgrade is the
+  // justifiable default, never the downgrade.
+  // Both remain first-class choices on the page; this only decides which is
+  // presented FIRST, and the copy says plainly that either is right.
+  const top = isTie && LADDER_RANK[fitRival.family] > LADDER_RANK[fitLeader.family]
+    ? fitRival
+    : fitLeader;
+  const family = top.family;
+  const rival = isTie ? (top === fitLeader ? fitRival : fitLeader) : fitRival;
+
+  const tie = isTie
     ? {
         a: top.setup, b: rival.setup,
-        margin: Math.round((top.fit - rival.fit) * 1000) / 1000,
-        note: 'This one is a genuine either/or — both setups fit your picture, and the honest answer is that the choice is yours. The first card is ahead by a hair, not by a mile.',
+        margin: Math.round(Math.abs(fitLeader.fit - fitRival.fit) * 1000) / 1000,
+        upgraded: top !== fitLeader,
+        note: top !== fitLeader
+          ? 'These two are a genuine either/or — both setups fit your picture, and neither is the wrong answer. They scored within a hair of each other, so we led with the more protective one rather than the simpler one: when it is that close, the safer default is the one worth justifying. Read both, and the reasons under each, then pick the one that feels right for you.'
+          : 'These two are a genuine either/or — both setups fit your picture, and neither is the wrong answer. Read both, and the reasons under each, then pick the one that feels right for you. The first is ahead by a hair, not by a mile.',
       }
     : null;
 
@@ -751,6 +813,17 @@ export function recommendV2(answers = {}) {
     holdbacks.push({
       concern: 'self-loss',
       text: 'We deliberately did NOT add a passphrase or a second key. Nothing in your assessment calls for them — the thing that protects you at this level is a backup you have actually tested, and every extra moving part is one more thing to lose.',
+    });
+  } else if (family === 'passphrase') {
+    // The passphrase card MUST carry its own cost in the reader's face. The
+    // legacy card had this warning; recommendV2 overwrites primary.holdback
+    // from this computed list, so without a branch here the one setup with a
+    // documented silent-failure mode would ship the ONLY holdback-free result
+    // on the site. It is recommended here precisely because self-loss scored
+    // low — which is a statement about them today, not a guarantee.
+    holdbacks.push({
+      concern: 'self-loss',
+      text: 'The honest cost of this one: a passphrase is a brand-new way to lose everything. Forget it and the seed alone will not save you — there is no error message, just an empty wallet. We are recommending it because locking yourself out scored low for you, so this is the trade you can afford. It only stays true if you back the passphrase up as carefully as the seed itself, and somewhere separate from it.',
     });
   } else if (family === 'fork' && isElevated('physical')) {
     // THE SILENT CASE. When self-loss is NOT elevated, none of the branches

@@ -551,6 +551,14 @@ const fitCountCap = questionCountWordCap;
     collaborative: 'collaborative 2-of-3 multisig',
     'three-of-five': '3-of-5 multisig',
   };
+  // A fork side of a tie must be named by its FAMILY, not by whichever fork
+  // member won the arithmetic. The fork card always presents both paths and
+  // decides which LEADS from the sovereignty answer — so naming the raw winner
+  // told a reader who asked for pure self-custody that their first choice was
+  // "collaborative 2-of-3 multisig", contradicting both their answer and the
+  // card directly beneath it.
+  const tieLabel = (setup) =>
+    (FAMILY[setup] === 'fork' ? '2-of-3 multisig' : (SETUP_TIE_LABEL[setup] || setup));
 
   function renderResult() {
     renderProgress(null);
@@ -591,9 +599,15 @@ const fitCountCap = questionCountWordCap;
     const holdbacksHtml = (holdbacks || []).map((h) =>
       `<div class="r-holdback"><span class="r-k mono">Why not more?</span><p>${esc(h.text)}</p></div>`).join('');
     // A genuine either/or (C5): say so out loud, above the cards it's about.
+    // Two choices, and either is right — that is the whole spirit of a tie, so
+    // the copy says it in those words rather than implying a winner. The two
+    // are named in the order they appear below (first choice first), and the
+    // reader is told plainly that the pick is theirs.
     const tieHtml = tie
-      ? `<div class="r-tie"><span class="r-k mono">A genuine either/or</span>
-          <p>${esc(tie.note)} The two in question: <strong>${esc(SETUP_TIE_LABEL[tie.a] || tie.a)}</strong> and <strong>${esc(SETUP_TIE_LABEL[tie.b] || tie.b)}</strong> — the first is laid out below, and the trade the other one offers is in the second card.</p>
+      ? `<div class="r-tie"><span class="r-k mono">Two choices — either one is right</span>
+          <p>${esc(tie.note)}</p>
+          <p class="r-tie-pair"><strong>First choice:</strong> ${esc(tieLabel(tie.a))} — laid out below.<br>
+          <strong>Second choice:</strong> ${esc(tieLabel(tie.b))} — the trade it offers is in the card under it.</p>
         </div>`
       : '';
     // When the second card IS the other half of the tie, its label should say so
@@ -605,7 +619,7 @@ const fitCountCap = questionCountWordCap;
       ${profileStrip(profile)}
       ${tieHtml}
       <div class="r-card${primary.fork ? ' is-fork' : ''}">
-        <p class="r-tier mono">${journey && journey.gap > 0 && journey.kind !== 'sideways' ? 'Your destination · ' : ''}${tie ? 'Ahead by a hair' : '1st choice'}</p>
+        <p class="r-tier mono">${journey && journey.gap > 0 && journey.kind !== 'sideways' ? 'Your destination · ' : ''}${tie ? '1st choice · either fits' : '1st choice'}</p>
         <h2 class="r-headline">Your setup: ${esc(primary.headline)}</h2>
         <p class="r-why">${primary.why}</p>
         ${reasonsHtml}
@@ -617,7 +631,7 @@ const fitCountCap = questionCountWordCap;
         ${saveControl(primary.rungSlug, primary.rungLabel || primary.headline, primary.tier, 'quiz-primary', recSlugsFrom(primary.wallets))}`}
       </div>
       ${secondary ? `<div class="r-card secondary">
-        <p class="r-tier mono muted">${secondaryIsRival ? 'The other half of the either/or — here’s the trade' : '2nd choice · where you’d go next'}</p>
+        <p class="r-tier mono muted">${secondaryIsRival ? '2nd choice · equally valid — here’s the trade' : '2nd choice · where you’d go next'}</p>
         <h2 class="r-headline sm">${esc(secondary.rungLabel)}</h2>
         <p class="r-step-act mono">${esc(secondary.headline)}</p>
         <p class="r-why">${esc(secondary.when)}</p>
