@@ -711,10 +711,6 @@ export function fitFor(scores, answers = {}) {
     const s = typeof scores[c] === 'number' ? scores[c] : dEff[c];
     eff[c] = Math.min(100, Math.max(0, dEff[c] + DEVIATION_GAIN * (s - dEff[c]))) / 100;
   }
-  const selfWord = scoreWord(
-    typeof scores['self-loss'] === 'number' ? scores['self-loss'] : d['self-loss'],
-    'self-loss', stakes
-  );
   const rows = SETUP_KEYS.map((setup) => {
     const P = PROTECTION[setup];
     const contributions = CONCERN_KEYS.map((c) => ({
@@ -803,17 +799,52 @@ export function shimScores(answers = {}) {
 //
 // Fires when: the chosen setup's weight on a concern is materially worse than
 // the best available, AND the reader rates that concern elevated or high.
-const CAVEAT_TEXT = {
-  custodial: 'Worth knowing: this setup does less about a company failing you than the alternatives, and you rated that {word}.',
+// REACHABILITY IS ASSERTED (verify-finder.mjs). Every key here must be able to
+// fire for at least one setup, and every concern whose gap can reach CAVEAT_GAP
+// must have a key. Two entries were dead when this was written and are gone:
+//
+//   custodial — all four setups weigh it 3, because they all answer it
+//     completely the moment the keys are yours. The gap can never reach 1.2, so
+//     this string could never render.
+//   exposure (the non-custodial wording) — only `collaborative` has a gap on
+//     exposure, and the key-swap below always sends collaborative to
+//     `exposureCustodial`. Unreachable by construction.
+//
+// Dead copy on a page that argues for a living is worse than no copy: it reads
+// as covered when nothing covers it.
+export const CAVEAT_TEXT = {
   'self-loss': 'The trade you are making: this is the weakest option here for locking yourself out, and you rated that {word}. It leans on you getting the backup right — and, if it has a passphrase, on remembering something whose failure is silent. Test your recovery before you trust it with real money.',
   remote: 'The trade you are making: this does less against scams and remote theft than the alternatives, and you rated that {word}. The habits in your checklist — verify on the device screen, trust nobody who contacts you first — are carrying more weight here than the setup is.',
   physical: 'The trade you are making: this is weaker against someone coming after you specifically than the alternatives, and you rated that {word}. Keys in one place can all be reached in one visit; the low-profile steps in your checklist matter more here.',
-  // Two different weaknesses wear the same concern, so the text is chosen by
-  // which one applies. Handing a company your ID is not the same failing as a
-  // seed that reveals your whole balance, and one sentence cannot cover both.
-  stakes: 'The trade you are making: how much is riding on this is {word}, and this is the lightest setup on the ladder. It asks the least of you, which is a real virtue — but it also has the least in reserve if something goes wrong.',
-  exposure: 'The trade you are making: how much you mind being known to hold Bitcoin is {word}, and a seed someone obtains — or compels you to hand over — reveals everything in this wallet. A passphrase is the one setup that answers that, by opening a decoy instead.',
+  // Fires for BOTH single-sig and the passphrase — the two one-device rungs —
+  // so it must not describe either of them specifically. It used to say "this
+  // is the lightest setup on the ladder", which is true of bare single-sig and
+  // false of a passphrase, and the reader recommended a passphrase was told
+  // something about their own recommendation that was not so.
+  stakes: 'The trade you are making: how much is riding on this is {word}, and this setup rests on a single device and a single backup. It asks the least of you, which is a real virtue — but there is nothing else holding the line if that one thing fails.',
   exposureCustodial: 'The trade you are making: how much you mind being known to hold Bitcoin is {word}, and this setup brings a company inside it. Most require ID verification, which ties your name to your holdings, and they can see what this wallet holds.',
+};
+
+// A STANDING warning, not a computed caveat. The caveat machinery only speaks
+// when the reader rates a concern elevated or high — right for a trade-off, and
+// wrong for this one.
+//
+// A passphrase adds a failure that is SILENT and total, and the guide says on
+// five other surfaces that keeping one only in your head is the single most
+// documented way people lose passphrase-protected Bitcoin. The legacy card
+// carried that warning unconditionally; recommendV2 overwrites `holdback` with
+// the computed caveat and so DELETED it for precisely the readers the engine
+// sends to a passphrase with LOW self-loss — which is the most common passphrase
+// outcome there is. The one card recommending the thing shipped with no warning
+// about it. Asserted in verify-finder.mjs.
+const PASSPHRASE_STANDING = {
+  concern: 'self-loss',
+  standing: true,
+  // The computed caveats all answer "why not more?"; this one does not — it is
+  // a condition attached to the thing we just recommended, so it carries its
+  // own label rather than borrowing a question it is not the answer to.
+  label: 'Before you take this on',
+  text: 'One thing to take on with it: a passphrase adds a way to lose everything that no backup can undo. Forget it and the seed alone opens only the decoy — there is no reset and nobody to ask. Back the passphrase up as carefully as the seed itself, keep it somewhere the seed is not, and say plainly in your recovery notes that it exists.',
 };
 
 const REASON_TEXT = {
@@ -877,6 +908,24 @@ function passphraseHoldback(word) {
 // tech is not technical, exactly as today (inherited by construction — see
 // makeLegacyAnswers); sovereignty steers via SOV_COST; no dollar amounts.
 
+// Fill the two PREFERENCE rows (stakes, exposure) from the answers that seed
+// them, for any score source that cannot know about them. Never overwrites a
+// value the caller supplied — a hand-nudged bar still wins.
+//
+// `sovereignty` is validated the same way fitFor validates it, so a saved plan
+// that predates the sovereignty question resolves to the same default the
+// engine scores against rather than leaving exposure undefined.
+function withPreferenceDefaults(scores, answers = {}) {
+  const stakes = STAKES_SCORE[answers.stakes] !== undefined ? answers.stakes : 'meaningful';
+  const sov = EXPOSURE_BY_SOV[answers.sovereignty] !== undefined ? answers.sovereignty : 'lean-self';
+  const d = defaultsFor(stakes, sov);
+  const out = { ...scores };
+  for (const c of ['stakes', 'exposure']) {
+    if (typeof out[c] !== 'number') out[c] = d[c];
+  }
+  return out;
+}
+
 function normalizedScores(answers) {
   if (answers.scores && typeof answers.scores === 'object') {
     const d = defaultsFor(answers.stakes || 'meaningful', answers.sovereignty);
@@ -891,10 +940,25 @@ function normalizedScores(answers) {
     return out;
   }
   if (Array.isArray(answers.checkedPrompts)) {
-    return scoreFromPrompts(answers.checkedPrompts, answers.stakes || 'meaningful',
-      Array.isArray(answers.skippedSections) ? answers.skippedSections : []);
+    // scoreFromPrompts only knows the four WALKED risks — `stakes` and
+    // `exposure` come from questions, not prompts, so it deliberately omits
+    // them. That omission has to be filled HERE or the two preference rows
+    // arrive undefined.
+    //
+    // Undefined is not harmless: scoreWord's comparisons against it are all
+    // false, so both rows reported 'high' for every reader, deltas came back
+    // NaN, and `stakes: high` fired a caveat telling someone at learning stakes
+    // that a great deal was riding on it. The page never hit this because it
+    // passes a `scores` object, which the branch above fills — but
+    // checkedPrompts is a documented entry point of this function and nothing
+    // in the harness had ever called it. Filled here, and asserted below.
+    return withPreferenceDefaults(
+      scoreFromPrompts(answers.checkedPrompts, answers.stakes || 'meaningful',
+        Array.isArray(answers.skippedSections) ? answers.skippedSections : []),
+      answers,
+    );
   }
-  return shimScores(answers);
+  return withPreferenceDefaults(shimScores(answers), answers);
 }
 
 /**
@@ -1010,7 +1074,18 @@ export function recommendV2(answers = {}) {
   const words = {};
   const deltas = {};
   for (const c of CONCERN_KEYS) {
-    words[c] = scoreWord(scores[c], c, stakes);
+    // SOVEREIGNTY MUST BE PASSED. `exposure`'s default comes from that answer,
+    // and scoreWord bands a score against its default — so omitting it measured
+    // every reader's exposure against the 'lean-self' baseline of 55.
+    //
+    // Two of the three answers therefore got the wrong word on a bar they had
+    // never touched: 'pure' (default 85) read ELEVATED and 'open-help'
+    // (default 20) read LOW, when both are by definition TYPICAL. It was not
+    // cosmetic — a reader who chose pure self-custody saw "how much you mind
+    // being known is elevated" as the sole stated reason for their
+    // recommendation, and the review screen, which does pass it, disagreed with
+    // the result screen about the same bar.
+    words[c] = scoreWord(scores[c], c, stakes, answers.sovereignty);
     deltas[c] = scores[c] - d[c];
   }
 
@@ -1158,9 +1233,20 @@ export function recommendV2(answers = {}) {
     const text = (CAVEAT_TEXT[key] || '').replace('{word}', words[c]);
     if (text) holdbacks.push({ concern: c, text });
   }
+  // The passphrase's silent-lockout warning rides ALWAYS, not only when the
+  // reader happens to rate locking themselves out elevated. If a computed
+  // self-loss caveat already fired it says the same thing better, so this does
+  // not double up.
+  if (family === 'passphrase' && !holdbacks.some((h) => h.concern === 'self-loss')) {
+    holdbacks.push({ ...PASSPHRASE_STANDING });
+  }
   // Worst gap first — if a result carries several caveats, the reader should
-  // meet the biggest trade before the smaller ones.
+  // meet the biggest trade before the smaller ones. A STANDING warning always
+  // leads: it is not a trade to weigh against the others, it is a condition of
+  // the thing being recommended, and sorting it by gap would have buried it
+  // under the stakes caveat on the very card it belongs to.
   holdbacks.sort((a, b) => {
+    if (Boolean(a.standing) !== Boolean(b.standing)) return a.standing ? -1 : 1;
     const gap = (x) => Math.max(...SETUP_KEYS.map((k) => PROTECTION[k].weights[x.concern])) - PROTECTION[top.setup].weights[x.concern];
     return gap(b) - gap(a);
   });

@@ -278,7 +278,7 @@ const fitCountCap = questionCountWordCap;
 
     const s = scoresNow()[c];
     const d = defaultsFor(stakesNow())[c];
-    const w = scoreWord(s, c, stakesNow());
+    const w = scoreWord(s, c, stakesNow(), sovNow());
     elCard.innerHTML = `<div class="q-card as-card">
       <h2 class="q-title">${esc(info.label)}</h2>
       <p class="q-help">${esc(SECTION_RECAP[c])}</p>
@@ -299,7 +299,7 @@ const fitCountCap = questionCountWordCap;
 
     function updateBar() {
       const sc = scoresNow()[c];
-      const wd = scoreWord(sc, c, stakesNow());
+      const wd = scoreWord(sc, c, stakesNow(), sovNow());
       const fill = elCard.querySelector(`[data-bar="${c}"] .as-fill`);
       fill.style.width = `${barW(sc)}%`;
       fill.className = `as-fill w-${wd}`;
@@ -359,7 +359,13 @@ const fitCountCap = questionCountWordCap;
     if (estimatedConcerns.has(c)) return `Estimated from your earlier answers. <button type="button" class="as-walk" data-walk="${c}">Walk it →</button>`;
     if (typeof overrides[c] === 'number') return `Set by hand — your call stands. <button type="button" class="as-reset" data-reset="${c}">Reset to my answers</button>`;
     const n = checkedCountFor(c);
-    if (!n) return 'Nothing you tapped moved this — you match the typical holder.';
+    // WALKED AND CLEARED — which is no longer the same as sitting on the
+    // default. The expected-bundle baseline means a reader who says none of a
+    // section is true of them scores BELOW the typical holder, and the bar and
+    // the word both say so. This line still said "you match the typical
+    // holder", directly contradicting the 'low' tag beside it and a fill sitting
+    // well under its own ghost. Same screen, opposite claims.
+    if (!n) return 'None of these are true of you — that puts you below the typical holder.';
     return `Moved by the ${n === 1 ? 'one thing' : `${numberWord(n)} things`} you said ${n === 1 ? 'is' : 'are'} true of you.`;
   }
 
@@ -394,7 +400,7 @@ const fitCountCap = questionCountWordCap;
     function repaintRow(c) {
       const row = elCard.querySelector(`[data-row="${c}"]`);
       const s = scoresNow()[c];
-      const w = scoreWord(s, c, stakesNow());
+      const w = scoreWord(s, c, stakesNow(), sovNow());
       const fill = row.querySelector('.as-fill');
       fill.style.width = `${barW(s)}%`;
       fill.className = `as-fill w-${w}`;
@@ -428,14 +434,14 @@ const fitCountCap = questionCountWordCap;
       b.addEventListener('click', () => {
         const c = b.getAttribute('data-c');
         const dir = parseInt(b.getAttribute('data-dir'), 10);
-        const w = scoreWord(scoresNow()[c], c, stakesNow());
+        const w = scoreWord(scoresNow()[c], c, stakesNow(), sovNow());
         const ni = Math.min(WORD_ORDER.length - 1, Math.max(0, WORD_ORDER.indexOf(w) + dir));
         overrides[c] = detentsFor(c)[ni];
         skipped.delete(c);
         estimatedConcerns.delete(c);
         repaintRow(c);
       });
-      const i = WORD_ORDER.indexOf(scoreWord(scoresNow()[b.getAttribute('data-c')], b.getAttribute('data-c'), stakesNow()));
+      const i = WORD_ORDER.indexOf(scoreWord(scoresNow()[b.getAttribute('data-c')], b.getAttribute('data-c'), stakesNow(), sovNow()));
       const dir = parseInt(b.getAttribute('data-dir'), 10);
       b.disabled = (dir < 0 && i === 0) || (dir > 0 && i === WORD_ORDER.length - 1);
     });
@@ -639,7 +645,7 @@ const fitCountCap = questionCountWordCap;
     // Computed holdbacks — the anti-add-on honesty, generated from the user's own
     // scores. Replaces the legacy card's single hand-written holdback line.
     const holdbacksHtml = (holdbacks || []).map((h) =>
-      `<div class="r-holdback"><span class="r-k mono">Why not more?</span><p>${esc(h.text)}</p></div>`).join('');
+      `<div class="r-holdback"><span class="r-k mono">${esc(h.label || 'Why not more?')}</span><p>${esc(h.text)}</p></div>`).join('');
     // A genuine either/or (C5): say so out loud, above the cards it's about.
     // Two choices, and either is right — that is the whole spirit of a tie, so
     // the copy says it in those words rather than implying a winner. The two

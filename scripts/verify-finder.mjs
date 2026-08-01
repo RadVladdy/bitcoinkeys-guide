@@ -21,7 +21,7 @@ import { recommend } from '../src/data/quiz.js';
 import {
   recommendV2, shimScores, fitFor, defaultsFor, scoreWord, scoreFromPrompts,
   CONCERN_KEYS, SECTION_ORDER, SETUP_KEYS, PROTECTION, FAMILY, TIE_MARGIN, prompts,
-  EXPECTED_RAW, WEIGHT_POINTS, LADDER_RANK,
+  EXPECTED_RAW, WEIGHT_POINTS, LADDER_RANK, CAVEAT_TEXT,
 } from '../src/data/finder.js';
 
 let failures = 0;
@@ -381,9 +381,17 @@ const c7min = {};
 for (const stakes of STAKES_LADDER) {
   const cleared = scoreFromPrompts([], stakes, []);
   let lo = Infinity;
-  for (const tech of ['none', 'some', 'very'])
-    for (const sovereignty of ['pure', 'open-help', 'service'])
-      for (const recovery of ['yes', 'no', 'unsure']) {
+  // THE ANSWER VALUES MUST BE REAL ONES. This loop used to sweep tech over
+  // ['none','some','very'] and sovereignty over ['pure','open-help','service'] —
+  // and the engine accepts simple/careful/technical and pure/lean-self/open-help.
+  // Every invalid value fell back to the same default, so 27 reported
+  // combinations per stakes level were three distinct ones, and 'technical' —
+  // the setting that most cheapens complexity and so most favours multisig —
+  // was never exercised at all. C7 passed on an eighth of what it claimed.
+  // (`recovery` is not read by fitFor and is dropped rather than faked.)
+  for (const tech of TECH)
+    for (const sovereignty of SOV)
+      for (const recovery of RECOVERY) {
         const top = fitFor(cleared, { stakes, tech, sovereignty, recovery, current: 'some' })[0];
         const rank = LADDER_RANK[FAMILY[top.setup]];
         lo = Math.min(lo, rank);
@@ -437,6 +445,95 @@ for (const c of SECTION_ORDER) {
   if (skipAll[c] !== defaultsFor('meaningful')[c]) fail(`skip: ${c} moved despite section skip`);
 }
 console.log(`  prompt bank — ${prompts.length} prompts (${CONCERN_KEYS.map((c) => `${c}:${prompts.filter((p) => p.concern === c).length}`).join(' · ')}); gating, skip and saturation checked`);
+
+// ── C8 · THE REAL READER PATH — recommendV2 driven by PROMPTS ───────────────
+// Every check above hands recommendV2 a ready-made `scores` object. The page
+// does not: it derives scores from checked prompts, and `checkedPrompts` is a
+// documented input of this function. Nothing had ever called it that way, and
+// it was broken — scoreFromPrompts returns only the four WALKED risks, so
+// `stakes` and `exposure` arrived undefined, every comparison in scoreWord came
+// back false, and both rows reported 'high' for every reader with NaN deltas.
+// A learning-stakes reader was told a great deal was riding on it.
+//
+// Swept over real prompt subsets, at every stakes × sovereignty, asserting the
+// same shape contract the scores path gets — plus the specific property that
+// broke: an untouched preference row must read 'typical', never 'high'.
+let c8n = 0;
+const PROMPT_SETS = [
+  [],
+  ['c-exchange'],
+  ['s-never-restored', 's-memory-only'],
+  ['p-posted', 'p-crypto-job', 'r-follow'],
+  prompts.map((p) => p.id),
+];
+for (const set of PROMPT_SETS)
+for (const stakes of STAKES) for (const sovereignty of SOV) for (const tech of TECH) {
+  c8n++;
+  const res = recommendV2({ ...baseAnswers, stakes, sovereignty, tech, checkedPrompts: set, skippedSections: [] });
+  const where = `C8 prompts=${set.length} ${stakes}/${sovereignty}/${tech}`;
+  checkShape(res, where);
+  for (const c of ['stakes', 'exposure']) {
+    if (typeof res.profile.scores[c] !== 'number') fail(`${where}: profile.scores.${c} is not a number — the preference rows fell through`);
+    if (Number.isNaN(res.profile.deltas[c])) fail(`${where}: profile.deltas.${c} is NaN`);
+  }
+  // Neither preference row is touched by any prompt, so both must sit exactly on
+  // the default their own ANSWER implies — and therefore read 'typical'.
+  const d = defaultsFor(stakes, sovereignty);
+  for (const c of ['stakes', 'exposure']) {
+    if (res.profile.scores[c] !== d[c]) fail(`${where}: ${c} scored ${res.profile.scores[c]}, answer implies ${d[c]}`);
+    if (res.profile.words[c] !== 'typical') fail(`${where}: untouched ${c} reads '${res.profile.words[c]}', not 'typical'`);
+  }
+}
+console.log(`  C8 real reader path — ${c8n} prompt-driven combos through recommendV2`);
+
+// ── C9 · CAVEAT COPY IS REACHABLE, AND EVERY REACHABLE CONCERN HAS COPY ──────
+// Two CAVEAT_TEXT entries were dead: `custodial` (all four setups weigh it 3, so
+// the gap can never reach the threshold) and the non-custodial `exposure`
+// wording (only collaborative has a gap there, and it always takes the
+// exposureCustodial key). Dead copy on a page that argues for a living reads as
+// covered when nothing covers it — and the reverse, a reachable concern with no
+// copy, silently drops a caveat the reader is owed. Asserted both directions.
+{
+  const GAP = 1.2;
+  const reachable = new Set();
+  for (const c of CONCERN_KEYS) {
+    const best = Math.max(...SETUP_KEYS.map((k) => PROTECTION[k].weights[c]));
+    for (const s of SETUP_KEYS) {
+      if (best - PROTECTION[s].weights[c] < GAP) continue;
+      reachable.add(c === 'exposure' && PROTECTION[s].weights.exposure < 0 ? 'exposureCustodial' : c);
+    }
+  }
+  for (const k of reachable) {
+    if (!CAVEAT_TEXT[k]) fail(`C9: '${k}' can fire but has no caveat text — the reader is owed a caveat that never renders`);
+  }
+  for (const k of Object.keys(CAVEAT_TEXT)) {
+    if (!reachable.has(k)) fail(`C9: CAVEAT_TEXT['${k}'] is unreachable — no setup is far enough behind the best on it`);
+  }
+  console.log(`  C9 caveat reachability — ${reachable.size} reachable, ${Object.keys(CAVEAT_TEXT).length} written, no dead copy`);
+}
+
+// ── C10 · THE PASSPHRASE ALWAYS CARRIES ITS LOCKOUT WARNING ─────────────────
+// The computed caveats only speak when a concern is rated elevated or high, so a
+// passphrase recommended to a reader with LOW self-loss — the most common
+// passphrase outcome the engine produces — shipped with no warning at all, while
+// the legacy card it replaced carried one unconditionally. This is not a
+// trade-off to weigh; it is a condition of the thing being recommended.
+let c10n = 0;
+for (const stakes of STAKES) for (const tech of TECH) for (const sovereignty of SOV)
+for (const selfScore of [0, 20, 52, 80]) {
+  const scores = { ...defaultsFor(stakes, sovereignty), 'self-loss': selfScore };
+  const res = recommendV2({ ...baseAnswers, stakes, tech, sovereignty, scores });
+  if (res.primary.rungSlug !== 'passphrase' || res.primary.fork) continue;
+  c10n++;
+  const where = `C10 passphrase self=${selfScore} ${stakes}/${tech}/${sovereignty}`;
+  if (!res.holdbacks.some((h) => h.concern === 'self-loss')) {
+    fail(`${where}: recommends a passphrase with NO lockout warning`);
+  }
+  if (!/passphrase/i.test(res.primary.holdback || '')) {
+    fail(`${where}: the card's own holdback line does not mention the passphrase`);
+  }
+}
+console.log(`  C10 passphrase warning — ${c10n} passphrase primaries, all carry the lockout warning`);
 
 // ════ result ════════════════════════════════════════════════════════════════
 console.log('');
