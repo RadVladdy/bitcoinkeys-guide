@@ -1,605 +1,187 @@
 ---
-// The dice-seed WALKTHROUGH — a procedure, not a demonstration.
+// THE TOOL PAGE. One option at a time: pick a tab and the page becomes only
+// that procedure. Everything conceptual — why, what your device allows, how it
+// goes wrong — lives on /generate-your-seed, and is not repeated here.
 //
-// IT IS DELIBERATELY NOT /deep-dive/dice. That page rolls FOR you in the browser
-// using the browser's own randomness and throws the seed away; it exists to make
-// the idea concrete. This page paces a real seed the reader is generating on
-// their own hardware. The two link to each other and neither repeats the other:
-// the demo shows the mechanism, this one runs the procedure.
+// NO TABS FOR OPTION 4. "Let the device do it" is a sentence, not a procedure.
 //
-// THE CONSTRAINT THAT SHAPES EVERY LINE OF IT: no real dice value may enter this
-// page. There is no text input, no form, no storage, and no arithmetic over
-// anything the reader supplies. The site's own advisory tells readers that a
-// dice sequence is secret key material that must never be recorded digitally, so
-// a page that accepted rolls would contradict the guide's central teaching and be
-// genuinely dangerous. The client state is: which device chip is selected, which
-// steps are ticked, and a tally of taps. All of it in memory only — nothing is
-// written to localStorage, so a reload clears it. The page says so in words,
-// because a promise the reader cannot see is not a promise.
+// NOTHING IS TYPED, NOTHING IS STORED. There is no input on this page and
+// there is not going to be one: the sequence of numbers a reader rolls IS
+// their seed in another alphabet. The tabs only show and hide server-rendered
+// panels — no state, no storage, no network.
 //
-// It lives in "Hardware & services" rather than in the course because it carries
-// outbound vendor links, which is the shape of every page in that group and of no
-// lesson on the site.
-//
-// Client values reach the script through data- attributes, never through
-// frontmatter interpolation inside <script> — that renders literally.
+// The roll tally that used to live here was removed: on the device options the
+// device shows its own running count and hash, and on option 1 the unit is
+// words, not throws. It answered a question nobody in either procedure asks.
 import Base from '../layouts/Base.astro';
-import '../styles/demo.css';
 import RuleRef from '../components/RuleRef.astro';
 import {
-  diceVerified, bitsPerRoll, D6_FACES,
-  seedLengths, seedLengthByKey, recommendedLength,
-  methodFamilies, familyByKey, deviceProcedures, noDicePath,
-  kit, failureModes, walkSteps, walkStepCount, failureModeCount,
-  methods, ratedDevicesForMethod, devicesWithNoDicePath, methodCount,
+  diceVerified, methods, deviceProcedures, walkSteps,
+  ratedDevicesForMethod, DICE_METHOD_KEYS,
 } from '../data/dice.js';
-import { seedCosts, tableRowCount } from '../data/dice-table.js';
-import { activeAdvisories } from '../data/advisories.js';
-import { numberWord, numberWordCap } from '../data/numbers.js';
+import { seedCosts, tableRowCount, DICE_PER_WORD } from '../data/dice-table.js';
 
-const advisory = activeAdvisories.find((a) => a.vendor === 'Coinkite') || null;
-const short = seedLengthByKey['12'];
-const long = seedLengthByKey['24'];
-const coldcard = deviceProcedures.find((d) => d.key === 'coldcard');
-
-// Every figure printed below is computed here. The one-decimal rounding is the
-// display, not the value — the arithmetic upstream is exact.
-const bpr = bitsPerRoll.toFixed(3);
-const withDicePath = deviceProcedures.filter((d) => !d.partial).length;
-const dice1 = (n) => n.toFixed(1);
-
-// Device support per option, joined from the same data /wallets filters on.
-// Names are shortened for the tiles only — the maker is obvious in context and
-// the full names are three words long each.
+// Option 4 has no procedure, so the tabs are exactly the doing options.
+const tabs = methods.filter((m) => DICE_METHOD_KEYS.includes(m.key));
+const procsFor = (key) => deviceProcedures.filter((p) => (p.options || []).includes(key));
 const trim = (n) => n.replace(' (BTC-only)', '').replace('Blockstream ', '').replace('Foundation ', '');
-const supportFor = (key) => ratedDevicesForMethod(key).map((d) => trim(d.name));
-const optionTiles = methods.map((m) => ({
-  ...m,
-  devices: m.key === 'device' ? null : supportFor(m.key),
-}));
-const noPath = devicesWithNoDicePath.map((d) => trim(d.name));
+const devicesFor = (key) => ratedDevicesForMethod(key).map((d) => trim(d.name));
 const longCost = seedCosts.find((c) => c.words === 24);
+const shortCost = seedCosts.find((c) => c.words === 12);
 ---
 <Base
-  title="Roll your own seed with dice — the real procedure · BitcoinKeys.guide"
-  description="A step-by-step procedure for generating a real Bitcoin seed from your own dice, on your own hardware wallet. Verified menu paths for Coldcard, Blockstream Jade, BitBox02 and Passport, the maths behind the roll counts, and the ways it goes wrong. This page never asks for your rolls."
+  title="Roll your own seed — the procedures · BitcoinKeys.guide"
+  description="Step-by-step procedures for putting your own randomness into a Bitcoin seed, on the hardware you own. Pick your method; the page shows only that one."
   verified={diceVerified}
 >
   <section class="prose">
-    <p class="eyebrow">Hardware &amp; services · a procedure</p>
-    <h1>Roll your own seed <span class="accent">with dice</span></h1>
+    <p class="eyebrow">Hardware &amp; services · procedures</p>
+    <h1>Roll your own seed</h1>
     <p class="lead">
-      Your seed is a very large random number. Normally the device picks it, and you have no way to check
-      that it picked well. You can do that part yourself instead, with a die and an hour, and end up with a
-      wallet whose randomness you watched happen. This page walks the real procedure, on real hardware.
+      Pick a method and this page becomes only that method. If you have not decided yet, or you are not sure
+      what your device allows, start at <a href="/generate-your-seed">where your seed's randomness comes from</a>.
     </p>
 
     <div class="callout danger" role="note">
       <span class="label">🛑 This page will never ask what you rolled</span>
-      <p>
-        There is no box to type your rolls into, and there is not going to be one. <strong>The list of numbers
-        you roll IS your seed</strong>, written in a different alphabet — anyone who has it has your coins.
-        Putting it into a web page, even one that promises not to look, is the same class of mistake as typing
-        your seed words into a website. <RuleRef key="never-digital" /> of this guide says key material never
-        touches anything digital, and we are not going to make an exception for our own page.
-      </p>
       <p style="margin-bottom:0">
-        So every real digit goes into your hardware wallet and nowhere else. The most this page will do is
-        <strong>count taps for you</strong> — a tally that never learns a single value, held in memory, gone the
-        moment you reload. Nothing here is saved, sent or logged.
-        Want to see the mechanism instead, with throwaway numbers? That is
-        <a href="/deep-dive/dice">the dice demo</a>, and it is a different thing on purpose.
+        There is no box to type your throws into, and there is not going to be one. <strong>The list of numbers
+        you roll IS your seed</strong>, written in a different alphabet — anyone who has it has your coins.
+        <RuleRef key="never-digital" /> says key material never touches anything digital, and we are not making
+        an exception for our own page. Every real digit goes into your hardware wallet and nowhere else.
       </p>
     </div>
   </section>
 
-  <section class="prose">
-    <h2 id="options">Your {numberWord(methodCount)} options, and what your device allows</h2>
-    <p>
-      These run from most of the randomness being yours to none of it. The last one is what almost everybody
-      does, and it is not a wrong answer — but it is a choice, and most people make it without knowing they
-      made it.
-    </p>
-  </section>
-
   <section>
-    <ul class="opt-grid">
-      {optionTiles.map((m) => (
-        <li class={`opt${m.houseDefault ? ' is-default' : ''}`}>
-          <p class="opt-n mono">Option {m.n}{m.houseDefault && <span class="opt-badge">our default</span>}</p>
-          <h3 class="opt-h">{m.label}</h3>
-          <p class="opt-tag">{m.tagline}</p>
-          <p class="opt-yours"><span class="opt-k">Randomness that is yours</span>{m.yours}</p>
-          <p class="opt-how">{m.how}</p>
-          <p class="opt-trust"><span class="opt-k">What you are trusting</span>{m.trust}</p>
-          {m.devices && (
-            <p class="opt-dev">
-              <span class="opt-k">Devices we rate that can do this</span>
-              {m.devices.length ? m.devices.join(' · ') : 'None of them.'}
-            </p>
+    <div class="tabs" role="tablist" aria-label="Choose a method" id="opt-tabs">
+      {tabs.map((m, i) => (
+        <button
+          type="button" role="tab" class="tab" data-opt={m.key}
+          id={`tab-${m.key}`} aria-controls={`panel-${m.key}`}
+          aria-selected={i === 0 ? 'true' : 'false'}
+        >
+          <span class="tab-n">Option {m.n}</span>
+          <span class="tab-l">{m.label}</span>
+          {m.houseDefault && <span class="tab-badge">our default</span>}
+        </button>
+      ))}
+    </div>
+
+    {tabs.map((m, i) => (
+      <div
+        class="panel" role="tabpanel" data-panel={m.key}
+        id={`panel-${m.key}`} aria-labelledby={`tab-${m.key}`}
+        hidden={i !== 0}
+      >
+        <div class="prose">
+          <h2>{m.label}</h2>
+          <p class="p-tag">{m.tagline}</p>
+          <p>{m.how}</p>
+          <p class="p-meta">
+            <span class="p-k">Devices we rate that can do this</span>
+            {devicesFor(m.key).length ? devicesFor(m.key).join(' · ') : 'None of them.'}
+          </p>
+          <p class="p-meta">
+            <span class="p-k">What it costs you</span>
+            {m.key === 'sovereign'
+              ? `About ${longCost.throws} throws and ${longCost.flips} coin flips for 24 words (${shortCost.throws} and ${shortCost.flips} for 12), each read off a printed table by hand. Set aside an evening.`
+              : m.key === 'dice-only'
+                ? 'Ninety-nine throws for 24 words, entered straight into the device. No table, no transcription.'
+                : 'As many throws as you feel like. There is no minimum, and more is simply better.'}
+          </p>
+
+          {m.key === 'sovereign' && (
+            <div class="callout" role="note">
+              <span class="label">Print the table first</span>
+              <p style="margin:0">
+                All {tableRowCount.toLocaleString()} words, reachable from {DICE_PER_WORD} throws and a coin
+                flip. Print it or open it on a second screen before you start —
+                <a href="/dice-word-table"> the dice → word table</a>, or
+                <a href="/dice-word-table.pdf" download> download the PDF</a>. It contains no secret: it is the
+                standard wordlist in a fixed order, and anyone can regenerate it.
+              </p>
+            </div>
           )}
-        </li>
-      ))}
-    </ul>
-  </section>
 
-  <section class="prose">
-    <div class="callout" role="note">
-      <span class="label">The short version</span>
-      <p style="margin:0">
-        Only <strong>Coinkite</strong> lets you roll dice on the device itself, so options 2 and 3 are one
-        maker's. On a <strong>Jade</strong> or a <strong>BitBox02</strong>, option 1 is the only way to get your
-        own randomness in. And on {noPath.length ? <strong>{noPath.join(', ')}</strong> : 'some devices'} there
-        is no way at all — the device generates your seed and that is that. Worth knowing before you buy, and
-        you can <a href="/wallets">filter the comparison by it</a>.
-      </p>
-    </div>
-  </section>
+          <h3>The steps</h3>
+          <ol class="wsteps">
+            {walkSteps.map((s) => (<li><strong>{s.t}.</strong> {s.d}</li>))}
+          </ol>
 
-  <section class="prose">
-    <h2 id="why">Why anyone bothers</h2>
-    <p>
-      Every hardware wallet generates your seed from a random-number generator you cannot inspect. When that
-      generator works, this is fine. The problem is the word <em>when</em>: it is a single point of failure
-      sitting under everything else you do, and you will not find out it failed until the coins are gone.
-    </p>
-    {advisory && (
-      <div class="callout warn">
-        <span class="label">⚠️ This is not hypothetical</span>
-        <p style="margin:0">
-          {advisory.lesson} <a href={advisory.href}>Read the full advisory →</a>
-        </p>
-      </div>
-    )}
-    <p>
-      That is the argument, and it is a narrow one. Rolling your own seed does not make you harder to phish, it
-      does not protect a badly stored backup, and it does not help at all if you write the words down wrong.
-      It removes exactly one risk — <strong>that the device's randomness is not random</strong> — and it
-      replaces it with a risk you control instead, which is that you do this carefully. Whether that is a good
-      trade is a real question, and for most people the honest answer is that a passphrase or a second key from
-      a different maker buys more safety for less effort. Do this because you want the one thing it does.
-    </p>
-  </section>
-
-  <section class="prose">
-    <h2 id="need">What you need</h2>
-    <ul class="dk">
-      {kit.map((k) => (
-        <li><strong>{k.t}</strong><span>{k.d}</span></li>
-      ))}
-    </ul>
-  </section>
-
-  <section class="prose">
-    <h2 id="how-many">How many rolls, and why that number</h2>
-    <p>
-      A fair six-sided die has {numberWord(D6_FACES)} equally likely faces, so one honest roll is worth
-      <span class="mono"> log₂6 ≈ {bpr}</span> bits. Everything else is that figure multiplied out.
-    </p>
-    <div class="scroll">
-      <table class="dt">
-        <thead>
-          <tr><th>Seed</th><th class="num">Strength</th><th class="num">Rolls to clear it</th><th class="num">Vendor minimum</th><th class="num">What that buys</th></tr>
-        </thead>
-        <tbody>
-          {seedLengths.map((s) => (
-            <tr>
-              <td>{s.words} words</td>
-              <td class="num mono">{s.target} bits</td>
-              <td class="num mono">{s.rollsToClear}</td>
-              <td class="num mono">{s.minRollsD6}</td>
-              <td class="num mono">{dice1(s.bitsAtMin)} bits</td>
-            </tr>
+          <h3>On your device</h3>
+          {procsFor(m.key).map((p) => (
+            <div class={`dev${p.partial ? ' is-partial' : ''}`}>
+              <p class="dev-h">{p.label}{p.partial && <span class="dev-flag">with an asterisk</span>}</p>
+              <p class="dev-path mono">{p.path.join('  →  ')}</p>
+              {p.pathNote && <p class="dev-note">{p.pathNote}</p>}
+              {p.caution && <p class="dev-caution">{p.caution}</p>}
+              {p.source && (
+                <p class="dev-src">
+                  <a href={p.source.url} rel="noopener noreferrer" target="_blank">{p.source.label} ↗</a>
+                </p>
+              )}
+            </div>
           ))}
-        </tbody>
-      </table>
-    </div>
-    <p class="dsub">
-      The last two columns do not quite agree, and it is worth a sentence. Coinkite's stated minimum for a
-      {' '}{long.words}-word seed is {long.minRollsD6} rolls, which lands at {dice1(long.bitsAtMin)} bits —
-      a hair under {long.target}. Our own arithmetic says {long.rollsToClear} rolls to clear
-      {' '}{long.target} outright. The gap is a rounding convention, not a disagreement about the maths, and it
-      is free to close: <strong>roll {long.rollsToClear} and stop thinking about it</strong>. Extra rolls never
-      weaken anything.
-    </p>
-    <p class="dsub">
-      One number that surprises people: at {short.minRollsD6} rolls you are already past {short.target} bits.
-      Guessing a {short.target}-bit key is not a thing anyone will ever do. The reason to roll the longer one is
-      not that {short.words} words is weak — it is that you are already sitting there with a die.
-    </p>
-  </section>
-
-  <section>
-    <h2 id="tally" class="prose">A tally that does not want your numbers</h2>
-    <div class="demo" id="rt" data-bpr={String(bitsPerRoll)}>
-      <p class="intro-lead" style="margin-top:0">
-        Tap once per throw to keep your place. It counts taps — it never asks, stores or transmits what came up.
-      </p>
-      <div class="chips" id="rt-goals">
-        {seedLengths.map((s, i) => (
-          <button type="button" class="chip" data-goal={String(s.rollsToClear)} data-words={String(s.words)} aria-pressed={i === seedLengths.length - 1 ? 'true' : 'false'}>
-            {s.words} words · {s.rollsToClear} rolls
-          </button>
-        ))}
-      </div>
-
-      <p class="rt-read mono"><b class="cs" id="rt-n">0</b> <span class="rt-sep">/</span> <span id="rt-goal">{recommendedLength.rollsToClear}</span></p>
-      <div class="rt-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="rt-bar"><span id="rt-fill"></span></div>
-      <p class="rt-msg" id="rt-msg">Throw the die, enter it on your device, then tap below.</p>
-
-      <div class="rt-btns">
-        <button type="button" class="btn-go" id="rt-inc">Rolled one → count it</button>
-        <span class="rt-minor">
-          <button type="button" class="linkbtn" id="rt-dec">undo</button>
-          <button type="button" class="linkbtn" id="rt-reset">reset</button>
-        </span>
-      </div>
-      <p class="intro-note">
-        Held in a variable in this tab. Not saved, not sent, and gone if you reload — which is also why your paper
-        tally is the one that counts.
-      </p>
-    </div>
-  </section>
-
-  <section class="prose">
-    <h2 id="two-ways">There are two different procedures, and they are not alike</h2>
-    <p>
-      Every write-up on this subject describes one of these and calls it "rolling your own seed". They have
-      different dice, different counts, and very different numbers of ways to go wrong. Which one you get is
-      decided by the device you own.
-    </p>
-    <ul class="dfam">
-      {methodFamilies.map((f) => (
-        <li>
-          <span class="df-k mono">{f.label}</span>
-          <p>{f.how}</p>
-          <p class="dsub" style="margin-bottom:0">{f.tradeoff}</p>
-        </li>
-      ))}
-    </ul>
-  </section>
-
-  <section class="prose">
-    <h2 id="devices">The procedure on your device</h2>
-    <p class="dsub">
-      Menu paths below are the ones in each vendor's current documentation, re-read on {diceVerified}. They
-      move between firmware versions — on the Coldcard this option is not where most older guides say it is —
-      so follow the vendor link before you commit if anything on screen does not match.
-    </p>
-    <div class="chips dev-chips" id="dev-chips">
-      {deviceProcedures.map((d, i) => (
-        <button type="button" class="chip" data-dev={d.key} aria-pressed={i === 0 ? 'true' : 'false'}>{d.label}</button>
-      ))}
-    </div>
-
-    {deviceProcedures.map((d, i) => (
-      <div class="dcard" data-dev-panel={d.key} hidden={i !== 0}>
-        <p class="dc-head">
-          <span class="dc-name">{d.label}</span>
-          <span class="dc-fam mono">{familyByKey[d.family].short}</span>
-          {d.priority && <span class="dc-pin mono">start here</span>}
-          {d.partial && <span class="dc-pin dc-warnpin mono">partly documented</span>}
-        </p>
-        <dl class="dc-rows">
-          <dt>Dice</dt><dd>{d.dice}</dd>
-          <dt>On the device</dt>
-          <dd>
-            <span class="dc-path">
-              {d.path.map((p, j) => (
-                <>{j > 0 && <span class="dc-arrow mono"> → </span>}<code>{p}</code></>
-              ))}
-            </span>
-            {d.pathNote && <span class="dc-note">{d.pathNote}</span>}
-          </dd>
-          <dt>How many</dt><dd>{d.rolls}</dd>
-          <dt>What happens</dt><dd>{d.detail}</dd>
-          <dt>Afterwards</dt><dd>{d.verify}</dd>
-        </dl>
-        {d.caution && (
-          <p class="dc-caution"><span class="mono">⚠️ </span>{d.caution}</p>
-        )}
-        <p class="dc-src mono">
-          {[d.source, d.source2].filter(Boolean).map((s, j) => (
-            <>{j > 0 && <span class="dc-sep"> · </span>}<a href={s.url} target="_blank" rel="noopener noreferrer">{s.label} ↗</a></>
-          ))}
-        </p>
+        </div>
       </div>
     ))}
-
-    <h3 id="no-dice">Where there is no dice path, and we are not going to invent one</h3>
-    <p class="dsub">
-      For {numberWord(noDicePath.length)} of the makers this guide rates, there is no documented way to do this
-      at all. That is a real answer, and pretending otherwise would send someone hunting for a menu that does
-      not exist.
-    </p>
-    <ul class="dnone">
-      {noDicePath.map((n) => (
-        <li>
-          <strong>{n.label}</strong>
-          <p>{n.why}</p>
-          <p class="dsub">{n.reality}</p>
-          <p class="dc-src mono"><a href={n.source.url} target="_blank" rel="noopener noreferrer">{n.source.label} ↗</a></p>
-        </li>
-      ))}
-    </ul>
-    <p class="dsub">
-      Of every maker on this page, only {numberWord(withDicePath)} publish a complete dice procedure end to
-      end — Coinkite, Blockstream and BitBox. If yours is not among them and you want dice specifically, the
-      device is the thing to change, not the procedure.
-    </p>
   </section>
 
   <section class="prose">
-    <h2 id="walk">The procedure, step by step</h2>
-    <p class="dsub">
-      {numberWordCap(walkStepCount)} steps, all of them visible at once
-      because you will be reading this with a die in one hand. Ticking a step marks where you are; it is not
-      saved anywhere and it does not unlock anything.
+    <p class="cta-row">
+      <a class="btn ghost" href="/generate-your-seed">← Why, and what your device allows</a>
+      <a class="btn ghost" href="/checklist">Your setup checklist</a>
     </p>
-    <p class="rt-msg" id="walk-progress" data-total={String(walkStepCount)}>Nothing ticked yet.</p>
-    <ol class="dwalk" id="dwalk">
-      {walkSteps.map((s) => (
-        <li>
-          <button type="button" class="dw-tick" aria-pressed="false"><span class="dw-box" aria-hidden="true"></span><span class="dw-t">{s.t}</span></button>
-          <p>{s.d}</p>
-        </li>
-      ))}
-    </ol>
-  </section>
-
-  <section class="prose">
-    <h2 id="wrong">How this goes wrong</h2>
-    <p class="dsub">
-      {numberWordCap(failureModeCount)} of them, roughly in the order a
-      careful person meets them. The first one is the one that actually loses coins.
-    </p>
-    <ol class="dfail">
-      {failureModes.map((f) => (
-        <li><strong>{f.t}</strong><span>{f.d}</span></li>
-      ))}
-    </ol>
-  </section>
-
-  <section class="prose">
-    <h2 id="verify">Checking your work, and the part nobody skips</h2>
-    <p>
-      A dice seed is checkable in a way a device-generated one is not, and on the Coldcard you can go all the
-      way: {coldcard.verify}
-    </p>
-    <div class="callout warn">
-      <span class="label">⚠️ Where that check gets people killed</span>
-      <p style="margin:0">
-        Verifying means typing your dice sequence into a computer. On your everyday laptop that hands over the
-        wallet — the same laptop that syncs to a cloud, runs a browser, and has an operating system you did not
-        write. Coinkite's own instruction is an offline amnesic live system, no network and no hard drive, and
-        BitBox's is that the numbers must never touch an electronic device except the wallet itself. If you are
-        not set up to do that properly, <strong>skip the verification</strong>. It is optional. The next step is not.
-      </p>
-    </div>
-    <p>
-      <strong>Test the backup before you fund it.</strong> Wipe the device, restore from the words you wrote on
-      paper, and confirm you land in the same wallet. This is <RuleRef key="test-backup" /> and it applies
-      exactly as much to a seed you rolled yourself — arguably more, because you have just added a page of
-      manual steps to a process that previously had none. Then send a small amount, confirm it arrives, send
-      some back out, and only then move the rest. Metal comes after that, and
-      <a href="/metal-backups">which plate to buy</a> is its own decision.
-    </p>
-  </section>
-
-  <section class="prose">
-    <h2 id="migrating">If you are leaving an affected Coldcard right now</h2>
-    <p>
-      A lot of people are generating fresh seeds this week, and dice are the reason some of them do not have
-      to. The order matters more than the method:
-    </p>
-    <ol class="dmig">
-      <li><strong>Do not rush.</strong> More coins are lost to a panicked migration than to the thing being fled. If your seed sits behind a strong unique passphrase or in a multisig with a key from another maker, you have time.</li>
-      <li><strong>Update the firmware first.</strong> A dice seed generated on unfixed firmware is still generated on unfixed firmware — and on the Coldcard's own dice-only path the device generator is not used at all, which is precisely why {short.minRollsD6}+ independent private rolls kept people out of scope in the first place.</li>
-      <li><strong>Generate new — never restore the old seed.</strong> Restoring a weak seed onto a fixed device leaves it exactly as weak.</li>
-      <li><strong>Roll it yourself this time.</strong> You are doing the migration anyway. The marginal cost of dice is one boring hour, and it removes the exact failure that caused the migration.</li>
-      <li><strong>Test the restore, then move the coins.</strong> New wallet, small amount, confirm, then the rest. Treat the old seed as burned — do not reuse it anywhere, for any amount.</li>
-    </ol>
-    {advisory && (
-      <p class="cta-row">
-        <a class="btn btn-primary" href={advisory.href}>The full Coldcard advisory <span class="arw">→</span></a>
-        <a class="btn btn-ghost" href="/deep-dive/dice">See the mechanism with throwaway numbers</a>
-      </p>
-    )}
-    <p class="dverified mono">Every menu path, roll count and link above was read off the vendor's own current documentation on {diceVerified}.</p>
   </section>
 </Base>
 
 <script>
-  // Three pieces of state, all of them in a variable in this tab: the selected
-  // device, the ticked steps, and a tally of taps. NOTHING here reads or writes
-  // storage, and nothing reads a value the user supplies — there is no input on
-  // the page to read. A reload clears all of it, which the page states in words.
-  //
-  // Constants come from data- attributes rather than from frontmatter: an Astro
-  // binding is not in scope inside a bundled script, and interpolating one here
-  // ships the template literally.
-  const $ = (id) => document.getElementById(id);
-  const hit = (e, sel) => (e.target && e.target.closest ? e.target.closest(sel) : null);
-  const press = (row, sel, on) => {
-    row.querySelectorAll(sel).forEach((b) => b.setAttribute('aria-pressed', String(b === on)));
-  };
-
-  // ── device chips ─────────────────────────────────────────────────────────
-  const chipRow = $('dev-chips');
-  if (chipRow) {
-    const panels = Array.from(document.querySelectorAll('[data-dev-panel]'));
-    chipRow.addEventListener('click', (e) => {
-      const btn = hit(e, 'button[data-dev]');
-      if (!btn) return;
-      const key = btn.getAttribute('data-dev');
-      press(chipRow, 'button[data-dev]', btn);
-      panels.forEach((p) => { p.hidden = p.getAttribute('data-dev-panel') !== key; });
-    });
-  }
-
-  // ── the tally ────────────────────────────────────────────────────────────
-  const rt = $('rt');
-  const goalRow = $('rt-goals');
-  if (rt && goalRow) {
-    const bpr = Number(rt.getAttribute('data-bpr'));
-    const first = goalRow.querySelector('button[aria-pressed="true"]');
-    let goal = Number(first ? first.getAttribute('data-goal') : 0);
-    let n = 0;
-
-    const paint = () => {
-      $('rt-n').textContent = String(n);
-      $('rt-goal').textContent = String(goal);
-      const pct = goal > 0 ? Math.min(100, Math.round((n / goal) * 100)) : 0;
-      $('rt-fill').style.width = pct + '%';
-      $('rt-bar').setAttribute('aria-valuenow', String(pct));
-      rt.classList.toggle('is-done', goal > 0 && n >= goal);
-      const bits = (n * bpr).toFixed(1);
-      $('rt-msg').textContent = n === 0
-        ? 'Throw the die, enter it on your device, then tap below.'
-        : n < goal
-          ? (goal - n) + ' to go — about ' + bits + ' bits so far.'
-          : 'Target passed at ' + bits + ' bits. Extra rolls only help — the device will tell you when it is satisfied.';
+  // Show/hide only. No state is read or written anywhere — the panels are all
+  // server-rendered and the tab merely toggles `hidden`.
+  const bar = document.getElementById('opt-tabs');
+  if (bar) {
+    const tabs = Array.from(bar.querySelectorAll('button[data-opt]'));
+    const panels = Array.from(document.querySelectorAll('[data-panel]'));
+    const select = (key) => {
+      tabs.forEach((t) => t.setAttribute('aria-selected', String(t.dataset.opt === key)));
+      panels.forEach((p) => { p.hidden = p.dataset.panel !== key; });
     };
-
-    goalRow.addEventListener('click', (e) => {
-      const btn = hit(e, 'button[data-goal]');
-      if (!btn) return;
-      goal = Number(btn.getAttribute('data-goal'));
-      press(goalRow, 'button[data-goal]', btn);
-      paint();
+    bar.addEventListener('click', (e) => {
+      const t = e.target && e.target.closest ? e.target.closest('button[data-opt]') : null;
+      if (t) select(t.dataset.opt);
     });
-
-    $('rt-inc').addEventListener('click', () => { n += 1; paint(); });
-    $('rt-dec').addEventListener('click', () => { n = Math.max(0, n - 1); paint(); });
-    $('rt-reset').addEventListener('click', () => { n = 0; paint(); });
-    paint();
-  }
-
-  // ── step ticks ───────────────────────────────────────────────────────────
-  const walk = $('dwalk');
-  const prog = $('walk-progress');
-  if (walk && prog) {
-    const total = Number(prog.getAttribute('data-total'));
-    const ticks = Array.from(walk.querySelectorAll('button.dw-tick'));
-    const paintWalk = () => {
-      const done = ticks.filter((b) => b.getAttribute('aria-pressed') === 'true').length;
-      prog.textContent = done === 0
-        ? 'Nothing ticked yet.'
-        : done === total
-          ? 'All ' + total + ' ticked. Nothing was saved — this resets on reload.'
-          : done + ' of ' + total + ' ticked.';
-    };
-    walk.addEventListener('click', (e) => {
-      const btn = hit(e, 'button.dw-tick');
-      if (!btn) return;
-      btn.setAttribute('aria-pressed', String(btn.getAttribute('aria-pressed') !== 'true'));
-      paintWalk();
-    });
-    paintWalk();
   }
 </script>
 
 <style>
-  .dsub { color: var(--muted); font-size: 0.94rem; }
-
-  .dk { list-style: none; margin: 1.1rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.7rem; }
-  .dk li { display: grid; gap: 0.2rem; border: 1px solid var(--line); border-left: 3px solid var(--accent);
-    border-radius: var(--radius); background: var(--surface); padding: 0.9rem 1.15rem; }
-  .dk li strong { color: var(--text); }
-  .dk li span { color: var(--muted); font-size: 0.93rem; line-height: 1.55; }
-
-  .dt { width: 100%; border-collapse: collapse; }
-  .dt th, .dt td { padding: 0.6rem 0.9rem; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
-  .dt th { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
-  .dt td.num, .dt th.num { text-align: right; }
-
-  .rt-read { text-align: center; font-size: 2rem; margin: 1rem 0 0.5rem; line-height: 1; }
-  .rt-read .rt-sep, .rt-read #rt-goal { color: var(--faint); font-size: 1.1rem; }
-  .rt-bar { height: 0.5rem; border-radius: 999px; background: var(--surface-2); border: 1px solid var(--line); overflow: hidden; }
-  .rt-bar > span { display: block; height: 100%; width: 0; background: var(--accent); transition: width .12s ease; }
-  #rt.is-done .rt-bar > span { background: var(--safe); }
-  .rt-msg { text-align: center; color: var(--muted); font-size: 0.9rem; margin: 0.7rem 0 0; min-height: 1.3em; }
-  .rt-btns { display: flex; gap: 0.6rem 1rem; justify-content: center; align-items: center; flex-wrap: wrap; margin-top: 1rem; }
-  .rt-minor { display: inline-flex; gap: 1rem; align-items: center; }
-  .linkbtn { background: none; border: none; color: var(--accent); cursor: pointer; font: inherit; padding: 0.4rem; }
-  .linkbtn:hover { text-decoration: underline; }
-
-  .dfam { list-style: none; margin: 1.2rem 0 0; padding: 0; display: grid; gap: 1rem; }
-  @media (min-width: 780px) { .dfam { grid-template-columns: 1fr 1fr; } }
-  .dfam li { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 1rem 1.2rem; }
-  .df-k { display: block; color: var(--accent); font-size: 0.76rem; letter-spacing: 0.08em; text-transform: uppercase; font-weight: 700; margin-bottom: 0.4rem; }
-  .dfam p { font-size: 0.94rem; line-height: 1.55; }
-
-  .dev-chips { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: flex-start; margin: 1rem 0 0; }
-  .dev-chips .chip { font-family: var(--sans); font-size: 0.9rem; cursor: pointer; color: var(--text);
-    background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 0.5rem 0.95rem; }
-  .dev-chips .chip:hover { border-color: var(--accent); }
-  .dev-chips .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
-
-  .dcard { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 1.1rem 1.3rem; margin-top: 1rem; }
-  .dc-head { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: baseline; margin: 0 0 0.8rem; }
-  .dc-name { font-weight: 700; font-size: 1.05rem; }
-  .dc-fam { font-size: 0.72rem; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 0.1rem 0.55rem; }
-  .dc-pin { font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; background: var(--accent); color: var(--accent-ink); border-radius: 999px; padding: 0.12rem 0.55rem; font-weight: 700; }
-  .dc-warnpin { background: var(--warn); }
-
-  .dc-rows { display: grid; grid-template-columns: 1fr; gap: 0.15rem 1rem; margin: 0; }
-  @media (min-width: 640px) { .dc-rows { grid-template-columns: 8.5rem 1fr; } }
-  .dc-rows dt { font-family: var(--mono); font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); padding-top: 0.45rem; }
-  .dc-rows dd { margin: 0 0 0.6rem; color: var(--text); font-size: 0.94rem; line-height: 1.55; }
-  .dc-path { display: block; overflow-x: auto; padding-bottom: 0.2rem; }
-  .dc-path code { white-space: nowrap; }
-  .dc-arrow { color: var(--faint); }
-  .dc-note { display: block; color: var(--muted); font-size: 0.86rem; margin-top: 0.35rem; }
-  .dc-caution { border-left: 3px solid var(--warn); background: var(--warn-dim); border-radius: 0.4rem;
-    padding: 0.7rem 0.9rem; font-size: 0.9rem; color: var(--text); margin: 0.4rem 0 0.8rem; }
-  .dc-src { font-size: 0.78rem; color: var(--muted); margin: 0.4rem 0 0; }
-  .dc-sep { color: var(--faint); }
-
-  .dnone { list-style: none; margin: 1rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.9rem; }
-  .dnone li { border: 1px solid var(--line); border-left: 3px solid var(--faint); border-radius: var(--radius);
-    background: var(--surface); padding: 0.95rem 1.2rem; }
-  .dnone p { font-size: 0.93rem; line-height: 1.55; }
-
-  .dwalk { list-style: none; margin: 1.2rem 0 0; padding: 0; counter-reset: dw; display: flex; flex-direction: column; gap: 0.6rem; }
-  .dwalk li { counter-increment: dw; border: 1px solid var(--line); border-radius: var(--radius);
-    background: var(--surface); padding: 0.85rem 1.1rem; }
-  .dw-tick { display: flex; align-items: flex-start; gap: 0.6rem; width: 100%; text-align: left;
-    background: none; border: none; padding: 0; cursor: pointer; color: var(--text); font: inherit; }
-  .dw-box { flex: 0 0 auto; width: 1.15rem; height: 1.15rem; margin-top: 0.15rem; border-radius: 0.3rem;
-    border: 1px solid var(--line); background: var(--bg); }
-  .dw-tick[aria-pressed="true"] .dw-box { background: var(--safe); border-color: var(--safe); }
-  .dw-t { font-weight: 700; }
-  .dw-t::before { content: counter(dw) " · "; color: var(--accent); font-family: var(--mono); font-weight: 400; }
-  .dw-tick[aria-pressed="true"] .dw-t { color: var(--muted); text-decoration: line-through; text-decoration-color: var(--faint); }
-  .dwalk li p { margin: 0.5rem 0 0 1.75rem; color: var(--muted); font-size: 0.93rem; line-height: 1.6; }
-
-  .dfail { margin: 1.1rem 0 0; padding-left: 1.3rem; display: flex; flex-direction: column; gap: 0.7rem; }
-  .dfail li strong { display: block; color: var(--text); }
-  .dfail li span { color: var(--muted); font-size: 0.93rem; line-height: 1.6; }
-
-  .dmig { margin: 1rem 0 0; padding-left: 1.3rem; }
-  .dmig li { margin-bottom: 0.6rem; }
-
-  .cta-row { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.4rem; }
-  .dverified { color: var(--muted); font-size: 0.78rem; margin-top: 1.4rem; }
-
-  /* The four options. auto-fit rather than a fixed column count, so this goes
-     to one column on a phone without a breakpoint to maintain. */
-  .opt-grid { list-style: none; padding: 0; margin: 0; display: grid; gap: 1rem;
-    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
-  .opt { border: 1px solid var(--line); border-radius: var(--radius); padding: 1.1rem 1.2rem;
-    background: var(--card, transparent); display: flex; flex-direction: column; }
-  .opt.is-default { border-color: var(--accent); }
-  .opt-n { font-size: .72rem; letter-spacing: .07em; text-transform: uppercase; color: var(--muted);
-    margin: 0 0 .35rem; display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
-  .opt-badge { background: var(--accent); color: var(--accent-ink); border-radius: 999px;
-    padding: .1rem .55rem; font-size: .68rem; letter-spacing: .04em; }
-  .opt-h { margin: 0 0 .2rem; font-size: 1.08rem; line-height: 1.25; }
-  .opt-tag { margin: 0 0 .7rem; color: var(--muted); font-style: italic; }
-  .opt-how { margin: 0 0 .7rem; }
-  .opt-k { display: block; font-size: .7rem; letter-spacing: .06em; text-transform: uppercase;
+  .tabs { display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 1.4rem; }
+  .tab { flex: 1 1 14rem; text-align: left; cursor: pointer; font: inherit;
+    background: transparent; color: var(--text);
+    border: 1px solid var(--line); border-radius: var(--radius); padding: .8rem 1rem; }
+  .tab:hover { border-color: var(--accent); }
+  .tab[aria-selected='true'] { border-color: var(--accent); background: var(--accent-soft); }
+  .tab-n { display: block; font-family: var(--mono); font-size: .7rem; letter-spacing: .07em;
+    text-transform: uppercase; color: var(--muted); }
+  .tab-l { display: block; font-weight: 600; margin-top: .15rem; }
+  .tab-badge { display: inline-block; margin-top: .35rem; background: var(--accent);
+    color: var(--accent-ink); border-radius: 999px; padding: .05rem .5rem; font-size: .66rem;
+    letter-spacing: .04em; font-family: var(--mono); }
+  .p-tag { color: var(--muted); font-style: italic; margin-top: -.4rem; }
+  .p-meta { margin: 0 0 .9rem; }
+  .p-k { display: block; font-size: .7rem; letter-spacing: .06em; text-transform: uppercase;
     color: var(--muted); margin-bottom: .1rem; }
-  .opt-yours, .opt-trust { margin: 0 0 .7rem; }
-  .opt-dev { margin: auto 0 0; padding-top: .7rem; border-top: 1px solid var(--line); }
+  .wsteps li { margin-bottom: .8rem; }
+  .dev { border-left: 3px solid var(--line); padding: .3rem 0 .3rem 1rem; margin: 1rem 0; }
+  .dev.is-partial { border-left-color: var(--warn, #b7791f); }
+  .dev-h { font-weight: 600; margin: 0 0 .2rem; }
+  .dev-flag { font-weight: 400; font-size: .75rem; color: var(--muted); margin-left: .5rem; }
+  .dev-path { margin: 0 0 .35rem; font-size: .88rem; overflow-x: auto; }
+  .dev-note, .dev-caution, .dev-src { margin: 0 0 .3rem; color: var(--muted); font-size: .92rem; }
+  .cta-row { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: 1.4rem; }
+  .btn { display: inline-flex; align-items: center; background: var(--accent); color: var(--accent-ink);
+    font-weight: 700; font-family: var(--mono); font-size: .9rem; padding: .65rem 1rem;
+    border-radius: .6rem; text-decoration: none; }
+  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+  .btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
 </style>

@@ -140,6 +140,7 @@ const coldcardRolls = seedLengths
 export const deviceProcedures = [
   {
     key: 'coldcard',
+    options: ['dice-only', 'enrich'],
     vendor: 'Coinkite',
     label: 'Coldcard Q · Mk4 · Mk5',
     covers: ['Coldcard Q', 'Coldcard Mk5'],
@@ -169,6 +170,7 @@ export const deviceProcedures = [
     // seed-generation advisory, so its owners are the readers most likely to
     // be regenerating a seed on the day they arrive here.
     key: 'coldcard-mk3',
+    options: ['dice-only', 'enrich'],
     vendor: 'Coinkite',
     label: 'Coldcard Mk3',
     covers: [],
@@ -188,9 +190,10 @@ export const deviceProcedures = [
   },
   {
     key: 'jade',
+    options: ['sovereign'],
     vendor: 'Blockstream',
     label: 'Blockstream Jade · Jade Plus',
-    covers: ['Blockstream Jade', 'Blockstream Jade Plus'],
+    covers: ['Blockstream Jade', 'Blockstream Jade Plus', 'Blockstream Jade Core'],
     family: 'final-word',
     dice: 'Two 16-sided dice and one 8-sided die — not a d6.',
     path: ['Set Up Jade', 'Advanced Setup', 'Restore Wallet', '12/24 Words', 'Calculate'],
@@ -209,6 +212,7 @@ export const deviceProcedures = [
   },
   {
     key: 'bitbox',
+    options: ['sovereign'],
     vendor: 'BitBox',
     label: 'BitBox02',
     covers: ['BitBox02 (BTC-only)'],
@@ -230,6 +234,7 @@ export const deviceProcedures = [
   },
   {
     key: 'passport',
+    options: ['sovereign'],
     vendor: 'Foundation',
     label: 'Foundation Passport Core',
     covers: [],
@@ -246,6 +251,47 @@ export const deviceProcedures = [
     caution:
       'Half a documented procedure. We list it because the device really does offer the final-word step, not because Foundation has published a way to get to it with dice.',
     source: { label: 'Foundation — Passport Core setup', url: 'https://docs.foundation.xyz/passport/setup/' },
+  },
+{
+    // Coldcard belongs under option 1 as well, and was missing from it. Its
+    // matrix row says yes for all three, but this list only carried its
+    // on-device path — so a reader following option 1 was told the Coldcard
+    // had no route, while the tile beside it said the opposite. Two surfaces
+    // disagreeing about one device, each internally fine.
+    key: 'coldcard-words',
+    options: ['sovereign'],
+    vendor: 'Coinkite',
+    label: 'Coldcard Q · Mk4 · Mk5',
+    covers: ['Coldcard Q', 'Coldcard Mk5'],
+    family: 'final-word',
+    dice: 'One ordinary six-sided die and a coin, with our table.',
+    path: ['Import Existing', '12 / 18 / 24 Words'],
+    pathNote:
+      'On a device with no seed on it. Type the words you chose; as you reach the last one the device narrows the keyboard to the finals that make a valid checksum, so you cannot enter an impossible word.',
+    rolls: 'Set by the table, not by the device — five throws and a flip per word.',
+    detail:
+      'The Coldcard is the only device here that can do this AND take dice directly, so you can pick whichever option you trust more without buying different hardware.',
+    verify:
+      'Check the fingerprint against an independent wallet before funding, exactly as with any other route.',
+    source: { label: 'Coinkite — Master Seed', url: 'https://coldcard.com/docs/master-seed/' },
+  },
+  {
+    key: 'coldcard-mk3-words',
+    options: ['sovereign'],
+    vendor: 'Coinkite',
+    label: 'Coldcard Mk3',
+    covers: [],
+    family: 'final-word',
+    dice: 'One ordinary six-sided die and a coin, with our table.',
+    path: ['Import Existing', '24 Words'],
+    pathNote:
+      'Twenty-four words only on this model — there is no 12-word equivalent. It offers the eight valid final words and you choose one.',
+    rolls: 'Twenty-three words from the table; the device supplies the last.',
+    detail:
+      'Included because Mk3 owners are the most likely to be regenerating a seed, and every menu on this model differs from the newer Coldcards.',
+    verify:
+      'Verify the written backup and fingerprint of the old seed before erasing anything, and move funds only after a small test.',
+    source: { label: 'Coinkite — security advisory', url: 'https://blog.coinkite.com/coldcard-mk3-seed-generation-warning/' },
   },
 ];
 
@@ -560,3 +606,28 @@ export const anyDiceSupport = (deviceName) => {
   const c = diceCapability(deviceName);
   return !!c && ['sovereign', 'dice-only', 'enrich'].some((k) => SUPPORTED.has(c[k]));
 };
+
+// ── THE TWO LISTS MUST AGREE ────────────────────────────────────────────────
+//
+// deviceDice says WHICH devices can do each option; deviceProcedures says HOW.
+// They were written at different times and drifted immediately: the matrix said
+// the Coldcard supports option 1, while the procedure list carried only its
+// on-device path — so the option-1 tile named the Coldcard and the option-1
+// instructions did not. Two surfaces disagreeing about one device, each
+// internally fine, which is this project's most common bug shape and one no
+// link checker can see.
+//
+// Asserted at build so the next device added has to be added to both.
+for (const key of DICE_METHOD_KEYS) {
+  const covered = new Set(
+    deviceProcedures.filter((p) => (p.options || []).includes(key)).flatMap((p) => p.covers || []),
+  );
+  for (const d of deviceDice) {
+    if (!d.rated || !SUPPORTED.has(d[key])) continue;
+    if (!covered.has(d.name)) {
+      throw new Error(
+        `dice.js: deviceDice says "${d.name}" supports "${key}" but no deviceProcedure tagged "${key}" covers it — the tile would name a device the instructions do not`,
+      );
+    }
+  }
+}
