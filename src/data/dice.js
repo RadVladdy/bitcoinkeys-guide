@@ -362,7 +362,7 @@ export const failureModes = [
   },
   {
     t: 'Losing count',
-    d: 'Rolling is dull and it is easy to lose your place at roll seventy. Being under the minimum silently is the danger; being over it costs nothing at all. If you genuinely do not know where you are, keep rolling — extra rolls never weaken the result.',
+    d: 'Rolling is dull and it is easy to lose your place at roll seventy. Being under the minimum silently is the danger; being over it costs nothing at all. If you genuinely do not know where you are, keep rolling — extra rolls never weaken the result. This is what the printable worksheet is for: a numbered row per word, filled in as you go, so your place is on the paper rather than in your head.',
   },
   {
     t: 'Stopping early because it is boring',
