@@ -631,3 +631,46 @@ for (const key of DICE_METHOD_KEYS) {
     }
   }
 }
+
+// ── WHICH OPTION TO POINT A READER AT, GIVEN THEIR HARDWARE ─────────────────
+//
+// The checklist knows which devices a reader owns or plans, so it can send
+// them to the option their own kit can actually perform instead of to a page
+// listing four, three of which may be impossible for them.
+//
+// Order of preference is the house position: enrich first (cheapest real
+// protection, cannot be worse than letting the device decide), then the
+// sovereign table method, and an honest dead end when the device allows
+// neither. The dead end is the useful case — nowhere else tells them.
+export function diceAdviceFor(deviceNames = []) {
+  const caps = deviceNames.map(diceCapability).filter(Boolean);
+  const can = (key) => caps.filter((c) => SUPPORTED.has(c[key]));
+
+  const enrich = can('enrich');
+  if (enrich.length) {
+    return {
+      key: 'enrich',
+      href: '/roll-your-own-seed#enrich',
+      line: `Your ${enrich[0].name} can take your own dice throws alongside its own randomness. It costs a few minutes, it cannot make the result worse, and it removes the one failure you cannot otherwise check.`,
+    };
+  }
+
+  const sovereign = can('sovereign');
+  if (sovereign.length) {
+    const partial = sovereign[0].sovereign === 'partial';
+    return {
+      key: 'sovereign',
+      href: '/roll-your-own-seed#sovereign',
+      line: partial
+        ? `Your ${sovereign[0].name} will finish a seed you choose yourself, but it picks the last word's remaining randomness with its own generator rather than offering you the options — so it is a weaker version of this than other devices manage.`
+        : `Your ${sovereign[0].name} has no dice mode, but it will let you choose every word yourself from a printed table and calculate only the final one. That is the whole of your randomness, by hand.`,
+    };
+  }
+
+  if (!caps.length) return null;
+  return {
+    key: 'none',
+    href: '/learn/generate-your-seed',
+    line: `Your ${caps[0].name} does not let you supply any of your own randomness — it generates the seed and there is no way in. That is not a reason to panic or to replace it, but it is worth knowing, because it is the one part of your setup you cannot check.`,
+  };
+}

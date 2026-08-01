@@ -701,7 +701,13 @@ export function ratedSlugFor(slug) {
 export function assessDevices(slugs = []) {
   return slugs.filter(Boolean).map((slug) => {
     const ratedSlug = ratedSlugFor(slug);
-    const w = ratedSlug ? wallets.find((x) => x.image.includes('/' + ratedSlug + '.')) : null;
+    // Matched through the canonical slug, NOT by scanning image paths. The
+    // `image` field became optional when a device shipped ahead of its art,
+    // and this scan touched EVERY wallet before finding its match — so it
+    // threw on any device sitting after the art-less one in the array, taking
+    // out personalization on /checklist and /my-plan for those owners. The
+    // art-less device itself was fine, which is why it went unnoticed.
+    const w = ratedSlug ? wallets.find((x) => (x.slug ?? (x.image || '').replace('/devices/', '').replace(/\.webp$/, '')) === ratedSlug) : null;
     if (!w) {
       return {
         slug, name: ownedName(slug), verdict: 'unrated',

@@ -72,9 +72,12 @@ export const checklistItems = [
   { id: 'install-app', phase: 'setup', t: 'Install the maker’s wallet app',
     d: 'Your hardware wallet pairs with an app on your computer or phone — that’s where you’ll see balances and prepare the payments the device signs. Get it from the maker’s official site only, typed by hand, never from a search result or an ad: fake copies of these apps exist, and they are built to steal.',
     href: '/learn/phishing-and-scams' },
-  { id: 'generate-seed', phase: 'setup', t: 'Generate a fresh seed on the device yourself',
-    d: 'Power the device on and follow the maker’s official start page — the address printed in the box or on their site, not a link someone sent you. Set a PIN when it asks, then let the device create the seed in front of you: it shows the words on its own screen, and you copy them down by hand. Never use pre-set words, and never type the words into a computer or phone.',
-    href: '/learn/ladder#rung-1', rule: 'buy-direct' },
+  // The link is REPOINTED at runtime to the dice option this reader's own
+  // hardware can perform (see checklist.astro). The static href is the lesson,
+  // which is the right destination for anyone without a saved plan.
+  { id: 'generate-seed', phase: 'setup', t: 'Generate a fresh seed — and add your own randomness',
+    d: 'Power the device on and follow the maker’s official start page — the address printed in the box or on their site, not a link someone sent you. Set a PIN when it asks, then let the device create the seed in front of you: it shows the words on its own screen, and you copy them down by hand. Never use pre-set words, and never type the words into a computer or phone. Where your device allows it, add your own dice throws to the randomness it generates — it takes a few minutes, it cannot make the result worse, and it removes the one part of your setup you otherwise have to take on trust.',
+    href: '/learn/generate-your-seed', rule: 'buy-direct' },
   { id: 'passphrase-choose', phase: 'setup', only: ['passphrase'], t: 'Choose your passphrase carefully',
     d: 'The secret “25th word” that opens your real wallet — the seed alone opens a decoy. It can’t be reset, rate-limited, or recovered, so a weak or guessable one is almost as bad as none.',
     href: '/learn/ladder#rung-2' },

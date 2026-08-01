@@ -134,6 +134,7 @@ const total = checklistCount;
   import { scoreWord, scoreFromPrompts, shimScores } from '../data/finder.js';
   import { getRung } from '../data/ladder.js';
   import { ownedName, assessDevices, keysForSetup } from '../data/wallets.js';
+  import { diceAdviceFor } from '../data/dice.js';
 
   const checked = {};
   const items = Array.from(document.querySelectorAll('.citem'));
@@ -286,6 +287,32 @@ const total = checklistCount;
     //   · you own nothing                        → unchanged, go and get one
     const planned = ctx.devices.filter(Boolean);
     const devSlugs = (planned.length ? planned : ctx.owned).filter(Boolean);
+    // THE SEED-GENERATION STEP, aimed at hardware this reader actually has.
+    // A generic link to a page listing four options is close to useless when
+    // three of them are impossible on their device — and the honest dead end
+    // ("yours will not let you") is the case nothing else on the internet
+    // tells them. Copy only; the step never moves and never disappears.
+    const seedStep = items.find((li) => li.getAttribute('data-id') === 'generate-seed');
+    if (seedStep && devSlugs.length) {
+      const advice = diceAdviceFor(devSlugs.map((sl) => ownedName(sl)).filter(Boolean));
+      if (advice) {
+        const desc = seedStep.querySelector('.ct-desc');
+        const link = seedStep.querySelector('.ct-link');
+        if (desc) {
+          const p = document.createElement('p');
+          p.className = 'ct-dice';
+          p.textContent = advice.line;
+          desc.insertAdjacentElement('afterend', p);
+        }
+        // Repoint the step's own link rather than adding a second one: two
+        // links on one step is the reader choosing between them blind.
+        if (link && advice.key !== 'none') {
+          link.setAttribute('href', advice.href);
+          link.textContent = 'Your dice procedure →';
+        }
+      }
+    }
+
     const deviceStep = items.find((li) => li.getAttribute('data-device-slot') === 'true');
     if (deviceStep && devSlugs.length) {
       const judged = assessDevices(devSlugs);

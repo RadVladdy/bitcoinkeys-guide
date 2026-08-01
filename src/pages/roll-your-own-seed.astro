@@ -39,7 +39,7 @@ const shortCost = seedCosts.find((c) => c.words === 12);
     <h1>Roll your own seed</h1>
     <p class="lead">
       Pick a method and this page becomes only that method. If you have not decided yet, or you are not sure
-      what your device allows, start at <a href="/generate-your-seed">where your seed's randomness comes from</a>.
+      what your device allows, start at <a href="/learn/generate-your-seed">where your seed's randomness comes from</a>.
     </p>
 
     <div class="callout danger" role="note">
@@ -130,7 +130,7 @@ const shortCost = seedCosts.find((c) => c.words === 12);
 
   <section class="prose">
     <p class="cta-row">
-      <a class="btn ghost" href="/generate-your-seed">← Why, and what your device allows</a>
+      <a class="btn ghost" href="/learn/generate-your-seed">← Why, and what your device allows</a>
       <a class="btn ghost" href="/checklist">Your setup checklist</a>
     </p>
   </section>
@@ -151,6 +151,16 @@ const shortCost = seedCosts.find((c) => c.words === 12);
       const t = e.target && e.target.closest ? e.target.closest('button[data-opt]') : null;
       if (t) select(t.dataset.opt);
     });
+    // Deep link: /roll-your-own-seed#enrich opens that option directly. The
+    // checklist sends readers here with the option their own hardware can
+    // actually do, so landing on option 1 regardless would undo the point.
+    // Unknown fragments are ignored rather than blanking every panel.
+    const fromHash = () => {
+      const k = (location.hash || '').replace('#', '');
+      if (tabs.some((t) => t.dataset.opt === k)) select(k);
+    };
+    fromHash();
+    window.addEventListener('hashchange', fromHash);
   }
 </script>
 
