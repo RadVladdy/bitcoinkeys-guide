@@ -163,18 +163,36 @@ console.log('\nB · Score grid — calibration constraints');
 const baseAnswers = { current: 'pre', recovery: 'just-me', worry: ['unsure'] };
 const isFork = (res) => Boolean(res.primary.fork);
 
-// C1 — continuity: untouched defaults at learning/meaningful/serious →
-// single-sig primary, no tie flag, across tech × sovereignty × recovery.
+// C1 — the DEFAULT-PROFILE REPORT. Rewritten 2026-08-01 with the gates.
+//
+// It used to REQUIRE single-sig as the primary for every untouched default at
+// learning/meaningful/serious. That made it the last gate in the system: an
+// outcome the engine had to produce regardless of what the scores said, which
+// is precisely the thing that put fiction in the self-loss column (single-sig
+// scored above multisig against lockout, because otherwise this failed).
+//
+// It is now a REPORT, not an assertion. It prints what the untouched defaults
+// actually produce so a human can look at the distribution and decide whether
+// the weights are right — which is the only honest way to tune a scored model.
+// Ties are still reported for the same reason.
+//
+// If the default profile SHOULD always land on single-sig, that is a product
+// decision and belongs in _Decisions with a reason — at which point it comes
+// back here as a real assertion. Do not restore it by quietly reweighting.
 let c1n = 0;
-for (const stakes of ['learning', 'meaningful', 'serious'])
+const c1counts = new Map(), c1ties = [];
+for (const stakes of ['learning', 'meaningful', 'serious', 'lifechanging'])
 for (const tech of TECH) for (const sovereignty of SOV) for (const recovery of RECOVERY) {
   c1n++;
-  const res = recommendV2({ ...baseAnswers, stakes, tech, sovereignty, recovery, scores: defaultsFor(stakes) });
-  const where = `C1 ${stakes}/${tech}/${sovereignty}/${recovery}`;
-  if (res.primary.rungSlug !== 'single-sig' || res.primary.fork) fail(`${where}: primary=${primaryId(res)} (want single-sig)`);
-  if (res.tie) fail(`${where}: tie-flagged at untouched default (${res.tie.a} vs ${res.tie.b}, margin ${res.tie.margin})`);
+  const res = recommendV2({ ...baseAnswers, stakes, tech, sovereignty, recovery, scores: defaultsFor(stakes, sovereignty) });
+  const id = primaryId(res);
+  const k = `${stakes} → ${id}`;
+  c1counts.set(k, (c1counts.get(k) || 0) + 1);
+  if (res.tie) c1ties.push(`${stakes}/${tech}/${sovereignty}`);
 }
-console.log(`  C1 continuity — ${c1n} default-profile combos checked`);
+console.log(`  C1 default-profile REPORT — ${c1n} untouched-default combos (no longer asserted):`);
+for (const [k, v] of [...c1counts].sort()) console.log(`       ${String(v).padStart(3)}x  ${k}`);
+console.log(`       near-ties flagged at defaults: ${c1ties.length}`);
 
 // C2 — motivating case: self-loss 80 + (remote 80 | physical 80) → fork
 // primary (collaborative or multisig); passphrase never primary there.
@@ -201,12 +219,21 @@ for (const concern of CONCERN_KEYS) {
   const strong = SETUP_KEYS.filter((s) => PROTECTION[s].weights[concern] === maxW);
   for (const stakes of STAKES) for (const tech of TECH) for (const sovereignty of SOV) {
     c3n++;
-    const d = defaultsFor(stakes);
+    // MUST pass sovereignty: exposure's default comes from that answer, so
+    // without it d.exposure is undefined and the sweep's middle sample lands on
+    // the sovereignty default (85 for 'pure') — ABOVE the high sample of 80.
+    // The points were out of order and the engine was reported non-monotonic
+    // for it.
+    const d = defaultsFor(stakes, sovereignty);
     const rankPos = (score) => {
       const rows = fitFor({ ...d, [concern]: score }, { stakes, tech, sovereignty });
       return Object.fromEntries(rows.map((r, i) => [r.setup, i]));
     };
-    const lo = rankPos(0), mid = rankPos(d[concern]), hi = rankPos(80);
+    // High sample is 100, not 80. The three points must be ORDERED for a
+    // monotonicity test to mean anything, and `exposure`'s default is 85 for a
+    // 'pure' answer — so the old 80 put the middle sample ABOVE the high one
+    // and reported the engine non-monotonic for the test's own sampling.
+    const lo = rankPos(0), mid = rankPos(d[concern]), hi = rankPos(100);
     for (const s of strong) {
       if (mid[s] > lo[s] || hi[s] > mid[s]) {
         fail(`C3 ${concern} ${stakes}/${tech}/${sovereignty}: ${s} rank ${lo[s]}→${mid[s]}→${hi[s]} as score rises`);
@@ -216,41 +243,46 @@ for (const concern of CONCERN_KEYS) {
 }
 console.log(`  C3 monotonicity — ${c3n} score-sweeps checked`);
 
-// C4 — anti-passphrase honesty. NARROWED 2026-08-01, deliberately.
+// C4 — DISCLOSURE, not prohibition. Rewritten 2026-08-01 with the gates.
 //
-// Was: self-loss at or above 'elevated' hard-gated the passphrase out of both
-// the primary and the step-up. That double-charged the same concern — the
-// protection matrix ALREADY prices forgetting a passphrase (a negative
-// self-loss weight, the only negative in the matrix), and the gate then banned
-// it outright on top. It also over-claimed: a reader is at least as likely to
-// mismanage three keys as to forget one phrase, so an absolute ban at merely
-// 'elevated' asserted a certainty the evidence does not support.
+// It used to forbid the passphrase whenever locking yourself out was elevated.
+// That was a gate wearing a constraint's clothes: it SUPPRESSED a contradictory
+// outcome instead of explaining it, and it could not express "somewhat" — every
+// one of these risks is a matter of degree.
 //
-// Now: the hard gate fires only at 'high'. Between 'elevated' and 'high' the
-// negative weight does the work, so the passphrase can still surface when the
-// rest of a reader's picture genuinely argues for it — but a result that
-// recommends one must STILL carry the computed self-loss holdback naming the
-// silent-lockout risk in words. The honesty requirement never relaxes; only
-// the ban does.
+// The rule now: the engine may recommend anything the scores favour, INCLUDING
+// a setup that is weak on something the reader rates highly — but when it does,
+// the result must carry a caveat naming that weakness in words. A recommendation
+// is the best overall option, which is not the same as being good at
+// everything, and the reader is owed the difference.
+//
+// Concretely: for every concern the reader rates elevated or high, if the
+// recommended setup's weight is materially below the best available, a caveat
+// for THAT concern must be present. And a concern may never appear as both a
+// reason and a caveat in the same result.
 let c4n = 0;
+const CAVEAT_GAP = 1.2;
 for (const selfScore of [52, 65, 80])
 for (const stakes of STAKES) for (const tech of TECH) for (const sovereignty of SOV) {
-  const word = scoreWord(selfScore, 'self-loss', stakes);
+  const word = scoreWord(selfScore, 'self-loss', stakes, sovereignty);
   if (word !== 'elevated' && word !== 'high') continue;
   c4n++;
-  const scores = { ...defaultsFor(stakes), 'self-loss': selfScore };
+  const scores = { ...defaultsFor(stakes, sovereignty), 'self-loss': selfScore };
   const res = recommendV2({ ...baseAnswers, stakes, tech, sovereignty, scores });
   const where = `C4 self=${selfScore} ${stakes}/${tech}/${sovereignty} (${word})`;
-  if (word === 'high') {
-    if (res.primary.rungSlug === 'passphrase') fail(`${where}: passphrase primary at HIGH`);
-    if (res.secondary && res.secondary.rungSlug === 'passphrase') fail(`${where}: passphrase step-up at HIGH`);
+  const chosen = res.fit.find((r) => r.setup === (res.primary.fork ? res.primary.fork.paths[0].rungSlug : res.primary.rungSlug))
+    || res.fit[0];
+  const mine = PROTECTION[chosen.setup].weights['self-loss'];
+  const best = Math.max(...SETUP_KEYS.map((k) => PROTECTION[k].weights['self-loss']));
+  if (best - mine >= CAVEAT_GAP && !res.holdbacks.some((h) => h.concern === 'self-loss')) {
+    fail(`${where}: recommends ${chosen.setup}, weak on self-loss, with NO caveat`);
   }
-  // At every level at or above 'elevated', the reader must be told about the
-  // lockout trade in words — whether we are refusing the passphrase or
-  // recommending it.
-  if (!res.holdbacks.some((h) => h.concern === 'self-loss')) fail(`${where}: no computed self-loss holdback`);
+  const reasonConcerns = new Set((res.reasons || []).map((r) => r.concern));
+  for (const h of res.holdbacks || []) {
+    if (reasonConcerns.has(h.concern)) fail(`${where}: '${h.concern}' is both a reason and a caveat`);
+  }
 }
-console.log(`  C4 anti-passphrase — ${c4n} elevated/high self-loss combos checked (hard gate at HIGH only)`);
+console.log(`  C4 disclosure — ${c4n} elevated/high self-loss combos checked (caveat required, nothing banned)`);
 
 // C5 — near-ties: whenever the top two distinct eligible families sit within
 // TIE_MARGIN, the result must carry the either/or flag naming both — and never
@@ -262,12 +294,12 @@ for (const stakes of STAKES) for (const tech of TECH) for (const sovereignty of 
   const scores = { ...defaultsFor(stakes), 'self-loss': v, remote: w };
   const res = recommendV2({ ...baseAnswers, stakes, tech, sovereignty, scores });
   // Mirror the engine's primary gates (C4 + the learning continuity gate).
-  // Mirrors the engine's widened learning gate: at learning stakes the primary
-  // stays in the SINGLE family — not merely "not the fork". It was `family ===
-  // 'fork'` here and in the engine while the passphrase could never win
-  // anything; once it became reachable that wording let it through, so both
-  // sides moved to "anything outside the simple family" (2026-08-01).
-  const eligible = res.fit.filter((r) => !r.gated && !(stakes === 'learning' && r.family !== 'single'));
+  // There are NO GATES left to mirror. Every setup is eligible; the scores
+  // decide, and the learning-stakes preference for simplicity is expressed as a
+  // negative LADDER_PULL weight instead of a bar. This filter used to encode a
+  // gate that no longer exists, which made it report spurious ties at learning
+  // stakes — the harness modelling an engine that had moved on.
+  const eligible = res.fit.filter((r) => !r.gated);
   const top = eligible[0];
   const rival = eligible.find((r) => r.family !== top.family);
   const shouldTie = rival && top.fit - rival.fit < TIE_MARGIN;

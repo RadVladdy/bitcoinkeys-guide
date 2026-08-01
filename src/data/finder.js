@@ -591,7 +591,12 @@ const PASSPHRASE_SHARE_BY_STAKES = { learning: 1, meaningful: 1, serious: 0.75, 
 // pays a real price for extra keys and extra secrets — they are the least
 // equipped to run them — but if their own answers argue loudly enough for a
 // step up, the model can now say so instead of refusing to.
-const LADDER_PULL = { learning: -0.45, meaningful: 0, serious: 0.15, lifechanging: 0.6 };
+// Deliberately SIGNIFICANT, and proportional to the rung: (rung − 1) × the
+// stakes value, so rung 2 gets one dose and rung 4 gets three. This is the
+// site's own position — more at stake justifies more protection — stated as a
+// weight rather than left to emerge from complexity discounts. It is the term
+// to reach for first when the results look wrong by stakes.
+const LADDER_PULL = { learning: -0.5, meaningful: 0.15, serious: 0.55, lifechanging: 1.2 };
 const TECH_FACTOR = { simple: 0.9, careful: 0.65, technical: 0.4 };
 const STAKES_FACTOR = { learning: 1.3, meaningful: 1.1, serious: 0.8, lifechanging: 0.4 };
 const COMPLEXITY_BASE = 0.9;
@@ -716,6 +721,31 @@ export function shimScores(answers = {}) {
 // ── 7 · Computed reasons — the "because" lines ──────────────────────────────
 // Generated from the primary's largest fit contributions, phrased per concern
 // and per family. {word} interpolates the user's own word for that concern.
+
+// ── CAVEATS — the other half of an honest result ─────────────────────────────
+// A recommendation is the setup that scored best OVERALL. That is not the same
+// as it being good at everything, and where it is weak on something the reader
+// told us they care about, the result has to say so in its own words.
+//
+// This replaces a set of hand-written holdbacks that only knew about the
+// passphrase, and it replaces the hard gates entirely. The gates used to
+// SUPPRESS contradictory outcomes; a caveat DISCLOSES them, which is both more
+// honest and more useful — the reader can weigh it, where a gate just quietly
+// removed an option and told them nothing.
+//
+// Fires when: the chosen setup's weight on a concern is materially worse than
+// the best available, AND the reader rates that concern elevated or high.
+const CAVEAT_TEXT = {
+  custodial: 'Worth knowing: this setup does less about a company failing you than the alternatives, and you rated that {word}.',
+  'self-loss': 'The trade you are making: this is the weakest option here for locking yourself out, and you rated that {word}. It leans on you getting the backup right — and, if it has a passphrase, on remembering something whose failure is silent. Test your recovery before you trust it with real money.',
+  remote: 'The trade you are making: this does less against scams and remote theft than the alternatives, and you rated that {word}. The habits in your checklist — verify on the device screen, trust nobody who contacts you first — are carrying more weight here than the setup is.',
+  physical: 'The trade you are making: this is weaker against someone coming after you specifically than the alternatives, and you rated that {word}. Keys in one place can all be reached in one visit; the low-profile steps in your checklist matter more here.',
+  // Two different weaknesses wear the same concern, so the text is chosen by
+  // which one applies. Handing a company your ID is not the same failing as a
+  // seed that reveals your whole balance, and one sentence cannot cover both.
+  exposure: 'The trade you are making: how much you mind being known to hold Bitcoin is {word}, and a seed someone obtains — or compels you to hand over — reveals everything in this wallet. A passphrase is the one setup that answers that, by opening a decoy instead.',
+  exposureCustodial: 'The trade you are making: how much you mind being known to hold Bitcoin is {word}, and this setup brings a company inside it. Most require ID verification, which ties your name to your holdings, and they can see what this wallet holds.',
+};
 
 const REASON_TEXT = {
   custodial: {
@@ -982,8 +1012,19 @@ export function recommendV2(answers = {}) {
   // ── computed reasons (the profile explains the pick) ──
   const isElevated = (c) => words[c] === 'elevated' || words[c] === 'high';
   const topRow = ranking.find((r) => r.setup === top.setup);
+  // A concern is a REASON only where this setup is genuinely competitive on it.
+  // Without this, single-sig listed "locking yourself out" as a reason it was
+  // chosen AND as a caveat against itself, in the same result — its weight is
+  // positive but it is the worst option on the ladder for that concern. Reasons
+  // and caveats must partition the elevated concerns, never overlap them.
+  const caveated = new Set();
+  for (const c of CONCERN_KEYS) {
+    const mine = PROTECTION[top.setup].weights[c];
+    const best = Math.max(...SETUP_KEYS.map((k) => PROTECTION[k].weights[c]));
+    if (best - mine >= 1.2) caveated.add(c);
+  }
   const named = topRow.contributions
-    .filter((x) => x.weight > 0 && isElevated(x.concern))
+    .filter((x) => x.weight > 0 && isElevated(x.concern) && !caveated.has(x.concern))
     .sort((a, b) => b.points - a.points)
     .slice(0, 3);
   const reasons = named.map((x) => ({
@@ -1007,54 +1048,34 @@ export function recommendV2(answers = {}) {
     reasons.push({ concern: 'custodial', setup: primary.rungSlug, text: CUSTODY_TRADE });
   }
 
-  // ── computed holdbacks (anti-add-on honesty, per the user's own scores) ──
+  // ── computed CAVEATS (the honest half of the result) ──────────────────────
+  // Derived entirely from the scores, per concern. For each thing the reader
+  // rated elevated or high, compare the chosen setup's weight against the best
+  // weight available anywhere on the ladder — and if it is materially worse,
+  // say so plainly. Nothing is hidden and nothing is refused; the reader is
+  // told what they are trading and left to decide.
+  //
+  // This is the replacement for both the hand-written passphrase holdbacks and
+  // the hard gates. A gate would have removed this recommendation and explained
+  // nothing; a caveat hands the reader the same information and lets them use it.
+  const CAVEAT_GAP = 1.2;   // how much worse than the best before it is worth saying
   const holdbacks = [];
-  if (isElevated('self-loss')) {
-    if (family === 'single') holdbacks.push(passphraseHoldback(words['self-loss']));
-    if (isMultiKey(family)) {
-      holdbacks.push({
-        concern: 'self-loss',
-        text: `We stopped at 2-of-3 — no passphrase on top, no fourth or fifth key. Every extra secret and every extra key is another way to lock yourself out, and locking yourself out is already your ${words['self-loss']} concern. Two-of-three removes the single point of failure; going further would put one back.`,
-      });
-    }
-  } else if (family === 'single' && isElevated('remote')) {
-    holdbacks.push({
-      concern: 'remote',
-      text: 'We deliberately did NOT add a passphrase. It defends a found seed, not a fooled owner — the scams your assessment flags are answered by verifying on the device’s own screen and trusting no one who contacts you first, and those live in the checklist, not in extra secrets.',
-    });
-  } else if (family === 'single') {
-    holdbacks.push({
-      concern: 'self-loss',
-      text: 'We deliberately did NOT add a passphrase or a second key. Nothing in your assessment calls for them — the thing that protects you at this level is a backup you have actually tested, and every extra moving part is one more thing to lose.',
-    });
-  } else if (family === 'passphrase') {
-    // The passphrase card MUST carry its own cost in the reader's face. The
-    // legacy card had this warning; recommendV2 overwrites primary.holdback
-    // from this computed list, so without a branch here the one setup with a
-    // documented silent-failure mode would ship the ONLY holdback-free result
-    // on the site. It is recommended here precisely because self-loss scored
-    // low — which is a statement about them today, not a guarantee.
-    holdbacks.push({
-      concern: 'self-loss',
-      text: 'The honest cost of this one: a passphrase is a brand-new way to lose everything. Forget it and the seed alone will not save you — there is no error message, just an empty wallet. We are recommending it because locking yourself out scored low for you, so this is the trade you can afford. It only stays true if you back the passphrase up as carefully as the seed itself, and somewhere separate from it.',
-    });
-  } else if (isMultiKey(family) && isElevated('self-loss')) {
-    holdbacks.push({
-      concern: 'self-loss',
-      text: `We stopped where we did — no passphrase on top, no extra keys beyond this. Every additional secret and every additional key is one more way to lock yourself out, and locking yourself out is already your ${words['self-loss']} concern. More keys spread the risk; more secrets concentrate it.`,
-    });
-  } else if (isMultiKey(family) && isElevated('physical')) {
-    // THE SILENT CASE. When self-loss is NOT elevated, none of the branches
-    // above fire — so a reader whose physical risk pushed them to multisig was
-    // shown three devices with NO explanation of why the simpler one-device
-    // answer (a passphrase, which their own ladder teaches as the duress rung)
-    // was not it. Every other path explains its holdback; this one just went
-    // quiet. Silence reads as "nobody considered it."
-    holdbacks.push({
-      concern: 'physical',
-      text: `We did consider a passphrase — it is the simpler answer to ${words.physical} physical risk, and a hidden wallet is a real defence. We went with separate keys instead because a passphrase still leaves one device holding everything, and it only protects you for as long as you can keep defending a secret in person. Keys in different places do not depend on that.`,
-    });
+  for (const c of CONCERN_KEYS) {
+    if (!isElevated(c)) continue;
+    const mine = PROTECTION[top.setup].weights[c];
+    const best = Math.max(...SETUP_KEYS.map((k) => PROTECTION[k].weights[c]));
+    if (best - mine < CAVEAT_GAP) continue;
+    const key = (c === 'exposure' && PROTECTION[top.setup].weights.exposure < 0)
+      ? 'exposureCustodial' : c;
+    const text = (CAVEAT_TEXT[key] || '').replace('{word}', words[c]);
+    if (text) holdbacks.push({ concern: c, text });
   }
+  // Worst gap first — if a result carries several caveats, the reader should
+  // meet the biggest trade before the smaller ones.
+  holdbacks.sort((a, b) => {
+    const gap = (x) => Math.max(...SETUP_KEYS.map((k) => PROTECTION[k].weights[x.concern])) - PROTECTION[top.setup].weights[x.concern];
+    return gap(b) - gap(a);
+  });
 
   // The primary card renders one holdback string (legacy shape); the full
   // structured list rides alongside for the Phase C result page. Fork cards
