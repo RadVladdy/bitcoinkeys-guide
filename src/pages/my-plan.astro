@@ -49,7 +49,6 @@ import WhereAmI from '../components/WhereAmI.astro';
     encryptPlanToEnvelope, decryptEnvelope, downloadEncryptedPlan, isEncryptedEnvelope,
   } from '../data/plan.js';
   import { getRung, rungAnchor } from '../data/ladder.js';
-  import { CONCERNS, defaultsFor, scoreWord, scoreFromPrompts, shimScores } from '../data/finder.js';
   import { keysForSetup, assessDevices, ownedName, deviceBySlug } from '../data/wallets.js';
   import { custodianName, custodianBySlug } from '../data/custodians.js';
   import { mountOwnedPicker } from '../data/owned-picker.js';
@@ -395,55 +394,15 @@ import WhereAmI from '../components/WhereAmI.astro';
       </div>`;
   }
 
-  // ── The risk-picture strip — the profile the recommendation came from ──────
-  // Rendered only when the saved answers carry an assessment: explicit scores
-  // (2026-07-31+ saves; the review screen's word, hand adjustments and all),
-  // checked prompts (derived exactly as the finder derives them), or a legacy
-  // ranked worries[] shimmed into an ESTIMATED picture and labelled as one —
-  // the same three-way read /find-your-setup and /checklist use. No assessment
-  // in the plan → the strip doesn't exist. Words only, never numbers.
-  function riskProfile(plan) {
-    const a = plan && plan.quiz && plan.quiz.answers;
-    if (!a || typeof a !== 'object') return null;
-    const stakes = a.stakes || 'meaningful';
-    let scores = null;
-    let estimated = false;
-    if (a.scores && typeof a.scores === 'object') scores = a.scores;
-    else if (Array.isArray(a.checkedPrompts)) {
-      scores = scoreFromPrompts(a.checkedPrompts, stakes, Array.isArray(a.skippedSections) ? a.skippedSections : []);
-    } else if (Array.isArray(a.worry) && a.worry.length) {
-      scores = shimScores(a);
-      estimated = true;
-    }
-    if (!scores) return null;
-    return { scores, stakes, estimated, defaults: defaultsFor(stakes) };
-  }
-  const barW = (n) => Math.max(n, 1.5); // tiny floor so "low" still draws
-  function riskStripHtml(plan) {
-    const rp = riskProfile(plan);
-    if (!rp) return '';
-    const rows = CONCERNS.map((c) => {
-      const s = typeof rp.scores[c.key] === 'number' ? rp.scores[c.key] : rp.defaults[c.key];
-      const w = scoreWord(s, c.key, rp.stakes);
-      return `<div class="pr-row">
-        <span class="pr-label">${esc(c.label)}</span>
-        <span class="pr-word w-${w}">${w}</span>
-        <div class="pr-bar" aria-hidden="true">
-          <span class="pr-ghost" style="width:${barW(rp.defaults[c.key])}%"></span>
-          <span class="pr-fill w-${w}" style="width:${barW(s)}%"></span>
-        </div>
-      </div>`;
-    }).join('');
-    const note = rp.estimated
-      ? `<p class="pr-note">Estimated from your earlier answers — the finder now walks these one risk at a time.</p>`
-      : '';
-    return `<div class="pr-strip">
-      <span class="p-k mono">Your risk picture — you against the typical holder</span>
-      ${rows}
-      ${note}
-      <a class="pr-link" href="/find-your-setup">Re-walk your risks →</a>
-    </div>`;
-  }
+  // THE RISK-PICTURE STRIP LIVED HERE AND IS GONE. The profile belongs to
+  // /find-your-setup, where it is walked, reviewed and adjustable — and where
+  // changing it changes the recommendation. Repeated here it was four read-only
+  // bars that could not be acted on, in the middle of the one card whose entire
+  // job is what to DO next. Do not re-add it: a read-only copy of an adjustable
+  // thing is the weakest form of both.
+  //
+  // The whole risk-assessment import list went with it; nothing else on this page
+  // reads a concern score.
 
   // The saved-plan card now leads with the roadmap (the setup + its wallet slots) and
   // the status card carries the ladder position — so rowsHtml is just the checklist.
@@ -451,8 +410,19 @@ import WhereAmI from '../components/WhereAmI.astro';
     const rows = [];
     const rung = (plan.quiz && plan.quiz.rung) || (plan.ladder && plan.ladder.rung) || null;
     const recovery = (plan.quiz && plan.quiz.answers && plan.quiz.answers.recovery) || null;
+    // The SAME ctx shape /checklist builds, devices and all. It used to omit them,
+    // so itemApplies() here could not see that the device step is already answered
+    // for someone who owns clearing hardware — and this page promised one more step
+    // than /checklist went on to show. A count and the list it counts must come out
+    // of one function.
     const ctx = rung && rung !== 'pre'
-      ? { rung, heirs: recovery === 'partner' || recovery === 'heirs', custodian: Boolean(plan.custodian) || rung === 'collaborative' }
+      ? {
+          rung,
+          heirs: recovery === 'partner' || recovery === 'heirs',
+          custodian: Boolean(plan.custodian) || rung === 'collaborative',
+          devices: (plan.quiz && Array.isArray(plan.quiz.plannedDevices)) ? plan.quiz.plannedDevices : [],
+          owned: Array.isArray(plan.owned) ? plan.owned : [],
+        }
       : null;
     // The done/total pair must be ONE list, the same list /checklist shows.
     // /checklist personalizes only when the quiz-chosen plan is COMPLETE; an
@@ -476,7 +446,7 @@ import WhereAmI from '../components/WhereAmI.astro';
       rows.push([
         `Checklist progress`,
         `<span class="p-count">${done} of ${total} done</span>${items ? `<ul class="p-mini">${items}</ul>` : ''}`,
-        '/checklist', 'Open the checklist',
+        '/checklist', 'Pick up the checklist',
       ]);
     } else if (ctx && planIncomplete()) {
       // THE PLAN ISN'T FINISHED, so the next step is finishing it — not a checklist.
@@ -499,11 +469,22 @@ import WhereAmI from '../components/WhereAmI.astro';
       ]);
     }
     if (!rows.length) return '';
+    // THIS ROW IS THE PAGE'S ONE FORWARD ACTION and must look like it. Every branch
+    // above resolves to exactly one row — finish the plan, or go and execute it. As
+    // a plain text link it carried the same weight as "Import a plan" and sat two
+    // blocks above the only filled button on the card, so the page's obvious click
+    // was a backup rather than the next step. It is a band with a real button now,
+    // and #p-download is a ghost so nothing outranks it.
+    //
+    // ONE COMPUTATION, not two: the band is this row restyled, not a second copy
+    // near the actions. A parallel "start the checklist" button down there would be
+    // a second answer to "is this plan finished?" — the exact shape that put "your
+    // checklist is ready" above an empty wallet slot.
     return `<div class="p-rows">${rows.map(([k, v, href, cta]) => `
-      <div class="p-row">
+      <div class="p-row next">
         <span class="p-k mono">${k}</span>
         <div class="p-v">${v}</div>
-        <a class="p-cta" href="${href}">${cta} →</a>
+        <a class="p-cta p-cta-go" href="${href}">${cta} →</a>
       </div>`).join('')}</div>`;
   }
 
@@ -516,6 +497,10 @@ import WhereAmI from '../components/WhereAmI.astro';
     setTimeout(() => { t.classList.remove('show'); setTimeout(() => t.remove(), 300); }, 2600);
   }
 
+  // #p-download is a GHOST, not the primary. Keeping a copy is a good idea, not the
+  // next move — and as the only filled button on the card it was reading as the
+  // thing to do. The one primary lives on the next-step band above it, and the
+  // action row gained a label of its own so it still reads as a group.
   function render() {
     const plan = loadLocal();
     const has = hasLocal() && plan && planHasContent(plan);
@@ -546,7 +531,6 @@ import WhereAmI from '../components/WhereAmI.astro';
           ${plan.updated ? `<span class="p-updated mono">Saved ${esc(fmtDate(plan.updated))}</span>` : ''}
         </div>
         <div id="ps-road-mount">${roadmapHtml(plan)}</div>
-        ${riskStripHtml(plan)}
         <div id="ps-rows-mount">${rowsHtml(plan)}</div>
 
         <div class="p-notes">
@@ -554,8 +538,9 @@ import WhereAmI from '../components/WhereAmI.astro';
           <textarea id="p-notes-in" rows="2" placeholder="Anything you want to remember — never your seed words.">${esc(plan.notes || '')}</textarea>
         </div>
 
+        <span class="p-actions-k mono">Keep a copy of your plan</span>
         <div class="p-actions">
-          <button class="btn-primary" id="p-download">↓ Download my plan <span class="p-btn-note">(encryption optional)</span></button>
+          <button class="btn-ghost" id="p-download">↓ Download my plan <span class="p-btn-note">(encryption optional)</span></button>
           <button class="btn-ghost" id="p-nostr">☁ Save to Nostr (encrypted) — connect below</button>
           <label class="btn-ghost file-btn">Import a plan<input type="file" id="p-import" accept="application/json,.json" hidden /></label>
           <button class="btn-ghost" id="p-clear">Clear my plan</button>
@@ -718,8 +703,15 @@ import WhereAmI from '../components/WhereAmI.astro';
           });
           if (!ok) return;
         }
+        // This plan ARRIVED here — from another day or another device. That is what
+        // makes its owner a returning reader, and it is what unhides the "has your
+        // situation changed?" re-check below. Set after normalize(), never read from
+        // the file: whether an import happened is a fact about this browser, not a
+        // claim the file gets to make.
+        plan.restored = true;
         if (!saveLocal(plan)) { toast('Couldn’t save — your browser is blocking storage', 'err'); return; }
         toast('Plan imported', 'ok');
+        window.dispatchEvent(new CustomEvent('bkeys-plan-restored'));
         render();
         document.getElementById('plan').scrollIntoView({ behavior: 'smooth', block: 'start' });
       };
@@ -898,8 +890,10 @@ import WhereAmI from '../components/WhereAmI.astro';
           });
           if (!ok) { nzStatus('Restore cancelled — the plan in this browser is unchanged.'); return; }
         }
+        plan.restored = true; // same as import — this plan arrived, it wasn't built here
         if (!saveLocal(plan)) { nzStatus('Couldn’t save — your browser is blocking storage.', true); return; }
         nzStatus('✓ Restored from Nostr into this browser.');
+        window.dispatchEvent(new CustomEvent('bkeys-plan-restored'));
         render();
         document.getElementById('plan').scrollIntoView({ behavior: 'smooth', block: 'start' });
       } catch (e) { nzStatus(e && e.message ? e.message : 'Restore failed.', true); }
@@ -1033,7 +1027,16 @@ import WhereAmI from '../components/WhereAmI.astro';
     #plan .ps-slot .ps-slot-n { flex: 0 0 100%; }
     #plan .ps-slot .ps-slot-dev { flex: 1 1 auto; min-width: 0; }
   }
-  #plan .ps-slot.empty { border-style: dashed; }
+  /* AN UNFILLED SLOT MUST LOOK UNFINISHED. This is the one page whose job is showing
+     what is still missing, and an empty slot was the quietest row on it — a dashed
+     grey border against filled rows carrying a device name, a green verdict chip and
+     a tag, so the eye went everywhere but the hole. Dashed says "not yet"; the rim
+     says "here". Covers the collaborative service-key slot too, which is the same
+     kind of gap. The red is the rim only, never the .ps-verdict pill idiom: that red
+     means "this device fails our standard", and an empty slot has no device to fail. */
+  #plan .ps-slot.empty { border-style: dashed; border-color: var(--danger); background: var(--danger-dim); }
+  #plan .ps-slot.empty .ps-slot-n { color: var(--danger); }
+  #plan .ps-slot.empty .ps-slot-dev { color: var(--text); }
   #plan .ps-slot-n { color: var(--faint); font-size: 0.7rem; letter-spacing: 0.05em; text-transform: uppercase; flex: 0 0 auto; }
   #plan .ps-slot-dev { color: var(--text); font-size: 0.94rem; font-weight: 600; }
   #plan .ps-slot-tag { font-size: 0.66rem; letter-spacing: 0.06em; text-transform: uppercase; border-radius: 999px; padding: 0.1rem 0.5rem; }
@@ -1088,34 +1091,29 @@ import WhereAmI from '../components/WhereAmI.astro';
   #plan .p-cta { justify-self: start; color: var(--accent); text-decoration: none; font-size: 0.85rem; }
   #plan .p-cta:hover { text-decoration: underline; }
 
-  /* the risk-picture strip — the finder's words-and-bars idiom, plan-sized */
-  #plan .pr-strip { border-top: 1px solid var(--line-soft); margin-top: 1.1rem; padding-top: 1.1rem; }
-  #plan .pr-strip .p-k { margin-bottom: 0.5rem; }
-  #plan .pr-row { display: grid; grid-template-columns: 1fr auto; gap: 0.25rem 0.6rem; align-items: center; padding: 0.35rem 0; }
-  #plan .pr-label { color: var(--text); font-size: 0.9rem; font-weight: 600; line-height: 1.3; }
-  #plan .pr-bar { grid-column: 1 / -1; position: relative; height: 10px; border-radius: 999px; background: var(--line-soft); overflow: hidden; }
-  #plan .pr-ghost { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; background: var(--faint); opacity: 0.3; }
-  #plan .pr-fill { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; }
-  #plan .pr-fill.w-low { background: var(--safe); }
-  #plan .pr-fill.w-typical { background: var(--accent); }
-  #plan .pr-fill.w-elevated { background: var(--warn); }
-  #plan .pr-fill.w-high { background: var(--danger); }
-  #plan .pr-word { font-family: var(--mono); text-transform: uppercase; font-size: 0.68rem; letter-spacing: 0.08em; font-weight: 600;
-    padding: 0.14rem 0.55rem; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
-  #plan .pr-word.w-low { color: var(--safe); }
-  #plan .pr-word.w-typical { color: var(--muted); }
-  #plan .pr-word.w-elevated { color: var(--warn); }
-  #plan .pr-word.w-high { color: var(--danger); }
-  #plan .pr-note { color: var(--muted); font-size: 0.85rem; margin: 0.45rem 0 0; }
-  #plan .pr-link { display: inline-block; margin-top: 0.55rem; color: var(--accent); text-decoration: none; font-size: 0.85rem; }
-  #plan .pr-link:hover { text-decoration: underline; }
+  /* THE NEXT-STEP BAND — the page's one forward action, and the only primary on
+     the card. Every branch of rowsHtml() resolves to exactly one row, so this is
+     never a row of buttons competing with each other. */
+  #plan .p-row.next { border-top: none; margin-top: 1.1rem; padding: 1.1rem 1.2rem;
+    border: 1px solid var(--accent); border-radius: var(--radius); background: var(--accent-soft); }
+  #plan .p-row.next .p-k { color: var(--accent); }
+  #plan .p-cta-go { justify-self: start; margin-top: 0.75rem; padding: 0.62rem 1.15rem; border-radius: 0.55rem;
+    background: var(--accent); color: var(--accent-ink); font-size: 0.94rem; font-weight: 600; }
+  #plan .p-cta-go:hover { background: color-mix(in srgb, var(--accent) 88%, #fff); text-decoration: none; }
+
+  /* The .pr-* risk-picture palette went with the strip itself. The finder owns that
+     idiom; this page no longer draws it. */
 
   #plan .p-notes { border-top: 1px solid var(--line-soft); padding-top: 1.1rem; margin-top: 1.1rem; }
   #plan .p-notes textarea { width: 100%; margin-top: 0.4rem; font-family: var(--sans); font-size: 0.95rem; color: var(--text);
     background: var(--raise); border: 1px solid var(--line); border-radius: 0.55rem; padding: 0.7rem 0.9rem; resize: vertical; }
   #plan .p-notes textarea:focus { outline: none; border-color: var(--accent); }
 
-  #plan .p-actions { display: flex; flex-wrap: wrap; gap: 0.7rem; align-items: center; margin: 1.4rem 0 0; }
+  /* The action row's own label — added when the download button stepped down from
+     primary, so the group still reads as one thing rather than five loose buttons. */
+  #plan .p-actions-k { display: block; color: var(--faint); font-size: 0.72rem; letter-spacing: 0.1em;
+    text-transform: uppercase; margin: 1.5rem 0 0; }
+  #plan .p-actions { display: flex; flex-wrap: wrap; gap: 0.7rem; align-items: center; margin: 0.6rem 0 0; }
   #plan .btn-primary { background: var(--accent); color: var(--accent-ink); font-weight: 600; font-size: 0.92rem; text-decoration: none;
     padding: 0.65rem 1.1rem; border-radius: 0.55rem; display: inline-block; border: none; cursor: pointer; font-family: var(--sans); }
   #plan .btn-primary:hover { opacity: 0.9; }

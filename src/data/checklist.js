@@ -28,6 +28,7 @@
 // three habits it named moved to other lessons and already have their own items here.
 
 import { ruleByKey } from './rules.js';
+import { assessDevices } from './wallets.js';
 
 export const PHASES = [
   { key: 'setup',  tag: 'Step 1',    title: 'Get set up',        intro: 'The moves that get your Bitcoin out of someone else’s hands and into your own.' },
@@ -187,9 +188,33 @@ export const checklistGroups = PHASES.map((p) => ({
 }));
 
 /**
+ * Is the "get a hardware wallet" step already answered? True when the plan's
+ * chosen devices — or, before any are chosen, the ones they own — include at
+ * least one that clears the cold-storage bar. Owning a device we'd trust means
+ * the step is done, not pending; telling that reader to go and buy one is
+ * selling them hardware they already have.
+ *
+ * Lives HERE, not on the page, because two surfaces ask it. /checklist hid the
+ * step and /my-plan counted it, so a reader who owned a clearing device was
+ * told "your checklist is ready — 23 steps" and then handed 22. The count and
+ * the list have to come out of one function or they will disagree eventually,
+ * and this one had.
+ */
+export function deviceSlotSettled(ctx) {
+  if (!ctx) return false;
+  const planned = (Array.isArray(ctx.devices) ? ctx.devices : []).filter(Boolean);
+  const owned = (Array.isArray(ctx.owned) ? ctx.owned : []).filter(Boolean);
+  const slugs = planned.length ? planned : owned;
+  if (!slugs.length) return false;
+  return assessDevices(slugs).some((d) => d.verdict === 'cold');
+}
+
+/**
  * Does this item apply to a given plan? Pure, so both the page and any future
  * surface (a printable PDF, /my-plan) can ask the same question.
- *   ctx = { rung, heirs, custodian }
+ *   ctx = { rung, heirs, custodian, devices, owned }
+ * `devices`/`owned` are optional — omit them and the device step simply stays
+ * in, which is the honest answer when the caller doesn't know what you hold.
  */
 export function itemApplies(item, ctx) {
   if (!ctx || !ctx.rung) return true;              // no plan → the full generic list
@@ -197,6 +222,7 @@ export function itemApplies(item, ctx) {
   if (item.only && !item.only.includes(ctx.rung)) return false;
   if (item.needs === 'heirs' && !ctx.heirs) return false;
   if (item.needs === 'custodian' && !ctx.custodian) return false;
+  if (item.deviceSlot && deviceSlotSettled(ctx)) return false;
   return true;
 }
 

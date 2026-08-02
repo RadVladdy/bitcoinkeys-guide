@@ -32,6 +32,15 @@ export function emptyPlan() {
     custodian: null, // chosen collaborative-custody service slug (collaborative plans only)
     checklist: {}, // { [itemId]: true }
     notes: '',
+    // Did this plan ARRIVE in this browser, rather than being built in it? Set by a
+    // file import or a Nostr restore, never by the finder.
+    //
+    // LAYER: the TOP one, beside `owned` — a fact about how this browser got its
+    // plan, not about the plan selection. It therefore survives
+    // clearPlanSelection() (clearing your setup does not make you a first-time
+    // reader) and dies only with clearLocal(). Every new plan field has to be
+    // assigned a layer or the next clear silently does the wrong thing to it.
+    restored: false,
   };
 }
 
@@ -114,6 +123,7 @@ export function normalize(obj) {
     custodian: typeof obj.custodian === 'string' ? obj.custodian : null,
     checklist,
     notes: typeof obj.notes === 'string' ? obj.notes.slice(0, 2000) : '',
+    restored: obj.restored === true,
   };
 }
 
@@ -340,6 +350,24 @@ export function retireOwned(slug) {
   cur.owned = (cur.owned || []).filter((s) => s !== slug);
   if (cur.quiz) cur.quiz.plannedDevices = strList(cur.quiz.plannedDevices).filter((s) => s !== slug);
   return saveLocal(cur);
+}
+
+/**
+ * Is this a RETURNING reader — someone whose plan came from a file import or a
+ * Nostr restore, rather than someone who just built one here?
+ *
+ * The re-check tool on /my-plan ("Has your situation changed?") asks a question
+ * that only makes sense across a gap of time. Nothing has changed five minutes
+ * after the finder, and asking implies it might have — so the tool is shown to
+ * a reader whose plan arrived from somewhere else, and to nobody else.
+ *
+ * Deliberately NOT inferred from `updated`: that timestamp moves on every
+ * auto-save (a checklist tick, adding a wallet), so an age test would answer
+ * "when did you last touch this" rather than "did you build this here".
+ */
+export function planWasRestored() {
+  const p = loadLocal();
+  return Boolean(p && p.restored);
 }
 
 /** The rung slug of the currently-planned setup, or null. */

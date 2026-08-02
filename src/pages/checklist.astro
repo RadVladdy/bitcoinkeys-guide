@@ -268,10 +268,16 @@ const total = checklistCount;
     // layer agree on who sees what.
     items.forEach((li) => {
       const only = li.getAttribute('data-only');
+      // EVERY FIELD itemApplies() READS HAS TO BE HERE. This shape is rebuilt from
+      // DOM attributes, so a new field in the data layer is invisible to it until
+      // it is added in two places — the attribute on the <li> and this line. Miss
+      // one and the page silently stops applying that rule while /my-plan, which
+      // reads the real items, still does.
       const item = {
         only: only ? only.split(' ') : undefined,
         needs: li.getAttribute('data-needs') || undefined,
         done: li.getAttribute('data-done') === 'true',
+        deviceSlot: li.getAttribute('data-device-slot') === 'true',
       };
       const applies = itemApplies(item, ctx);
       li.hidden = !applies;
@@ -324,9 +330,9 @@ const total = checklistCount;
       const span = deviceStep.querySelector('.ct-dev');
 
       if (clearing.length) {
-        // Already handled — you have a device we'd trust. Don't sell them another.
-        deviceStep.hidden = true;
-        delete checked[deviceStep.getAttribute('data-id')];
+        // Already handled — you have a device we'd trust. itemApplies() has hidden
+        // it in the loop above (deviceSlotSettled), which is also what makes
+        // /my-plan's step count agree with this list. Nothing to do here.
       } else if (flagged.length || unrated.length) {
         const d = flagged[0] || unrated[0];
         // NOT "get a real hardware wallet". They chose this; say why we'd revisit it.
