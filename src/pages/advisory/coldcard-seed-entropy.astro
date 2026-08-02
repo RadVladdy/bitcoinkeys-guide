@@ -57,6 +57,16 @@ const fmt = (iso) => new Date(iso + 'T12:00:00Z').toLocaleDateString('en-US', { 
       {a.whatToDo.map((step) => <li>{step}</li>)}
     </ol>
 
+    <div class="callout">
+      <span class="label">If you are generating a fresh seed this week</span>
+      <p style="margin:0">
+        Dice are why some people were never in scope, and the migration is the one moment the extra hour costs
+        you nothing you were not already spending. <a href="/roll-your-own-seed">Roll your own seed with dice</a>
+        walks the procedure, with the current menu path for each device we rate — and, as everywhere on this
+        site, it never asks what you rolled.
+      </p>
+    </div>
+
     <h2>The fixed firmware</h2>
     <ul class="adv-fw">
       {a.fixedFirmware.map((f) => <li><strong>{f.model}</strong> — {f.version}</li>)}
@@ -68,6 +78,28 @@ const fmt = (iso) => new Date(iso + 'T12:00:00Z').toLocaleDateString('en-US', { 
 
     <h2>Where we stand</h2>
     <p>{a.ourTake}</p>
+
+    {a.ratingReview && (
+      <div class="adv-review">
+        <h2 id="rating-review">The rating review we promised</h2>
+        <p class="adv-detail">Published {a.ratingReview.published} — the conclusion, not a quiet edit.</p>
+        <p><strong>{a.ratingReview.verdict}</strong></p>
+        <p>{a.ratingReview.intro}</p>
+        <ul class="adv-gates">
+          {a.ratingReview.gates.map((g) => (
+            <li>
+              <span class="adv-gate-k">{g.holds ? 'Holds' : 'Fails'}</span>
+              <strong>{g.gate}</strong>
+              <span class="adv-gate-n">{g.note}</span>
+            </li>
+          ))}
+        </ul>
+        <p>{a.ratingReview.reckoning}</p>
+        <p>{a.ratingReview.whyNoNewGate}</p>
+        <p>{a.ratingReview.instead}</p>
+        <p><a href={a.ratingReview.insteadHref}>{a.ratingReview.insteadLabel} →</a></p>
+      </div>
+    )}
 
     <div class="adv-box">
       <p class="adv-k mono">The lesson worth keeping</p>
@@ -104,4 +136,9 @@ const fmt = (iso) => new Date(iso + 'T12:00:00Z').toLocaleDateString('en-US', { 
   .adv-steps li { margin-bottom: .7rem; }
   .adv-fw { list-style: none; padding-left: 0; }
   .adv-fw li { margin-bottom: .4rem; }
+  .adv-review { border-top: 1px solid var(--line); margin-top: 2rem; padding-top: .4rem; }
+  .adv-gates { list-style: none; padding-left: 0; margin: 1.2rem 0; }
+  .adv-gates li { border-left: 3px solid var(--safe); padding: .2rem 0 .2rem 1rem; margin: 1rem 0; }
+  .adv-gate-k { display: block; font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; color: var(--safe); margin-bottom: .15rem; }
+  .adv-gate-n { display: block; color: var(--muted); margin-top: .25rem; }
 </style>

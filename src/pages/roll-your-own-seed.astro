@@ -1,0 +1,221 @@
+---
+// THE TOOL PAGE. One option at a time: pick a tab and the page becomes only
+// that procedure. Everything conceptual — why, what your device allows, how it
+// goes wrong — lives on /generate-your-seed, and is not repeated here.
+//
+// NO TABS FOR OPTION 4. "Let the device do it" is a sentence, not a procedure.
+//
+// NOTHING IS TYPED, NOTHING IS STORED. There is no input on this page and
+// there is not going to be one: the sequence of numbers a reader rolls IS
+// their seed in another alphabet. The tabs only show and hide server-rendered
+// panels — no state, no storage, no network.
+//
+// The roll tally that used to live here was removed: on the device options the
+// device shows its own running count and hash, and on option 1 the unit is
+// words, not throws. It answered a question nobody in either procedure asks.
+import Base from '../layouts/Base.astro';
+import RuleRef from '../components/RuleRef.astro';
+import {
+  diceVerified, methods, deviceProcedures, walkSteps,
+  ratedDevicesForMethod, DICE_METHOD_KEYS,
+} from '../data/dice.js';
+import { seedCosts, tableRowCount, DICE_PER_WORD } from '../data/dice-table.js';
+
+// Option 4 has no procedure, so the tabs are exactly the doing options.
+const tabs = methods.filter((m) => DICE_METHOD_KEYS.includes(m.key));
+const procsFor = (key) => deviceProcedures.filter((p) => (p.options || []).includes(key));
+const trim = (n) => n.replace(' (BTC-only)', '').replace('Blockstream ', '').replace('Foundation ', '');
+const devicesFor = (key) => ratedDevicesForMethod(key).map((d) => trim(d.name));
+const longCost = seedCosts.find((c) => c.words === 24);
+const shortCost = seedCosts.find((c) => c.words === 12);
+---
+<Base
+  title="Roll your own seed — the procedures · BitcoinKeys.guide"
+  description="Step-by-step procedures for putting your own randomness into a Bitcoin seed, on the hardware you own. Pick your method; the page shows only that one."
+  verified={diceVerified}
+>
+  <section class="prose">
+    <p class="eyebrow">Hardware &amp; services · procedures</p>
+    <h1>Roll your own seed</h1>
+    <p class="lead">
+      Pick a method and this page becomes only that method. If you have not decided yet, or you are not sure
+      what your device allows, start at <a href="/learn/generate-your-seed">where your seed's randomness comes from</a>.
+    </p>
+
+    <div class="callout danger" role="note">
+      <span class="label">🛑 This page will never ask what you rolled</span>
+      <p style="margin-bottom:0">
+        There is no box to type your throws into, and there is not going to be one. <strong>The list of numbers
+        you roll IS your seed</strong>, written in a different alphabet — anyone who has it has your coins.
+        <RuleRef key="never-digital" /> says key material never touches anything digital, and we are not making
+        an exception for our own page. Every real digit goes into your hardware wallet and nowhere else.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <div class="tabs" role="tablist" aria-label="Choose a method" id="opt-tabs">
+      {tabs.map((m, i) => (
+        <button
+          type="button" role="tab" class="tab" data-opt={m.key}
+          id={`tab-${m.key}`} aria-controls={`panel-${m.key}`}
+          aria-selected={i === 0 ? 'true' : 'false'}
+        >
+          <span class="tab-n">Option {m.n}</span>
+          <span class="tab-l">{m.label}</span>
+          {/* The CHOOSING line and the device list, both on the tab. Before this
+              the tabs carried a number and a label, so picking between three
+              procedures meant opening each one and reading a panel — and the
+              single most decisive fact, whether your own hardware can do it at
+              all, was buried inside. Both come from dice.js, so a tab can never
+              claim a device the procedure does not cover. */}
+          <span class="tab-p">{m.pick}</span>
+          <span class="tab-d">
+            <span class="tab-dk">Devices</span>
+            {devicesFor(m.key).length ? devicesFor(m.key).join(' · ') : 'None of the ones we rate.'}
+          </span>
+        </button>
+      ))}
+    </div>
+
+    {tabs.map((m, i) => (
+      <div
+        class="panel" role="tabpanel" data-panel={m.key}
+        id={`panel-${m.key}`} aria-labelledby={`tab-${m.key}`}
+        hidden={i !== 0}
+      >
+        <div class="prose">
+          <h2>{m.label}</h2>
+          <p class="p-tag">{m.tagline}</p>
+          <p>{m.how}</p>
+          <p class="p-meta">
+            <span class="p-k">Devices we rate that can do this</span>
+            {devicesFor(m.key).length ? devicesFor(m.key).join(' · ') : 'None of them.'}
+          </p>
+          <p class="p-meta">
+            <span class="p-k">What it costs you</span>
+            {m.key === 'sovereign'
+              ? `About ${longCost.throws} throws and ${longCost.flips} coin flips for 24 words (${shortCost.throws} and ${shortCost.flips} for 12), each read off a printed table by hand. Set aside an evening.`
+              : m.key === 'dice-only'
+                ? 'Ninety-nine throws for 24 words, entered straight into the device. No table, no transcription.'
+                : 'As many throws as you feel like. There is no minimum, and more is simply better.'}
+          </p>
+
+          {m.key === 'sovereign' && (
+            <div class="callout" role="note">
+              <span class="label">Print the table first</span>
+              <p style="margin:0">
+                All {tableRowCount.toLocaleString()} words, reachable from {DICE_PER_WORD} throws and a coin
+                flip. Print it or open it on a second screen before you start —
+                <a href="/dice-word-table"> the dice → word table</a>, or
+                <a href="/dice-word-table.pdf" download> download the PDF</a>. It contains no secret: it is the
+                standard wordlist in a fixed order, and anyone can regenerate it.
+              </p>
+            </div>
+          )}
+
+          <h3>The steps</h3>
+          <ol class="wsteps">
+            {walkSteps.map((s) => (<li><strong>{s.t}.</strong> {s.d}</li>))}
+          </ol>
+
+          <h3>On your device</h3>
+          {procsFor(m.key).map((p) => (
+            <div class={`dev${p.partial ? ' is-partial' : ''}`}>
+              <p class="dev-h">{p.label}{p.partial && <span class="dev-flag">with an asterisk</span>}</p>
+              <p class="dev-path mono">{p.path.join('  →  ')}</p>
+              {p.pathNote && <p class="dev-note">{p.pathNote}</p>}
+              {p.caution && <p class="dev-caution">{p.caution}</p>}
+              {p.source && (
+                <p class="dev-src">
+                  <a href={p.source.url} rel="noopener noreferrer" target="_blank">{p.source.label} ↗</a>
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    ))}
+  </section>
+
+  <section class="prose">
+    <p class="cta-row">
+      <a class="btn ghost" href="/learn/generate-your-seed">← Why, and what your device allows</a>
+      <a class="btn ghost" href="/checklist">Your setup checklist</a>
+    </p>
+  </section>
+</Base>
+
+<script>
+  // Show/hide only. No state is read or written anywhere — the panels are all
+  // server-rendered and the tab merely toggles `hidden`.
+  const bar = document.getElementById('opt-tabs');
+  if (bar) {
+    const tabs = Array.from(bar.querySelectorAll('button[data-opt]'));
+    const panels = Array.from(document.querySelectorAll('[data-panel]'));
+    const select = (key) => {
+      tabs.forEach((t) => t.setAttribute('aria-selected', String(t.dataset.opt === key)));
+      panels.forEach((p) => { p.hidden = p.dataset.panel !== key; });
+    };
+    bar.addEventListener('click', (e) => {
+      const t = e.target && e.target.closest ? e.target.closest('button[data-opt]') : null;
+      if (t) select(t.dataset.opt);
+    });
+    // Deep link: /roll-your-own-seed#enrich opens that option directly. The
+    // checklist sends readers here with the option their own hardware can
+    // actually do, so landing on option 1 regardless would undo the point.
+    // Unknown fragments are ignored rather than blanking every panel.
+    const fromHash = () => {
+      const k = (location.hash || '').replace('#', '');
+      if (tabs.some((t) => t.dataset.opt === k)) select(k);
+    };
+    fromHash();
+    window.addEventListener('hashchange', fromHash);
+  }
+</script>
+
+<style>
+  .tabs { display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 1.4rem; }
+  .tab { flex: 1 1 14rem; text-align: left; cursor: pointer; font: inherit;
+    background: transparent; color: var(--text);
+    border: 1px solid var(--line); border-radius: var(--radius); padding: .8rem 1rem; }
+  .tab:hover { border-color: var(--accent); }
+  .tab[aria-selected='true'] { border-color: var(--accent); background: var(--accent-soft); }
+  .tab-n { display: block; font-family: var(--mono); font-size: .7rem; letter-spacing: .07em;
+    text-transform: uppercase; color: var(--muted); }
+  .tab-l { display: block; font-weight: 600; margin-top: .15rem; }
+  /* The tab is now a CARD you choose from, so the three have to be the same
+     height or the shortest reads as the lesser option. Flex column + the
+     device line pushed to the bottom with margin-top:auto does that without
+     a fixed height, which would clip on a narrow phone. */
+  .tab { display: flex; flex-direction: column; }
+  .tab-p { display: block; margin-top: .4rem; font-size: .86rem; line-height: 1.45;
+    color: var(--muted); font-weight: 400; }
+  /* MINIMISED, not hidden. Small mono type at the foot of the card — enough to
+     scan for your own device, not enough to compete with the choosing line.
+     Deliberately not a <details>: interactive content cannot nest inside a
+     <button>, and turning the tab into a div would cost the keyboard semantics
+     the tablist depends on. */
+  .tab-d { display: block; margin-top: auto; padding-top: .55rem; font-family: var(--mono);
+    font-size: .68rem; line-height: 1.5; color: var(--faint, var(--muted)); }
+  .tab-dk { display: block; font-size: .6rem; letter-spacing: .09em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: .1rem; }
+  .tab[aria-selected='true'] .tab-p { color: var(--text); }
+  .p-tag { color: var(--muted); font-style: italic; margin-top: -.4rem; }
+  .p-meta { margin: 0 0 .9rem; }
+  .p-k { display: block; font-size: .7rem; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: .1rem; }
+  .wsteps li { margin-bottom: .8rem; }
+  .dev { border-left: 3px solid var(--line); padding: .3rem 0 .3rem 1rem; margin: 1rem 0; }
+  .dev.is-partial { border-left-color: var(--warn, #b7791f); }
+  .dev-h { font-weight: 600; margin: 0 0 .2rem; }
+  .dev-flag { font-weight: 400; font-size: .75rem; color: var(--muted); margin-left: .5rem; }
+  .dev-path { margin: 0 0 .35rem; font-size: .88rem; overflow-x: auto; }
+  .dev-note, .dev-caution, .dev-src { margin: 0 0 .3rem; color: var(--muted); font-size: .92rem; }
+  .cta-row { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: 1.4rem; }
+  .btn { display: inline-flex; align-items: center; background: var(--accent); color: var(--accent-ink);
+    font-weight: 700; font-family: var(--mono); font-size: .9rem; padding: .65rem 1rem;
+    border-radius: .6rem; text-decoration: none; }
+  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+  .btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+</style>

@@ -95,7 +95,8 @@ const termCount = glossary.length;
   .syl-lv { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface);
     padding: 1.3rem 1.5rem; display: grid; grid-template-columns: 3.6rem 1fr; gap: 1.3rem;
     scroll-margin-top: 4.5rem; }
-  /* 201 is optional — a dashed edge says "skippable" before you read a word. */
+  /* A dashed edge says "skippable" before you read a word. Applies to any level
+     flagged `optional`; none is, since 201 was removed 2026-08-01. */
   .syl-lv.opt { border-style: dashed; }
   .syl-badge { font-family: var(--mono); font-weight: 700; font-size: 1rem; color: var(--accent-ink);
     background: var(--accent); border-radius: 0.55rem; height: 2.3rem; display: grid; place-items: center; }

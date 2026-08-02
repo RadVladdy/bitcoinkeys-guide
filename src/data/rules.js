@@ -207,7 +207,11 @@ export const umbrella = {
   // label that frames it, drop the prose that restates the label.
   body: 'Check your backup instead of assuming it. Check the address on the screen instead of trusting the computer. Check the rules yourself, with your own node, instead of taking a company’s word for what’s yours.',
   href: '/learn/run-a-node',
-  level: '201',
+  // 104, not 201 — level 201 was removed 2026-08-01 and running a node became
+  // the last lesson of The long haul. This is one of the two places a level
+  // number is written by hand rather than derived (the other is each rule's own
+  // `level`), so it is the one that drifts when the curriculum moves.
+  level: '104',
   lesson: 'Run your own node',
 };
 

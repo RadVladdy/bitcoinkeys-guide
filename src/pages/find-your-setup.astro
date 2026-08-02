@@ -38,7 +38,7 @@ const fitCountCap = questionCountWordCap;
     prompts, promptsFor, promptById, scoreFromPrompts, shimScores, recommendV2, FAMILY,
   } from '../data/finder.js';
   import { numberWord } from '../data/numbers.js';
-  import { wallets, keysForSetup, slugForName } from '../data/wallets.js';
+  import { wallets, keysForSetup, slugForName, assessDevices, ownableDevices } from '../data/wallets.js';
   import { rungAnchor } from '../data/ladder.js';
   import { savePlannedSetup, plannedSetupRung, plannedSetupLabel, plannedKeysNeeded, loadLocal, clearPlanSelection, plannedSetupSource } from '../data/plan.js';
   import { mountOwnedPicker } from '../data/owned-picker.js';
@@ -90,6 +90,91 @@ const fitCountCap = questionCountWordCap;
   // The finder recommends devices by NAME; map a recommendation's wallet list → slugs
   // (saved as recommendedDevices → suggested in empty slots + annotated on /wallets).
   function recSlugsFrom(list) { return (list || []).map((d) => slugForName(d.name)).filter(Boolean); }
+
+  // ── WHAT YOU ALREADY OWN, read against the setup we just recommended ────────
+  //
+  // The finder has always ASKED which hardware the reader owns and then made
+  // device suggestions as though it had not. This closes that: it names what
+  // they own, says which of it works for this setup and which does not, counts
+  // how many keys short they are, and suggests only devices they do not already
+  // have.
+  //
+  // READ-ONLY, DELIBERATELY. No "I own this" control, no picker, no add or
+  // remove. Choosing and editing hardware is /my-plan's job — the three-phase
+  // split (SELECT → BUILD THE PLAN → EXECUTE) exists to stop this page becoming
+  // the place you do it. Surfacing a verdict is fine; offering an action on it
+  // is what would break the split.
+  const brandOf = (slug) => (ownableDevices.find((d) => d.slug === slug) || {}).brand || null;
+  const listNames = (arr) => {
+    const n = arr.map((d) => esc(d.name));
+    if (n.length <= 1) return n[0] || '';
+    return `${n.slice(0, -1).join(', ')} and ${n[n.length - 1]}`;
+  };
+
+  function ownedContext(primary) {
+    const owned = Array.isArray(answers.ownedDevices) ? answers.ownedDevices : [];
+    // Nothing to say: they skipped the step, or chose not to tell us. "Rather
+    // not say" is an answer we asked for and it gets respected in silence.
+    if (answers.ownPrivate || !owned.length) return '';
+
+    const assessed = assessDevices(owned);
+    if (!assessed.length) return '';
+    const clears = assessed.filter((d) => d.verdict === 'cold');
+    const spending = assessed.filter((d) => d.verdict === 'spending');
+    const below = assessed.filter((d) => d.verdict === 'disqualified');
+    const unrated = assessed.filter((d) => d.verdict === 'unrated');
+
+    // Keys YOU hold. For collaborative custody that is two of the three — the
+    // service holds the other one, and it is not something you go and buy.
+    const need = keysForSetup({ rungSlug: primary.rungSlug, label: primary.rungLabel, tier: primary.tier }) || 1;
+    const short = Math.max(0, need - clears.length);
+
+    const parts = [];
+    parts.push(`<p><strong>You told us you own ${listNames(assessed)}.</strong> Here is how that lands against this setup — nothing to change here, this is just what we can already see.</p>`);
+
+    if (clears.length) {
+      parts.push(`<p><span class="ro-k ok mono">Works here</span> ${listNames(clears)} — ${clears.length === 1 ? 'it clears' : 'they clear'} our bar, so ${clears.length === 1 ? 'it can be' : 'they can be'} ${need > 1 ? 'one of your keys' : 'the key'} for this setup. No need to buy ${clears.length === 1 ? 'another' : 'more'} on ${clears.length === 1 ? 'its' : 'their'} account.</p>`);
+    }
+    if (spending.length) {
+      parts.push(`<p><span class="ro-k warn mono">Not for this</span> ${listNames(spending)} — we rate ${spending.length === 1 ? 'it' : 'them'} <a href="/standard#built-for-spending">built for spending</a> rather than a long-term vault. Genuinely useful for money you are moving; not what we would put savings behind.</p>`);
+    }
+    if (below.length) {
+      parts.push(`<p><span class="ro-k bad mono">Doesn’t clear our bar</span> ${listNames(below)} — <a href="/standard">why we say so</a>. You are not obliged to replace ${below.length === 1 ? 'it' : 'them'}, and nothing here says throw ${below.length === 1 ? 'it' : 'them'} away; we would not build this setup on ${below.length === 1 ? 'it' : 'them'}.</p>`);
+    }
+    if (unrated.length) {
+      parts.push(`<p><span class="ro-k mono">Not rated by us</span> ${listNames(unrated)} — we have not reviewed ${unrated.length === 1 ? 'this model' : 'these models'}, which is not the same as failing. Most models never have been, and inventing a verdict would be worse than saying so.</p>`);
+    }
+
+    // THE COUNT. This is the sentence the reader came for.
+    if (short === 0) {
+      parts.push(`<p class="ro-count"><strong>You already have the hardware for this.</strong> ${need > 1 ? `This setup needs ${numberWord(need)} keys of your own, and ${clears.length === need ? 'that is exactly what you hold' : `you hold ${numberWord(clears.length)} that clear the bar`}.` : 'This setup needs one key, and you have one that clears the bar.'}</p>`);
+    } else {
+      parts.push(`<p class="ro-count"><strong>You are ${numberWord(short)} short.</strong> This setup needs ${need > 1 ? `${numberWord(need)} keys of your own` : 'one key'}${primary.rungSlug === 'collaborative' ? ' — the service holds the third, so that one is not yours to buy' : ''}, and ${clears.length ? `you hold ${numberWord(clears.length)} that ${clears.length === 1 ? 'clears' : 'clear'} our bar` : 'nothing you own clears our bar yet'}.</p>`);
+    }
+
+    // ONE BRAND, ONE KEY — only worth saying where it changes what to buy.
+    if (need > 2 && clears.length > 1) {
+      const brands = new Set(clears.map((d) => brandOf(d.slug)).filter(Boolean));
+      if (brands.size < clears.length) {
+        parts.push(`<p class="ro-note">One thing worth knowing: <strong>use a different maker for each key.</strong> Some of what you own is from the same maker, and with one maker covering two of three keys, a single vendor’s flaw reaches enough of them to spend your coins.</p>`);
+      }
+    }
+
+    const cls = below.length ? 'warn' : (short === 0 ? 'ok' : '');
+    return `<div class="r-owned ${cls}"><span class="r-k mono">What you already own</span>${parts.join('')}</div>`;
+  }
+
+  // The devices we suggest, minus anything the reader already owns — suggesting
+  // someone buy a device sitting in their drawer is the whole reason this block
+  // exists.
+  function unownedWallets(list) {
+    const owned = new Set(Array.isArray(answers.ownedDevices) ? answers.ownedDevices : []);
+    if (!owned.size) return list || [];
+    const left = (list || []).filter((d) => !owned.has(slugForName(d.name)));
+    // If they own BOTH suggestions, keep the list rather than render an empty
+    // block — the owned panel above has already told them they are covered.
+    return left.length ? left : (list || []);
+  }
 
   // ── the step machine ──
   // The flow: current → (owned interstitial) → stakes → assessment intro → four
@@ -209,17 +294,21 @@ const fitCountCap = questionCountWordCap;
   // Bars are decorative (aria-hidden); the WORD is the scale, and it's the only
   // scale — never a number. Tiny floor width so "low"/near-zero still draws.
   const barW = (n) => Math.max(n, 1.5);
-  // THE TYPICAL HOLDER IS A MARK, NOT A BAR BEHIND (2026-08-01).
+  // THE TYPICAL HOLDER IS A TICK, NOT A BAR BEHIND (2026-08-01).
   //
-  // It used to be a dim bar starting at the same left edge as the fill, with the
-  // fill absolutely positioned on top — so the moment your score reached the
-  // default the fill covered it completely and the reference was never visible.
+  // It used to be a dim bar starting at the same left edge as the fill, with
+  // the fill absolutely positioned on top — so the moment your score reached
+  // the default, the fill covered the ghost completely and it was NEVER VISIBLE.
+  // Which is most of the time: on the shipped engine an untouched section scores
+  // exactly the default, so the reference the legend promised was hidden by
+  // construction on the first screen every reader sees.
   //
-  // A mark also says it more precisely. A bar behind a bar asks the reader to
-  // compare two lengths that share an origin; a mark says "typical is HERE" and
-  // lets the fill land short of it or past it — which matters more here than on
-  // the shipped engine, because the expected bundle means a cleared section
-  // lands BELOW the mark and that is the signal the reader is owed back.
+  // A tick also says the thing more precisely. A bar behind a bar asks the
+  // reader to compare two lengths that share an origin; a mark says "typical is
+  // HERE" and lets the fill land short of it or past it — which matters more
+  // under the expected-bundle baseline than it did on the shipped engine,
+  // because here a CLEARED section lands BELOW the tick, and that gap is the
+  // signal the reader is owed back.
   const tickAt = (n) => Math.min(98.5, Math.max(1.5, n));
   // `ans` — where the reader's OWN ANSWERS put this bar, drawn only on the review
   // screen and only once they have nudged it by hand. Without it, "Set by hand —
@@ -251,6 +340,11 @@ const fitCountCap = questionCountWordCap;
 
   // Two-sentence mechanism recaps, in the site's voice — the receipt for why
   // each concern is its own section.
+  // These are a SECOND rendering of the concern blurbs in finder.js — the intro
+  // screen shows those, and this shows these, so the two have to say the same
+  // thing about the same subject. When the custodial wording was narrowed to a
+  // MEANINGFUL SHARE, this copy still described any account at all and had to be
+  // narrowed with it.
   const SECTION_RECAP = {
     custodial: 'A meaningful share of your Bitcoin sitting with an exchange or app that goes under, freezes your account, or loses your coins — the Mt. Gox to FTX class of loss. Small change on an app is not what this is about; while a company holds the keys to a real part of your stack, its problems are your problems.',
     'self-loss': 'The quiet one: a backup that was never tested, a passphrase that lived only in your head, nobody else who could recover it. More Bitcoin has been lost this way than has ever been stolen in exchange hacks.',
@@ -500,7 +594,9 @@ const fitCountCap = questionCountWordCap;
 
   function walletCard(rec, adaptive, sel) {
     if (rec.wallets && rec.wallets.length) {
-      const items = rec.wallets.map((d, i) => {
+      // ONLY WHAT THEY DO NOT ALREADY OWN. Telling a reader to buy the device
+      // sitting in their drawer is the defect this whole block exists to fix.
+      const items = unownedWallets(rec.wallets).map((d, i) => {
         const w = wallets.find((x) => x.name === d.name);
         const price = w ? ` <span class="r-price">${esc(w.price)}</span>` : '';
         const body = `<strong>${esc(d.name)}</strong>${price} — ${esc(d.why)}`;
@@ -514,8 +610,13 @@ const fitCountCap = questionCountWordCap;
         <span class="r-k mono">${label}</span>
         ${container}
         ${rec.walletNote ? `<p class="r-devnote">${esc(rec.walletNote)}</p>` : ''}
-        <a class="r-compare" href="/wallets">Compare all ${wallets.length} devices →</a>
       </div>`;
+      // NO "compare all N devices" LINK HERE (removed 2026-08-01). This page is
+      // the SELECT phase — which setup, and nothing else. Sending the reader to
+      // the full comparison at the moment they have just been given an answer
+      // invites them to re-open the decision before they can act on it, which is
+      // the failure the three-phase split exists to prevent. Choosing hardware
+      // belongs to /my-plan, and that page carries the link.
     }
     // category-only (learning / collaborative — walletNote may hold intentional HTML)
     return rec.walletNote ? `<div class="r-wallet"><span class="r-k mono">Where to start</span><p>${rec.walletNote}</p></div>` : '';
@@ -706,6 +807,16 @@ const fitCountCap = questionCountWordCap;
         ${primary.tradeoff ? `<div class="r-tradeoff"><span class="r-k mono">The trade you are making</span><p>${primary.tradeoff}</p></div>` : ''}
         ${primary.inheritanceNote ? `<div class="r-inherit"><span class="r-k mono">Self-custodied inheritance</span><p>${esc(primary.inheritanceNote)}</p></div>` : ''}
         ${holdbacksHtml}
+        ${/* What the reader already owns, judged against the setup just
+             recommended. It sits ABOVE the wallet card and outside every
+             per-card branch, because it is one verdict about the reader's
+             drawer rather than a property of any one recommendation — the
+             version that shipped inside a single branch was invisible to
+             exactly the readers most likely to own hardware. READ-ONLY here by
+             design: no picker, no add or remove. Choosing hardware is
+             /my-plan's job, and that separation is what lets this name
+             devices at all. */''}
+        ${ownedContext(primary)}
         ${walletCard(primary, adaptive, sel)}
         ${checklistHandoff()}
         ${primaryHasVendors ? vendorsBlock(primary.vendors) : ''}
@@ -752,7 +863,16 @@ const fitCountCap = questionCountWordCap;
         const isSaved = savedSource ? b.source === savedSource : Boolean(savedRung && b.rung === savedRung);
         if (isSaved) anySaved = true;
         if (isSaved) {
-          b.el.innerHTML = `<span class="r-saved">✓ This is your saved plan.</span>`;
+          // SAVING IS NOT THE END OF THE JOURNEY, and the confirmation used to
+          // read like it was: a tick, a sentence, and no way forward. The next
+          // thing the reader has to do — choose the hardware that fills the plan
+          // — lives on /my-plan, and this is the moment they are ready for it.
+          // The CTA goes here rather than at the foot of the page because it is
+          // the reward for the action they just took, and it appears only once
+          // there is a plan to open.
+          b.el.innerHTML = `<span class="r-saved">✓ This is your saved plan.</span>
+            <a class="btn-save r-open" href="/my-plan">Open your plan <span class="arw">→</span></a>
+            <span class="r-save-note">Next: pick the hardware that fills it — and we'll say whether anything you already own clears our bar.</span>`;
         } else {
           b.el.innerHTML = `<button class="btn-save js-save" type="button">＋ Save this setup to my plan</button>
             <span class="r-save-note">One setup at a time — kept only in your browser until you save it. <a href="/my-plan">Your data, not ours</a>.</span>`;
@@ -1017,6 +1137,11 @@ const fitCountCap = questionCountWordCap;
   #finder .as-fill { overflow: hidden; }
   #finder .as-ghost { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 999px; background: var(--faint); opacity: 0.3; }
   #finder .as-ghost.lit { opacity: 0.55; }
+  /* THE TYPICAL MARK. A 2px rule the full height of the track, in the text
+     colour rather than a tint, so it reads against every fill colour the scale
+     can produce (safe / accent / warn / danger). The tiny cap above the track
+     is what makes it legible when the fill lands exactly on it — without it the
+     mark and the fill edge coincide and the reader sees nothing. */
   /* NOT .as-tick — that class is already the prompt checkbox's ✓ mark, and both
      are scoped #finder, so reusing it made the two rules fight. */
   #finder .as-typ { position: absolute; top: -3px; bottom: -3px; width: 2px; margin-left: -1px;
@@ -1040,8 +1165,8 @@ const fitCountCap = questionCountWordCap;
   #finder .as-word.w-elevated { color: var(--warn); }
   #finder .as-word.w-high { color: var(--danger); }
   #finder .as-legend { color: var(--faint); font-size: 0.76rem; margin: 0.55rem 0 0; }
-  /* Reassurance, not a caveat — the `safe` token, because "every setup fixes
-     this" is good news and should not read as a hedge. */
+  /* Reassurance, not a caveat — the `safe` token rather than `warn`, because
+     "every setup fixes this" is good news and should not read as a hedge. */
   #finder .as-settled { border-left: 3px solid color-mix(in srgb, var(--safe) 55%, var(--line));
     background: var(--safe-dim); border-radius: 0.4rem; padding: 0.6rem 0.85rem;
     margin: 0 0 1rem; font-size: 0.86rem; line-height: 1.55; color: var(--muted); }
@@ -1138,8 +1263,6 @@ const fitCountCap = questionCountWordCap;
   #finder .r-dev.sel { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
   #finder .r-devnote { color: var(--muted); font-size: 0.86rem; margin: 0 0 0.5rem; }
   #finder .r-price { color: var(--accent); font-family: var(--mono); font-size: 0.9rem; }
-  #finder .r-compare { color: var(--muted); font-size: 0.88rem; text-decoration: none; }
-  #finder .r-compare:hover { color: var(--accent); }
   #finder .r-handoff { border-top: 1px solid var(--line-soft); padding-top: 1.1rem; margin-top: 1.1rem; }
   #finder .r-handoff p { color: var(--muted); font-size: 0.94rem; margin: 0 0 0.6rem; }
   #finder .r-owned { border-left: 3px solid var(--line); background: var(--raise); border-radius: 0.5rem;
@@ -1148,6 +1271,16 @@ const fitCountCap = questionCountWordCap;
   #finder .r-owned.ok { border-left-color: var(--safe); background: var(--safe-dim); }
   #finder .r-owned p { margin: 0 0 0.5rem; font-size: 0.94rem; color: var(--text); }
   #finder .r-owned p:last-child { margin-bottom: 0; }
+  /* A verdict chip per line, so the panel is scannable — which one works, which
+     one doesn't — without reading every sentence. */
+  #finder .ro-k { display: inline-block; font-size: 0.64rem; letter-spacing: 0.07em; text-transform: uppercase;
+    padding: 0.1rem 0.4rem; border-radius: 0.3rem; margin-right: 0.4rem; vertical-align: 0.05rem;
+    border: 1px solid var(--line); color: var(--muted); }
+  #finder .ro-k.ok  { color: var(--safe);   border-color: color-mix(in srgb, var(--safe) 45%, var(--line));   background: var(--safe-dim); }
+  #finder .ro-k.warn{ color: var(--warn);   border-color: color-mix(in srgb, var(--warn) 45%, var(--line));   background: var(--warn-dim); }
+  #finder .ro-k.bad { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, var(--line)); background: var(--danger-dim); }
+  #finder .r-owned .ro-count { border-top: 1px solid var(--line-soft); padding-top: 0.6rem; margin-top: 0.7rem; }
+  #finder .r-owned .ro-note { color: var(--muted); font-size: 0.88rem; }
   #finder .r-how { color: var(--accent); text-decoration: none; font-size: 0.8rem; font-family: var(--mono); white-space: nowrap; }
   #finder .r-how:hover { text-decoration: underline; }
   #finder .r-save { border-top: 1px solid var(--line-soft); margin-top: 1.4rem; padding-top: 1.2rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.6rem 0.9rem; }
@@ -1158,6 +1291,12 @@ const fitCountCap = questionCountWordCap;
   #finder .r-save-note a { color: var(--accent); text-decoration: none; }
   #finder .r-save-note a:hover { text-decoration: underline; }
   #finder .r-saved { color: var(--safe); font-weight: 600; font-size: 0.92rem; }
+  /* The onward CTA, which is an <a> rather than a <button> and so needs the
+     text-decoration and layout the shared .btn-save rule does not carry. Filled
+     rather than soft: it is the primary action on the card once a plan exists. */
+  #finder a.btn-save.r-open { text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;
+    background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+  #finder a.btn-save.r-open:hover { filter: brightness(1.06); }
   #finder .r-save-err { color: var(--danger); font-weight: 600; font-size: 0.92rem; }
   #finder .r-links { display: flex; flex-wrap: wrap; gap: 0.8rem; align-items: center; margin: 1.5rem 0 0; }
   /* the state-dependent actions sit in the same flex row as the static ones */

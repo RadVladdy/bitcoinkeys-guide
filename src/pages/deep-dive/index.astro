@@ -1,20 +1,20 @@
 ---
 import Base from '../../layouts/Base.astro';
-import LessonNav from '../../components/LessonNav.astro';
 import { deepDives as demos } from '../../data/deepdives.js';
 ---
 <Base
-  title="Deeper dives — see how Bitcoin actually works · BitcoinKeys.guide"
-  description="Optional, hands-on demonstrations of the machinery under Bitcoin self-custody — seed generation, passphrases, BIP-85. Every one uses a throwaway seed generated in your browser. Never your real seed."
+  title="Interactive demos — see how Bitcoin actually works · BitcoinKeys.guide"
+  description="Hands-on demonstrations of the machinery under Bitcoin self-custody — seed generation, passphrases, BIP-85. Every one uses a throwaway seed generated in your browser. Never your real seed."
   verified="2026-07-29"
 >
   <section class="prose">
-    <p class="eyebrow">Level 201 · optional</p>
-    <h1>Deeper <span class="accent">dives</span></h1>
+    <p class="eyebrow">Tools &amp; demos</p>
+    <h1>Interactive <span class="accent">demos</span></h1>
     <p class="lead">
       You don't need any of this to hold Bitcoin safely. But if you've read
       <a href="/learn/bitcoin-keys">how it all works</a> and want to <em>see</em> the machinery — not just read about it —
-      these are interactive demonstrations of what's really happening under the hood.
+      here are {demos.length} demonstrations of what is really happening under the hood. Nothing is saved and
+      nothing is scored: every one runs in your browser, on a seed it invents and forgets.
     </p>
     <div class="callout danger" role="note">
       <span class="label">🛑 Demonstrations only — never your real seed</span>
@@ -44,7 +44,6 @@ import { deepDives as demos } from '../../data/deepdives.js';
     </p>
   </section>
 
-  <LessonNav />
 </Base>
 
 <style>

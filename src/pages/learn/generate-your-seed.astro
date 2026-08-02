@@ -1,0 +1,204 @@
+---
+// THE EDUCATION PAGE. Everything conceptual about where a seed's randomness
+// comes from: the four options, what your device allows, why you would bother,
+// and how it goes wrong. No procedures — those are the tool page, and a
+// procedure written in two places is a procedure that will disagree with
+// itself the first time a vendor moves a menu.
+//
+// EVERGREEN BY CONSTRUCTION. Nothing here names a specific incident. The
+// advisory callout renders only while an advisory is active, so when one is
+// retired this page does not quietly become a period piece.
+import Base from '../../layouts/Base.astro';
+import LessonNav from '../../components/LessonNav.astro';
+import LessonEyebrow from '../../components/LessonEyebrow.astro';
+import RuleRef from '../../components/RuleRef.astro';
+import {
+  diceVerified, methods, methodCount,
+  ratedDevicesForMethod, devicesWithNoDicePath, devicesOutsideDiceQuestion,
+  kit, failureModes, failureModeCount,
+} from '../../data/dice.js';
+import { seedCosts } from '../../data/dice-table.js';
+import { activeAdvisories } from '../../data/advisories.js';
+import { numberWord } from '../../data/numbers.js';
+
+const advisory = activeAdvisories.find((a) => a.vendor === 'Coinkite') || null;
+
+// Device support per option, joined from the same data /wallets filters on, so
+// a tile can never disagree with the comparison table.
+const trim = (n) => n.replace(' (BTC-only)', '').replace('Blockstream ', '').replace('Foundation ', '');
+const optionTiles = methods.map((m) => ({
+  ...m,
+  devices: m.key === 'device' ? null : ratedDevicesForMethod(m.key).map((d) => trim(d.name)),
+}));
+const noPath = devicesWithNoDicePath.map((d) => trim(d.name));
+// The THIRD state — devices the question does not apply to. Derived, because the
+// two lists above are derived and a hand-typed third would be the one that rots.
+// Bitkey fell out of both until 2026-08-01: eleven of the twelve devices we rate
+// were enumerated on this page and the twelfth was simply absent.
+const outside = devicesOutsideDiceQuestion.map((d) => ({ name: trim(d.name) }));
+const longCost = seedCosts.find((c) => c.words === 24);
+---
+<Base
+  title="Where your seed's randomness comes from · BitcoinKeys.guide"
+  description="Your seed is one very large random number. Four ways to decide where it comes from — from letting the device pick to choosing every word yourself — and what your hardware actually allows."
+  verified={diceVerified}
+>
+  <section class="prose">
+    <LessonEyebrow />
+    <h1>Where your seed's <span class="accent">randomness</span> comes from</h1>
+    <p class="lead">
+      Your seed is one very large random number. Everything else — every address, every key, every coin you
+      will ever hold — is worked out from it. Normally the device picks that number and you have no way to
+      check that it picked well. You do not have to leave it at that.
+    </p>
+  </section>
+
+  <section class="prose">
+    <h2 id="options">Your {numberWord(methodCount)} options</h2>
+    <p>
+      These run from most of the randomness being yours to none of it. The last is what almost everybody does,
+      and it is not a wrong answer — but it is a choice, and most people make it without noticing they made it.
+    </p>
+  </section>
+
+  <section>
+    <ul class="opt-grid">
+      {optionTiles.map((m) => (
+        <li class="opt">
+          <p class="opt-n mono">Option {m.n}</p>
+          <h3 class="opt-h">{m.label}</h3>
+          <p class="opt-tag">{m.tagline}</p>
+          <p class="opt-yours"><span class="opt-k">Randomness that is yours</span>{m.yours}</p>
+          <p class="opt-how">{m.how}</p>
+          <p class="opt-trust"><span class="opt-k">What you are trusting</span>{m.trust}</p>
+          {m.devices && (
+            <p class="opt-dev">
+              <span class="opt-k">Devices we rate that can do this</span>
+              {m.devices.length ? m.devices.join(' · ') : 'None of them.'}
+            </p>
+          )}
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="prose">
+    <h2 id="your-device">What your device allows</h2>
+    <p>
+      This is the part that surprises people. <strong>Only Coinkite lets you roll dice on the device itself</strong>,
+      so options 2 and 3 belong to one maker. On a Jade or a BitBox02, option 1 is the only route your randomness
+      has. And on {noPath.length ? <strong>{noPath.join(', ')}</strong> : 'several devices'} there is no route at
+      all — the device generates your seed and that is the end of it.
+    </p>
+    <p>
+      None of that makes those devices bad. Trezor's position is a considered one: they argue you should never
+      choose your own backup, because people are far worse at randomness than they believe. That is a real
+      argument and the losses back it up. It is simply worth knowing before you buy, rather than after.
+    </p>
+    {outside.length > 0 && (
+      <p>
+        And for {outside.map((d) => <strong>{d.name}</strong>)} the question does not arise at all.
+        {' '}{outside.length === 1 ? 'It' : 'They'} {outside.length === 1 ? 'has' : 'have'} no seed phrase to
+        build: {outside.length === 1 ? 'it is' : 'they are'} multisig by design, and the recovery kit holds an
+        encrypted key rather than words. There is nothing here to opt into and nothing being withheld —
+        {' '}{outside.length === 1 ? 'it sits' : 'they sit'} outside this decision rather than at the bottom of it.
+      </p>
+    )}
+  </section>
+
+  <section class="prose">
+    <h2 id="why">Why anyone bothers</h2>
+    <p>
+      Every hardware wallet generates your seed from a random-number generator you cannot inspect. When it
+      works, this is fine. The problem is the word <em>when</em>: it sits under everything else you do, and you
+      will not find out it failed until the coins are gone.
+    </p>
+    {advisory && (
+      <div class="callout warn">
+        <span class="label">⚠️ This is not hypothetical</span>
+        <p style="margin:0">
+          {advisory.lesson} <a href={advisory.href}>Read the full advisory →</a>
+        </p>
+      </div>
+    )}
+    <p>
+      The argument is a narrow one, and worth keeping narrow. Supplying your own randomness does not make you
+      harder to phish, does not protect a badly stored backup, and does not help at all if you write the words
+      down wrong. It removes exactly one risk — <strong>that the device's randomness is not random</strong> —
+      and it hands you a different one, which is that you now have to do this carefully.
+    </p>
+    <p>
+      So there is no single right answer here, and we are not going to pretend there is one.
+      <strong>Where your device allows it, add your own throws</strong> — that much is our position, because
+      mixing your randomness into the device's own cannot make the result worse (Coinkite says so in its own
+      documentation) and it costs a few minutes and no bookkeeping. Which of the {numberWord(methodCount)}
+      options that means for you depends on the device in front of you and how far you want to go.
+    </p>
+    <p>
+      Option 1 is the honest maximum, and it is a real evening's work: for a 24-word seed, about
+      {' '}{longCost.throws} throws and {longCost.flips} coin flips, each one read off a printed table by hand.
+      Do that because you want the one thing it buys, not because it sounds more serious. And option 4 —
+      letting the device do it — is not a failure. Far more coins are lost to a botched setup than to faulty
+      randomness, and a seed generated normally and backed up properly beats a sovereign seed you lost count
+      halfway through.
+    </p>
+  </section>
+
+  <section class="prose">
+    <h2 id="need">What you need</h2>
+    <ul class="dlist">
+      {kit.map((k) => (<li><strong>{k.t}.</strong> {k.d}</li>))}
+    </ul>
+  </section>
+
+  <section class="prose">
+    <h2 id="wrong">The {numberWord(failureModeCount)} ways this goes wrong</h2>
+    <p>
+      Every one of these has cost somebody their coins, and none of them involves the maths being wrong.
+      <RuleRef key="never-digital" /> covers the first and most important.
+    </p>
+    <ul class="dlist">
+      {failureModes.map((f) => (<li><strong>{f.t}.</strong> {f.d}</li>))}
+    </ul>
+    <h2 id="next">When you are ready to do it</h2>
+    <p>
+      The procedures are on their own page — pick the option your device allows and it walks you through
+      only that one. If you are going to choose every word yourself, print the table and the worksheet first.
+    </p>
+    <p class="cta-row">
+      <a class="btn" href="/roll-your-own-seed">The procedures, step by step <span class="arw">→</span></a>
+      <a class="btn ghost" href="/dice-word-table">Table, worksheet and PDF</a>
+      <a class="btn ghost" href="/wallets">See which devices allow it</a>
+    </p>
+  </section>
+  <LessonNav />
+</Base>
+
+<style>
+  .opt-grid { list-style: none; padding: 0; margin: 0; display: grid; gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
+  /* All four tiles carry the same frame. One of them used to be outlined in the
+     accent with an "our default" badge, which made the other three read as
+     runners-up before the reader knew which their own device could even do. */
+  .opt { border: 1px solid var(--accent); border-radius: var(--radius); padding: 1.1rem 1.2rem;
+    display: flex; flex-direction: column; }
+  .opt-n { font-size: .72rem; letter-spacing: .07em; text-transform: uppercase; color: var(--muted);
+    margin: 0 0 .35rem; display: flex; align-items: center; gap: .5rem; flex-wrap: wrap; }
+  .opt-h { margin: 0 0 .2rem; font-size: 1.08rem; line-height: 1.25; }
+  .opt-tag { margin: 0 0 .7rem; color: var(--muted); font-style: italic; }
+  .opt-how { margin: 0 0 .7rem; }
+  .opt-k { display: block; font-size: .7rem; letter-spacing: .06em; text-transform: uppercase;
+    color: var(--muted); margin-bottom: .1rem; }
+  .opt-yours, .opt-trust { margin: 0 0 .7rem; }
+  .opt-dev { margin: auto 0 0; padding-top: .7rem; border-top: 1px solid var(--line); }
+
+  .dlist { padding-left: 1.1rem; }
+  .dlist li { margin-bottom: .8rem; }
+  .cta-row { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: 1.4rem; }
+  .btn { display: inline-flex; align-items: center; background: var(--accent); color: var(--accent-ink);
+    font-weight: 700; font-family: var(--mono); font-size: .9rem; padding: .65rem 1rem;
+    border-radius: .6rem; text-decoration: none; }
+  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+  .btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .arw { margin-left: .4rem; }
+</style>

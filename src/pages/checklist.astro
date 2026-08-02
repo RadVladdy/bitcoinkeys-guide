@@ -134,6 +134,7 @@ const total = checklistCount;
   import { scoreWord, scoreFromPrompts, shimScores } from '../data/finder.js';
   import { getRung } from '../data/ladder.js';
   import { ownedName, assessDevices, keysForSetup } from '../data/wallets.js';
+  import { diceAdviceFor } from '../data/dice.js';
 
   const checked = {};
   const items = Array.from(document.querySelectorAll('.citem'));
@@ -267,10 +268,16 @@ const total = checklistCount;
     // layer agree on who sees what.
     items.forEach((li) => {
       const only = li.getAttribute('data-only');
+      // EVERY FIELD itemApplies() READS HAS TO BE HERE. This shape is rebuilt from
+      // DOM attributes, so a new field in the data layer is invisible to it until
+      // it is added in two places — the attribute on the <li> and this line. Miss
+      // one and the page silently stops applying that rule while /my-plan, which
+      // reads the real items, still does.
       const item = {
         only: only ? only.split(' ') : undefined,
         needs: li.getAttribute('data-needs') || undefined,
         done: li.getAttribute('data-done') === 'true',
+        deviceSlot: li.getAttribute('data-device-slot') === 'true',
       };
       const applies = itemApplies(item, ctx);
       li.hidden = !applies;
@@ -286,6 +293,32 @@ const total = checklistCount;
     //   · you own nothing                        → unchanged, go and get one
     const planned = ctx.devices.filter(Boolean);
     const devSlugs = (planned.length ? planned : ctx.owned).filter(Boolean);
+    // THE SEED-GENERATION STEP, aimed at hardware this reader actually has.
+    // A generic link to a page listing four options is close to useless when
+    // three of them are impossible on their device — and the honest dead end
+    // ("yours will not let you") is the case nothing else on the internet
+    // tells them. Copy only; the step never moves and never disappears.
+    const seedStep = items.find((li) => li.getAttribute('data-id') === 'generate-seed');
+    if (seedStep && devSlugs.length) {
+      const advice = diceAdviceFor(devSlugs.map((sl) => ownedName(sl)).filter(Boolean));
+      if (advice) {
+        const desc = seedStep.querySelector('.ct-desc');
+        const link = seedStep.querySelector('.ct-link');
+        if (desc) {
+          const p = document.createElement('p');
+          p.className = 'ct-dice';
+          p.textContent = advice.line;
+          desc.insertAdjacentElement('afterend', p);
+        }
+        // Repoint the step's own link rather than adding a second one: two
+        // links on one step is the reader choosing between them blind.
+        if (link && advice.key !== 'none') {
+          link.setAttribute('href', advice.href);
+          link.textContent = 'Your dice procedure →';
+        }
+      }
+    }
+
     const deviceStep = items.find((li) => li.getAttribute('data-device-slot') === 'true');
     if (deviceStep && devSlugs.length) {
       const judged = assessDevices(devSlugs);
@@ -297,9 +330,9 @@ const total = checklistCount;
       const span = deviceStep.querySelector('.ct-dev');
 
       if (clearing.length) {
-        // Already handled — you have a device we'd trust. Don't sell them another.
-        deviceStep.hidden = true;
-        delete checked[deviceStep.getAttribute('data-id')];
+        // Already handled — you have a device we'd trust. itemApplies() has hidden
+        // it in the loop above (deviceSlotSettled), which is also what makes
+        // /my-plan's step count agree with this list. Nothing to do here.
       } else if (flagged.length || unrated.length) {
         const d = flagged[0] || unrated[0];
         // NOT "get a real hardware wallet". They chose this; say why we'd revisit it.

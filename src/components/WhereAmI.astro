@@ -14,8 +14,19 @@
 // threat model") — DEFAULTS TO "stay put," surfacing the next rung only when a real
 // trigger exists. Deep content lives on each rung page; whereami.js holds the
 // interaction logic plus the gaps ladder.js doesn't cover.
+//
+// 🚪 SHOWN ONLY TO A RETURNING READER. "Has your situation changed?" is a question
+// about a gap of time, and asking it implies something might have — so it must not
+// be put to someone who finished the finder ninety seconds ago. The gate is
+// planWasRestored(): a plan that ARRIVED here, by file import or Nostr restore,
+// came from another day or another device. A plan built in this browser did not.
+//
+// Rendered hidden and revealed by the client script, because the gate reads
+// localStorage and this page is static. It stays in the DOM either way, so the
+// status card's "re-check →" anchor still resolves — that link only appears once a
+// ladder rung is saved, which only this tool can do.
 ---
-<section id="whereami" class="whereami">
+<section id="whereami" class="whereami" hidden>
   <div class="prose">
     <h2>Has your situation changed?</h2>
     <p class="wa-lead">If it's been a while — or your holdings, your family, or your worries have shifted — re-place yourself. We'll show you what your setup covers, where it's weak, and <strong>honestly, whether you should climb at all.</strong> Most people are already on the right rung. This runs entirely in your browser; where you land is saved to your plan automatically — and nothing is ever sent anywhere.</p>
@@ -32,7 +43,7 @@
 <script>
   import { ladder, getRung, rungAnchor } from '../data/ladder.js';
   import { setups, extras, climbQuestions, assess } from '../data/whereami.js';
-  import { saveLadderSlice } from '../data/plan.js';
+  import { saveLadderSlice, planWasRestored } from '../data/plan.js';
 
   const elLocate = document.getElementById('wa-locate');
   const elResult = document.getElementById('wa-result');
@@ -212,10 +223,34 @@
     if (b) b.addEventListener('click', () => { pickedSlug = null; renderLocate(); document.getElementById('whereami').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
   }
 
-  renderLocate();
+  // THE GATE. A plan that arrived here — imported from a file, restored from Nostr —
+  // came from another day or another device, and "has your situation changed?" is a
+  // fair question to ask its owner. A plan built in this browser is minutes old, and
+  // it is not. See planWasRestored() in plan.js for why this is not an age test.
+  //
+  // Nothing below runs for anyone else: the tool is never built, so it costs a
+  // hidden <section> and one localStorage read.
+  const gate = document.getElementById('whereami');
+  let built = false;
+  function openGate() {
+    if (built || !planWasRestored()) return;
+    built = true;
+    gate.hidden = false;
+    renderLocate();
+  }
+  openGate();
+  // An import or a Nostr restore ON THIS PAGE makes the reader a returning one
+  // mid-visit, and the gate has already run by then. Without this the tool only
+  // appeared on the next reload — the same class of bug as the status card's
+  // ladder line, which is why that one already listens for its own event.
+  window.addEventListener('bkeys-plan-restored', openGate);
 </script>
 
 <style>
+  /* [hidden] is spelled out because an author `display:` silently overrides the UA
+     rule — that is how an empty box shipped to every first-time visitor on two
+     pages (2026-07-30). No `display` is set on .whereami today; this keeps it true. */
+  .whereami[hidden] { display: none; }
   .whereami { margin-top: 2.2rem; }
   .wa-lead { color: var(--muted); max-width: 46rem; }
   .wa-ns { color: var(--muted); }

@@ -38,18 +38,22 @@ export const CONCERNS = [
     key: 'custodial',
     label: 'A company failing you',
     // THE QUESTION IS ABOUT A MEANINGFUL SHARE, not about having an account.
-    // Almost every holder has SOME Bitcoin on an exchange, so asked loosely this
-    // section climbed for readers whose savings were already cold. What the
-    // Mt. Gox and FTX losses have in common is not that people had an account;
-    // it is how much of their stack was in it.
+    // Almost every holder has SOME Bitcoin on an exchange — small change, a
+    // pending buy, a few sats on an app — and someone whose savings are already
+    // in cold storage was ticking this and watching the bar climb for a risk
+    // they had largely dealt with. What the Mt. Gox and FTX losses have in
+    // common is not that people had an account; it is how much of their stack
+    // was sitting in it. Every prompt in this section is worded that way.
     //
     // NOTE FOR EXPECTED_RAW: the custodial estimate of 22 was reasoned from
     // "most holders still have some on an exchange". Under the narrower wording
     // that prevalence is LOWER, so 22 is now the softest number in a set of soft
     // numbers and should be revisited when the bundle is next calibrated.
     blurb: 'A meaningful share of your Bitcoin sitting with an exchange or custodian that goes under, freezes your account, or loses your coins — the Mt. Gox to FTX class of loss. Small change on an app is not what this is about.',
-    // EVERY SETUP ANSWERS THIS COMPLETELY — stated on the concern so the walked
-    // section and /how-we-weigh-risk cannot drift apart about it.
+    // EVERY SETUP ANSWERS THIS COMPLETELY, so the section shapes the reader's
+    // picture rather than the recommendation, and the copy says so rather than
+    // letting them infer otherwise from a bar that visibly moves. Stated on the
+    // concern itself so /how-we-weigh-risk and the walked section cannot drift.
     settled: 'Every setup here takes this one to zero — that is what holding your own keys means. Even the collaborative option: the service holds one key of three, so if it fails you still hold two and your coins still move. What you would lose is the safety net, not the money.',
   },
   {
@@ -195,16 +199,24 @@ export const prompts = [
   // ── custodial ── (raises: exchange/custodian failure)
   //
   // FOUR PROMPTS, trimmed from seven on 2026-08-01. This section cannot change
-  // the recommendation and is not meant to: all four setups score 3 here,
+  // the recommendation and is not supposed to: all four setups score 3 here,
   // because holding your own keys takes company failure to zero whichever setup
-  // holds them. The section builds the reader's PICTURE and sets up the
-  // custody-trade argument, and seven questions is a lot to ask for that in the
-  // first section they meet.
+  // you hold them in. What the section does is build the reader's PICTURE and
+  // set up the custody-trade argument, and seven questions is a lot to ask for
+  // that — in the first section they meet, before anything has been decided.
   //
-  // KEEP THE 6-POINT PROMPT. EXPECTED_RAW.custodial is 22 and WEIGHT_POINTS are
-  // 6/10/16, so 16 + 6 is the ONLY subset that reaches it — drop the small one
-  // and C6 has no reachable bundle and quietly degrades to checking the formula
-  // against itself, which is the failure it was written to prevent.
+  // The three dropped (who audits it · a withdrawal you saw delayed · is it
+  // regulated where you live) are all VENUE-QUALITY refinements: they only
+  // matter once you have established there is a venue, which the first prompt
+  // already does. The closest call was the delayed-withdrawal one, which is the
+  // best early-warning signal there is — withdrawal friction preceded Celsius
+  // by about a month — but it is a TIMING signal ("get out now"), and the
+  // checklist already says get out.
+  //
+  // KEEP THE 6-POINT PROMPT. The expected-bundle target for this section is 22
+  // and WEIGHT_POINTS are 6/10/16, so 16 + 6 is the only way to reach it — drop
+  // the small one and C6 has no reachable subset and degrades to checking the
+  // formula against itself.
   {
     id: 'c-exchange', concern: 'custodial', weight: 'large',
     statement: 'A meaningful share of my Bitcoin sits on an exchange or app, not in a wallet I control.',

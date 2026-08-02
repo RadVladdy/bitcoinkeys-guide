@@ -44,9 +44,10 @@ export const navGroups = [
   },
   {
     title: 'Hardware & services',
-    // The reference shelf you dip into once the setup finder has told you what you need.
-    // /how-we-weigh-risk sits beside /standard on purpose: they are the same genre —
-    // the published "how we decide" pages — one for devices, one for the finder.
+    // The reference shelf you dip into once the setup finder has told you what
+    // you need. THE TEST FOR THIS GROUP IS OUTBOUND VENDOR LINKS — every page
+    // here sends the reader out to buy something or sign up for something, and
+    // no lesson does. That is what makes it a shelf rather than a chapter.
     links: [
       { href: '/wallets', label: 'Hardware wallets' },
       // Listed directly under the hardware page while an advisory is active: a
@@ -54,15 +55,43 @@ export const navGroups = [
       // find it through a banner they may have already scrolled past.
       { href: '/advisory/coldcard-seed-entropy', label: 'Security advisory — Coldcard' },
       { href: '/standard', label: 'How we rate them' },
-      { href: '/how-we-weigh-risk', label: 'How we weigh risk' },
       { href: '/metal-backups', label: 'Metal backups' },
       { href: '/collaborative', label: 'Collaborative custody' },
+    ],
+  },
+  {
+    title: 'Tools & demos',
+    // ADDED 2026-08-01. The interactive material had no home and was scattered
+    // across three groups: the demos hub was counted as a LESSON (level 201,
+    // position 18 of 18) despite having no reading position, no rule and nothing
+    // to complete; the dice procedure was reachable only from one lesson and one
+    // checklist step; and the printable table only from the procedure.
+    //
+    // THE TEST FOR THIS GROUP: you DO something here, on your own device, and
+    // nothing is saved, scored, or added to your plan. That is what separates it
+    // from Your setup, where every tool writes to the plan, and from Hardware &
+    // services, where every page sends you out to buy something.
+    //
+    // Deliberately NOT here: /find-your-setup, /my-plan and /checklist. They are
+    // tools, but they are the one straight line through the site and belong
+    // together. Order below is what-you-came-for first: browse the demos, then
+    // the procedure, then the sheet the procedure needs.
+    links: [
+      { href: '/deep-dive', label: 'Interactive demos' },
+      { href: '/roll-your-own-seed', label: 'Roll your own seed' },
+      { href: '/dice-word-table', label: 'Dice → word table' },
     ],
   },
   {
     title: 'About',
     links: [
       { href: '/about', label: 'About' },
+      // MOVED HERE from Hardware & services (2026-08-01). It sat beside
+      // /standard because both are published "how we decide" pages — but
+      // /standard is a rubric applied to PRODUCTS, and this one explains how the
+      // site itself reasons. That is About material: it is about us, not about
+      // anything you would buy.
+      { href: '/how-we-weigh-risk', label: 'How we weigh risk' },
       { href: '/changelog', label: 'What’s changed' },
       { href: '/tip', label: '⚡ Tip the guide' },
     ],

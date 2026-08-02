@@ -1,0 +1,306 @@
+---
+// THE PRINT ARTIFACT. Not a page you read — a page you print, or open on a
+// second screen while you work. Deliberately almost wordless: everything that
+// explains the method lives on the procedure page, and duplicating it here
+// would give two places for the instructions to disagree.
+//
+// THE TABLE IS NOT SECRET. It is a deterministic mapping of the published
+// BIP-39 wordlist that anyone can regenerate, so there is no risk in printing
+// it, photographing it, or keeping it on a phone. Only the reader's ROLLS and
+// the WORDS they produce are secret. Do not add a warning here — a false
+// warning teaches readers to discount the real one on the procedure page.
+//
+// Every row is derived at build time and the generator asserts the table is
+// bijective onto the wordlist, so a broken table fails the build.
+import Base from '../layouts/Base.astro';
+import { diceVerified } from '../data/dice.js';
+import { blocks, rows, tableRowCount, DICE_PER_WORD, PREFIX_THROWS, seedCosts } from '../data/dice-table.js';
+
+// Rows come from the seed lengths, never typed: a worksheet with the wrong
+// number of rows is a seed with the wrong number of words.
+const longChosen = seedCosts.find((c) => c.words === 24).chosen;
+const shortChosen = seedCosts.find((c) => c.words === 12).chosen;
+
+---
+<Base
+  title="Dice → word table (printable) · BitcoinKeys.guide"
+  description="A printable table turning five dice throws and a coin flip into a BIP-39 word. Derived from the standard wordlist. Print it before you begin."
+  verified={diceVerified}
+>
+  <section class="prose dwt-intro">
+    <p class="eyebrow">A print-out, not a page</p>
+    <h1>Dice → word table</h1>
+    <p class="lead">
+      Every one of the {tableRowCount.toLocaleString()} words in the standard list, reachable from
+      {DICE_PER_WORD} throws of an ordinary die and one coin flip. Print it, or open it on a second
+      screen. The procedure is on <a href="/roll-your-own-seed">the tool page</a>.
+    </p>
+    <div class="dwt-how">
+      <p><strong>Throw the die {DICE_PER_WORD} times, rerolling any 5 or 6, then flip a coin once.</strong>
+      Find the block headed by your first {PREFIX_THROWS} throws, then read down to your remaining
+      {DICE_PER_WORD - PREFIX_THROWS} throws and your flip.</p>
+      <p><strong class="mono">H</strong> is heads and <strong class="mono">T</strong> is tails. The die gives
+      you {DICE_PER_WORD * 2} of the 11 bits each word needs and the coin gives the last one — which is why
+      there are exactly two lines for every dice combination, and why the coin is not optional.</p>
+      <p class="dwt-note">This table is public and contains no secret — it is the standard wordlist in a
+      fixed order. Your <em>throws</em> and the <em>words</em> they give you are the secret.</p>
+      <p class="dwt-note"><strong>This is the same table
+      <a href="https://bitbox.swiss/bitbox02/BitBox_Diceware_LookupTable.pdf" rel="noopener noreferrer" target="_blank">BitBox publishes</a></strong>
+      for its own devices. We generated ours independently from the word list and then checked every one of the
+      {tableRowCount.toLocaleString()} entries against theirs — all of them match. Two tables built separately
+      agreeing on every row is the reason to trust either. Use one of them for a whole seed, though, not a
+      mix.</p>
+    </div>
+    <p class="dwt-print"><button type="button" id="dwt-print" class="btn">Print this table</button>
+      <a class="btn ghost" href="/dice-word-table.pdf" download>Download as PDF</a></p>
+  </section>
+
+  {/* THE METHOD SHEET — print only, and its own page.
+      The table pages stay strictly reference: no instructions interleaved with
+      2,048 rows. But the print-out cannot be method-less either, because the
+      reader is holding paper away from the screen, and one thing here is not
+      inferable from the table at all — that 5s and 6s are rerolled, which is
+      why no heading contains one.
+      It names the site on purpose: this sheet gets passed around, and whoever
+      receives it should land on the full procedure rather than work from a
+      summary. */}
+  <section class="dwt-sheet">
+    <h2 class="ds-h">Rolling your own seed words — the method</h2>
+    <p class="ds-lead">
+      This sheet explains how to use the table on the following pages. The full procedure, including what to
+      do with the words once you have them, is at <strong>bitcoinkeys.guide/roll-your-own-seed</strong> — read
+      it before you begin. Do not work from this sheet alone.
+    </p>
+
+    <h3 class="ds-sh">What you need</h3>
+    <p>One six-sided die, one coin, pen and paper. No computer, no phone.</p>
+
+    <h3 class="ds-sh">For each word</h3>
+    <ol class="ds-steps">
+      <li><strong>Throw the die {DICE_PER_WORD} times.</strong> <strong>Reroll every 5 and 6</strong> — they
+        do not count and are not written down. Keep throwing until you have {DICE_PER_WORD} results that are
+        each 1, 2, 3 or 4. This is why no entry in the table contains a 5 or a 6.</li>
+      <li><strong>Flip the coin once.</strong> <span class="mono">H</span> is heads,
+        <span class="mono">T</span> is tails. The coin is not optional: the die gives ten of the eleven bits a
+        word needs and the coin gives the eleventh. Always taking the same side halves the randomness of every
+        word you pick.</li>
+      <li><strong>Find your word.</strong> Blocks are headed by your first {PREFIX_THROWS} throws. Find that
+        block, then read down to the line matching your remaining
+        {DICE_PER_WORD - PREFIX_THROWS} throws and your flip.</li>
+      <li><strong>Write the word down, in order, by hand.</strong> Never type it, photograph it, or read it
+        aloud in earshot of anything with a microphone.</li>
+    </ol>
+
+    <h3 class="ds-sh">How many words</h3>
+    <p>
+      Twenty-three words for a 24-word seed, or eleven for a 12-word seed. <strong>You do not roll the last
+      word.</strong> It carries a checksum that has to be calculated, and your hardware wallet does that for
+      you — the procedure on the site explains how, for each device.
+    </p>
+
+    <h3 class="ds-sh">Two things worth knowing</h3>
+    <p>
+      <strong>This table holds no secret.</strong> It is the standard BIP-39 word list in a fixed order, and
+      anyone can regenerate it. Printing it, photographing it or keeping it on a phone is harmless. Your
+      <em>throws</em> and the <em>words</em> they produce are the secret, and those never touch a screen.
+    </p>
+    <p>
+      <strong>This is the same method and the same table BitBox publishes</strong> for its own devices. We
+      generated ours independently from the word list and checked all {tableRowCount.toLocaleString()} entries
+      against theirs: every one matches. Either table gives the same word for the same throws — but use one
+      table for a whole seed, not a mix.
+    </p>
+  </section>
+
+  {/* THE WORKSHEET — print only, its own page.
+      Unlike the table, THIS SHEET BECOMES THE SEED the moment it is written
+      on, and the warning has to lead rather than sit in a footnote. It is the
+      one artifact here that is dangerous to keep, photograph or throw away
+      intact.
+      One sheet covers both lengths: a 12-word seed stops at row 11, which is
+      marked in place rather than needing a second sheet to print and confuse. */}
+  <section class="dwt-work">
+    <h2 class="ds-h">Worksheet — fill in as you go</h2>
+    <p class="dw-warn">
+      <strong>The moment you write on this sheet it becomes your seed.</strong> Treat it exactly as you would
+      the words themselves: never photograph it, never type it up, never leave it out. When your words are
+      safely on their permanent backup and you have restored from that backup successfully, destroy this sheet
+      — shred or burn it. Do not simply bin it.
+    </p>
+    {/* THE THROW BOXES ARE GROUPED 3 + 2, matching how the table is actually
+        read: the first three throws find the block, the last two plus the flip
+        find the line inside it. A flat run of five boxes made the reader hold
+        that split in their head while looking at a sheet that did not show it.
+        The gap is the one piece of formatting here doing real work.
+        Row bands every five keep your place on a 23-row sheet — the mistake
+        this artifact exists to prevent is a word written on the wrong line. */}
+    <table class="dw">
+      <thead>
+        <tr>
+          <th class="dw-n">#</th>
+          <th colspan={PREFIX_THROWS}>Block <span class="dw-th-s">first {PREFIX_THROWS} throws</span></th>
+          <th colspan={DICE_PER_WORD - PREFIX_THROWS} class="dw-g">Line <span class="dw-th-s">next {DICE_PER_WORD - PREFIX_THROWS}</span></th>
+          <th class="dw-f">Flip</th>
+          <th class="dw-w">Word</th>
+        </tr>
+      </thead>
+      <tbody>
+        {Array.from({ length: longChosen }, (_, i) => (
+          <tr class:list={[
+            i + 1 === shortChosen ? 'dw-mark' : null,
+            (i + 1) % 5 === 0 ? 'dw-five' : null,
+          ]}>
+            <td class="dw-n">{i + 1}</td>
+            {Array.from({ length: DICE_PER_WORD }, (_, j) => (
+              <td class:list={['dw-b', j === PREFIX_THROWS ? 'dw-g' : null]}></td>
+            ))}
+            <td class="dw-b dw-f"></td>
+            <td class="dw-w"></td>
+          </tr>
+        ))}
+        <tr class="dw-last">
+          <td class="dw-n">{longChosen + 1}</td>
+          <td class="dw-note" colspan={DICE_PER_WORD + 1}>Not rolled — your device calculates this one</td>
+          <td class="dw-w"></td>
+        </tr>
+      </tbody>
+    </table>
+    <p class="dw-foot">
+      <strong>12-word seed:</strong> stop after row {shortChosen} — the device supplies word {shortChosen + 1}.
+      &nbsp;·&nbsp; <strong>24-word seed:</strong> fill all {longChosen}, the device supplies word {longChosen + 1}.
+      <br />Full procedure, and what to do with these words once you have them:
+      <strong>bitcoinkeys.guide/roll-your-own-seed</strong>
+    </p>
+  </section>
+
+  <section class="dwt-wrap">
+    {blocks.map((b) => (
+      <div class="dwt-block">
+        <h2 class="dwt-h">{b.prefix}<span class="dwt-hx">·</span></h2>
+        <ul class="dwt-rows">
+          {b.items.map((r) => (
+            <li><span class="dwt-k mono">{r.dice}{r.coin}</span>{r.word}</li>
+          ))}
+        </ul>
+      </div>
+    ))}
+  </section>
+</Base>
+
+<script>
+  const b = document.getElementById('dwt-print');
+  if (b) b.addEventListener('click', () => window.print());
+</script>
+
+<style>
+  .dwt-sheet, .dwt-work { display: none; }
+  .dwt-how { border: 1px solid var(--line); border-radius: var(--radius); padding: 1rem 1.2rem; margin: 1.2rem 0; }
+  .dwt-how p { margin: 0 0 .5rem; }
+  .dwt-note { color: var(--muted); font-size: .9rem; margin: 0 !important; }
+  .dwt-print { display: flex; gap: .7rem; flex-wrap: wrap; margin-top: 1rem; }
+  .btn { display: inline-flex; align-items: center; background: var(--accent); color: var(--accent-ink);
+    font-weight: 700; font-family: var(--mono); font-size: .9rem; padding: .65rem 1rem;
+    border-radius: .6rem; text-decoration: none; border: none; cursor: pointer; }
+  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
+  .btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* One compact line per word rather than a table. A 3-cell table row carries
+     its own padding and borders 2,048 times over, which is what turned this
+     into a 26-page print-out. Same markup for screen and print — a separate
+     print-only rendering of 2,048 rows is two places for a word to be wrong. */
+  .dwt-wrap { columns: 4 13rem; column-gap: 1.5rem; margin-top: 1.4rem; }
+  .dwt-block { break-inside: avoid-column; margin-bottom: .8rem; }
+  .dwt-h { font-size: .74rem; margin: 0 0 .15rem; letter-spacing: .06em; color: var(--muted);
+    font-family: var(--mono); font-weight: 600; }
+  .dwt-hx { opacity: .45; margin-left: .3rem; }
+  .dwt-rows { list-style: none; padding: 0; margin: 0; font-size: .76rem; line-height: 1.35; }
+  .dwt-rows li { white-space: nowrap; }
+  .dwt-k { color: var(--muted); margin-right: .4rem; }
+
+  @media print {
+    /* Ink and paper. Everything above the table is screen furniture; the
+       method lives on the procedure page, which is where a reader who needs
+       it is standing anyway. */
+    .dwt-intro { display: none; }
+    /* Its own page, so the reference pages that follow carry nothing but
+       the table. */
+    .dwt-sheet { display: block; color: #000; break-after: page; font-size: 10pt; line-height: 1.45; }
+    .dwt-work { display: block; color: #000; break-after: page; font-size: 10pt; }
+    .dw-warn { border: 1pt solid #000; padding: .4rem .6rem; margin: 0 0 .6rem; font-size: 9pt; line-height: 1.35; }
+    .dw { width: 100%; border-collapse: separate; border-spacing: 2pt 2.5pt; font-size: 9pt; }
+    .dw th { font-size: 7pt; text-transform: uppercase; letter-spacing: .07em; font-weight: 700;
+      padding: 0 .1rem .18rem; text-align: left; color: #000; border: none; }
+    /* The label carries the instruction, so the sheet says how to use itself. */
+    .dw-th-s { display: block; text-transform: none; letter-spacing: 0; font-weight: 400;
+      font-size: 6.4pt; color: #555; }
+    /* Boxes, not table cells. A hairline box with real space around it reads as
+       somewhere to write; a ruled grid reads as a spreadsheet, and people write
+       smaller and straddle the lines. */
+    /* 22pt is the CEILING, not a preference. At 23pt the worksheet spills onto a
+       second sheet and the whole artifact goes from six pages to seven — the
+       reader then prints two half-empty pages for one worksheet. Measured
+       against the rebuilt PDF at 21/22/23/24/25.5pt; do not raise it by eye. */
+    .dw td { border: .6pt solid #9a9a9a; border-radius: 2pt; height: 22pt; padding: 0 .2rem; }
+    .dw-n { width: 4.5%; border: none !important; text-align: right; font-size: 7.5pt;
+      color: #666; font-weight: 600; padding-right: .25rem; }
+    .dw-b { width: 5.2%; }
+    .dw-f { width: 6.5%; background: #f4f4f4; }
+    .dw-w { width: 41%; }
+    /* THE 3 + 2 SPLIT, drawn. Extra left space on the fourth box separates the
+       block lookup from the line lookup, which is the shape of the procedure. */
+    .dw td.dw-g { margin-left: 6pt; box-shadow: -4pt 0 0 0 #fff; }
+    .dw th.dw-g { padding-left: .32rem; }
+    /* Place-keeping. Every fifth row is tinted so a glance tells you which
+       ten you are in — the failure this sheet exists to prevent is a word
+       written one line off. */
+    .dw-five td { background: #f7f7f7; }
+    .dw-five .dw-f { background: #ededed; }
+    /* Where a 12-word seed stops: a rule across the sheet, not a heavier cell
+       border, so it reads as a finish line. */
+    .dw-mark td { border-bottom: 1.6pt solid #000 !important; }
+    .dw-last td { background: #e8e8e8; border-color: #666; }
+    .dw-note { font-size: 7.5pt; color: #333; text-align: center; }
+    .dw-foot { font-size: 8pt; margin-top: .55rem; line-height: 1.45; padding-top: .35rem;
+      border-top: .6pt solid #bbb; }
+    .ds-h { font-size: 15pt; margin: 0 0 .5rem; color: #000; }
+    .ds-sh { font-size: 11pt; margin: .9rem 0 .25rem; color: #000; }
+    .ds-lead { margin: 0 0 .6rem; }
+    .dwt-sheet p { margin: 0 0 .5rem; }
+    .ds-steps { margin: 0; padding-left: 1.1rem; }
+    .ds-steps li { margin-bottom: .45rem; }
+    /* Site chrome off the print-out. The nav and footer are wasted ink, and
+       the advisory banner would stamp a dated incident onto an artifact that
+       is otherwise good forever — the BIP-39 wordlist never changes, so a
+       printed copy of this should never go stale. Global selectors because
+       the elements belong to the layout, not to this page's scope. */
+    :global(.adv-banner), :global(header.nav), :global(footer.foot) { display: none !important; }
+    /* The min column width is load-bearing: `columns: N <min>` silently drops
+       to fewer columns when N × min exceeds the printable width, so asking for
+       six 8rem columns on A4 quietly produced four. Keep the minimum below
+       (page width − margins) ÷ N or the count is a suggestion. */
+    .dwt-wrap { columns: 6 5rem; column-gap: 0.8rem; margin: 0; }
+    .dwt-rows { font-size: 6.6pt; line-height: 1.03; }
+    .dwt-rows li { color: #000; }
+    .dwt-k { color: #444; margin-right: .25rem; }
+    .dwt-h { font-size: 7pt; color: #000; margin-bottom: .04rem; margin-top: .08rem; }
+    /* Blocks are 32 rows and comfortably shorter than a column, so keeping
+       each one whole is both possible and worth the space — a block split
+       across a column break is the case that makes a lookup table hard to
+       use. This was `auto` while blocks were 128 rows: at that size the rule
+       could not be honoured and instead left most of every column empty,
+       which is what made this a 26-page document. Revisit if the prefix
+       length changes again. */
+    /* BREATHING ROOM BETWEEN BLOCKS. This was .1rem, which packed 64 blocks
+       into a wall — with the last page left part-empty, so the space was
+       already paid for and simply not being used. A hairline above each block
+       gives the eye something to land on when scanning for a prefix.
+       THE PAGE COUNT IS THE CONSTRAINT: this is the one value here that can
+       push the table from four pages to five, so it is tuned against the
+       rebuilt PDF and not by eye. Re-run scripts/build-dice-pdf.sh and check
+       the count after touching it. */
+    .dwt-block { margin-bottom: .42rem; padding-top: .2rem; break-inside: avoid-column;
+      border-top: .4pt solid #d5d5d5; }
+    .dwt-block:first-child { border-top: none; padding-top: 0; }
+    @page { margin: 8mm; }
+  }
+</style>

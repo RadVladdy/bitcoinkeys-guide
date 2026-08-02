@@ -292,7 +292,8 @@ const groupActive = (g) =>
   .lv-n { font-family: var(--mono); font-size: 0.76rem; font-weight: 700;
     color: var(--accent-ink); background: var(--accent); border-radius: 0.32rem;
     padding: 0.15rem 0.45rem; letter-spacing: 0.02em; }
-  /* 201 is a different KIND of material — optional. The token carries that. */
+  /* Retained for a level flagged `optional`. No level is, since 201 was removed
+     2026-08-01 — kept because the flag is the switch if one ever returns. */
   .lv.opt .lv-n { background: var(--safe); }
   .lv-t { font-size: 0.9rem; font-weight: 800; letter-spacing: 0.06em;
     text-transform: uppercase; color: var(--text); }

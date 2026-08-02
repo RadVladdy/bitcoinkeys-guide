@@ -1,4 +1,7 @@
-// The "deeper dive" demos — the Level-201 interactive tier.
+// The interactive demos. These were "Level 201" until 2026-08-01, which made the
+// hub lesson 18 of 18 and turned every aside into one into a forward link the
+// no-forward-links checker had to except by name. They are a TOOL: no reading
+// position, no rule, nothing to complete. They live in Tools & demos now.
 // One source of truth so the /deep-dive hub renders them and /start can count them
 // without importing the pages themselves. (Globbing the .astro files pulled every
 // demo's client script — and its crypto libraries — into /start; hence this file.)

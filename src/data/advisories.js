@@ -40,18 +40,44 @@ export const advisories = [
     exposure: [
       {
         band: 'Highest risk',
-        who: 'Seeds generated on a Coldcard Mk3 running firmware 4.0.1 through 5.0.3.',
-        detail: 'Roughly 40 bits of effective randomness instead of 128 — within reach of an offline brute-force search. This is the group the 30 July sweeps came from.',
+        who: 'Seeds generated on a Coldcard Mk2 or Mk3 running any 4.x firmware before 4.2.0 — that is 4.0.1 through 4.1.9.',
+        detail: 'Roughly 40 bits of effective randomness instead of 128 — within reach of an offline brute-force search. This is the group the 30 July sweeps came from. Coinkite gives the Mk3 range as 4.0.1–4.1.9 and Block’s analysis puts the Mk2 and Mk3 range at 4.0.0–4.1.9; either way, anything below the 4.2.0 fix is in scope.',
       },
       {
         band: 'Also affected',
-        who: 'Seeds generated on a Coldcard Mk4, Mk5 or Q before the emergency firmware (5.6.0+ for Mk4/Mk5, 1.5.0Q+ for Q).',
-        detail: 'Partial secure-element mixing left these stronger — around 72 bits — but that is still far below what a seed is supposed to have, and far below what we would call safe. Treat it as serious, not as cleared.',
+        who: 'Seeds generated on a Coldcard Mk4, Mk5 or Q before the fixed firmware for your release track — standard 5.6.0+ (Mk4/Mk5) or 1.5.0Q+ (Q), Edge 6.6.0X+ (Mk4/Mk5) or 6.6.0QX+ (Q).',
+        detail: 'Partial secure-element mixing left these stronger — around 72 bits by Coinkite’s reckoning — but that is still far below what a seed is supposed to have. Block’s analysis is harsher: once the fallback state and call history are pinned down, it puts the securely-distinguished search space at no more than 2³². Treat this band as serious, not as cleared.',
       },
       {
-        band: 'Not affected by this flaw',
-        who: 'Seeds generated before the vulnerable firmware window; seeds you created with at least 50 of your own dice rolls; seeds protected by a strong, unique BIP-39 passphrase; multisig where at least one key was generated somewhere unaffected; and TAPSIGNER, OPENDIME and SATSCARD, which run different code.',
-        detail: 'A passphrase helps here because it is mixed in after seed generation — an attacker who guesses a weak seed still cannot reach coins behind a phrase they do not have.',
+        // The trap Coinkite calls out by name: Edge version numbers run AHEAD of
+        // the standard track, so arithmetic on the version number gives the wrong
+        // answer. Stated as its own band because a reader who gets this wrong
+        // concludes they are safe and stops reading.
+        band: 'The version-number trap',
+        who: 'Anyone on the Edge release track.',
+        detail: 'Standard and Edge are separate tracks and Edge numbers are higher. An Edge 6.x release is not fixed merely because 6 is greater than 5.6.0 — only 6.6.0X (Mk4/Mk5) and 6.6.0QX (Q) and later carry the fix. Check your track, then your version, in that order.',
+      },
+      {
+        // A seed is affected by where it was BORN, so moving it elsewhere carries
+        // the weakness along. Without this, a reader who migrated to another
+        // maker reads the bands above and correctly concludes none apply to them.
+        band: 'Still affected even though you left',
+        who: 'Anyone who generated a seed on an affected Coldcard and later restored it onto a different wallet — another maker’s device, a phone wallet, or software.',
+        detail: 'The weakness is in the seed itself, not in the device holding it. Restoring a weak seed somewhere else copies the weakness across. Your exposure is decided by where and when the seed was first generated, and nothing you do afterwards short of generating a new one changes that.',
+      },
+      {
+        band: 'Out of scope, or genuinely protected',
+        who: 'Seeds generated before the vulnerable firmware window (Mk2 and Mk3 through 3.2.2 used the hardware generator directly); seeds you created with at least 50 of your own dice rolls, rolled independently and privately and never written down anywhere digital; and TAPSIGNER, OPENDIME and SATSCARD, which run different code entirely.',
+        detail: 'On affected firmware the device hashed your dice in alongside its own weak randomness, so your rolls still count: Coinkite puts 50–98 independent private rolls at 128 bits or better from the dice alone, and 99+ at roughly 256. If you cannot remember how many you rolled, or whether the sequence was recorded, treat the seed as in scope.',
+      },
+      {
+        // Deliberately NOT filed under the clear band. A passphrase blocks this
+        // attack but leaves a weak seed underneath it, and the vendor's own
+        // guidance is to migrate anyway. Filing it as "safe" would be the
+        // difference between a reader acting and a reader stopping here.
+        band: 'Protected for now, but still migrate',
+        who: 'Seeds behind a strong, unique BIP-39 passphrase, and multisig wallets where at least one key was generated somewhere unaffected.',
+        detail: 'These are real mitigations and they are why nothing was taken from wallets that had them — a guessed seed does not reach coins behind a phrase the attacker does not have, and one weak key out of several does not move a multisig. But the weak seed is still underneath, so the protection is only as good as the passphrase. A short, common, patterned, quoted or reused passphrase is guessable; if that describes yours, treat the funds as at risk today. Everyone in this band should migrate in their own time rather than treat it as closed.',
       },
     ],
 
@@ -63,10 +89,14 @@ export const advisories = [
         'Updating does not repair a seed that already exists. Your exposure was decided by the firmware running at the moment the seed was first generated — not by the firmware on the device today, and not by when you bought it. Restoring a weak seed onto a brand-new device leaves it exactly as weak. The only fix for an affected seed is to generate a new one on fixed firmware and move the coins.',
     },
 
+    // Both release tracks, because Edge numbers are HIGHER than standard ones
+    // and a reader comparing version numbers alone reaches the wrong answer.
     fixedFirmware: [
       { model: 'Mk3', version: '4.2.0 or later' },
-      { model: 'Mk4 and Mk5', version: '5.6.0 or later' },
-      { model: 'Q', version: '1.5.0Q or later' },
+      { model: 'Mk4 and Mk5 (standard track)', version: '5.6.0 or later' },
+      { model: 'Mk4 and Mk5 (Edge track)', version: '6.6.0X or later' },
+      { model: 'Q (standard track)', version: '1.5.0Q or later' },
+      { model: 'Q (Edge track)', version: '6.6.0QX or later' },
     ],
 
     // What we tell a reader to actually DO, in order. Deliberately calm: the
@@ -89,7 +119,47 @@ export const advisories = [
 
     // Our own position, kept separate from the reporting above.
     ourTake:
-      'We rate the Coldcard in our cold-storage tier and recommend it in the setup finder, so this lands on our own recommendation and we are not going to be quiet about it. Two things are true at once, and conflating them helps nobody. A device bought today, running fixed firmware, generates a proper seed — the defect is in seeds already created, not in every Coldcard forever. But a five-year-old flaw in open-source firmware that nobody caught, in the single most security-critical function a signing device performs, is a serious mark against a maker, and we are re-reading it against our published standard rather than assuming our rating still holds. What we will not do is quietly change a rating and hope nobody noticed the old one.',
+      'We rate the Coldcard in our cold-storage tier and recommend it in the setup finder, so this lands on our own recommendation and we are not going to be quiet about it. Two things are true at once, and conflating them helps nobody. A device bought today, running fixed firmware, generates a proper seed — the defect is in seeds already created, not in every Coldcard forever. But a five-year-old flaw in open-source firmware that nobody caught, in the single most security-critical function a signing device performs, is a serious mark against a maker, We said we would re-read it against our published standard rather than assume our rating still held, and that whatever we concluded would be published rather than quietly applied. That review is below.',
+
+    // ── THE PROMISED REVIEW, DISCHARGED ─────────────────────────────────────
+    // The advisory promised in writing that the cold-tier rating was being
+    // re-read against /standard and that the conclusion would be published
+    // rather than quietly applied. This is that conclusion. It stays on the
+    // page rather than becoming a silent rating change, which is the whole
+    // point of having made the promise.
+    ratingReview: {
+      published: '2026-08-01',
+      verdict: 'The Coldcard keeps its place in our cold-storage tier.',
+      intro:
+        'We said we would re-read the Coldcard against our published standard rather than assume the old rating survived, and that we would publish whatever we found. Here it is, gate by gate. The short version is that nothing in our standard fails — and that the reasoning is more uncomfortable than the verdict.',
+      gates: [
+        {
+          gate: 'Your keys can never leave over the internet',
+          holds: true,
+          note: 'Holds. No Coldcard feature exports your seed to anyone, and none did here. The flaw made seeds guessable from the outside; it never shipped one anywhere. The distinction matters for the rating even though the outcome for the victims was the same.',
+        },
+        {
+          gate: 'Verifiable — not a closed black box',
+          holds: true,
+          note: 'Holds, and this is the uncomfortable one. The firmware is source-available and independently reproducible, and it still is. But the defect sat in that public source for five years, and researchers were able to link the exact lines the day it surfaced. Reproducible builds did their job perfectly: they guaranteed the shipped binary faithfully matched the source, and the source had the bug in it.',
+        },
+        { gate: 'Bitcoin-only firmware', holds: true, note: 'Unaffected.' },
+        { gate: 'A minimal, single-purpose signer', holds: true, note: 'Unaffected.' },
+        { gate: 'Self-sovereign, portable recovery', holds: true, note: 'Unaffected — a standard BIP-39 seed, restorable anywhere.' },
+      ],
+      // The honest reckoning, kept separate from the gate-by-gate so it cannot
+      // read as one more box being ticked.
+      reckoning:
+        'We are not going to pretend the verdict is a clean bill of health. A five-year-old flaw in the single most security-critical function a signing device performs, in open code that anyone could read, is a serious mark against a maker — and it is a mark against the rest of us too, because "it is open, so someone would have caught it" is exactly what everybody assumed, including us. Nobody had. What verifiability actually buys you is the ability to find out afterwards, quickly and precisely, which is genuinely worth having and is not the same thing as prevention.',
+      // Why the standard is NOT changing — the decision, stated as a decision.
+      whyNoNewGate:
+        'The obvious move would be to add a criterion about entropy: where a device gets its randomness, and whether anyone outside the company can check it. We considered it and decided against, and it is worth saying why, because the argument is not that the gap does not exist. Open, reproducible code is the highest bar available today — there is no stronger standard to hold a maker to, and the Coldcard already clears it. A rule written now would be a rule written against the specific thing that just went wrong, and the next failure will be something nobody has thought of yet. A standard that grows a new clause after every incident stops being a standard and becomes a list of past events.',
+      // What changed instead. Only claims things that have actually shipped.
+      instead:
+        'What we changed is what we tell you to do about it. The people whose coins survived this were the ones who had not left the randomness entirely to the device — their own dice, a passphrase the device never saw, or a key from a different maker. So we have published a full procedure for generating a seed from your own dice rolls, on the devices we rate, checked against each maker\'s own current documentation. That is a thing you can act on today, and unlike a new gate it would have helped against this failure and against ones we have not imagined.',
+      insteadHref: '/roll-your-own-seed',
+      insteadLabel: 'Roll your own seed with dice',
+    },
 
     // The wider lesson — this is the part that outlives the incident.
     lesson:

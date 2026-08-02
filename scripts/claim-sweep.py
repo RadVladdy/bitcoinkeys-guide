@@ -80,6 +80,25 @@ TOPICS = {
         subject=r'\b(multisig|multi-signature|passphrase|more keys|complexity|rung)\b',
         stance=r'\b(more secure|safer|better|stronger|upgrade|should climb|advanced)\b',
     ),
+    'seed-randomness': dict(
+        why='Where a seed\'s randomness comes from. The stance — "where your device allows it, add '
+            'your own throws" — is stated on the lesson, the tool page and the checklist step, and the '
+            'checklist step REPOINTS ITSELF at runtime, so a change to an option key silently changes '
+            'what it links to. Added 2026-08-01: the topic existed on three surfaces before it existed here.',
+        subject=r'\b(dice|entropy|randomness|random number|seed (?:is )?generat\w*|your own throws|rolls?)\b',
+        stance=r'\b(add|mix\w*|supply|suppl\w+|own|trust|default|recommend\w*|cannot be worse|can.t be worse|'
+               r'optional|sovereign|enrich\w*|no route|allows?|does not apply|n/a)\b',
+    ),
+    'finder-output': dict(
+        why='What the finder recommends and why. The engine, /how-we-weigh-risk, the result card, '
+            '/my-plan and the checklist intro all describe one decision — and the result card\'s copy '
+            'comes from a DIFFERENT engine than the ranking behind it, which is exactly how a card '
+            'ended up naming a worry the reader had just rated low.',
+        subject=r'\b(setup|recommend\w*|passphrase|multisig|single-sig|collaborative|rung|concern|'
+                r'assessment|risk picture)\b',
+        stance=r'\b(because your|we (?:did not|didn.t|deliberately)|your answers|scored?|fits you|'
+               r'best|simplest|step up|elevated|typical|low|high|holdback|caveat|trade)\b',
+    ),
     'retired-vocabulary': dict(
         why='Terms the site has retired. Each one shipped as current copy at some point '
             'and survived at least one pass.',

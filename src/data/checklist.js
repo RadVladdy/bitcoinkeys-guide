@@ -28,6 +28,7 @@
 // three habits it named moved to other lessons and already have their own items here.
 
 import { ruleByKey } from './rules.js';
+import { assessDevices } from './wallets.js';
 
 export const PHASES = [
   { key: 'setup',  tag: 'Step 1',    title: 'Get set up',        intro: 'The moves that get your Bitcoin out of someone else’s hands and into your own.' },
@@ -72,9 +73,12 @@ export const checklistItems = [
   { id: 'install-app', phase: 'setup', t: 'Install the maker’s wallet app',
     d: 'Your hardware wallet pairs with an app on your computer or phone — that’s where you’ll see balances and prepare the payments the device signs. Get it from the maker’s official site only, typed by hand, never from a search result or an ad: fake copies of these apps exist, and they are built to steal.',
     href: '/learn/phishing-and-scams' },
-  { id: 'generate-seed', phase: 'setup', t: 'Generate a fresh seed on the device yourself',
-    d: 'Power the device on and follow the maker’s official start page — the address printed in the box or on their site, not a link someone sent you. Set a PIN when it asks, then let the device create the seed in front of you: it shows the words on its own screen, and you copy them down by hand. Never use pre-set words, and never type the words into a computer or phone.',
-    href: '/learn/ladder#rung-1', rule: 'buy-direct' },
+  // The link is REPOINTED at runtime to the dice option this reader's own
+  // hardware can perform (see checklist.astro). The static href is the lesson,
+  // which is the right destination for anyone without a saved plan.
+  { id: 'generate-seed', phase: 'setup', t: 'Generate a fresh seed — and add your own randomness',
+    d: 'Power the device on and follow the maker’s official start page — the address printed in the box or on their site, not a link someone sent you. Set a PIN when it asks, then let the device create the seed in front of you: it shows the words on its own screen, and you copy them down by hand. Never use pre-set words, and never type the words into a computer or phone. Where your device allows it, add your own dice throws to the randomness it generates — it takes a few minutes, it cannot make the result worse, and it removes the one part of your setup you otherwise have to take on trust.',
+    href: '/learn/generate-your-seed', rule: 'buy-direct' },
   { id: 'passphrase-choose', phase: 'setup', only: ['passphrase'], t: 'Choose your passphrase carefully',
     d: 'The secret “25th word” that opens your real wallet — the seed alone opens a decoy. It can’t be reset, rate-limited, or recovered, so a weak or guessable one is almost as bad as none.',
     href: '/learn/ladder#rung-2' },
@@ -184,9 +188,33 @@ export const checklistGroups = PHASES.map((p) => ({
 }));
 
 /**
+ * Is the "get a hardware wallet" step already answered? True when the plan's
+ * chosen devices — or, before any are chosen, the ones they own — include at
+ * least one that clears the cold-storage bar. Owning a device we'd trust means
+ * the step is done, not pending; telling that reader to go and buy one is
+ * selling them hardware they already have.
+ *
+ * Lives HERE, not on the page, because two surfaces ask it. /checklist hid the
+ * step and /my-plan counted it, so a reader who owned a clearing device was
+ * told "your checklist is ready — 23 steps" and then handed 22. The count and
+ * the list have to come out of one function or they will disagree eventually,
+ * and this one had.
+ */
+export function deviceSlotSettled(ctx) {
+  if (!ctx) return false;
+  const planned = (Array.isArray(ctx.devices) ? ctx.devices : []).filter(Boolean);
+  const owned = (Array.isArray(ctx.owned) ? ctx.owned : []).filter(Boolean);
+  const slugs = planned.length ? planned : owned;
+  if (!slugs.length) return false;
+  return assessDevices(slugs).some((d) => d.verdict === 'cold');
+}
+
+/**
  * Does this item apply to a given plan? Pure, so both the page and any future
  * surface (a printable PDF, /my-plan) can ask the same question.
- *   ctx = { rung, heirs, custodian }
+ *   ctx = { rung, heirs, custodian, devices, owned }
+ * `devices`/`owned` are optional — omit them and the device step simply stays
+ * in, which is the honest answer when the caller doesn't know what you hold.
  */
 export function itemApplies(item, ctx) {
   if (!ctx || !ctx.rung) return true;              // no plan → the full generic list
@@ -194,6 +222,7 @@ export function itemApplies(item, ctx) {
   if (item.only && !item.only.includes(ctx.rung)) return false;
   if (item.needs === 'heirs' && !ctx.heirs) return false;
   if (item.needs === 'custodian' && !ctx.custodian) return false;
+  if (item.deviceSlot && deviceSlotSettled(ctx)) return false;
   return true;
 }
 

@@ -123,8 +123,10 @@ export const finderPromiseCap = `${questionCountWordCap} plain questions and a s
 // deliberately omitted there (it supports other coins), so it's omitted here.
 // RUNG 4 ONLY. `savingsCustodians`, not `custodians` — the finder recommends
 // collaborative custody as the third key of a LONG-TERM VAULT, and Bitkey is a
-// collaborative-custody product built for SPENDING. It keeps its section on
-// /collaborative and its row on /wallets.
+// collaborative-custody product built for SPENDING. Listing it here made it a
+// candidate answer to "which service should hold the third key of my savings",
+// which is not a question it answers. It keeps its place on /collaborative, in
+// its own section, and its place on /wallets as a spending-tier device.
 import { savingsCustodians } from './custodians.js';
 import { deviceBySlug } from './wallets.js';
 const KYC_LABEL = { yes: 'No KYC', no: 'KYC required', partial: 'KYC varies' };
