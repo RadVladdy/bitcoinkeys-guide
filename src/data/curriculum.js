@@ -77,30 +77,30 @@ export const levels = [
     // in the level list and one on the card beside it — the same word for the
     // idea and for the reader's own instance of it. The level is the generic one,
     // so the level is what renamed.
-    title: 'Wallet setups',
+    title: 'Wallet configuration',
     why: 'Now that you know the risks: how every real setup is built, from one key upward — and how to tell which one would cover you.',
     blurb: 'Every real setup fits on one ladder. Find the lowest rung that covers you, and move up only when your situation genuinely outgrows it.',
     lessons: [
-      { href: '/learn/hot-and-cold',     label: 'Hot and cold — where your money lives', short: 'Hot and cold' },
+      { href: '/learn/hot-and-cold',     label: 'Hot and cold — where savings belong', short: 'Hot and cold' },
       { href: '/learn/ladder',           label: 'The wallet configuration ladder', short: 'The wallet configuration ladder' },
       { href: '/learn/beyond-the-ladder', label: 'Beyond the ladder — BIP-85 and Shamir', short: 'Beyond the ladder', note: 'optional' },
-      { href: '/learn/choose-a-wallet',  label: 'How to choose a hardware wallet', short: 'Choosing a hardware wallet' },
+      { href: '/learn/choose-a-wallet',  label: 'Choosing a hardware wallet', short: 'Choosing a hardware wallet' },
     ],
   },
   {
     id: '103',
-    title: 'The build',
-    why: 'The hands-on build — the part where coins actually move.',
-    blurb: 'Back it up so fire and water can’t destroy it, prove the backup works, and move coins without fumbling.',
+    title: 'Private key creation',
+    why: 'Where the keys themselves come into existence — made, backed up, proven, and used for the first time.',
+    blurb: 'Making a seed, backing it up so fire and water can’t destroy it, proving the backup works, and moving coins without fumbling.',
     lessons: [
       // FIRST in the build, because 103 previously opened on backing up a seed
       // that no lesson had ever told the reader how to create. The order is
       // chronological: make the seed, back it up, prove the backup, then move
       // coins.
-      { href: '/learn/generate-your-seed', label: 'Generating your seed', short: 'Generating your seed' },
-      { href: '/learn/back-up-your-seed',   label: 'Back up your seed phrase', short: 'Back up your seed phrase' },
-      { href: '/learn/test-your-backup',    label: 'Test your backup',         short: 'Test your backup' },
-      { href: '/learn/send-bitcoin-safely', label: 'Send Bitcoin safely',      short: 'Send Bitcoin safely' },
+      { href: '/learn/generate-your-seed', label: 'Generating a seed', short: 'Generating a seed' },
+      { href: '/learn/back-up-your-seed',   label: 'Backing up a seed phrase', short: 'Backing up a seed phrase' },
+      { href: '/learn/test-your-backup',    label: 'Testing a backup',         short: 'Testing a backup' },
+      { href: '/learn/send-bitcoin-safely', label: 'Sending Bitcoin safely',      short: 'Sending Bitcoin safely' },
     ],
   },
   {
@@ -112,7 +112,7 @@ export const levels = [
       { href: '/learn/phishing-and-scams', label: 'Phishing and everyday safety',        short: 'Phishing and everyday safety' },
       { href: '/learn/privacy',            label: 'Privacy / OpSec',                     short: 'Privacy / OpSec' },
       { href: '/learn/inheritance',        label: 'Bitcoin inheritance',                 short: 'Bitcoin inheritance' },
-      { href: '/learn/recovery-kit',       label: 'Build the Recovery Kit',              short: 'Build the Recovery Kit' },
+      { href: '/learn/recovery-kit',       label: 'Building a Recovery Kit',              short: 'Building a Recovery Kit' },
       // RUNNING A NODE ENDS THE COURSE (moved from 201, 2026-08-01). It was the
       // first half of an optional level whose other half was not a lesson at
       // all, and it is not really optional material: checking the rules with
@@ -120,7 +120,7 @@ export const levels = [
       // and it is the umbrella rule ("verify, don't trust") in its fullest
       // form. As the final lesson it reads as the end of the road rather than
       // as a bonus track nobody is expected to reach.
-      { href: '/learn/run-a-node',         label: 'Run your own node',                   short: 'Run your own node' },
+      { href: '/learn/run-a-node',         label: 'Running your own node',                   short: 'Running your own node' },
     ],
   },
 ];
@@ -197,18 +197,34 @@ export const levelById = (id) => levels.find((lv) => lv.id === id) || null;
 // imported BY this file and must not import back.
 //
 // Negative-control it by changing any rule's `level` and running the build.
+// THE `lesson` TITLE IS CHECKED TOO, since 2026-08-03 — and it is the half that
+// was already drifting. Only `level` was asserted, so when the lesson titles were
+// swept to gerunds ("Test your backup" → "Testing a backup") all twelve of
+// rules.js's hand-typed lesson names would have gone on naming pages that no
+// longer go by those names, on the one page that deliberately cannot link to
+// them. A plain-text pointer is unfollowable BY DESIGN, so nothing but an assert
+// can catch it — which is the argument for asserting both halves rather than the
+// one that happened to break first.
 {
   const levelOf = {};
-  for (const lv of levels) for (const l of lv.lessons) levelOf[normalize(l.href)] = lv.id;
+  const labelOf = {};
+  for (const lv of levels) for (const l of lv.lessons) {
+    levelOf[normalize(l.href)] = lv.id;
+    labelOf[normalize(l.href)] = l.label;
+  }
   const wrong = [];
   for (const r of [...rules, umbrella]) {
     const want = levelOf[normalize(r.href)];
     if (!want) { wrong.push(`${r.key || 'umbrella'} → ${r.href} is not a lesson in any level`); continue; }
     if (want !== r.level) wrong.push(`${r.key || 'umbrella'} says level ${r.level}, but ${r.href} is in ${want}`);
+    const wantLabel = labelOf[normalize(r.href)];
+    if (r.lesson !== wantLabel) {
+      wrong.push(`${r.key || 'umbrella'} names the lesson "${r.lesson}", but ${r.href} is titled "${wantLabel}"`);
+    }
   }
   if (wrong.length) {
     throw new Error(
-      `curriculum.js: rules.js level labels disagree with the curriculum — /learn/rules would name the wrong level in plain text:\n  ${wrong.join('\n  ')}`,
+      `curriculum.js: rules.js level/lesson labels disagree with the curriculum — /learn/rules would name the wrong level or lesson in plain text:\n  ${wrong.join('\n  ')}`,
     );
   }
 }

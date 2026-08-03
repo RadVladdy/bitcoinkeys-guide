@@ -5,7 +5,7 @@ import LessonEyebrow from '../../components/LessonEyebrow.astro';
 import { finderPromise } from '../../data/quiz.js';
 import { numberWord } from '../../data/numbers.js';
 import RuleBand from '../../components/RuleBand.astro';
-import { levelById } from '../../data/curriculum.js';
+import { levelById, lessonFor } from '../../data/curriculum.js';
 
 // "103 · The build" as PLAIN TEXT, derived. The `covered` lines below deliberately
 // name where a defence is taught without linking to it (invariant 9 — the course is
@@ -14,6 +14,7 @@ import { levelById } from '../../data/curriculum.js';
 // 102 was retitled and four sentences in this one file would have gone on naming
 // the old one, silently and unlinkably.
 const lvl = (id) => { const l = levelById(id); return `${l.id} · ${l.title}`; };
+const lessonLabel = (href) => lessonFor(href).label;
 
 // The five ways Bitcoin is lost, in plain English, each with the defence.
 //
@@ -50,7 +51,7 @@ const buckets = [
       { h: 'You die without leaving a plan.', d: 'Your family finds a metal plate or a hardware wallet and has no idea what it is or how to use it — so they bin it. The most common version: a hidden passphrase nobody knew about, so heirs restore the words, see an empty wallet, and assume there was nothing there.' },
     ],
     defense: 'Back up your words on metal, keep a second copy somewhere else, test the restore before you fund it, and leave a plan your family can follow.',
-    covered: `Three lessons take this apart: <strong>Back up your seed phrase</strong> and <strong>Test your backup</strong> in ${lvl('103')}, then <strong>Why Bitcoin doesn’t inherit like money</strong> in ${lvl('104')}.`,
+    covered: `Three lessons take this apart: <strong>Backing up a seed phrase</strong> and <strong>Testing a backup</strong> in ${lvl('103')}, then <strong>Why Bitcoin doesn’t inherit like money</strong> in ${lvl('104')}.`,
   },
   {
     n: 2,
@@ -63,7 +64,7 @@ const buckets = [
       { h: 'The seed you typed or photographed.', d: 'The moment your recovery words touch an internet-connected device — a photo that auto-uploads to the cloud, words typed into a phone — they can leak, sometimes years later when that cloud account is breached. Keep the words off anything digital, full stop.' },
     ],
     defense: 'Never type or photograph your recovery words. Verify every address on the hardware wallet’s screen. Assume any “support” message that wants your words is a scam.',
-    covered: `The scams themselves get a whole lesson — <strong>Phishing and everyday safety</strong>, in ${lvl('104')}. The address check is <strong>Send Bitcoin safely</strong>, in ${lvl('103')}.`,
+    covered: `The scams themselves get a whole lesson — <strong>Phishing and everyday safety</strong>, in ${lvl('104')}. The address check is <strong>Sending Bitcoin safely</strong>, in ${lvl('103')}.`,
   },
   {
     n: 3,
@@ -98,7 +99,7 @@ const buckets = [
       { h: 'You send it over the “wrong network.”', d: 'Some exchanges and apps let you send “Bitcoin” out as a look-alike copy on another blockchain, or ask you to pick a “network” before you withdraw. Choose the wrong one and your coins land somewhere your normal wallet can’t see. The fix is simple: only ever send real, native Bitcoin, and at any network menu choose “Bitcoin.”' },
     ],
     defense: 'Verify the address on the hardware wallet’s screen, send a tiny test amount first, confirm it arrives, then send the rest — and never do it in a hurry. When withdrawing, make sure you’re sending real Bitcoin on the Bitcoin network.',
-    covered: `All of it lands in one lesson: <strong>Send Bitcoin safely</strong>, in ${lvl('103')}.`,
+    covered: `All of it lands in one lesson: <strong>Sending Bitcoin safely</strong>, in ${lvl('103')}.`,
   },
 ];
 ---
@@ -202,7 +203,7 @@ const buckets = [
         Most defences trade one risk for another — but <strong>testing your recovery</strong> is the
         rare win-win. Wipe your wallet and restore it from your written words with a tiny amount, before
         you trust it with savings. You catch a broken backup while it’s still harmless, and you’ll never
-        have to improvise a recovery in a panic. <strong>Test your backup</strong>, in 103 · The build,
+        have to improvise a recovery in a panic. <strong>{lessonLabel('/learn/test-your-backup')}</strong>, in {lvl('103')},
         walks the whole rehearsal.
       </p>
     </div>

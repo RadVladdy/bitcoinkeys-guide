@@ -14,6 +14,11 @@
 // Rung 2's construction guidance derives every figure from the same file the
 // dice procedure uses — words, bits and throws are never typed here.
 import { passphraseByKey, PBKDF2_ITERATIONS } from './dice.js';
+// Named in plain text and never linked — rung 2 sits in 102 and this lesson is in
+// 103 (invariant 9). Derived so a retitle cannot leave the sentence naming a lesson
+// that no longer goes by that name.
+import { lessonFor } from './curriculum.js';
+const laterLesson = lessonFor('/learn/test-your-backup');
 
 const ppFloor = passphraseByKey.floor;
 const ppSavings = passphraseByKey.savings;
@@ -112,7 +117,7 @@ export const ladder = [
         `<strong>Length, not symbols.</strong> BIP-39 stretches your passphrase with only ${PBKDF2_ITERATIONS.toLocaleString()} rounds of hashing — a number frozen into the standard and thin by any modern measure. Someone holding your seed backup can therefore test candidates offline, on their own hardware, with nothing to slow them down. Swapping letters for punctuation buys you a handful of bits and costs you accuracy when you copy it; another word off the table buys eleven.`,
         `<strong>Plain ASCII, and no space at either end.</strong> Wallets genuinely disagree about how they treat accented letters, emoji and other non-ASCII characters, so a passphrase built from them can open your wallet on one make of device and not on another. A leading or trailing space is worse: invisible on paper, and part of the secret. Capitals and the spaces between words count too — write it down exactly as it is.`,
         `<strong>Check the length your devices actually accept.</strong> Makers set different limits, and a passphrase longer than some other wallet’s maximum is a passphrase you cannot recover on that wallet. Find the limit for every device you might restore on, not just the one you are typing it into today.`,
-        `<strong>Prove it somewhere else before you fund it.</strong> The point of a passphrase is that your words plus your passphrase rebuild the wallet <em>anywhere</em>. That is a claim about other software, so test it on other software — restore on a second wallet, confirm the addresses match, and only then move coins. Testing a backup is its own lesson later in the course — <strong>Test your backup</strong>, in 103 · The build — and a passphrase doubles what there is to get wrong.`,
+        `<strong>Prove it somewhere else before you fund it.</strong> The point of a passphrase is that your words plus your passphrase rebuild the wallet <em>anywhere</em>. That is a claim about other software, so test it on other software — restore on a second wallet, confirm the addresses match, and only then move coins. Testing a backup is its own lesson later in the course — <strong>${laterLesson.label}</strong>, in ${laterLesson.levelId} · ${laterLesson.levelTitle} — and a passphrase doubles what there is to get wrong.`,
         `<strong>Write down the wallet fingerprint too.</strong> It is the one check the design gives you, and it costs nothing: note the code your device shows for the passphrase wallet, alongside the passphrase itself. Next time you restore, a fingerprint that matches means you typed it correctly — which is otherwise a thing you simply cannot know.`,
       ],
       foot: 'And then back it up as carefully as the seed, kept somewhere the seed is not — which is the failure directly above, and the one that actually costs people their Bitcoin.',

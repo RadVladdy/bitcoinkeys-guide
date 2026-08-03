@@ -82,7 +82,7 @@ export const rules = [
     lesson: 'Not your keys, not your coins',
   },
 
-  // ---- 102 · Wallet setups ----
+  // ---- 102 · Wallet configuration ----
   {
     n: 3,
     key: 'simplest-setup',
@@ -106,7 +106,7 @@ export const rules = [
     body: 'A wallet is <strong>hot</strong> when its keys sit on something that goes online, and <strong>cold</strong> when they don’t. Phone and desktop wallets are hot: fine for walking-around money, wrong for savings. Anything you are actually saving belongs on a device that stays offline — and writing your words into a note, a photo or a password manager puts them straight back online.',
     href: '/learn/hot-and-cold',
     level: '102',
-    lesson: 'Hot and cold — where your money lives',
+    lesson: 'Hot and cold — where savings belong',
   },
   {
     n: 5,
@@ -116,10 +116,10 @@ export const rules = [
     body: 'A device bought second-hand, or from a marketplace reseller, can reach you already loaded with someone else’s keys — and you would not find out until your coins left. Order from the manufacturer’s own website, check the tamper seal when it arrives, and make the device generate a brand-new seed phrase in front of you. If one ever arrives already showing you a seed phrase, it is compromised. Don’t use it.',
     href: '/learn/choose-a-wallet',
     level: '102',
-    lesson: 'How to choose a hardware wallet',
+    lesson: 'Choosing a hardware wallet',
   },
 
-  // ---- 103 · The build ----
+  // ---- 103 · Private key creation ----
   {
     n: 6,
     key: 'never-digital',
@@ -128,7 +128,7 @@ export const rules = [
     body: 'No photo. No cloud note. No password manager. No typing them into a phone or a computer, not even for a second, not even to “check” them. A digital copy of your words is a hot wallet holding everything you own, and it can leak years later when some account you forgot about gets breached. Paper, or better, metal.',
     href: '/learn/back-up-your-seed',
     level: '103',
-    lesson: 'Back up your seed phrase',
+    lesson: 'Backing up a seed phrase',
   },
   {
     n: 7,
@@ -138,7 +138,7 @@ export const rules = [
     body: 'One miscopied word makes a backup worthless, and you find that out on the day you need it — the worst possible day there is. Wipe the device and restore from your written words with a trivial amount first. Only once you have watched it work should real money go in. Then prove it again about once a year.',
     href: '/learn/test-your-backup',
     level: '103',
-    lesson: 'Test your backup',
+    lesson: 'Testing a backup',
   },
   {
     n: 8,
@@ -148,7 +148,7 @@ export const rules = [
     body: 'Malware exists that silently swaps the address you copied for an attacker’s, and your computer will show you the swap without blinking. The hardware wallet’s own little screen cannot be faked that way. Read the address there, confirm it matches where you meant to send, and only then approve. Every single time.',
     href: '/learn/send-bitcoin-safely',
     level: '103',
-    lesson: 'Send Bitcoin safely',
+    lesson: 'Sending Bitcoin safely',
   },
 
   // ---- 104 · The long haul ----
@@ -212,7 +212,7 @@ export const umbrella = {
   // number is written by hand rather than derived (the other is each rule's own
   // `level`), so it is the one that drifts when the curriculum moves.
   level: '104',
-  lesson: 'Run your own node',
+  lesson: 'Running your own node',
 };
 
 export const ruleCount = rules.length;

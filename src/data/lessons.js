@@ -29,9 +29,9 @@
 export const lessons = [
   {
     "slug": "choose-a-wallet",
-    "short": "Choose a wallet",
+    "short": "Choosing a hardware wallet",
     "verified": "2026-07-31",
-    "title": "How to choose a hardware wallet — tier first, then fit",
+    "title": "Choosing a hardware wallet — tier first, then fit",
     "lead": "There is no single best hardware wallet — but there is a bar every device has to clear. We rate them all against a published standard; within the tier that fits your job, choose on fit. This page walks you through the choice.",
     "intro": "<p>A <strong>hardware wallet</strong> is a small dedicated device whose only job is to hold your Bitcoin keys offline and sign transactions without exposing those keys to your phone or computer. People shop for one the way they shop for a phone — hunting for the \"best.\" That's the wrong question &#8212; but so is pretending every device is equal. Most mainstream devices are genuinely secure, yet not all of them clear <a href=\"/standard\">our published standard</a>, and only some are built for long-term savings. Start with the tier that matches the job &#8212; cold storage for savings, spending for day-to-day &#8212; then choose on fit within it. Below is how to reason about both, and then a link to the side-by-side table so you can compare specifics.</p>",
     "sections": [
@@ -73,9 +73,9 @@ export const lessons = [
   },
   {
     "slug": "back-up-your-seed",
-    "short": "Back up your seed",
+    "short": "Backing up a seed phrase",
     "verified": "2026-07-31",
-    "title": "Back up your seed phrase — so a fire, a flood, or a bad day can't erase your Bitcoin",
+    "title": "Backing up a seed phrase — so a fire, a flood, or a bad day can't erase your Bitcoin",
     "lead": "Your seed phrase is the master key to your Bitcoin. If the only copy lives on one device, or on a scrap of paper in a drawer, you are one accident away from losing everything. Here is how to back it up so it survives.",
     "intro": "<p>When you set up a self-custody wallet, it shows you a list of 12 or 24 words. That list is your <strong>seed phrase</strong> — the one thing that can rebuild your wallet if your device is lost, stolen, or destroyed. Anyone who has those words can take your Bitcoin; anyone who loses them loses the coins for good. So the goal of a backup is simple: keep those words safe from fire, water, and time, keep them away from prying eyes, and make sure you (or your heirs) can still find and read them years from now. This page walks you through it, step by step.</p>",
     "sections": [
@@ -122,9 +122,9 @@ export const lessons = [
   },
   {
     "slug": "test-your-backup",
-    "short": "Test your backup",
+    "short": "Testing a backup",
     "verified": "2026-07-31",
-    "title": "Test your backup before you trust it — the step that turns a setup into a real one",
+    "title": "Testing a backup before you trust it — the step that turns a setup into a real one",
     "lead": "A backup you have not tested is a hope, not a backup. The one step that turns a setup into a real one is proving you can actually get your Bitcoin back.",
     "intro": "<p>You wrote down your recovery words. You put them somewhere safe. It feels done. But there is one question you have not answered yet: <em>if your hardware wallet vanished tomorrow, could you actually restore it from that backup?</em> Until you have proven the answer is yes, you do not have a backup. You have a hope. This page walks you through the simple rehearsal that removes the doubt, done first with pocket change so any mistake is cheap to fix.</p><p>A quick word on terms. Your <strong>hardware wallet</strong> is the small dedicated device that holds your keys offline. Your <strong>seed phrase</strong> (also called recovery words) is the list of 12 or 24 words that can rebuild your wallet from scratch. A <strong>passphrase</strong> is an optional extra word you may have added on top. Rehearsing means pretending the worst has happened and rebuilding your wallet from those written words alone.</p>",
     "sections": [
@@ -162,9 +162,9 @@ export const lessons = [
   },
   {
     "slug": "send-bitcoin-safely",
-    "short": "Send Bitcoin safely",
+    "short": "Sending Bitcoin safely",
     "verified": "2026-07-31",
-    "title": "Send Bitcoin safely — the right address, on the right network",
+    "title": "Sending Bitcoin safely — the right address, on the right network",
     "lead": "Sending is the one moment your coins are in motion, so it’s the moment worth slowing down for. Two habits stop almost everything that goes wrong — and a third check makes sure your Bitcoin leaves on the real Bitcoin network.",
     "intro": "<p>When you send Bitcoin, you type in a destination and approve the payment. That sounds routine, and it usually is. But Bitcoin payments cannot be reversed once they confirm, so a slip here is permanent. The good news: the risks are well understood, and each one has a plain, repeatable defence. Learn them once and sending becomes second nature.</p><p>A quick vocabulary note before we start. An <strong>address</strong> is the string of letters and numbers that says where your Bitcoin should go — think of it like an account number for a single payment. A <strong>network</strong> is the system your Bitcoin travels over; the real Bitcoin network is the one you want, and there are look-alikes. A <strong>hardware wallet</strong> is a small dedicated device that holds your keys and has its own little screen. Everything below builds on those three ideas.</p>",
     "sections": [
@@ -284,7 +284,7 @@ export const lessons = [
       },
       {
         "h": "Fake apps, fake sites, fake “support”",
-        "body": "<p>The same impersonation trick works on software. A <strong>fake wallet app</strong> sits in an app store looking exactly like the real thing, waits for you to type your recovery words in to “restore” your wallet, and empties it. Fake websites do the same job: a search-engine ad for “ledger wallet” can sit above the real result and send you to a copy.</p><p>Three habits close this off:</p><ul><li><strong>Only download wallet software from the maker’s official site,</strong> typed in yourself or reached from a bookmark you saved earlier — never from a search ad, and never from a link someone sent you.</li><li><strong>Never type your seed phrase into software to “restore” unless you deliberately started that recovery yourself,</strong> on a device you chose, at a moment you planned. Recovery is something you initiate. It is never something that gets asked of you.</li><li><strong>Be suspicious of urgency.</strong> Every version of this attack needs you to move fast. Nothing about your Bitcoin is ever so urgent that it can’t wait an hour while you check through a channel you trust.</li></ul><p>The physical version of this — a tampered device bought from the wrong place — is covered back in <em>How to choose a hardware wallet</em>, where you bought it.</p>"
+        "body": "<p>The same impersonation trick works on software. A <strong>fake wallet app</strong> sits in an app store looking exactly like the real thing, waits for you to type your recovery words in to “restore” your wallet, and empties it. Fake websites do the same job: a search-engine ad for “ledger wallet” can sit above the real result and send you to a copy.</p><p>Three habits close this off:</p><ul><li><strong>Only download wallet software from the maker’s official site,</strong> typed in yourself or reached from a bookmark you saved earlier — never from a search ad, and never from a link someone sent you.</li><li><strong>Never type your seed phrase into software to “restore” unless you deliberately started that recovery yourself,</strong> on a device you chose, at a moment you planned. Recovery is something you initiate. It is never something that gets asked of you.</li><li><strong>Be suspicious of urgency.</strong> Every version of this attack needs you to move fast. Nothing about your Bitcoin is ever so urgent that it can’t wait an hour while you check through a channel you trust.</li></ul><p>The physical version of this — a tampered device bought from the wrong place — is covered back in <em>Choosing a hardware wallet</em>, where you bought it.</p>"
       },
       {
         "h": "Keep your Bitcoin machine boring",
@@ -329,7 +329,7 @@ export const lessons = [
       },
       {
         "h": "The everyday habits that defeat most snooping",
-        "body": "You do not need special software to shut down most tracking. Three habits do the heavy lifting.<br><br><strong>Use a fresh address every time you receive.</strong> Modern wallets generate an endless supply of addresses from your single backup, at no cost. The wallet usually offers a new one by default &mdash; let it. Never post a permanent &lsquo;donation address&rsquo; on a website or social profile; a fixed public address links every payment to you.<br><br><strong>Be careful about combining coins.</strong> Think of your wallet as holding separate chunks of Bitcoin, each from a past payment. The technical name for one chunk is a <strong>UTXO</strong> (an &lsquo;unspent transaction output&rsquo; &mdash; simply a coin you received and have not yet spent). When you spend, your wallet may pull several chunks together into one payment. That quietly tells analysts &lsquo;all these chunks belong to the same person.&rsquo; Better wallets let you choose which chunks to spend &mdash; a feature often called &lsquo;coin control.&rsquo; Keeping coins from different sources apart preserves your privacy. Keeping separate wallets for separate purposes (everyday spending versus long-term savings) helps too.<br><br><strong>Reduce your KYC footprint.</strong> You probably cannot avoid ID checks entirely &mdash; most legal ways to buy Bitcoin require them. The realistic goal is not zero KYC; it is limiting how much of your stack is tied to any one ID check. When you withdraw from an exchange, send to a fresh address in your own wallet, and do not later mix those coins with coins from other sources. That keeps the ID-checked portion walled off from the rest.<p><strong>There is more depth here if you want it.</strong> A couple of optional tools go further still — PayJoin and Silent Payments. Neither is required, and you are not behind if you never touch them, so they wait for you in Run your own node, the last lesson of this level, rather than cluttering the habits that do most of the work.</p><p><strong>A note on Lightning.</strong> Lightning payments don’t appear on the public ledger individually, so routine spending over it leaves far less of a trail — a real step up. But opening and closing a Lightning connection <em>is</em> on the ledger, and if you fund it with ID-checked coins, that identity follows you in. Use it for small everyday spending; keep the habits above for savings.</p>"
+        "body": "You do not need special software to shut down most tracking. Three habits do the heavy lifting.<br><br><strong>Use a fresh address every time you receive.</strong> Modern wallets generate an endless supply of addresses from your single backup, at no cost. The wallet usually offers a new one by default &mdash; let it. Never post a permanent &lsquo;donation address&rsquo; on a website or social profile; a fixed public address links every payment to you.<br><br><strong>Be careful about combining coins.</strong> Think of your wallet as holding separate chunks of Bitcoin, each from a past payment. The technical name for one chunk is a <strong>UTXO</strong> (an &lsquo;unspent transaction output&rsquo; &mdash; simply a coin you received and have not yet spent). When you spend, your wallet may pull several chunks together into one payment. That quietly tells analysts &lsquo;all these chunks belong to the same person.&rsquo; Better wallets let you choose which chunks to spend &mdash; a feature often called &lsquo;coin control.&rsquo; Keeping coins from different sources apart preserves your privacy. Keeping separate wallets for separate purposes (everyday spending versus long-term savings) helps too.<br><br><strong>Reduce your KYC footprint.</strong> You probably cannot avoid ID checks entirely &mdash; most legal ways to buy Bitcoin require them. The realistic goal is not zero KYC; it is limiting how much of your stack is tied to any one ID check. When you withdraw from an exchange, send to a fresh address in your own wallet, and do not later mix those coins with coins from other sources. That keeps the ID-checked portion walled off from the rest.<p><strong>There is more depth here if you want it.</strong> A couple of optional tools go further still — PayJoin and Silent Payments. Neither is required, and you are not behind if you never touch them, so they wait for you in Running your own node, the last lesson of this level, rather than cluttering the habits that do most of the work.</p><p><strong>A note on Lightning.</strong> Lightning payments don’t appear on the public ledger individually, so routine spending over it leaves far less of a trail — a real step up. But opening and closing a Lightning connection <em>is</em> on the ledger, and if you fund it with ID-checked coins, that identity follows you in. Use it for small everyday spending; keep the habits above for savings.</p>"
       },
       {
         "h": "From a leak to your front door — and how to stay off that road",
@@ -403,9 +403,9 @@ export const lessons = [
   },
   {
     "slug": "recovery-kit",
-    "short": "Build the Recovery Kit",
+    "short": "Building a Recovery Kit",
     "verified": "2026-07-15",
-    "title": "Build the Recovery Kit — the document your family can actually follow",
+    "title": "Building a Recovery Kit — the document your family can actually follow",
     "lead": "One short, plain-language document ties the whole plan together: what you have, where the pieces are, and what to do. Then you rehearse it with a real person, and wrap it in the legal authority to act.",
     "intro": "<p>The previous lesson showed why Bitcoin gets lost at inheritance: it isn’t findable, and it isn’t followable. This one is the fix, in three parts — write the Kit, rehearse it, and wrap it in the right legal container.</p><p>None of it is technical work. It is writing, testing, and filing. It is also the part almost everyone skips, which is exactly why it’s worth the afternoon.</p>",
     "sections": [
@@ -438,9 +438,9 @@ export const lessons = [
   },
   {
     "slug": "run-a-node",
-    "short": "Run a node",
+    "short": "Running your own node",
     "verified": "2026-07-15",
-    "title": "Run your own node — verify, don't trust",
+    "title": "Running your own node — verify, don't trust",
     "lead": "A full node is your own copy of Bitcoin's records that checks the rules for you — so you can confirm your money is real without asking anyone else. It's the most advanced step here, and it's completely optional.",
     "intro": "Every step so far has been about controlling your keys. Running your own node is a different kind of control: instead of trusting someone else's website to tell you your balance and confirm your transactions, your own computer checks everything against Bitcoin's rules. It's powerful, it's good for your privacy, and it is genuinely optional. Think of this as a \"level up when you're ready\" step, not a box you must tick to be safe. Read it, file it away, and come back when you're curious.",
     "sections": [

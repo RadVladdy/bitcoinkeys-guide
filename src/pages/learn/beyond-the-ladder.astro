@@ -1,5 +1,13 @@
 ---
 import Base from '../../layouts/Base.astro';
+import { levelById, lessonFor } from '../../data/curriculum.js';
+
+// Named in PLAIN TEXT, never linked — this is lesson 3 of 102 and both targets sit
+// further along the course (invariant 9). Both the level title and the lesson title
+// DERIVE: they were typed here, and a rename elsewhere would have left this sentence
+// quietly naming pages that no longer exist under those names.
+const lvl = (id) => { const l = levelById(id); return `${l.id} · ${l.title}`; };
+const lvlLesson = (href) => lessonFor(href).label;
 import LessonNav from '../../components/LessonNav.astro';
 import LessonEyebrow from '../../components/LessonEyebrow.astro';
 import Diagram from '../../components/Diagram.astro';
@@ -85,7 +93,7 @@ const s = shamirNote;
   <section class="prose">
     <div class="callout safe">
       <span class="label">Choosing between them — and whether to bother</span>
-      <p style="margin:0">They pull in opposite directions. <strong>BIP-85 gives you fewer things to protect</strong> and concentrates the risk; <strong>Shamir gives you more things to protect</strong> and spreads it. If keeping track of several backups is what worries you, BIP-85 is the one to look at. If one backup sitting in one place is what worries you, Shamir is — though a later lesson’s advice applies first (<strong>Back up your seed phrase</strong>, in 103 · The build): <strong>two ordinary copies in two separate places solves that same problem with no new machinery at all</strong>, and for most holders that is the better answer.</p>
+      <p style="margin:0">They pull in opposite directions. <strong>BIP-85 gives you fewer things to protect</strong> and concentrates the risk; <strong>Shamir gives you more things to protect</strong> and spreads it. If keeping track of several backups is what worries you, BIP-85 is the one to look at. If one backup sitting in one place is what worries you, Shamir is — though a later lesson’s advice applies first (<strong>{lvlLesson('/learn/back-up-your-seed')}</strong>, in {lvl('103')}): <strong>two ordinary copies in two separate places solves that same problem with no new machinery at all</strong>, and for most holders that is the better answer.</p>
     </div>
   </section>
 
