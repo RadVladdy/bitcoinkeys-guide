@@ -26,11 +26,13 @@ const tabs = methods.filter((m) => DICE_METHOD_KEYS.includes(m.key));
 const procsFor = (key) => deviceProcedures.filter((p) => (p.options || []).includes(key));
 const trim = (n) => n.replace(' (BTC-only)', '').replace('Blockstream ', '').replace('Foundation ', '');
 const devicesFor = (key) => ratedDevicesForMethod(key).map((d) => trim(d.name));
-// The device-entry roll counts are the VENDOR minimums from seedLengths, never
-// typed — the page said "ninety-nine throws" in words, which is a count with a
-// data file behind it and no link to it.
-const long24 = seedLengths.find((s) => s.words === 24);
-const short12 = seedLengths.find((s) => s.words === 12);
+// The two lengths this guide's worksheet covers, by POSITION rather than by a
+// typed word count. Everything the page says about length — the counts, the bit
+// figures, the vendor roll minimums — comes off these, so the copy cannot drift
+// from the data. The page used to say "ninety-nine throws" in words: a count
+// with a data file behind it and no link to it.
+const shortLen = seedLengths[0];
+const longLen = seedLengths[seedLengths.length - 1];
 const longCost = seedCosts.find((c) => c.words === 24);
 const shortCost = seedCosts.find((c) => c.words === 12);
 ---
@@ -46,6 +48,36 @@ const shortCost = seedCosts.find((c) => c.words === 12);
       Pick a method and this page becomes only that method. If you have not decided yet, or you are not sure
       what your device allows, start at <a href="/learn/generate-your-seed">where your seed's randomness comes from</a>.
     </p>
+
+    {/* SEED LENGTH, BEFORE THE PROCEDURES. Every panel below counts in words —
+        "23 for a 24-word seed, or 11 for a 12-word one" — and until this block
+        existed the page never said what those two numbers were, that they are
+        the only two, or that the reader has to pick one before starting. A
+        beginner met the choice already made and never explained.
+        It sits on the TOOL page rather than the lesson because it is a decision
+        the procedure cannot start without, which is the same reason "print the
+        table first" is here. Both lengths, both bit figures and the roll counts
+        derive from seedLengths. */}
+    <div class="callout" role="note">
+      <span class="label">First, pick a length — {shortLen.words} words or {longLen.words}</span>
+      <p>
+        Those are the two you will actually be offered, and every wallet worth owning takes both. The
+        difference is how much randomness sits behind them: <strong>{shortLen.words} words carry
+        {' '}{shortLen.target} bits and {longLen.words} words carry {longLen.target}</strong> — and both are
+        so far past anything that could be guessed that neither is the weak point in your setup. What really
+        differs is the work: {longLen.words} words is more to roll, more to write down, more to check, and
+        more to copy onto metal later.
+      </p>
+      <p style="margin-bottom:0">
+        <strong>We suggest {longLen.words} if you are doing this by hand anyway.</strong> The extra effort is
+        one more page of rolling, once, ever — and the margin is free after that. But
+        {' '}{shortLen.words} is a real answer, not a compromise, and it is the easier one to get right.
+        <strong> Decide before you throw anything</strong>, because it sets how many words you roll and which
+        screen you pick on the device; changing your mind halfway means starting again. <em>(The standard
+        does allow a few in-between lengths — you may see a {shortLen.words} / 18 / {longLen.words} menu on a
+        Coldcard — but almost nothing uses them, and our worksheet is built for these two.)</em>
+      </p>
+    </div>
 
     <div class="callout danger" role="note">
       <span class="label">🛑 This page will never ask what you rolled</span>
@@ -102,9 +134,9 @@ const shortCost = seedCosts.find((c) => c.words === 12);
           <p class="p-meta">
             <span class="p-k">What it costs you</span>
             {m.key === 'sovereign'
-              ? `About ${longCost.throws} throws and ${longCost.flips} coin flips for 24 words (${shortCost.throws} and ${shortCost.flips} for 12), each read off a printed table by hand. Set aside an evening.`
+              ? `About ${longCost.throws} throws and ${longCost.flips} coin flips for ${longLen.words} words (${shortCost.throws} and ${shortCost.flips} for ${shortLen.words}), each read off a printed table by hand. Set aside an evening.`
               : m.key === 'dice-only'
-                ? `${long24.minRollsD6} throws for 24 words (${short12.minRollsD6} for 12), entered straight into the device. No table, no transcription.`
+                ? `${longLen.minRollsD6} throws for ${longLen.words} words (${shortLen.minRollsD6} for ${shortLen.words}), entered straight into the device. No table, no transcription.`
                 : 'As many throws as you feel like. There is no minimum, and more is simply better.'}
           </p>
 
