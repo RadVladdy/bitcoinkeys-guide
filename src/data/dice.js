@@ -472,6 +472,21 @@ export const tableWalkSteps = [
     d: `Both are standard and every wallet worth owning takes either. This is not really a security decision: ${COST24.words} words carries more randomness than ${COST12.words}, and both are already so far past anything that could be guessed that neither is the weak point in your setup. It is a decision about WORK, and by hand the difference is large. ${COST24.words} words means ${COST24.chosen} lookups and roughly ${COST24.throws} throws; ${COST12.words} means ${COST12.chosen} lookups and about ${COST12.throws}. That is an evening against an hour — and every lookup is another chance to write a word on the wrong line, which is the way this procedure actually goes wrong. Our suggestion: if this is a stack you mean to leave alone for years and you are doing it by hand anyway, take ${COST24.words}; the extra margin costs one more page of rolling, once, ever. If it is your first time, or the amount is modest, ${COST12.words} done carefully beats ${COST24.words} done tired. Whichever you pick, print that worksheet and only that one.`,
   },
   {
+    // RIGHT AFTER THE CHOICE, because it is the first thing that choice runs
+    // into: you pick 24 and the sheet has 23 rows. That is surprising, it looks
+    // like a mistake, and finding out mid-procedure while holding key material
+    // is the wrong moment.
+    // DELIBERATELY NO ARITHMETIC. The version of this that got cut explained
+    // checksum bits, which is true and is not what a beginner is asking. The
+    // question is "why is my sheet one short?" — so that is what it answers, in
+    // terms of something they can see.
+    // AND IT STOPS AT "the device does it". HOW the device does it belongs to
+    // the step that involves the device, and stating the mechanics twice is two
+    // copies of one fact waiting to disagree.
+    t: 'You roll every word but the last one',
+    d: `So a ${COST24.words}-word seed is ${COST24.chosen} lookups and a ${COST12.words}-word seed is ${COST12.chosen}, not ${COST24.words} and ${COST12.words}. This surprises everyone the first time and nothing has gone wrong. The final word is not free to be anything: it has to agree with all the words in front of it, and that agreement is what lets a wallet tell you when you have mistyped one of them years later. It cannot be worked out with a die and a printed table, so your hardware wallet works it out for you at the end. That is why your worksheet has one greyed row at the bottom marked "not rolled", and why its count stops one short of the length you picked.`,
+  },
+  {
     t: 'Print the BIP-39 word table, a worksheet, and read the method sheet first',
     d: 'Three separate things, and it matters which is which: the BIP-39 WORD TABLE is the reference you look words up in and it is public; the WORKSHEET is where you write, and it becomes your seed; the METHOD SHEET is the one-page instructions. There is a worksheet for each seed length — print only the one you are doing. Read the method before you throw anything — it is the part that says which throws map to which column, and that 5s and 6s are rerolled, which is why no entry on the table contains one. The table holds no secret and is safe to print, photograph or leave lying about: it is the standard word list in a fixed order, and anyone can regenerate it.',
   },
