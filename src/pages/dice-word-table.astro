@@ -208,9 +208,17 @@ const egFaces = (str) => str.split('').map((d) => FACE[d]);
               <td class="dw-w"></td>
             </tr>
           ))}
+          {/* THE SPAN HAS TO STOP AT THE SECTION EDGES. It ran from the spacer
+              BEFORE Block to the spacer AFTER Flip, so the grey field overhung
+              the columns on both sides and lined up with nothing. It now covers
+              Block, Line and Flip exactly — the three sections you would have
+              filled in for this word if you rolled it — with the same spacers
+              either side that every other row has. */}
           <tr class="dw-last">
             <td class="dw-n">{ws.words}</td>
-            <td class="dw-note" colspan={DICE_PER_WORD + 5}>Not rolled — your device calculates this one</td>
+            <td class="dw-sp"></td>
+            <td class="dw-note" colspan={DICE_PER_WORD + 3}>Not rolled — your device calculates this one</td>
+            <td class="dw-sp"></td>
             <td class="dw-w"></td>
           </tr>
         </tbody>
@@ -398,7 +406,7 @@ const egFaces = (str) => str.split('').map((d) => FACE[d]);
     .dw-eg-row .dw-coin-o { display: inline-block; width: 11pt; height: 11pt; line-height: 10.4pt;
       border: .5pt solid #888; border-radius: 50%; font-size: 7.4pt; color: #444;
       font-family: var(--mono); text-align: center; }
-    .dw-eg-row .dw-ghost { text-align: left; padding-left: .3rem; font-size: 8.5pt;
+    .dw-eg-row .dw-ghost { text-align: center; font-size: 8.5pt;
       color: #a8a8a8; font-style: italic; }
     /* Place-keeping. Every fifth row is tinted so a glance tells you which
        ten you are in — the failure this sheet exists to prevent is a word
