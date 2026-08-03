@@ -142,11 +142,11 @@ const shortCost = seedCosts.find((c) => c.words === 12);
 
           {m.key === 'sovereign' && (
             <div class="callout" role="note">
-              <span class="label">Print the table first</span>
+              <span class="label">Print the BIP-39 word table and a worksheet</span>
               <p style="margin:0">
                 All {tableRowCount.toLocaleString()} words, reachable from {DICE_PER_WORD} throws and a coin
                 flip. Print it or open it on a second screen before you start —
-                <a href="/dice-word-table"> the dice → word table</a>, or
+                <a href="/dice-word-table"> the BIP-39 word table</a> — and the <strong>worksheet</strong> for your seed length, which prints with it. Or
                 <a href="/dice-word-table.pdf" download> download the PDF</a>. It contains no secret: it is the
                 standard wordlist in a fixed order, and anyone can regenerate it.
               </p>

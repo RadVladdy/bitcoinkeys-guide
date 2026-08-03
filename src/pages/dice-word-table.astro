@@ -16,20 +16,36 @@ import Base from '../layouts/Base.astro';
 import { diceVerified } from '../data/dice.js';
 import { blocks, rows, tableRowCount, DICE_PER_WORD, PREFIX_THROWS, seedCosts } from '../data/dice-table.js';
 
-// Rows come from the seed lengths, never typed: a worksheet with the wrong
-// number of rows is a seed with the wrong number of words.
-const longChosen = seedCosts.find((c) => c.words === 24).chosen;
-const shortChosen = seedCosts.find((c) => c.words === 12).chosen;
+// ONE WORKSHEET PER SEED LENGTH, built from seedCosts — never typed. A
+// worksheet with the wrong number of rows is a seed with the wrong number of
+// words, and `chosen` already knows the last one is not rolled.
+const WORKSHEETS = seedCosts.map((c, i, all) => ({
+  words: c.words,
+  chosen: c.chosen,
+  other: all[(i + 1) % all.length].words,
+}));
+
+// THE WORKED EXAMPLE, looked up in the real table so it cannot disagree with
+// the pages it teaches. Chosen for legibility rather than at random: no
+// repeated digits in the block prefix, so the three-then-two split is visible
+// at a glance, and a short common word.
+const EG = rows.find((r) => r.dice === '23142' && r.coin === 'H') || rows[0];
+
+// Dice faces for the column headers. ONLY 1–4 EVER: 5s and 6s are rerolled and
+// appear nowhere in this table, so printing a ⚄ or ⚅ on our own artifact would
+// contradict the method sheet two pages earlier. The coin is spelled, because
+// no unicode coin reads as one at 7pt.
+const PIPS = { block: '⚂⚀⚃', line: '⚁⚃', coin: 'H or T' };
 
 ---
 <Base
-  title="Dice → word table (printable) · BitcoinKeys.guide"
+  title="BIP-39 word table (printable) · BitcoinKeys.guide"
   description="A printable table turning five dice throws and a coin flip into a BIP-39 word. Derived from the standard wordlist. Print it before you begin."
   verified={diceVerified}
 >
   <section class="prose dwt-intro">
     <p class="eyebrow">A print-out, not a page</p>
-    <h1>Dice → word table</h1>
+    <h1>The BIP-39 word table</h1>
     <p class="lead">
       Every one of the {tableRowCount.toLocaleString()} words in the standard list, reachable from
       {DICE_PER_WORD} throws of an ordinary die and one coin flip. Print it, or open it on a second
@@ -37,21 +53,21 @@ const shortChosen = seedCosts.find((c) => c.words === 12).chosen;
     </p>
     <div class="dwt-how">
       <p><strong>Throw the die {DICE_PER_WORD} times, rerolling any 5 or 6, then flip a coin once.</strong>
-      Find the block headed by your first {PREFIX_THROWS} throws, then read down to your remaining
+      In the BIP-39 word table, find the block headed by your first {PREFIX_THROWS} throws, then read down to your remaining
       {DICE_PER_WORD - PREFIX_THROWS} throws and your flip.</p>
       <p><strong class="mono">H</strong> is heads and <strong class="mono">T</strong> is tails. The die gives
       you {DICE_PER_WORD * 2} of the 11 bits each word needs and the coin gives the last one — which is why
       there are exactly two lines for every dice combination, and why the coin is not optional.</p>
-      <p class="dwt-note">This table is public and contains no secret — it is the standard wordlist in a
+      <p class="dwt-note">The BIP-39 word table is public and contains no secret — it is the standard wordlist in a
       fixed order. Your <em>throws</em> and the <em>words</em> they give you are the secret.</p>
-      <p class="dwt-note"><strong>This is the same table
+      <p class="dwt-note"><strong>This is the same word table
       <a href="https://bitbox.swiss/bitbox02/BitBox_Diceware_LookupTable.pdf" rel="noopener noreferrer" target="_blank">BitBox publishes</a></strong>
       for its own devices. We generated ours independently from the word list and then checked every one of the
       {tableRowCount.toLocaleString()} entries against theirs — all of them match. Two tables built separately
       agreeing on every row is the reason to trust either. Use one of them for a whole seed, though, not a
       mix.</p>
     </div>
-    <p class="dwt-print"><button type="button" id="dwt-print" class="btn">Print this table</button>
+    <p class="dwt-print"><button type="button" id="dwt-print" class="btn">Print the table + worksheets</button>
       <a class="btn ghost" href="/dice-word-table.pdf" download>Download as PDF</a></p>
   </section>
 
@@ -67,7 +83,7 @@ const shortChosen = seedCosts.find((c) => c.words === 12).chosen;
   <section class="dwt-sheet">
     <h2 class="ds-h">Rolling your own seed words — the method</h2>
     <p class="ds-lead">
-      This sheet explains how to use the table on the following pages. The full procedure, including what to
+      This sheet explains how to use the BIP-39 word table on the pages after the worksheets. The full procedure, including what to
       do with the words once you have them, is at <strong>bitcoinkeys.guide/roll-your-own-seed</strong> — read
       it before you begin. Do not work from this sheet alone.
     </p>
@@ -79,7 +95,7 @@ const shortChosen = seedCosts.find((c) => c.words === 12).chosen;
     <ol class="ds-steps">
       <li><strong>Throw the die {DICE_PER_WORD} times.</strong> <strong>Reroll every 5 and 6</strong> — they
         do not count and are not written down. Keep throwing until you have {DICE_PER_WORD} results that are
-        each 1, 2, 3 or 4. This is why no entry in the table contains a 5 or a 6.</li>
+        each 1, 2, 3 or 4. This is why no entry in the BIP-39 word table contains a 5 or a 6.</li>
       <li><strong>Flip the coin once.</strong> <span class="mono">H</span> is heads,
         <span class="mono">T</span> is tails. The coin is not optional: the die gives ten of the eleven bits a
         word needs and the coin gives the eleventh. Always taking the same side halves the randomness of every
@@ -112,67 +128,98 @@ const shortChosen = seedCosts.find((c) => c.words === 12).chosen;
     </p>
   </section>
 
-  {/* THE WORKSHEET — print only, its own page.
-      Unlike the table, THIS SHEET BECOMES THE SEED the moment it is written
-      on, and the warning has to lead rather than sit in a footnote. It is the
-      one artifact here that is dangerous to keep, photograph or throw away
-      intact.
-      One sheet covers both lengths: a 12-word seed stops at row 11, which is
-      marked in place rather than needing a second sheet to print and confuse. */}
-  <section class="dwt-work">
-    <h2 class="ds-h">Worksheet — fill in as you go</h2>
-    <p class="dw-warn">
-      <strong>The moment you write on this sheet it becomes your seed.</strong> Treat it exactly as you would
-      the words themselves: never photograph it, never type it up, never leave it out. When your words are
-      safely on their permanent backup and you have restored from that backup successfully, destroy this sheet
-      — shred or burn it. Do not simply bin it.
-    </p>
-    {/* THE THROW BOXES ARE GROUPED 3 + 2, matching how the table is actually
-        read: the first three throws find the block, the last two plus the flip
-        find the line inside it. A flat run of five boxes made the reader hold
-        that split in their head while looking at a sheet that did not show it.
-        The gap is the one piece of formatting here doing real work.
-        Row bands every five keep your place on a 23-row sheet — the mistake
-        this artifact exists to prevent is a word written on the wrong line. */}
-    <table class="dw">
-      <thead>
-        <tr>
-          <th class="dw-n">#</th>
-          <th colspan={PREFIX_THROWS}>Block <span class="dw-th-s">first {PREFIX_THROWS} throws</span></th>
-          <th colspan={DICE_PER_WORD - PREFIX_THROWS} class="dw-g">Line <span class="dw-th-s">next {DICE_PER_WORD - PREFIX_THROWS}</span></th>
-          <th class="dw-f">Flip</th>
-          <th class="dw-w">Word</th>
-        </tr>
-      </thead>
-      <tbody>
-        {Array.from({ length: longChosen }, (_, i) => (
-          <tr class:list={[
-            i + 1 === shortChosen ? 'dw-mark' : null,
-            (i + 1) % 5 === 0 ? 'dw-five' : null,
-          ]}>
-            <td class="dw-n">{i + 1}</td>
-            {Array.from({ length: DICE_PER_WORD }, (_, j) => (
-              <td class:list={['dw-b', j === PREFIX_THROWS ? 'dw-g' : null]}></td>
-            ))}
-            <td class="dw-b dw-f"></td>
+  {/* THE WORKSHEETS — print only, ONE PAGE EACH, and there are two of them.
+      They were a single 23-row sheet with a rule across row 11 marking where a
+      12-word seed stopped. That asked a 12-word reader to ignore twelve rows
+      below their finish line and a 24-word reader to ignore a line through the
+      middle of theirs, on the one artifact where writing on the wrong row is
+      the failure being designed against. Two sheets, each with exactly the rows
+      that length needs and no marks belonging to the other.
+      THE READER PRINTS ONE. The footer of each says so, because seven pages
+      arriving for a six-page job is confusing unless it is explained.
+      Unlike the BIP-39 word table, A WORKSHEET BECOMES THE SEED the moment it is
+      written on, so the warning leads rather than sitting in a footnote. */}
+  {WORKSHEETS.map((ws) => (
+    <section class="dwt-work">
+      <h2 class="ds-h">Worksheet — {ws.words}-word seed</h2>
+      <p class="dw-warn">
+        <strong>The moment you write on this sheet it becomes your seed.</strong> Treat it exactly as you would
+        the words themselves: never photograph it, never type it up, never leave it out. When your words are
+        safely on their permanent backup and you have restored from that backup successfully, destroy this sheet
+        — shred or burn it. Do not simply bin it.
+      </p>
+      {/* THE THROW BOXES ARE GROUPED 3 + 2, matching how the table is actually
+          read: the first three throws find the block, the last two plus the flip
+          find the line inside it. A flat run of five boxes made the reader hold
+          that split in their head while looking at a sheet that did not show it.
+          THE GAP IS A REAL COLUMN, not a white shadow painted over the boxes.
+          It used to be `box-shadow: -4pt 0 0 0 #fff` on the fourth box, and a
+          4pt overlay against 2pt of border-spacing ate 2pt of the THIRD box's
+          right edge — every row on the sheet had one box with a missing side.
+          A spacer cell cannot paint over its neighbour.
+          Row bands every five keep your place — the mistake this artifact
+          exists to prevent is a word written one line off. */}
+      <table class="dw">
+        <thead>
+          <tr>
+            <th class="dw-n">#</th>
+            <th colspan={PREFIX_THROWS}>Block <span class="dw-pips" aria-hidden="true">{PIPS.block}</span>
+              <span class="dw-th-s">first {PREFIX_THROWS} throws</span></th>
+            <th class="dw-sp" aria-hidden="true"></th>
+            <th colspan={DICE_PER_WORD - PREFIX_THROWS}>Line <span class="dw-pips" aria-hidden="true">{PIPS.line}</span>
+              <span class="dw-th-s">next {DICE_PER_WORD - PREFIX_THROWS}</span></th>
+            <th class="dw-f">Flip <span class="dw-th-s">{PIPS.coin}</span></th>
+            <th class="dw-w">Word</th>
+          </tr>
+        </thead>
+        <tbody>
+          {/* THE WORKED EXAMPLE IS A ROW, not a box above the table. It shows
+              the 3 + 2 + flip split in the exact format the reader is about to
+              write in, which a paragraph cannot do — and it costs one row
+              instead of the four lines a prose box cost, which is what kept the
+              24-word sheet on one page. Values come from `rows`, so the example
+              is a real lookup and cannot disagree with the table pages. */}
+          <tr class="dw-eg-row">
+            <td class="dw-n">eg</td>
+            {EG.dice.slice(0, PREFIX_THROWS).split('').map((d) => (<td class="dw-b">{d}</td>))}
+            <td class="dw-sp"></td>
+            {EG.dice.slice(PREFIX_THROWS).split('').map((d) => (<td class="dw-b">{d}</td>))}
+            <td class="dw-b dw-f">{EG.coin}</td>
+            <td class="dw-w">{EG.word}</td>
+          </tr>
+          {Array.from({ length: ws.chosen }, (_, i) => (
+            <tr class:list={[(i + 1) % 5 === 0 ? 'dw-five' : null]}>
+              <td class="dw-n">{i + 1}</td>
+              {Array.from({ length: PREFIX_THROWS }, () => (<td class="dw-b"></td>))}
+              <td class="dw-sp"></td>
+              {Array.from({ length: DICE_PER_WORD - PREFIX_THROWS }, () => (<td class="dw-b"></td>))}
+              <td class="dw-b dw-f"></td>
+              <td class="dw-w"></td>
+            </tr>
+          ))}
+          <tr class="dw-last">
+            <td class="dw-n">{ws.words}</td>
+            <td class="dw-note" colspan={DICE_PER_WORD + 2}>Not rolled — your device calculates this one</td>
             <td class="dw-w"></td>
           </tr>
-        ))}
-        <tr class="dw-last">
-          <td class="dw-n">{longChosen + 1}</td>
-          <td class="dw-note" colspan={DICE_PER_WORD + 1}>Not rolled — your device calculates this one</td>
-          <td class="dw-w"></td>
-        </tr>
-      </tbody>
-    </table>
-    <p class="dw-foot">
-      <strong>12-word seed:</strong> stop after row {shortChosen} — the device supplies word {shortChosen + 1}.
-      &nbsp;·&nbsp; <strong>24-word seed:</strong> fill all {longChosen}, the device supplies word {longChosen + 1}.
-      <br />Full procedure, and what to do with these words once you have them:
-      <strong>bitcoinkeys.guide/roll-your-own-seed</strong>
-    </p>
-  </section>
+        </tbody>
+      </table>
+      <p class="dw-foot">
+        <strong>The dashed <span class="mono">eg</span> row is a worked example</strong> — do not write on
+        it. <strong>This sheet is for a {ws.words}-word seed:</strong> you roll {ws.chosen} words and your
+        device supplies word {ws.words}, which carries the checksum. There is a separate sheet for
+        a {ws.other}-word seed — <strong>print only the one you are doing.</strong> Full procedure:
+        <strong>bitcoinkeys.guide/roll-your-own-seed</strong>
+      </p>
+    </section>
+  ))}
 
+  {/* THE REFERENCE TABLE GETS A NAME, because the print-out has two kinds of
+      page in it and "the table" was doing duty for both. A reader holding six
+      sheets could not tell from the artifact which one a sentence meant. The
+      reference pages are the BIP-39 WORD TABLE; the ones with boxes are the
+      WORKSHEET, and every reference on this site now says which. */}
+  <h2 class="dwt-title">BIP-39 word table <span class="dwt-title-s">{tableRowCount.toLocaleString()} words · {DICE_PER_WORD} throws and a coin flip · nothing to fill in</span></h2>
   <section class="dwt-wrap">
     {blocks.map((b) => (
       <div class="dwt-block">
@@ -236,32 +283,67 @@ const shortChosen = seedCosts.find((c) => c.words === 12).chosen;
     /* Boxes, not table cells. A hairline box with real space around it reads as
        somewhere to write; a ruled grid reads as a spreadsheet, and people write
        smaller and straddle the lines. */
-    /* 22pt is the CEILING, not a preference. At 23pt the worksheet spills onto a
-       second sheet and the whole artifact goes from six pages to seven — the
-       reader then prints two half-empty pages for one worksheet. Measured
-       against the rebuilt PDF at 21/22/23/24/25.5pt; do not raise it by eye. */
-    .dw td { border: .6pt solid #9a9a9a; border-radius: 2pt; height: 22pt; padding: 0 .2rem; }
+    /* 21pt is the CEILING, not a preference, and it MOVED — it was 22pt while
+       the 24-word worksheet held exactly 24 rows. The worked-example row makes
+       25, and at 22pt the sheet's footer spills onto a page of its own: eight
+       pages for a seven-page artifact, with page four holding one paragraph.
+       Measured against the rebuilt PDF at 22pt (8 pages) and 21pt (7). Do not
+       raise it by eye, and re-measure if a row is ever added or removed —
+       adding one row is exactly what invalidated the previous ceiling. */
+    .dw td { border: .6pt solid #9a9a9a; border-radius: 2pt; height: 21pt; padding: 0 .2rem; }
     .dw-n { width: 4.5%; border: none !important; text-align: right; font-size: 7.5pt;
       color: #666; font-weight: 600; padding-right: .25rem; }
     .dw-b { width: 5.2%; }
     .dw-f { width: 6.5%; background: #f4f4f4; }
-    .dw-w { width: 41%; }
-    /* THE 3 + 2 SPLIT, drawn. Extra left space on the fourth box separates the
-       block lookup from the line lookup, which is the shape of the procedure. */
-    .dw td.dw-g { margin-left: 6pt; box-shadow: -4pt 0 0 0 #fff; }
-    .dw th.dw-g { padding-left: .32rem; }
+    .dw-w { width: 38%; }
+    /* THE 3 + 2 SPLIT, DRAWN AS A REAL COLUMN. An empty borderless cell between
+       the third and fourth box: the block lookup and the line lookup are two
+       different operations and the sheet should show that.
+       IT USED TO BE AN OVERLAY — `box-shadow: -4pt 0 0 0 #fff` on the fourth
+       box — and against 2pt of border-spacing a 4pt white shadow reached 2pt
+       PAST the gap and painted out the right edge of the third box. Every row
+       on every printed sheet had one box with a missing side. A spacer cell
+       occupies space instead of covering it, so it cannot do that to a
+       neighbour; do not go back to a shadow. */
+    .dw td.dw-sp, .dw th.dw-sp { width: 2.4%; border: none !important; background: none !important;
+      padding: 0; }
+    /* The dice faces on the column headers. Only 1-4 are ever shown: 5s and 6s
+       are rerolled and appear nowhere in the table. */
+    .dw-pips { font-size: 11pt; letter-spacing: .08em; color: #222; text-transform: none;
+      font-weight: 400; line-height: 1; margin-left: .12rem; vertical-align: -.08em; }
+    /* Mixed faces on purpose. Three identical dice next to an example row full
+       of digits reads as "roll these numbers"; a spread of faces reads as
+       "three dice", which is the whole job. Never a 5 or a 6 — those are
+       rerolled and appear nowhere in the table or on this sheet. */
+    /* The worked example. Boxed rather than run in as prose so the eye can find
+       it while holding a die, and light enough not to compete with the warning
+       directly above it. */
+    /* The example row. Grey and italic so it cannot be mistaken for a row to
+       write in, and its height matches the rest so the sheet still reads as a
+       grid. It is the first thing under the header for a reason: the reader
+       sees one completed lookup before filling the first empty box. */
+    .dw-eg-row td { background: #eee; border-color: #888; border-style: dashed;
+      font-style: italic; color: #333; text-align: center; font-size: 8.5pt; }
+    .dw-eg-row .dw-n { font-style: normal; font-size: 6.5pt; text-transform: uppercase;
+      letter-spacing: .06em; color: #555; }
+    .dw-eg-row .dw-w { text-align: left; padding-left: .3rem; font-weight: 600; }
+    .dw-eg-row .dw-sp { background: none !important; }
     /* Place-keeping. Every fifth row is tinted so a glance tells you which
        ten you are in — the failure this sheet exists to prevent is a word
        written one line off. */
     .dw-five td { background: #f7f7f7; }
     .dw-five .dw-f { background: #ededed; }
-    /* Where a 12-word seed stops: a rule across the sheet, not a heavier cell
-       border, so it reads as a finish line. */
-    .dw-mark td { border-bottom: 1.6pt solid #000 !important; }
+    /* .dw-mark is GONE with the single-sheet worksheet. It drew a rule across
+       row 11 to mark where a 12-word seed stopped, on a sheet that also had to
+       serve 24-word readers. There are two sheets now and neither needs a line
+       through it — each has exactly its own rows. */
     .dw-last td { background: #e8e8e8; border-color: #666; }
     .dw-note { font-size: 7.5pt; color: #333; text-align: center; }
     .dw-foot { font-size: 8pt; margin-top: .55rem; line-height: 1.45; padding-top: .35rem;
       border-top: .6pt solid #bbb; }
+    .dwt-title { font-size: 13pt; margin: 0 0 .35rem; color: #000; }
+    .dwt-title-s { display: block; font-size: 7.5pt; font-weight: 400; color: #555;
+      text-transform: none; letter-spacing: 0; margin-top: .1rem; }
     .ds-h { font-size: 15pt; margin: 0 0 .5rem; color: #000; }
     .ds-sh { font-size: 11pt; margin: .9rem 0 .25rem; color: #000; }
     .ds-lead { margin: 0 0 .6rem; }

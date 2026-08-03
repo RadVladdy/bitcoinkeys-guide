@@ -458,8 +458,8 @@ const shape12 = mnemonicShape(12);
 
 export const tableWalkSteps = [
   {
-    t: 'Print the table and read its method sheet first',
-    d: 'The dice → word table and the one-page method that comes with it. Read the method before you throw anything — it is the part that says which throws map to which column, and that 5s and 6s are rerolled, which is why no entry on the table contains one. The table holds no secret and is safe to print, photograph or leave lying about: it is the standard word list in a fixed order, and anyone can regenerate it.',
+    t: 'Print the BIP-39 word table, a worksheet, and read the method sheet first',
+    d: 'Three separate things, and it matters which is which: the BIP-39 WORD TABLE is the reference you look words up in and it is public; the WORKSHEET is where you write, and it becomes your seed; the METHOD SHEET is the one-page instructions. There is a worksheet for each seed length — print only the one you are doing. Read the method before you throw anything — it is the part that says which throws map to which column, and that 5s and 6s are rerolled, which is why no entry on the table contains one. The table holds no secret and is safe to print, photograph or leave lying about: it is the standard word list in a fixed order, and anyone can regenerate it.',
   },
   {
     t: 'Update the firmware, then wipe the device',
