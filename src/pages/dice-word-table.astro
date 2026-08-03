@@ -173,16 +173,18 @@ const egFaces = (str) => str.split('').map((d) => FACE[d]);
               extra row for the eye to mistake for an entry. */}
           <tr class="dw-head">
             <th class="dw-n">Word #</th>
-            <th colspan={PREFIX_THROWS}>Block <span class="dw-th-s">1st {PREFIX_THROWS} rolls</span></th>
             <th class="dw-sp" aria-hidden="true"></th>
-            <th colspan={DICE_PER_WORD - PREFIX_THROWS}>Line <span class="dw-th-s">next {DICE_PER_WORD - PREFIX_THROWS}</span></th>
+            <th colspan={PREFIX_THROWS}>Block <span class="dw-th-s">(1st {PREFIX_THROWS} rolls)</span></th>
             <th class="dw-sp" aria-hidden="true"></th>
-            <th class="dw-f">Flip <span class="dw-th-s">H / T</span></th>
+            <th colspan={DICE_PER_WORD - PREFIX_THROWS}>Line <span class="dw-th-s">(next {DICE_PER_WORD - PREFIX_THROWS})</span></th>
             <th class="dw-sp" aria-hidden="true"></th>
-            <th class="dw-w">Word <span class="dw-th-s">BIP-39 table</span></th>
+            <th class="dw-f">Flip <span class="dw-th-s">(H/T)</span></th>
+            <th class="dw-sp" aria-hidden="true"></th>
+            <th class="dw-w">Word <span class="dw-th-s">(BIP-39 table)</span></th>
           </tr>
           <tr class="dw-eg-row">
             <td class="dw-n"></td>
+            <td class="dw-sp"></td>
             {egFaces(EG.dice.slice(0, PREFIX_THROWS)).map((f) => (<td class="dw-die">{f}</td>))}
             <td class="dw-sp"></td>
             {egFaces(EG.dice.slice(PREFIX_THROWS)).map((f) => (<td class="dw-die">{f}</td>))}
@@ -196,6 +198,7 @@ const egFaces = (str) => str.split('').map((d) => FACE[d]);
           {Array.from({ length: ws.chosen }, (_, i) => (
             <tr class:list={[(i + 1) % 5 === 0 ? 'dw-five' : null]}>
               <td class="dw-n">{i + 1}</td>
+              <td class="dw-sp"></td>
               {Array.from({ length: PREFIX_THROWS }, () => (<td class="dw-b"></td>))}
               <td class="dw-sp"></td>
               {Array.from({ length: DICE_PER_WORD - PREFIX_THROWS }, () => (<td class="dw-b"></td>))}
@@ -207,7 +210,7 @@ const egFaces = (str) => str.split('').map((d) => FACE[d]);
           ))}
           <tr class="dw-last">
             <td class="dw-n">{ws.words}</td>
-            <td class="dw-note" colspan={DICE_PER_WORD + 4}>Not rolled — your device calculates this one</td>
+            <td class="dw-note" colspan={DICE_PER_WORD + 5}>Not rolled — your device calculates this one</td>
             <td class="dw-w"></td>
           </tr>
         </tbody>
@@ -299,11 +302,19 @@ const egFaces = (str) => str.split('').map((d) => FACE[d]);
        as a different KIND of heading from the others — it is not, it is one of
        five labels. The tint stays on the flip BOXES, where it marks the column
        the reader has to remember is not a die. */
+    /* EACH LABEL ON ONE LINE, CENTRED OVER ITS OWN SECTION. The descriptor used
+       to be a block element under the label, which made the "first line across"
+       two lines deep. It is inline and parenthesised now — Block (1st 3 rolls) —
+       and each heading centres over the columns it names, so the label sits above
+       the boxes it belongs to rather than above the left edge of them. */
     .dw th { font-size: 7.4pt; text-transform: uppercase; letter-spacing: .06em; font-weight: 700;
-      padding: 0 .1rem .2rem; text-align: left; color: #000; border: none; background: #fff; }
+      padding: 0 .1rem .2rem; text-align: center; color: #000; border: none; background: #fff;
+      white-space: nowrap; }
+    /* Right, to sit over the numbers below it, which are right-aligned too. */
+    .dw th.dw-n { text-align: right; }
     /* The label carries the instruction, so the sheet says how to use itself. */
-    .dw-th-s { display: block; text-transform: none; letter-spacing: 0; font-weight: 400;
-      font-size: 6.4pt; color: #555; }
+    .dw-th-s { text-transform: none; letter-spacing: 0; font-weight: 400;
+      font-size: 6.6pt; color: #555; }
     /* Boxes, not table cells. A hairline box with real space around it reads as
        somewhere to write; a ruled grid reads as a spreadsheet, and people write
        smaller and straddle the lines. */
@@ -323,11 +334,19 @@ const egFaces = (str) => str.split('').map((d) => FACE[d]);
        the row it names rather than sitting on its baseline, and big enough to
        find with a die in the other hand — it is what you check when you lose
        your place, which is the mistake this sheet exists to prevent. */
-    .dw-n { width: 7%; border: none !important; background: none !important;
-      text-align: right; font-size: 9.5pt; color: #444; font-weight: 700;
-      padding-right: .3rem; vertical-align: middle; }
+    /* AS NARROW AS "WORD #" ALLOWS AND NO NARROWER — nowrap on the heading is
+       what holds it, so the column cannot squeeze the label onto two lines. The
+       number itself is 12pt: it is the thing you check when you lose your place,
+       and losing your place is the mistake this sheet exists to prevent. The gap
+       to the first box is a real spacer column, not padding, so it matches the
+       gaps between the other sections. */
+    .dw-n { width: 5%; border: none !important; background: none !important;
+      text-align: right; font-size: 12pt; color: #333; font-weight: 700;
+      padding-right: 0; vertical-align: middle; }
     .dw-b { width: 5.4%; }
-    .dw-f { width: 5.4%; background: #e6e6e6; }
+    /* Wide enough for FLIP (H/T) on one line — the narrow column was what forced
+       the whole header row to wrap. */
+    .dw-f { width: 8.5%; background: #e6e6e6; }
     /* Narrower than it was. The word column had 38% for words averaging six
        letters, and the space is worth more on the left where the numbers and the
        gaps between sections had none to spare. */
