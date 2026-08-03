@@ -96,6 +96,19 @@ const rungs = ladder;
 
       <p set:html={r.whatItIs}></p>
 
+      {/* Layer 1+2 of the teaching shape decided 2026-08-03 — how it works and
+          what is functionally possible — before what it gains you and long
+          before what we recommend. A reader who only gets the recommendation
+          cannot tell a good rule from a superstition, which is the opposite of
+          this site's own umbrella rule. */}
+      {r.mechanism && (
+        <>
+          <h3>{r.mechanism.label}</h3>
+          <p set:html={r.mechanism.lead}></p>
+          <ul>{r.mechanism.points.map((p) => <li set:html={p}></li>)}</ul>
+        </>
+      )}
+
       <h3>What it gains you</h3>
       <ul>{(r.gains ?? []).map((g) => <li set:html={g}></li>)}</ul>
 

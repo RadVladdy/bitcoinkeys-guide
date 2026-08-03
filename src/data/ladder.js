@@ -80,6 +80,24 @@ export const ladder = [
       label: 'The passphrase-backup problem — the #1 inheritance failure',
       body: 'The most common documented way people lose passphrase-protected Bitcoin: they pick a strong passphrase, memorise it, never write it down (“if someone finds it, the whole point is gone”), then forget it or die. The seed is backed up, so the wallet <em>looks</em> recoverable — it isn’t. If you use a passphrase, you must back it up as carefully as the seed, stored separately from it, in a different place.',
     },
+    // LAYER 1 AND 2 OF THREE — how it works, then what is functionally possible,
+    // and only then the best practice below. Decided 2026-08-03 as the standard
+    // shape for every teaching surface here. This block was written SECOND, after
+    // `craft`, and the gap is the argument for the standard: the guidance below
+    // was a list of rules with the mechanism that produces them left out, so a
+    // reader could follow it and still not be able to explain any of it.
+    mechanism: {
+      label: 'How it actually works — and what that makes possible',
+      lead: 'A passphrase is not stored anywhere. Not on the device, not in your backup, not in the wallet file. It is an <em>ingredient</em>: your seed words and your passphrase go into one standard calculation, and a wallet comes out. Change a single character and the calculation produces a different wallet — not an error, a different wallet. Almost everything else about a passphrase follows from that one fact.',
+      points: [
+        '<strong>It is why there is no “wrong passphrase” message.</strong> Nothing has a copy of the right one to compare yours against. Every passphrase is valid; they simply open different wallets. Put a capital in the wrong place and your device shows you a real, empty, perfectly ordinary wallet and says nothing is amiss.',
+        '<strong>It is why it cannot be reset, rate-limited, or recovered.</strong> A password lives inside a system that can lock someone out after three wrong tries. This is arithmetic. Anyone holding your seed backup runs that same calculation on their own machine, as often as they like, with nobody to stop them.',
+        '<strong>Any string at all is a passphrase.</strong> Letters, digits, punctuation, spaces — any length your device accepts. Nothing is rejected and no format is required, which is a freedom and a hazard in the same breath, because a typo is also a perfectly valid passphrase.',
+        '<strong>One seed can open any number of wallets.</strong> A different passphrase gives you a different wallet from the very same words, and you are never choosing between them — that is exactly what makes the decoy above work. The “no passphrase” wallet is simply one more of them: an empty passphrase is what your seed opens on its own.',
+        '<strong>Most devices will show you a wallet fingerprint</strong> — a short code identifying the wallet you have just opened. It is the only feedback the design allows, and it is genuinely useful: the same passphrase always produces the same fingerprint, so a code that does not match the one you noted means you mistyped something.',
+      ],
+    },
+    // LAYER 3 — best practice, and it now sits on top of the mechanism above.
     // ADDED 2026-08-03. The site has told readers to "choose it carefully" and
     // that "a weak one is almost as bad as none" since the rung was written, and
     // has never once said HOW. That gap got worse the day this guide made rung 2
@@ -95,6 +113,7 @@ export const ladder = [
         `<strong>Plain ASCII, and no space at either end.</strong> Wallets genuinely disagree about how they treat accented letters, emoji and other non-ASCII characters, so a passphrase built from them can open your wallet on one make of device and not on another. A leading or trailing space is worse: invisible on paper, and part of the secret. Capitals and the spaces between words count too — write it down exactly as it is.`,
         `<strong>Check the length your devices actually accept.</strong> Makers set different limits, and a passphrase longer than some other wallet’s maximum is a passphrase you cannot recover on that wallet. Find the limit for every device you might restore on, not just the one you are typing it into today.`,
         `<strong>Prove it somewhere else before you fund it.</strong> The point of a passphrase is that your words plus your passphrase rebuild the wallet <em>anywhere</em>. That is a claim about other software, so test it on other software — restore on a second wallet, confirm the addresses match, and only then move coins. Testing a backup is its own lesson later in the course — <strong>Test your backup</strong>, in 103 · The build — and a passphrase doubles what there is to get wrong.`,
+        `<strong>Write down the wallet fingerprint too.</strong> It is the one check the design gives you, and it costs nothing: note the code your device shows for the passphrase wallet, alongside the passphrase itself. Next time you restore, a fingerprint that matches means you typed it correctly — which is otherwise a thing you simply cannot know.`,
       ],
       foot: 'And then back it up as carefully as the seed, kept somewhere the seed is not — which is the failure directly above, and the one that actually costs people their Bitcoin.',
     },
