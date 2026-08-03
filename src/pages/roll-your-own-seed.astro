@@ -16,7 +16,7 @@
 import Base from '../layouts/Base.astro';
 import RuleRef from '../components/RuleRef.astro';
 import {
-  diceVerified, methods, deviceProcedures, walkSteps,
+  diceVerified, methods, deviceProcedures, walkStepsFor,
   ratedDevicesForMethod, DICE_METHOD_KEYS,
 } from '../data/dice.js';
 import { seedCosts, tableRowCount, DICE_PER_WORD } from '../data/dice-table.js';
@@ -115,8 +115,14 @@ const shortCost = seedCosts.find((c) => c.words === 12);
           )}
 
           <h3>The steps</h3>
+          {/* PER METHOD, never shared. Option 1 hands the device finished words
+              and asks for the last one; options 2 and 3 hand it throws. Rendering
+              one procedure under the other told option-1 readers to enter their
+              rolls into the device four lines under the sentence saying their
+              randomness never touches a machine. walkStepsFor() is what makes
+              that combination unreachable. */}
           <ol class="wsteps">
-            {walkSteps.map((s) => (<li><strong>{s.t}.</strong> {s.d}</li>))}
+            {walkStepsFor(m.key).map((s) => (<li><strong>{s.t}.</strong> {s.d}</li>))}
           </ol>
 
           <h3>On your device</h3>

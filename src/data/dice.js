@@ -425,8 +425,86 @@ export const walkSteps = [
   },
 ];
 
+// ── OPTION 1 HAS ITS OWN PROCEDURE, AND IT IS NOT THIS ONE ──────────────────
+// The steps above are the DEVICE-ENTRY walkthrough: find the dice screen, press
+// each roll in, read the words off the screen. That is `family: 'hashed'` —
+// options 2 and 3.
+//
+// Option 1 is the opposite shape and was being given those steps anyway. Under
+// "you pick every word", the page told the reader to find the dice screen on
+// their device and enter throws into it, four lines below its own sentence
+// saying the device never generates anything and their randomness never touches
+// a machine. Both halves on one screen, contradicting each other, on a
+// safety-critical procedure — and it also broke a promise made on
+// /dice-word-table, which tells the reader they do not roll the last word and
+// that "the procedure on the site explains how, for each device."
+//
+// THE SHAPE OF OPTION 1, which every `family: 'final-word'` device entry below
+// already encodes: you roll and read words off OUR printed table, by hand, on
+// paper. The device is not involved until every word but the last is chosen,
+// and its only job is the final word — the one carrying the checksum, which
+// cannot be rolled and cannot be worked out by hand.
+//
+// EVERY NUMBER HERE DERIVES from mnemonicShape() and seedCosts. `youPick`,
+// `finalWordOptions` and the throw counts all move on their own if the table's
+// arithmetic ever changes, which is the whole reason those helpers exist.
+const shape24 = mnemonicShape(24);
+const shape12 = mnemonicShape(12);
+
+export const tableWalkSteps = [
+  {
+    t: 'Print the table and read its method sheet first',
+    d: 'The dice → word table and the one-page method that comes with it. Read the method before you throw anything — it is the part that says which throws map to which column, and that 5s and 6s are rerolled, which is why no entry on the table contains one. The table holds no secret and is safe to print, photograph or leave lying about: it is the standard word list in a fixed order, and anyone can regenerate it.',
+  },
+  {
+    t: 'Update the firmware, then wipe the device',
+    d: 'Even though the device plays almost no part here, it still holds the finished seed at the end. Do this first, on a device with no coins on it. If it already holds a wallet you care about, stop and deal with that separately — this procedure starts from empty.',
+  },
+  {
+    t: 'Clear the room',
+    d: 'Phones out of the room. Laptop lids shut. Nothing recording, nothing on a call, nobody behind you. Get the die, the coin, the table, the pen and the paper out before you start so you are not walking around mid-sequence.',
+  },
+  {
+    t: `Know how many words you are choosing — and it is not all of them`,
+    d: `You pick ${shape24.youPick} words for a 24-word seed, or ${shape12.youPick} for a 12-word one. You do not roll the last word. It carries the ${shape24.checksum}-bit checksum for a 24-word seed (${shape12.checksum} bits for a 12-word one), which is arithmetic over everything that came before it — there is no table entry for it and no way to reach it with a die. Write the target at the top of your sheet so "how many was I aiming for" is never a question you answer from memory.`,
+  },
+  {
+    t: 'Roll, look up, write down — one word at a time',
+    d: `Throw the dice for one word, flip the coin, find the block and row on the table, and write that word on your sheet before you throw again. Reroll any die showing a 5 or a 6 — those faces have no place on the table, which is why every entry uses only 1 to 4. Do not roll ahead, and do not write the numbers down: it is the words you keep, and a written list of throws is your seed in another alphabet.`,
+  },
+  {
+    t: 'Count your words before the device is switched on',
+    d: `You should have exactly ${shape24.youPick} words in order (or ${shape12.youPick}), each one legible and spelled the way the table spells it. Check the count and the spelling now. Half the BIP-39 list looks like the other half at a glance, and a word you cannot read later is a seed you cannot restore.`,
+  },
+  {
+    t: 'Now the device — and only for the last word',
+    d: `Use the device's IMPORT or RESTORE flow, not "create a new wallet". That reads oddly the first time and it is correct: you are not asking it to make a seed, you are handing it one and asking for the final word. Type your words in, and at the last position the device does the only thing it does in this procedure — it produces a valid final word. Some devices calculate one for you; some offer the valid options and let you choose. There are ${shape24.finalWordOptions} of them for a 24-word seed and ${shape12.finalWordOptions} for a 12-word one, because a few bits of your own randomness still live in that word alongside the checksum. Your exact menu path is below.`,
+  },
+  {
+    t: 'Write the final word with the others, then wipe and restore',
+    d: 'Add it to your sheet in position — it is as much a part of your seed as the ones you rolled. Then wipe the device and restore it from the full written list, so you find out today rather than in five years whether your backup actually works.',
+  },
+  {
+    t: 'Destroy anything that is not the word list',
+    d: 'Any tally, any working, any sheet with throws on it is key material until it is gone. Burn or shred it; do not bin it. The table itself is public and can stay.',
+  },
+  {
+    t: 'Fund it — small first',
+    d: 'Send a small amount, confirm it arrives, then send a spend back out to prove you can move it. Only after that does the rest follow. Then move the words to metal, and check them once more as you copy.',
+  },
+];
+
+/**
+ * The right walkthrough for a method. `hashed` devices take your throws
+ * directly; `final-word` devices take your finished words and compute the last.
+ * The page must never render one under the other — that is the bug this
+ * function exists to make impossible.
+ */
+export const walkStepsFor = (methodKey) => (methodKey === 'sovereign' ? tableWalkSteps : walkSteps);
+
 /** Derived counts for copy that states how many of these there are. */
 export const walkStepCount = walkSteps.length;
+export const tableWalkStepCount = tableWalkSteps.length;
 export const kitCount = kit.length;
 export const failureModeCount = failureModes.length;
 export const diceDeviceCount = deviceProcedures.length;
