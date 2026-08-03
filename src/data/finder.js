@@ -24,7 +24,9 @@
 // Verified by scripts/verify-finder.mjs — the 3,240-combo legacy diff grid plus
 // the score grid asserting the five calibration constraints (C1–C5, § below).
 
-import { recommend } from './quiz.js';
+import {
+  DEV, singleSigDevices, journeyFrom, collaborativeVendors,
+} from './quiz.js';
 
 // ── 1 · The four concerns ───────────────────────────────────────────────────
 // Same buckets the finder has always used, now scored independently — "two
@@ -42,6 +44,11 @@ export const CONCERNS = [
     // they had largely dealt with. What the Mt. Gox and FTX losses have in
     // common is not that people had an account; it is how much of their stack
     // was sitting in it. Every prompt in this section is worded that way.
+    //
+    // NOTE FOR EXPECTED_RAW: the custodial estimate of 22 was reasoned from
+    // "most holders still have some on an exchange". Under the narrower wording
+    // that prevalence is LOWER, so 22 is now the softest number in a set of soft
+    // numbers and should be revisited when the bundle is next calibrated.
     blurb: 'A meaningful share of your Bitcoin sitting with an exchange or custodian that goes under, freezes your account, or loses your coins — the Mt. Gox to FTX class of loss. Small change on an app is not what this is about.',
     // EVERY SETUP ANSWERS THIS COMPLETELY, so the section shapes the reader's
     // picture rather than the recommendation, and the copy says so rather than
@@ -64,6 +71,29 @@ export const CONCERNS = [
     label: 'Targeted physical theft',
     blurb: 'Someone coming after you specifically — coercion, burglary for devices and backups, insider theft by people who know you.',
   },
+  {
+    key: 'stakes',
+    label: 'How much is riding on this',
+    blurb: 'What losing it would actually cost you — not an amount, the consequence. The more that is riding on it, the more protection is worth its cost.',
+    // Like `exposure`, a preference rather than a frequency: seeded by the
+    // stakes ANSWER. It used to be a multiplier scattered across four different
+    // terms (a complexity discount, a device-budget discount, a shrinking
+    // simplicity bonus, and a ladder pull). Scored as a row instead, it is
+    // visible, tunable in one place, and cannot double-count itself.
+    preference: true,
+  },
+  {
+    key: 'exposure',
+    label: 'Being known to hold Bitcoin',
+    blurb: 'Who can tie you to your coins, and how much they can see — ID checks that end up in a database, a service that can be compelled, a permanent link between your name and your balance, or a seed that reveals everything you own the moment someone gets it.',
+    // NOT a share of expected loss like the other four, and the assessment must
+    // not present it as one. The others answer "how does Bitcoin get taken from
+    // you"; this one answers "how much do you mind being known". It is scored
+    // the same way and multiplies against protection the same way, but its
+    // default comes from the sovereignty ANSWER rather than from research base
+    // rates, because it is a preference, not a frequency.
+    preference: true,
+  },
 ];
 
 export const CONCERN_KEYS = CONCERNS.map((c) => c.key);
@@ -78,19 +108,49 @@ export const SECTION_ORDER = ['custodial', 'self-loss', 'remote', 'physical'];
 // large stakes skew physical (perceived-worth targeting) and shrink custodial
 // (large holders are mostly off-exchange already).
 
+// FOUR entries, not five. `exposure` deliberately has no stakes-based default:
+// it is seeded by the SOVEREIGNTY answer instead (EXPOSURE_BY_SOV, below).
+//
+// It briefly carried a neutral 50 here so the shape stayed whole, and that was
+// a real bug rather than a tidy placeholder. The engine amplifies a score's
+// DEVIATION from its default — so a caller passing the neutral 50 against a
+// sovereignty-derived default of 20 read as "this reader deliberately raised
+// it", and the passphrase's exposure score came out HIGHEST for the reader who
+// had just said they mind exposure LEAST. Backwards, and invisible until the
+// contributions were printed side by side.
 const DEFAULTS = {
   small: { custodial: 33, 'self-loss': 30, remote: 35, physical: 2 },
   mid:   { custodial: 20, 'self-loss': 35, remote: 40, physical: 5 },
   large: { custodial: 10, 'self-loss': 35, remote: 35, physical: 20 },
 };
 
+// `exposure` is seeded by the SOVEREIGNTY answer, not by stakes — the reader
+// already tells us how much they mind a third party, and until now that answer
+// was spent on a flat cost multiplier applied to one setup plus a hard gate
+// deciding which path led a card. Both were the model compensating for a
+// concern it could not express. Scored, it behaves like every other answer:
+// it moves a bar, and the bar moves the recommendation.
+export const EXPOSURE_BY_SOV = { pure: 85, 'lean-self': 55, 'open-help': 20 };
+
+// The stakes answer as a 0–100 score. Deliberately reaching the top of the
+// scale: this row carries roughly double the weight of the others (0 / 2.5 / 5
+// / 6 against their 0–3), which is what "more at stake justifies more
+// protection" looks like when it is stated rather than implied.
+export const STAKES_SCORE = { learning: 0, meaningful: 40, serious: 75, lifechanging: 100 };
+
 // Consequence-of-loss answer → default band. 'serious' is still "mid": the
 // design's large band is $1M+/public-footprint territory, which maps to
 // life-changing consequence, not "a big chunk of my savings".
 const STAKES_BAND = { learning: 'small', meaningful: 'mid', serious: 'mid', lifechanging: 'large' };
 
-export function defaultsFor(stakes) {
-  return { ...DEFAULTS[STAKES_BAND[stakes] || 'mid'] };
+export function defaultsFor(stakes, sovereignty) {
+  const d = { ...DEFAULTS[STAKES_BAND[stakes] || 'mid'] };
+  // Exposure's default is the sovereignty answer, so it only appears once the
+  // caller says which answer was given. Callers that omit it get the four
+  // research-based concerns and nothing invented.
+  if (sovereignty && EXPOSURE_BY_SOV[sovereignty] !== undefined) d.exposure = EXPOSURE_BY_SOV[sovereignty];
+  if (STAKES_SCORE[stakes] !== undefined) d.stakes = STAKES_SCORE[stakes];
+  return d;
 }
 
 // ── 3 · The word scale ──────────────────────────────────────────────────────
@@ -110,10 +170,10 @@ export function defaultsFor(stakes) {
 // deliberate — its default share is small, so it takes little evidence of
 // being a target to be genuinely "high" for you.
 
-export const HALF_BAND = { custodial: 10, 'self-loss': 10, remote: 10, physical: 4 };
+export const HALF_BAND = { custodial: 10, 'self-loss': 10, remote: 10, physical: 4, exposure: 15, stakes: 20 };
 
-export function scoreWord(n, concern, stakes = 'meaningful') {
-  const d = defaultsFor(stakes)[concern];
+export function scoreWord(n, concern, stakes = 'meaningful', sovereignty = 'lean-self') {
+  const d = defaultsFor(stakes, sovereignty)[concern];
   const h = HALF_BAND[concern];
   if (n < d - h) return 'low';
   if (n <= d + h) return 'typical';
@@ -180,7 +240,7 @@ export const prompts = [
 
   // ── self-loss ── (raises: self-inflicted loss)
   {
-    id: 's-forgot', concern: 'self-loss', weight: 'medium',
+    id: 's-forgot', prevalence: 'published', concern: 'self-loss', weight: 'medium',
     statement: 'I’ve forgotten or reset an important password in the last few years.',
     why: 'About four in ten US crypto owners have forgotten a crypto password. Ordinary forgetfulness is the base rate, not the exception.',
   },
@@ -190,7 +250,7 @@ export const prompts = [
     why: 'Recovery firms see seeds written down with errors all the time — and the error only surfaces at restore time, the worst moment to learn.',
   },
   {
-    id: 's-nobody-knows', concern: 'self-loss', weight: 'medium',
+    id: 's-nobody-knows', prevalence: 'published', concern: 'self-loss', weight: 'medium',
     statement: 'Nobody but me knows my Bitcoin exists, or how to reach it.',
     why: 'True of nearly nine in ten holders — and it is the QuadrigaCX failure mode: if something happens to you, the coins go with you.',
   },
@@ -258,7 +318,7 @@ export const prompts = [
     why: 'Clipboard-swapping malware rides in on exactly this — and it waits silently for a copied address.',
   },
   {
-    id: 'r-quick', concern: 'remote', weight: 'medium',
+    id: 'r-quick', prevalence: 'published', concern: 'remote', weight: 'medium',
     statement: 'I act on crypto messages quickly, and I’m confident I can spot a fake.',
     why: 'Quick responders and the self-confident click more, not less — about 80% of people overrate their own detection.',
   },
@@ -336,6 +396,95 @@ export const promptsFor = (concern) => prompts.filter((p) => p.concern === conce
 const CEILING = { custodial: 88, 'self-loss': 88, remote: 90, physical: 80 };
 const H_SAT = { custodial: 25, 'self-loss': 29, remote: 36, physical: 28 };
 
+// ── THE EXPECTED BUNDLE — what the typical holder actually carries ──────────
+//
+// The defaults above are a SHARE of expected loss for a typical holder, and
+// they sum to 100. The bug this fixes: prompts only ever added, so checking
+// nothing scored the default exactly — which silently asserted that the
+// typical holder carries ZERO risk factors. That is the one thing we know is
+// false. Everyone drained on 30 July had at least one.
+//
+// It also made a walked-and-cleared section indistinguishable from a SKIPPED
+// one, and those are opposite signals from the reader.
+//
+// So the baseline needs a model of what the typical holder has. EXPECTED_RAW
+// is that model, in the same raw-weight points the prompts accumulate: the
+// prevalence-weighted sum of each section's prompts. Score above it and the
+// bar rises; below it and the bar falls; hit it exactly and you sit on the
+// published default, which is what "typical" is supposed to mean.
+//
+// WHY POINTS AND NOT A COUNT: prompts carry small/medium/large weights, so
+// "three of eight" describes different people depending on which three.
+//
+// HOW THESE WERE ESTIMATED, and how solid each is. THREE prompts carry a
+// published prevalence OF THE SITUATION AMONG HOLDERS, and they are marked
+// `prevalence: 'published'` so the count derives rather than being typed:
+// s-forgot (~40%), s-nobody-knows (~87%), r-quick (80%). Every other prompt is
+// a house estimate of how common the situation is among self-custody holders.
+// They are estimates, they are the softest numbers in this engine, and
+// /how-we-weigh-risk must publish them as estimates rather than as research.
+//
+// c-exchange is deliberately NOT marked. Its receipt does carry a published
+// figure — roughly six in ten exchanges ever launched have closed — but that is
+// a statistic about EXCHANGES, not about how many readers have money on one,
+// and only the second is a prevalence. A receipt containing a percentage is not
+// the same as a prompt whose likelihood is measured.
+//
+// This paragraph used to read "four prompts … the remaining 28", against a bank
+// that had been 32 before the custodial trim. Both numbers were typed, both went
+// stale in one commit, and the page was about to publish them. Hence the field.
+//
+//   custodial 22 of 48 available — most holders still have some on an
+//     exchange, but our mid-stakes reader is mid-migration by construction.
+//     ⚠ THE SOFTEST OF THE FOUR, AND IT MOVED WITHOUT BEING RE-REASONED. It was
+//     22 of 74 when this section had seven prompts; the trim to four dropped the
+//     available points to 48 without changing the target, so the same 22 now
+//     asserts a much larger share of a smaller bank. It survives on the merits
+//     of neither reasoning in particular. What keeps it harmless is that
+//     `custodial` is deliberately inert — every setup scores 3, so no value here
+//     can change a recommendation — and C6 still finds it reachable. Re-reason
+//     it, do not re-tune it, at the next calibration. /how-we-weigh-risk derives
+//     the "of N" from the live bank, so the published figure cannot go stale
+//     the way this comment did.
+//   self-loss 42 of 88 — deliberately the highest share, because this is the
+//     thing holders are genuinely worst at: the large majority have never
+//     test-restored, and ~87% have told nobody
+//   remote 36 of 108 — driven by near-universal overconfidence (r-quick's
+//     own 80%) and ordinary habits like app-store searching
+//   physical 22 of 84 — the lowest, matching physical's small default share;
+//     most holders are known to somebody but very few are targets
+//
+// EVERY VALUE HERE IS EVEN, and must stay even. WEIGHT_POINTS are 6/10/16, so
+// an odd target is unreachable by any combination of prompts — which would
+// make C6 untestable end-to-end and reduce it to checking the formula against
+// itself. Estimated 35 and 23 for remote and physical; both moved one point
+// to the nearest reachable sum, which is far inside these numbers' real
+// uncertainty. If a prompt weight ever becomes odd, this constraint relaxes.
+//
+// NOT STAKE-SHIFTED, deliberately. The stake bands already move the DEFAULT.
+// Shifting the expected bundle as well would let stakes move the same bar
+// twice — the exact double-count this file already had to strip out of the
+// gain term and the sovereignty cost.
+export const EXPECTED_RAW = { custodial: 22, 'self-loss': 42, remote: 36, physical: 22 };
+
+// Where a fully-cleared section lands, as a fraction of that concern's
+// default. Not zero: a careful holder still retains irreducible exposure —
+// you can still be scammed, hardware still fails, and you can still die
+// without a plan. Nothing here goes to nothing.
+//
+// 0.3 is chosen so a cleared section reads 'low' rather than 'typical' on the
+// word scale — it must land below d − HALF_BAND or the reader gets no signal
+// back for having answered honestly.
+const FLOOR_FRAC = 0.3;
+
+// PHYSICAL floors at zero instead. Its half-band (4) is almost its whole
+// default (5), so 'low' means "below 1" — a 30% floor could never reach it
+// and the bar would read 'typical' for someone with no targeting factors at
+// all. Flooring at zero is also the honest reading: a holder nobody can
+// connect to bitcoin is not a target. This is a quirk of physical's tiny
+// share in the word scale, not something the expected-bundle model creates.
+const floorFor = (concern, dc) => (concern === 'physical' ? 0 : Math.round(dc * FLOOR_FRAC));
+
 /**
  * Score vector from checked prompts. Sections in skippedSections keep the
  * standard estimate (decided § 11.3). A gated prompt whose gate was never
@@ -352,10 +501,39 @@ export function scoreFromPrompts(checkedPrompts = [], stakes = 'meaningful', ski
     for (const x of p.also || []) raw[x.concern] += WEIGHT_POINTS[x.weight];
   }
   const scores = {};
-  for (const c of CONCERN_KEYS) {
-    scores[c] = skippedSections.includes(c)
-      ? d[c]
-      : Math.round(d[c] + (CEILING[c] - d[c]) * (raw[c] / (raw[c] + H_SAT[c]) || 0));
+  // SECTION_ORDER, not CONCERN_KEYS. This function derives scores from PROMPTS,
+  // and only the four walked risks have any — the other two come from questions
+  // the reader answered directly, so this has nothing to say about them.
+  //
+  // Iterating every concern emitted `stakes: null` and `exposure: null`, and an
+  // explicit null is not the same as an absent key: it travelled into the engine
+  // as a supplied value, resolved differently from a genuine default, and made
+  // the page recommend single-sig where a direct call recommended multisig for
+  // identical answers. Omit what you do not know; do not report it as null.
+  for (const c of SECTION_ORDER) {
+    // A SKIPPED section keeps the standard estimate. This is now meaningfully
+    // different from a section walked and cleared, which lands at the floor —
+    // before the expected bundle they were the same number, so the engine
+    // could not tell "none of this is me" from "I did not answer".
+    if (skippedSections.includes(c)) { scores[c] = d[c]; continue; }
+
+    const expected = EXPECTED_RAW[c] || 0;
+    const excess = raw[c] - expected;
+
+    if (excess >= 0) {
+      // ABOVE the typical bundle — saturating toward the band ceiling, so
+      // there is always somewhere further to go and the bar never reads 100.
+      scores[c] = Math.round(d[c] + (CEILING[c] - d[c]) * (excess / (excess + H_SAT[c]) || 0));
+    } else {
+      // BELOW it — LINEAR to the floor, not saturating. Deliberately
+      // asymmetric: exposure has no natural limit, but safety does, and the
+      // floor is a place you can actually arrive at. It also makes the scale
+      // explainable in one sentence on /how-we-weigh-risk: clear the whole
+      // section and you sit at the floor, carry the typical bundle and you
+      // sit on the published default.
+      const floor = floorFor(c, d[c]);
+      scores[c] = Math.round(d[c] - (d[c] - floor) * (expected ? -excess / expected : 0));
+    }
   }
   return scores;
 }
@@ -377,24 +555,65 @@ export function scoreFromPrompts(checkedPrompts = [], stakes = 'meaningful', ski
 // an incident record (funds not reachable at the scene ended real attacks);
 // collaborative's self-loss 3 is the provider key-replacement backstop.
 
+// THE SELF-LOSS COLUMN, rebuilt 2026-08-01 around what actually protects you
+// from locking yourself out — REDUNDANCY — rather than around making the
+// constraints pass.
+//
+// It used to read single-sig 1, multisig 0, which asserted that ONE key
+// protects you against lockout better than THREE do. That is false on its face:
+// a 2-of-3 survives losing any single key, and a lone seed survives nothing.
+// The 0 existed because multisig's setup complexity is a real lockout risk and
+// the column was netting the two effects into one number — so the redundancy
+// disappeared and only the complexity showed. Complexity already has its own
+// cost term; it does not need to be charged twice.
+//   single-sig 0.5  one seed, no redundancy at all — a tested backup is the
+//                   only thing standing between you and a total loss
+//   passphrase -0.5 strictly worse than single-sig: one more secret, and the
+//                   only one whose failure is silent
+//   multisig 2      lose any one key and you are still fine
+//   3-of-5 2.5      lose any two
+//   collaborative 3 redundancy PLUS a service whose job is helping you recover
 export const PROTECTION = {
-  'single-sig':    { weights: { custodial: 3, 'self-loss': 1,  remote: 2, physical: 0 }, complexity: 0, devices: 1 },
-  passphrase:      { weights: { custodial: 3, 'self-loss': -1, remote: 2, physical: 1 }, complexity: 1, devices: 1 },
-  multisig:        { weights: { custodial: 3, 'self-loss': 0,  remote: 3, physical: 3 }, complexity: 2, devices: 3 },
-  collaborative:   { weights: { custodial: 3, 'self-loss': 3,  remote: 3, physical: 3 }, complexity: 1, devices: 2 },
-  'three-of-five': { weights: { custodial: 3, 'self-loss': 1,  remote: 3, physical: 3 }, complexity: 3, devices: 5 },
+  //                custodial  self-loss  remote  physical  exposure  stakes
+  'single-sig':    { weights: { custodial: 3, 'self-loss': 1, remote: 1,   physical: 0,   exposure: 3,    stakes: 0   }, complexity: 0, devices: 1 },
+  passphrase:      { weights: { custodial: 3, 'self-loss': 0, remote: 2,   physical: 2,   exposure: 3,    stakes: 2   }, complexity: 0, devices: 1 },
+  multisig:        { weights: { custodial: 3, 'self-loss': 2, remote: 2.5, physical: 2.5, exposure: 3,    stakes: 5   }, complexity: 2, devices: 3 },
+  collaborative:   { weights: { custodial: 3, 'self-loss': 2.5, remote: 3, physical: 3,   exposure: -0.5, stakes: 5.5 }, complexity: 1, devices: 2 },
 };
 
+
+// FOUR setups, one per ladder rung. 3-of-5 was scored here as a fifth option
+// until 2026-08-01 and is not any more: it is a SIZE of do-it-yourself
+// multisig, not a rung of its own, and scoring it separately let it compete
+// against its own rung — which is how the result page ended up able to show
+// "multisig" as both the first and the second choice. The teaching about 3-of-5
+// stays on the ladder lesson where it belongs; the recommendation says
+// multisig, and how many keys is a decision inside that.
 export const SETUP_KEYS = Object.keys(PROTECTION);
 
-// Which recommendation FAMILY a setup belongs to. Both 2-of-3 flavors (and the
-// 3-of-5 step-up) collapse into the multisig FORK — the fork card always shows
-// both paths, and who LEADS is a preserved hard gate (see recommendV2), never
-// a fit result.
+// Which LADDER RUNG a setup sits on. One entry per rung, and every rung is
+// scored on its own merits.
+//
+// It used to collapse DIY multisig, collaborative custody and 3-of-5 into a
+// single 'fork', so the two could never place 1st and 2nd against each other,
+// and which of them LED was decided by a hard rule on the sovereignty answer
+// rather than by their scores. That was the model compensating for a concern it
+// could not express — now that third-party exposure is scored, collaborative
+// can compete honestly and lose honestly.
+//
+// 2-of-3 and 3-of-5 DO still share rung 3: they are the same idea at two sizes,
+// not two rungs. Which one shows is a fit result between them.
 export const FAMILY = {
   'single-sig': 'single', passphrase: 'passphrase',
-  multisig: 'fork', collaborative: 'fork', 'three-of-five': 'fork',
+  multisig: 'multisig', collaborative: 'collaborative',
 };
+
+// Each family's position ON THE LADDER (/learn/ladder rungs 1–4), which is the
+// site's own ordering of protection: single-sig cold → + passphrase → multisig
+// → collaborative. The fork's two rungs share a rank because they are presented
+// as two equal paths, never as a hierarchy. Used ONLY to resolve near-ties
+// upward (C6) — it never reorders anything the scores actually separated.
+export const LADDER_RANK = { single: 1, passphrase: 2, multisig: 3, collaborative: 4 };
 
 // ── Tuning constants ── (the calibration outcome — see the contract below)
 //
@@ -429,25 +648,85 @@ export const FAMILY = {
 //  C3 monotonicity: raising any concern never lowers the fit-rank of a setup
 //     with the top protection weight for that concern (linear + monotone eff
 //     makes this structural; asserted anyway).
-//  C4 anti-passphrase honesty: self-loss at or above 'elevated' → passphrase
-//     is hard-gated out of primary AND out of the step-up card, and the result
-//     carries a computed holdback naming the reason. (In practice the matrix
-//     already makes passphrase unwinnable as a primary — see note below.)
+//  C4 anti-passphrase honesty — a DISCLOSURE, not a prohibition: self-loss at
+//     or above 'elevated' → if a passphrase still wins on score, the result
+//     must carry a computed caveat naming the reason. Nothing is banned.
+//     (This entry described a hard gate out of primary and the step-up card
+//     long after the gates were removed and the harness had been rewritten to
+//     assert disclosure — the contract block is the one place that must not
+//     drift, because it is what a reader trusts instead of reading the code.)
 //  C5 near-ties: top two distinct families within TIE_MARGIN → the result is
 //     flagged as a genuine either/or (result.tie), never a false winner.
+//  C6 the expected bundle: a reader carrying the typical holder's bundle of
+//     risk factors scores the published default EXACTLY; a reader who walks a
+//     section and clears it scores below it and reads 'low'; and clearing is
+//     never the same as skipping. Guards the meaning of the baseline itself.
+//  C7 simplest PLUS ONE — the house bias: the guide recommends the simplest
+//     ADEQUATE rung, then leans one step past it, because unknown risks exist
+//     and a stack is worth more in four years than today. Asserted against a
+//     reader who cleared the whole assessment: above learning stakes they
+//     never land on the bare floor, the rung never falls as stakes rise, and
+//     LEARNING is exempt — the +1 there is a passphrase, and a silent lockout
+//     is the failure a beginner is least equipped to survive. This held by
+//     accident, falling out of the stakes weights and asserted nowhere,
+//     until it was written down.
 
 const DEVIATION_GAIN = 1.6;
-const SIMPLICITY_EDGE = { learning: 1.15, meaningful: 1.05, serious: 1.0, lifechanging: 0.45 };
+// FLAT. It used to fade as stakes rose, which was one of four places stakes
+// quietly multiplied something. Stakes is a scored row now; letting it also
+// shrink this would count it twice.
+const SIMPLICITY_EDGE = 1.0;
+// WHO gets the simplicity bonus, and how much of it. It used to be single-sig
+// ONLY — which double-charged the passphrase for simplicity it actually has:
+// one device, like single-sig, yet it paid a complexity cost AND forfeited the
+// whole bonus. Combined with a physical weight of 1, that made it STRICTLY
+// DOMINATED: swept over 527,076 answer x score combinations it ranked first
+// ZERO times, and in the exact case it exists for — elevated physical risk,
+// low self-loss, one device, "keep it simple" — it ranked LAST of five while
+// the engine recommended three hardware wallets. A rung the ladder teaches must
+// be reachable by the assessment that is supposed to find it.
+// Passphrase takes a PARTIAL share, not the full bonus: it is the second-
+// simplest setup, not the simplest — one device, but one more secret.
+// The passphrase keeps most of the simplicity bonus — it is genuinely one
+// device with no coordinator — but not ALL of it. It is the second-simplest
+// setup, not the simplest: there is one more secret than bare single-sig, and
+// the bonus represents "simplest thing that covers you". At a full share it
+// took the untouched default away from single-sig, which is not a tuning
+// artefact so much as the number claiming something untrue.
+const SIMPLICITY_SHARE = { 'single-sig': 1, passphrase: 0.7 };
+// How much of the simplicity bonus the PASSPHRASE keeps, by stakes. Single-sig
+// always keeps all of it (it is the simplest thing there is); this scales only
+// the passphrase's share.
+//
+// Why it has to taper: a flat full share made the passphrase the DEFAULT answer
+// at life-changing stakes — one device and one memory holding life-changing
+// money, beating multisig for a reader who had not adjusted a single bar. That
+// cuts against the ladder's own logic that more at stake means more keys, and
+// the passphrase's single point of failure is exactly what stops being
+// affordable as consequences grow. Simplicity is a real virtue at small stakes
+// and a weaker argument at large ones, so its bonus fades the same way
+// SIMPLICITY_EDGE already does.
+
+
+
 const TECH_FACTOR = { simple: 0.9, careful: 0.65, technical: 0.4 };
-const STAKES_FACTOR = { learning: 1.3, meaningful: 1.1, serious: 0.8, lifechanging: 0.4 };
+
 const COMPLEXITY_BASE = 0.9;
 // Collaborative custody's fee/KYC/trust preference cost, scaled by the
 // sovereignty answer. It steers, it never gates: even 'pure' users get the
 // fork when their scores demand it — with the DIY path leading (the gate).
-const SOV_COST = { pure: 1.0, 'lean-self': 0.8, 'open-help': 0.45 };
+// RETIRED 2026-08-01 — kept only to validate the sovereignty answer. It used to
+// be a flat penalty applied to collaborative custody alone, which is how the
+// model expressed "you said you want sovereignty" without ever scoring it. That
+// job now belongs to the `exposure` concern (EXPOSURE_BY_SOV), where the reader
+// can see the bar, adjust it, and watch it move the answer — like every other
+// input. A preference applied as a hidden discount is not a preference the
+// reader can argue with.
+const SOV_VALUES = { pure: 1, 'lean-self': 1, 'open-help': 1 };
 // Extra hardware beyond the first device weighs on a budget; consequence-of-
 // loss is the only budget proxy we have (never an amount).
-const BUDGET_FACTOR = { learning: 0.25, meaningful: 0.15, serious: 0.05, lifechanging: 0 };
+// Flat: extra hardware costs what it costs, whatever is at stake.
+const BUDGET_FACTOR = 0.15;
 export const TIE_MARGIN = 0.15;
 
 /**
@@ -459,19 +738,22 @@ export const TIE_MARGIN = 0.15;
  * not by reordering, so monotonicity stays inspectable.
  */
 export function fitFor(scores, answers = {}) {
-  const stakes = STAKES_FACTOR[answers.stakes] ? answers.stakes : 'meaningful';
+  const stakes = STAKES_SCORE[answers.stakes] !== undefined ? answers.stakes : 'meaningful';
   const tech = TECH_FACTOR[answers.tech] ? answers.tech : 'careful';
-  const sov = SOV_COST[answers.sovereignty] ? answers.sovereignty : 'lean-self';
-  const d = defaultsFor(stakes);
+  const sov = SOV_VALUES[answers.sovereignty] ? answers.sovereignty : 'lean-self';
+  const d = defaultsFor(stakes, sov);
+  // `exposure` defaults to whatever the sovereignty ANSWER implies, not to the
+  // neutral 50 in DEFAULTS — that neutral only exists so the shape stays whole
+  // for callers that pass no answers. An explicit score always wins, so a
+  // reader who nudges the bar on the review screen overrides their own earlier
+  // answer, exactly as they can for the other four.
+  const dEff = { ...d };
+
   const eff = {};
   for (const c of CONCERN_KEYS) {
-    const s = typeof scores[c] === 'number' ? scores[c] : d[c];
-    eff[c] = Math.min(100, Math.max(0, d[c] + DEVIATION_GAIN * (s - d[c]))) / 100;
+    const s = typeof scores[c] === 'number' ? scores[c] : dEff[c];
+    eff[c] = Math.min(100, Math.max(0, dEff[c] + DEVIATION_GAIN * (s - dEff[c]))) / 100;
   }
-  const selfWord = scoreWord(
-    typeof scores['self-loss'] === 'number' ? scores['self-loss'] : d['self-loss'],
-    'self-loss', stakes
-  );
   const rows = SETUP_KEYS.map((setup) => {
     const P = PROTECTION[setup];
     const contributions = CONCERN_KEYS.map((c) => ({
@@ -480,16 +762,22 @@ export function fitFor(scores, answers = {}) {
     }));
     const protection = contributions.reduce((t, x) => t + x.points, 0);
     const costs = {
-      complexity: Math.round(P.complexity * TECH_FACTOR[tech] * STAKES_FACTOR[stakes] * COMPLEXITY_BASE * 100) / 100,
-      sovereignty: setup === 'collaborative' ? SOV_COST[sov] : 0,
-      budget: Math.round((P.devices - 1) * BUDGET_FACTOR[stakes] * 100) / 100,
-      simplicityEdge: setup === 'single-sig' ? SIMPLICITY_EDGE[stakes] : 0,
+      complexity: Math.round(P.complexity * TECH_FACTOR[tech] * COMPLEXITY_BASE * 100) / 100,
+      sovereignty: 0,
+      budget: Math.round((P.devices - 1) * BUDGET_FACTOR * 100) / 100,
+      simplicityEdge: Math.round((SIMPLICITY_EDGE * (SIMPLICITY_SHARE[setup] || 0)) * 100) / 100,
+      ladderPull: 0,
     };
     return {
       setup,
       family: FAMILY[setup],
-      fit: Math.round((protection - costs.complexity - costs.sovereignty - costs.budget + costs.simplicityEdge) * 1000) / 1000,
-      gated: setup === 'passphrase' && (selfWord === 'elevated' || selfWord === 'high'),
+      fit: Math.round((protection - costs.complexity - costs.sovereignty - costs.budget + costs.simplicityEdge + costs.ladderPull) * 1000) / 1000,
+      // NO HARD GATES. Every setup competes on score alone — the negative
+      // self-loss weight is what argues against a passphrase for a reader who
+      // is likely to forget, and it argues proportionally instead of absolutely.
+      // A ban cannot express "somewhat", and every one of these risks is a
+      // matter of degree.
+      gated: false,
       contributions, costs,
     };
   });
@@ -517,7 +805,7 @@ const WORRY_TO_CONCERN = {
 
 export function shimScores(answers = {}) {
   const stakes = answers.stakes || 'meaningful';
-  const d = defaultsFor(stakes);
+  const d = defaultsFor(stakes, answers.sovereignty);
   const scores = { ...d };
   const worries = Array.isArray(answers.worry) ? answers.worry : (answers.worry ? [answers.worry] : []);
   // Pass 1 — theft's physical spillover (explicit 'targeted' ranks overwrite it).
@@ -541,6 +829,67 @@ export function shimScores(answers = {}) {
 // Generated from the primary's largest fit contributions, phrased per concern
 // and per family. {word} interpolates the user's own word for that concern.
 
+// ── CAVEATS — the other half of an honest result ─────────────────────────────
+// A recommendation is the setup that scored best OVERALL. That is not the same
+// as it being good at everything, and where it is weak on something the reader
+// told us they care about, the result has to say so in its own words.
+//
+// This replaces a set of hand-written holdbacks that only knew about the
+// passphrase, and it replaces the hard gates entirely. The gates used to
+// SUPPRESS contradictory outcomes; a caveat DISCLOSES them, which is both more
+// honest and more useful — the reader can weigh it, where a gate just quietly
+// removed an option and told them nothing.
+//
+// Fires when: the chosen setup's weight on a concern is materially worse than
+// the best available, AND the reader rates that concern elevated or high.
+// REACHABILITY IS ASSERTED (verify-finder.mjs). Every key here must be able to
+// fire for at least one setup, and every concern whose gap can reach CAVEAT_GAP
+// must have a key. Two entries were dead when this was written and are gone:
+//
+//   custodial — all four setups weigh it 3, because they all answer it
+//     completely the moment the keys are yours. The gap can never reach 1.2, so
+//     this string could never render.
+//   exposure (the non-custodial wording) — only `collaborative` has a gap on
+//     exposure, and the key-swap below always sends collaborative to
+//     `exposureCustodial`. Unreachable by construction.
+//
+// Dead copy on a page that argues for a living is worse than no copy: it reads
+// as covered when nothing covers it.
+export const CAVEAT_TEXT = {
+  'self-loss': 'The trade you are making: this is the weakest option here for locking yourself out, and you rated that {word}. It leans on you getting the backup right — and, if it has a passphrase, on remembering something whose failure is silent. Test your recovery before you trust it with real money.',
+  remote: 'The trade you are making: this does less against scams and remote theft than the alternatives, and you rated that {word}. The habits in your checklist — verify on the device screen, trust nobody who contacts you first — are carrying more weight here than the setup is.',
+  physical: 'The trade you are making: this is weaker against someone coming after you specifically than the alternatives, and you rated that {word}. Keys in one place can all be reached in one visit; the low-profile steps in your checklist matter more here.',
+  // Fires for BOTH single-sig and the passphrase — the two one-device rungs —
+  // so it must not describe either of them specifically. It used to say "this
+  // is the lightest setup on the ladder", which is true of bare single-sig and
+  // false of a passphrase, and the reader recommended a passphrase was told
+  // something about their own recommendation that was not so.
+  stakes: 'The trade you are making: how much is riding on this is {word}, and this setup rests on a single device and a single backup. It asks the least of you, which is a real virtue — but there is nothing else holding the line if that one thing fails.',
+  exposureCustodial: 'The trade you are making: how much you mind being known to hold Bitcoin is {word}, and this setup brings a company inside it. Most require ID verification, which ties your name to your holdings, and they can see what this wallet holds.',
+};
+
+// A STANDING warning, not a computed caveat. The caveat machinery only speaks
+// when the reader rates a concern elevated or high — right for a trade-off, and
+// wrong for this one.
+//
+// A passphrase adds a failure that is SILENT and total, and the guide says on
+// five other surfaces that keeping one only in your head is the single most
+// documented way people lose passphrase-protected Bitcoin. The legacy card
+// carried that warning unconditionally; recommendV2 overwrites `holdback` with
+// the computed caveat and so DELETED it for precisely the readers the engine
+// sends to a passphrase with LOW self-loss — which is the most common passphrase
+// outcome there is. The one card recommending the thing shipped with no warning
+// about it. Asserted in verify-finder.mjs.
+const PASSPHRASE_STANDING = {
+  concern: 'self-loss',
+  standing: true,
+  // The computed caveats all answer "why not more?"; this one does not — it is
+  // a condition attached to the thing we just recommended, so it carries its
+  // own label rather than borrowing a question it is not the answer to.
+  label: 'Before you take this on',
+  text: 'One thing to take on with it: a passphrase adds a way to lose everything that no backup can undo. Forget it and the seed alone opens only the decoy — there is no reset and nobody to ask. Back the passphrase up as carefully as the seed itself, keep it somewhere the seed is not, and say plainly in your recovery notes that it exists.',
+};
+
 const REASON_TEXT = {
   custodial: {
     single: 'Your company-failure concern is {word} — and this setup answers it completely, on day one. The moment the keys are yours, no exchange can freeze your account, lose your coins, or take them down with it.',
@@ -553,6 +902,14 @@ const REASON_TEXT = {
   remote: {
     single: 'Your scams-and-remote-theft concern is {word}. A hardware wallet answers the part that matters most: the key never touches an internet-connected device, and every payment is confirmed on a screen no scammer can reach.',
     fork: 'Your scams-and-remote-theft concern is {word}. With 2-of-3, one phished or malware-compromised key still can’t move a single coin — the attack that empties a one-key wallet stops at the second signature.',
+  },
+  stakes: {
+    single: 'How much is riding on this is {word}. At this level the win is a setup you will actually operate correctly — one key, one tested backup, and nothing else to get wrong.',
+    fork: 'How much is riding on this is {word}, and that is the case for more than one key. When the consequence of losing it is this large, spreading the keys stops being over-engineering and starts being proportionate.',
+  },
+  exposure: {
+    single: 'How much you mind being known to hold Bitcoin is {word}. This setup keeps it to you — no company checks your ID, no third party can see your balance, and with a passphrase a seed someone obtains does not reveal what you actually hold.',
+    fork: 'How much you mind being known to hold Bitcoin is {word}. Running the keys yourself keeps every one of them out of a company’s records — no ID check, no account, nobody who can be asked what you own.',
   },
   physical: {
     single: 'Your targeted-theft concern is {word}. At this level the setup stays simple and the win is a low profile: nothing at home needs to reveal what you hold, and the checklist’s privacy steps carry most of the weight.',
@@ -588,15 +945,35 @@ function passphraseHoldback(word) {
 //   tie:       null | { a, b, margin, note } — C5 genuine either/or
 //   fit:       the full fitFor() ranking (per-setup breakdowns for the UI)
 //
-// HARD GATES PRESERVED: single-sig cold is the floor for everyone (the engine
-// only ever ranks the five ladder setups — "stay on the exchange" is not an
-// outcome); the fork's lead is collaborative iff sovereignty is open-help AND
-// tech is not technical, exactly as today (inherited by construction — see
-// makeLegacyAnswers); sovereignty steers via SOV_COST; no dollar amounts.
+// THE FLOOR IS STRUCTURAL: the engine only ever ranks the four ladder setups, so
+// "stay on the exchange" is not an outcome it can produce. No dollar amounts, ever.
+//
+// NO GATES, and no fork. Every rung competes on score, and the two multi-key
+// rungs place against each other like any other pair — which is what the old
+// fork card could not express. Sovereignty is scored through `exposure` rather
+// than applied as a hidden cost.
+
+// Fill the two PREFERENCE rows (stakes, exposure) from the answers that seed
+// them, for any score source that cannot know about them. Never overwrites a
+// value the caller supplied — a hand-nudged bar still wins.
+//
+// `sovereignty` is validated the same way fitFor validates it, so a saved plan
+// that predates the sovereignty question resolves to the same default the
+// engine scores against rather than leaving exposure undefined.
+function withPreferenceDefaults(scores, answers = {}) {
+  const stakes = STAKES_SCORE[answers.stakes] !== undefined ? answers.stakes : 'meaningful';
+  const sov = EXPOSURE_BY_SOV[answers.sovereignty] !== undefined ? answers.sovereignty : 'lean-self';
+  const d = defaultsFor(stakes, sov);
+  const out = { ...scores };
+  for (const c of ['stakes', 'exposure']) {
+    if (typeof out[c] !== 'number') out[c] = d[c];
+  }
+  return out;
+}
 
 function normalizedScores(answers) {
   if (answers.scores && typeof answers.scores === 'object') {
-    const d = defaultsFor(answers.stakes || 'meaningful');
+    const d = defaultsFor(answers.stakes || 'meaningful', answers.sovereignty);
     const skipped = Array.isArray(answers.skippedSections) ? answers.skippedSections : [];
     const out = {};
     for (const c of CONCERN_KEYS) {
@@ -608,72 +985,212 @@ function normalizedScores(answers) {
     return out;
   }
   if (Array.isArray(answers.checkedPrompts)) {
-    return scoreFromPrompts(answers.checkedPrompts, answers.stakes || 'meaningful',
-      Array.isArray(answers.skippedSections) ? answers.skippedSections : []);
+    // scoreFromPrompts only knows the four WALKED risks — `stakes` and
+    // `exposure` come from questions, not prompts, so it deliberately omits
+    // them. That omission has to be filled HERE or the two preference rows
+    // arrive undefined.
+    //
+    // Undefined is not harmless: scoreWord's comparisons against it are all
+    // false, so both rows reported 'high' for every reader, deltas came back
+    // NaN, and `stakes: high` fired a caveat telling someone at learning stakes
+    // that a great deal was riding on it. The page never hit this because it
+    // passes a `scores` object, which the branch above fills — but
+    // checkedPrompts is a documented entry point of this function and nothing
+    // in the harness had ever called it. Filled here, and asserted below.
+    return withPreferenceDefaults(
+      scoreFromPrompts(answers.checkedPrompts, answers.stakes || 'meaningful',
+        Array.isArray(answers.skippedSections) ? answers.skippedSections : []),
+      answers,
+    );
   }
-  return shimScores(answers);
+  return withPreferenceDefaults(shimScores(answers), answers);
+}
+
+// Rung 3 or 4 — a setup built on more than one key. This selects the VOICE of a
+// reason line ("a 2-of-3 answers it structurally…" versus "one key, one tested
+// backup…"), which is a question about how many keys the copy is talking to. The
+// REASON_TEXT keys are still named `fork`/`single` for that reason and mean
+// multi-key/single-key; renaming them is churn for no gain.
+const isMultiKey = (fam) => fam === 'multisig' || fam === 'collaborative';
+
+// ── THE RESULT CARDS, BUILT HERE (2026-08-01) ───────────────────────────────
+//
+// This replaces makeLegacyAnswers(), which synthesized a fake answer set to make
+// quiz.js recommend() emit a card. That produced three reader-visible defects and
+// they were all the same defect: the card was built from answers nobody gave.
+//
+//   · THE COMBINED FORK CARD. DIY multisig and collaborative custody rendered as
+//     ONE card with two paths, so a result could never say "1st: multisig ·
+//     2nd: collaborative" even when the ranking said exactly that. They are
+//     separate rungs here and they are separate cards now.
+//   · A FABRICATED WORRY. The legacy passphrase card fires only on
+//     worry: 'targeted', so the synthesis forced it — and a reader whose own
+//     profile read "targeted physical theft: LOW" on the same screen was told
+//     "because your worry is being targeted or coerced".
+//   · A DESTINATION THAT FOLLOWED A FAKED LEAD, because the journey framing read
+//     the fork rather than the rung.
+//
+// THE SPLIT THAT MAKES THIS WORK: a card's `why` says what the setup IS and what
+// it does. It never says why it was chosen — `reasons` does that, from the
+// reader's actual profile. Nothing here needs to know anything about their
+// answers except `tech` (which devices suit them) and `recovery` (whether heirs
+// are in the picture), and both are read directly.
+//
+// quiz.js still owns the device copy, the vendor rows and the journey framing.
+// Those are imported as DATA. It no longer emits a card.
+
+const CARD = {
+  'single-sig': {
+    rungSlug: 'single-sig',
+    rungLabel: 'Single-signature cold storage',
+    headline: 'Single-signature cold storage',
+    why: 'One key, held by you, on a device that never goes online. Your seed phrase is the backup, and the device signs every payment on a screen no scammer can reach. This is the simplest setup that isn’t negligent, and for most holders it is the right home for a long time.',
+    tradeoff: 'Everything rests on one backup. There is no second key to fall back on, so the seed has to be written correctly, stored somewhere fire and water can’t reach, and — the step almost everyone skips — actually restored once to prove it works.',
+  },
+  passphrase: {
+    rungSlug: 'passphrase',
+    rungLabel: 'Single-sig + a passphrase (the “25th word”)',
+    headline: 'Single-sig cold storage + a passphrase',
+    why: 'The same single key, with a secret of your own mixed in on top of the seed. The seed alone opens a small decoy wallet; the seed <strong>plus</strong> your passphrase opens the real one — so a backup someone finds, or a seed pulled off a compromised device, cannot spend your coins. Still one device, still one seed to write down.',
+    tradeoff: 'You are adding a second secret, and it is the one whose failure is silent: a wrong passphrase gives no error, just an empty wallet. It has to be backed up as carefully as the seed, stored somewhere the seed is not, and named in your recovery notes so it can’t die with you.',
+  },
+  multisig: {
+    rungSlug: 'multisig',
+    rungLabel: 'Do-it-yourself multisig (2-of-3)',
+    headline: 'Do-it-yourself multisig (2-of-3)',
+    why: 'Three keys, all of them yours, on three devices from three different makers — any two together can move or recover your coins. No single key that is lost, stolen or coerced can touch them, and losing one is not fatal. No company, no ID check, nobody who can freeze your coins or even see what you hold.',
+    tradeoff: 'The trade is responsibility. You buy three devices, back up every key <em>and</em> the wallet descriptor — the map of your keys, without which the coins are unreachable — test recovery yourself, and act as your own support desk. Done carefully it is rock-solid; done carelessly it adds ways to lose access.',
+  },
+  collaborative: {
+    rungSlug: 'collaborative',
+    rungLabel: 'Collaborative custody (2-of-3)',
+    headline: 'Collaborative custody (2-of-3)',
+    why: 'Three keys again, but you hold two and a Bitcoin-only service holds the third as a safety net. Any two together can move the coins, so the service can <strong>never</strong> move them on its own — and if you lose one of yours, recovery is built in rather than improvised. Far less for you to run, and inheritance is a solved problem instead of a project.',
+    tradeoff: 'The trade is trust and privacy. You are bringing an outside institution into your setup: most require ID verification, which ties your name to your holdings, and most charge an ongoing fee. They can never take your coins — but they are now part of your plan, and they can see it.',
+  },
+};
+
+// Which devices a card offers, and the note under them. All of it reads REAL
+// answers: `tech` decides ordering and capability, `stakes` decides budget. The
+// collaborative card offers services rather than devices, because on that path
+// the service is chosen first and it tells you which hardware it supports.
+function devicesFor(setup, a) {
+  if (setup === 'single-sig') {
+    const ssd = singleSigDevices(a);
+    return { wallets: ssd.devices, walletNote: ssd.note, headline: ssd.headline };
+  }
+  if (setup === 'passphrase') {
+    const power = a.tech === 'technical' || a.tech === 'careful';
+    return {
+      wallets: power ? [DEV.coldcard, DEV.trezor] : [DEV.trezor, DEV.coldcard],
+      walletNote: 'Both of these make a passphrase easy to live with — the Coldcard Q has a full keyboard, the Trezor Safe 5 a touchscreen. You type a strong passphrase painlessly, with no on-screen fiddling and nothing typed into a computer.',
+    };
+  }
+  if (setup === 'multisig') {
+    return {
+      wallets: [DEV.coldcard, DEV.bitbox],
+      // THREE makers, not two. With two makers across three keys one vendor's
+      // flaw reaches two of them, and two keys spend a 2-of-3.
+      walletNote: 'Use a DIFFERENT maker for each key — one brand, one key. With only two makers across three keys, a single vendor’s flaw reaches two of them, and two keys is enough to spend a 2-of-3. These two are strong picks; add a third from another maker on the wallets page. And if you already started single-sig on one of these, it carries over as one of your three.',
+    };
+  }
+  return {
+    vendors: collaborativeVendors,
+    walletNote: '<strong>Choose your service first — it comes before the hardware.</strong> Each service lists the devices it supports, and some send you one.',
+  };
 }
 
 /**
- * Synthesize a legacy answer object that forces quiz.js recommend() to emit
- * the card structure for the family the fit engine chose. The card COPY that
- * depends on answers we fake gets replaced (why / holdback); everything real
- * flows through untouched: current (→ journey), tech + stakes (→ device
- * pairs), sovereignty + tech (→ fork lead, the preserved gate), recovery
- * (→ the fork's inheritance note).
+ * The primary card for a setup. Pure: the same setup and answers always give the
+ * same card, and nothing about the reader's assessment reaches it — that is what
+ * `reasons` and `holdbacks` are for.
  */
-function makeLegacyAnswers(family, a) {
-  const worry = Array.isArray(a.worry) && a.worry.length ? a.worry : ['unsure'];
-  if (family === 'fork') {
-    // 'lifechanging' is the one stakes value that always forks in the old
-    // engine; fork content never reads stakes, so nothing else shifts.
-    return { ...a, worry, stakes: 'lifechanging' };
+function primaryCard(setup, a) {
+  const base = CARD[setup] || CARD['single-sig'];
+  const d = devicesFor(setup, a);
+  const card = {
+    ...base,
+    headline: d.headline || base.headline,
+    wallets: d.wallets,
+    vendors: d.vendors,
+    walletNote: d.walletNote,
+    holdback: null,
+  };
+  // A self-custodied inheritance plan is achievable on the DIY path and worth
+  // saying out loud, but only to a reader who told us someone else needs to be
+  // able to recover it.
+  if (setup === 'multisig' && a.recovery && a.recovery !== 'just-me') {
+    card.inheritanceNote = 'A fully self-custodied inheritance plan is entirely achievable here — your heirs recover from the keys plus a plain-English guide, with no company in the loop. It takes deliberate planning, but sovereignty and a real estate plan are not a trade-off you have to make.';
   }
-  // single family. Keep real stakes for the device economics — except
-  // lifechanging (always forks in the old engine), which maps to 'serious'
-  // (same big-stakes device tier). Worry 'unsure' selects the worry-neutral
-  // copy branch; recovery 'heirs' at serious would trigger the old multisig
-  // rule, so it degrades to 'partner' (identical behavior in every branch the
-  // single-sig card actually reads).
-  const stakes = a.stakes === 'lifechanging' ? 'serious' : (a.stakes || 'meaningful');
-  const recovery = stakes === 'serious' && a.recovery === 'heirs' ? 'partner' : (a.recovery || 'just-me');
-  return { ...a, worry: ['unsure'], stakes, recovery };
+  return card;
 }
 
 // The step-up (2nd-choice) card, computed from the profile rather than from a
 // worry ranking. Same shape as quiz.js secondaries: {rungSlug, rungLabel,
 // headline, when}.
-function secondaryFor(family, words, answers) {
+function secondaryFor(runnerUp, words, answers) {
   const S = (rungSlug, rungLabel, headline, when) => ({ rungSlug, rungLabel, headline, when });
-  if (family === 'fork') {
-    if (answers.sovereignty === 'pure') {
-      return S('multisig', '3-of-5 multisig', 'Spread the keys wider (3-of-5)',
-        'As holdings grow, a self-run 3-of-5 across separate locations tolerates more lost or stolen keys before anything is at risk — the same self-sovereign technology as your 2-of-3, just more keys and more resilience. No company required.');
-    }
-    return S('multisig', 'Wider multisig or an insured vault', 'Spread wider — or add insurance',
-      'As holdings grow, a 3-of-5 across more locations adds resilience; or, if you leaned collaborative, an insured vault (AnchorWatch, backed by Lloyd’s of London) is a real backstop for large holdings. More protection, more to manage.');
+  if (!runnerUp) return null;
+
+  // The second choice is now WHATEVER SCORED SECOND — the runner-up family from
+  // the same ranking that chose the primary — instead of a hand-written rule
+  // per primary. Reason it changed (2026-08-01): the old version was the only
+  // part of the result no weighting could influence. Sweeping every scoring
+  // lever moved the second choice by exactly zero, because it was never reading
+  // the scores. One engine now explains both cards, so a reader who disagrees
+  // with the second choice is disagreeing with something their own answers
+  // actually produced.
+  //
+  // Copy is still authored per destination — a card needs a headline and a
+  // "when" — but WHICH card appears is derived, never decided here.
+  const sov = answers.sovereignty;
+  switch (runnerUp.setup) {
+    case 'single-sig':
+      return S('single-sig', 'Single-sig cold storage', 'Keep it to one key',
+        'The simpler alternative, and an honest one: one key, one backup, nothing else to manage or forget. It scored close enough here to be a real option — it asks the least of you, and for most holders it is the right home for a long time. Take it if the setup above feels like more than you want to run, and know what you are trading: the protection the first card adds is protection this does not have.');
+    case 'passphrase':
+      return S('passphrase', 'Single-sig + passphrase', 'Add a passphrase (the “25th word”)',
+        'The step that stays on one device: a phrase only you know is mixed in on top of your seed, so a seed someone finds — or one your device generated badly — opens only a small decoy wallet, not the real balance. Take it on once you are confident you can back the passphrase up as carefully as the seed itself, because forgetting it loses everything.');
+    case 'collaborative':
+      // VENDORS RIDE WITH IT. "Let a service hold one key" with no services named
+      // is advice the reader cannot act on — and the page already renders
+      // secondary.vendors when the primary has none, so this was a card asking
+      // for a list that nothing supplied. Only reachable now that collaborative
+      // custody can be a second choice in its own right; under the old fork card
+      // it was never a standalone secondary.
+      return { ...S('collaborative', 'Collaborative custody (2-of-3)', 'Let a service hold one key',
+        'The same 2-of-3 protection with far less for you to run: a Bitcoin-only service holds one of the three keys as a safety net, and recovery — including for your heirs — is built in by design. The trade is trust and privacy: most require ID verification, and you are bringing an outside institution into your setup.'),
+        vendors: collaborativeVendors };
+    case 'multisig':
+    default:
+      if (sov === 'pure') {
+        return S('multisig', '2-of-3 multisig', 'Step up to 2-of-3 multisig',
+          'Three keys, any two together can move or recover your coins, so no single lost, stolen, or coerced key can strand you — and nothing depends on a secret you have to remember. Run it entirely yourself, no company involved.');
+      }
+      return S('multisig', '2-of-3 multisig', 'Step up to 2-of-3 multisig',
+        'When a single point of failure starts keeping you up at night, 2-of-3 multisig removes it: three keys, any two together can move or recover your coins. You can run it entirely yourself — no company involved — or let a Bitcoin service hold one key; both paths are laid out, equally, when you get there.');
   }
-  // Single-sig primary. Offer the passphrase step-up ONLY when it answers the
-  // profile (physical exposure elevated) AND self-loss is not — the C4 gate
-  // extends to the step-up card, so the screen never argues with itself.
-  const selfOk = words['self-loss'] === 'low' || words['self-loss'] === 'typical';
-  const physicalUp = words.physical === 'elevated' || words.physical === 'high';
-  if (physicalUp && selfOk) {
-    return S('passphrase', 'Single-sig + passphrase', 'Add a passphrase (the “25th word”)',
-      'Your assessment flags the one risk a passphrase actually answers: someone getting physical hold of your seed. With one, the seed alone opens only a small decoy wallet — the real balance needs the seed plus a phrase only you know. Take it on once you’re confident you can back the passphrase up as carefully as the seed, because forgetting it loses everything.');
-  }
-  return S('multisig', '2-of-3 multisig', 'Step up to 2-of-3 multisig',
-    'When your stack grows to where a single point of failure keeps you up at night, 2-of-3 multisig removes it: three keys, any two together can move or recover your coins, so no single lost, stolen, or coerced key can touch them. You can run it entirely yourself — no company involved — or let a Bitcoin service hold one key; both paths are laid out, equally, when you get there.');
 }
 
 export function recommendV2(answers = {}) {
-  const stakes = STAKES_FACTOR[answers.stakes] ? answers.stakes : 'meaningful';
+  const stakes = STAKES_SCORE[answers.stakes] !== undefined ? answers.stakes : 'meaningful';
   const scores = normalizedScores(answers);
-  const d = defaultsFor(stakes);
+  const d = defaultsFor(stakes, answers.sovereignty);
   const words = {};
   const deltas = {};
   for (const c of CONCERN_KEYS) {
-    words[c] = scoreWord(scores[c], c, stakes);
+    // SOVEREIGNTY MUST BE PASSED. `exposure`'s default comes from that answer,
+    // and scoreWord bands a score against its default — so omitting it measured
+    // every reader's exposure against the 'lean-self' baseline of 55.
+    //
+    // Two of the three answers therefore got the wrong word on a bar they had
+    // never touched: 'pure' (default 85) read ELEVATED and 'open-help'
+    // (default 20) read LOW, when both are by definition TYPICAL. It was not
+    // cosmetic — a reader who chose pure self-custody saw "how much you mind
+    // being known is elevated" as the sole stated reason for their
+    // recommendation, and the review screen, which does pass it, disagreed with
+    // the result screen about the same bar.
+    words[c] = scoreWord(scores[c], c, stakes, answers.sovereignty);
     deltas[c] = scores[c] - d[c];
   }
 
@@ -685,39 +1202,109 @@ export function recommendV2(answers = {}) {
   // kept because pushing someone still learning into multisig trades their
   // named risks for the complexity risk they are least equipped to carry. The
   // fork remains one card away, as the step-up.
+  //
+  // THE GATE COVERS THE PASSPHRASE TOO (added 2026-07-31 with the reachability
+  // change). It used to say `family === 'fork'`, which was complete only while
+  // passphrase could never win anything — the moment it became reachable, that
+  // wording let it through, and the full-grid diff caught it recommending a
+  // passphrase to 2,430 learning-stakes combinations. That is the single worst
+  // place on the site to add a secret with a silent, unrecoverable failure
+  // mode: the legacy learning card refuses one in so many words ("every extra
+  // secret is one more thing to lose while you are still learning"), and a
+  // novice is the reader least able to carry it. Gate by "is this the simple
+  // family", not by naming one rival.
   const eligible = ranking.filter(
-    (r) => !r.gated && !(stakes === 'learning' && r.family === 'fork')
+    (r) => !r.gated
   );
-  const top = eligible[0];
-  const family = top.family;
+  const fitLeader = eligible[0];
 
-  // ── C5 near-tie: top two DISTINCT families within the margin ──
-  const rival = eligible.find((r) => r.family !== family);
-  const tie = rival && top.fit - rival.fit < TIE_MARGIN
+  // ── C5 near-tie: the best-scoring ELIGIBLE setup from a DIFFERENT family ──
+  // Deliberately computed against `eligible`, so it mirrors BOTH primary gates.
+  // A near-tie is presented as "either of these is right, your call" — which is
+  // only honest about a setup we would actually let lead. At learning stakes the
+  // fork is barred from the primary on purpose, so it is offered underneath as a
+  // step-up for later, never as an equal alternative today. The second card
+  // still appears there; it just is not framed as a coin-flip.
+  const fitRival = eligible.find((r) => r.family !== fitLeader.family);
+  const isTie = Boolean(fitRival && fitLeader.fit - fitRival.fit < TIE_MARGIN);
+
+  // ── C6 ties resolve UPWARD, but ONLY away from bare single-sig ───────────
+  // When two setups land within a hair of each other the arithmetic is not the
+  // thing deciding it — noise is. So the tiebreak is a POLICY, not a number.
+  //
+  // SCOPE (narrowed 2026-07-31, deliberately): the policy fires only when the
+  // fit leader is SINGLE-SIG. That is the one rung with no layer at all — one
+  // key, one seed, nothing behind it — so a coin-flip between "bare" and
+  // "bare + a layer" should not land on bare. A passphrase in particular is a
+  // cheap upgrade on one device that answers seed exposure and theft, which is
+  // exactly the trade worth defaulting to when it is close.
+  //
+  // It does NOT fire between two already-layered setups (passphrase vs the
+  // multisig fork). Both carry real protection and real cost, the choice
+  // between them is a genuine preference, and forcing the more complex one
+  // there would be complexity for its own sake rather than covering a bare
+  // risk. Those ties keep the fit order and are presented as the either/or
+  // they are.
+  //
+  // "Simplest that adequately covers you" still governs everywhere the scores
+  // actually separate; this only decides which of two near-equals is presented
+  // FIRST, and the copy says plainly that either is right.
+  // The rival must itself be eligible to LEAD. At learning stakes the fork can
+  // be the near-tie and the step-up card, but it must never be promoted to
+  // primary — that gate is the whole reason a novice is not sent to multisig.
+  const upgradeFromBare = isTie
+    && fitLeader.family === 'single'
+    && LADDER_RANK[fitRival.family] > LADDER_RANK[fitLeader.family]
+    && eligible.includes(fitRival);
+  const top = upgradeFromBare ? fitRival : fitLeader;
+  const family = top.family;
+  const rival = isTie ? (top === fitLeader ? fitRival : fitLeader) : fitRival;
+
+  const tie = isTie
     ? {
         a: top.setup, b: rival.setup,
-        margin: Math.round((top.fit - rival.fit) * 1000) / 1000,
-        note: 'This one is a genuine either/or — both setups fit your picture, and the honest answer is that the choice is yours. The first card is ahead by a hair, not by a mile.',
+        margin: Math.round(Math.abs(fitLeader.fit - fitRival.fit) * 1000) / 1000,
+        upgraded: top !== fitLeader,
+        note: top !== fitLeader
+          ? 'These two are a genuine either/or — both setups fit your picture, and neither is the wrong answer. They scored within a hair of each other, so we led with the more protective one rather than the simpler one: when it is that close, the safer default is the one worth justifying. Read both, and the reasons under each, then pick the one that feels right for you.'
+          : 'These two are a genuine either/or — both setups fit your picture, and neither is the wrong answer. Read both, and the reasons under each, then pick the one that feels right for you. The first is ahead by a hair, not by a mile.',
       }
     : null;
 
   // ── the card structure, from the legacy engine (fork paths, device pairs,
   //    journey framing — everything the current UI renders) ──
-  const legacy = recommend(makeLegacyAnswers(family, { ...answers, stakes }));
-  const primary = legacy.primary;
-  const journey = legacy.journey;
+  const primary = primaryCard(top.setup, { ...answers, stakes });
+  // The journey frames the destination from where the reader is today. It takes
+  // the RUNG now, not a card — it used to read `primary.fork` to work out where a
+  // combined card was heading, which only made sense while two rungs shared one.
+  const journey = journeyFrom(answers.current, primary.rungSlug);
 
   // ── computed reasons (the profile explains the pick) ──
   const isElevated = (c) => words[c] === 'elevated' || words[c] === 'high';
   const topRow = ranking.find((r) => r.setup === top.setup);
+  // A concern is a REASON only where this setup is genuinely competitive on it.
+  // Without this, single-sig listed "locking yourself out" as a reason it was
+  // chosen AND as a caveat against itself, in the same result — its weight is
+  // positive but it is the worst option on the ladder for that concern. Reasons
+  // and caveats must partition the elevated concerns, never overlap them.
+  const caveated = new Set();
+  for (const c of CONCERN_KEYS) {
+    const mine = PROTECTION[top.setup].weights[c];
+    const best = Math.max(...SETUP_KEYS.map((k) => PROTECTION[k].weights[c]));
+    if (best - mine >= 1.2) caveated.add(c);
+  }
   const named = topRow.contributions
-    .filter((x) => x.weight > 0 && isElevated(x.concern))
+    .filter((x) => x.weight > 0 && isElevated(x.concern) && !caveated.has(x.concern))
     .sort((a, b) => b.points - a.points)
     .slice(0, 3);
   const reasons = named.map((x) => ({
     concern: x.concern,
     setup: primary.rungSlug,
-    text: REASON_TEXT[x.concern][family === 'fork' ? 'fork' : 'single'].replace('{word}', words[x.concern]),
+    // Guarded: a concern added without a REASON_TEXT entry used to throw here,
+    // and the harness reported ZERO failures because it died before running a
+    // single constraint. A crash that reads as a pass is worse than a failure.
+    text: ((REASON_TEXT[x.concern] || {})[isMultiKey(family) ? 'fork' : 'single'] || '')
+      .replace('{word}', words[x.concern]),
   }));
   if (!reasons.length) {
     reasons.push({
@@ -731,34 +1318,86 @@ export function recommendV2(answers = {}) {
     reasons.push({ concern: 'custodial', setup: primary.rungSlug, text: CUSTODY_TRADE });
   }
 
-  // ── computed holdbacks (anti-add-on honesty, per the user's own scores) ──
+  // ── computed CAVEATS (the honest half of the result) ──────────────────────
+  // Derived entirely from the scores, per concern. For each thing the reader
+  // rated elevated or high, compare the chosen setup's weight against the best
+  // weight available anywhere on the ladder — and if it is materially worse,
+  // say so plainly. Nothing is hidden and nothing is refused; the reader is
+  // told what they are trading and left to decide.
+  //
+  // This is the replacement for both the hand-written passphrase holdbacks and
+  // the hard gates. A gate would have removed this recommendation and explained
+  // nothing; a caveat hands the reader the same information and lets them use it.
+  const CAVEAT_GAP = 1.2;   // how much worse than the best before it is worth saying
   const holdbacks = [];
-  if (isElevated('self-loss')) {
-    if (family === 'single') holdbacks.push(passphraseHoldback(words['self-loss']));
-    if (family === 'fork') {
-      holdbacks.push({
-        concern: 'self-loss',
-        text: `We stopped at 2-of-3 — no passphrase on top, no fourth or fifth key. Every extra secret and every extra key is another way to lock yourself out, and locking yourself out is already your ${words['self-loss']} concern. Two-of-three removes the single point of failure; going further would put one back.`,
-      });
-    }
-  } else if (family === 'single' && isElevated('remote')) {
-    holdbacks.push({
-      concern: 'remote',
-      text: 'We deliberately did NOT add a passphrase. It defends a found seed, not a fooled owner — the scams your assessment flags are answered by verifying on the device’s own screen and trusting no one who contacts you first, and those live in the checklist, not in extra secrets.',
-    });
-  } else if (family === 'single') {
-    holdbacks.push({
-      concern: 'self-loss',
-      text: 'We deliberately did NOT add a passphrase or a second key. Nothing in your assessment calls for them — the thing that protects you at this level is a backup you have actually tested, and every extra moving part is one more thing to lose.',
-    });
+  for (const c of CONCERN_KEYS) {
+    if (!isElevated(c)) continue;
+    const mine = PROTECTION[top.setup].weights[c];
+    const best = Math.max(...SETUP_KEYS.map((k) => PROTECTION[k].weights[c]));
+    if (best - mine < CAVEAT_GAP) continue;
+    const key = (c === 'exposure' && PROTECTION[top.setup].weights.exposure < 0)
+      ? 'exposureCustodial' : c;
+    const text = (CAVEAT_TEXT[key] || '').replace('{word}', words[c]);
+    if (text) holdbacks.push({ concern: c, text });
   }
+  // The passphrase's silent-lockout warning rides ALWAYS, not only when the
+  // reader happens to rate locking themselves out elevated. If a computed
+  // self-loss caveat already fired it says the same thing better, so this does
+  // not double up.
+  if (family === 'passphrase' && !holdbacks.some((h) => h.concern === 'self-loss')) {
+    holdbacks.push({ ...PASSPHRASE_STANDING });
+  }
+  // Worst gap first — if a result carries several caveats, the reader should
+  // meet the biggest trade before the smaller ones. A STANDING warning always
+  // leads: it is not a trade to weigh against the others, it is a condition of
+  // the thing being recommended, and sorting it by gap would have buried it
+  // under the stakes caveat on the very card it belongs to.
+  holdbacks.sort((a, b) => {
+    if (Boolean(a.standing) !== Boolean(b.standing)) return a.standing ? -1 : 1;
+    const gap = (x) => Math.max(...SETUP_KEYS.map((k) => PROTECTION[k].weights[x.concern])) - PROTECTION[top.setup].weights[x.concern];
+    return gap(b) - gap(a);
+  });
 
   // The primary card renders one holdback string (legacy shape); the full
   // structured list rides alongside for the Phase C result page. Fork cards
   // keep holdback null exactly like today (the fork band has no holdback slot).
   if (!primary.fork) primary.holdback = holdbacks.length ? holdbacks[0].text : null;
 
-  const secondary = secondaryFor(family, words, { ...answers, stakes });
+  // The runner-up is the best-scoring setup from a DIFFERENT family than the
+  // primary. Different family, because the fork card already shows the DIY and
+  // collaborative paths side by side — offering the other half of a card the
+  // reader is already looking at is not a second choice.
+  //
+  // The C4 passphrase gate applies here too — a passphrase is never offered as
+  // the step-up when locking yourself out is elevated, or the primary card's
+  // holdback would argue with the card directly beneath it.
+  //
+  // The LEARNING-stakes gate deliberately does NOT apply. It exists to keep a
+  // novice's PRIMARY in the single family, and its own rule has always been
+  // that "the fork remains one card away, as the step-up" — so filtering it out
+  // here would delete the second choice entirely at learning stakes rather than
+  // demote it, which is the opposite of what that gate is for.
+  // ── the second card: best score among ADJACENT rungs ────────────────────
+  // Still score-derived — but chosen from the primary's LADDER NEIGHBOURS
+  // first, rather than from the whole board.
+  //
+  // Why adjacency (2026-08-01): "next-best family by score" skipped a rung in
+  // 46.8% of results. It offered "multisig, or bare single-sig" and "single-sig,
+  // or hand a key to a company" — two cards that quietly behave as if the rung
+  // between them did not exist. The ladder is the site's whole mental model of
+  // this decision, so two options a reader is asked to choose between should be
+  // neighbours on it; jumping the middle rung reads as if we forgot it.
+  //
+  // A skip is still possible and still correct when the middle rung is GATED —
+  // most often the passphrase, barred by C4 because locking yourself out is the
+  // reader's elevated concern. That case is deliberate and the primary card
+  // already carries a holdback saying so in words, so the reader is told why
+  // rather than left to notice the gap.
+  const primaryRung = LADDER_RANK[family];
+  const otherFamilies = ranking.filter((r) => !r.gated && r.family !== family);
+  const adjacent = otherFamilies.filter((r) => Math.abs(LADDER_RANK[r.family] - primaryRung) === 1);
+  const runnerUp = adjacent[0] || otherFamilies[0] || null;
+  const secondary = secondaryFor(runnerUp, words, { ...answers, stakes });
 
   return {
     primary,

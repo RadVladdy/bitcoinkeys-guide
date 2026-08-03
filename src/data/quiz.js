@@ -149,7 +149,10 @@ export const collaborativeVendors = savingsCustodians.map((c) => ({
 // here would drift silently the way "~$79" did (invariant #10).
 const price = (slug) => (deviceBySlug[slug] && deviceBySlug[slug].price) || '';
 
-const DEV = {
+// EXPORTED as data since 2026-08-01. finder.js builds the result cards itself;
+// what this file still uniquely owns is the device copy, the vendor rows and the
+// journey framing, and those are handed over rather than wrapped in a card.
+export const DEV = {
   safe3:    { name: 'Trezor Safe 3', why: `the cheapest device that clears our bar (${price('trezor-safe-3')}) — buttons and a small screen rather than a touchscreen, but the same secure element and open-source firmware as its pricier siblings` },
   jade:     { name: 'Blockstream Jade', why: 'genuinely good on a budget, simple, Bitcoin-only (connects by USB/Bluetooth — no on-device camera)' },
   bitbox:   { name: 'BitBox02 (BTC-only)', why: 'Swiss, minimalist, fully open-source — an excellent multisig component' },
@@ -168,7 +171,7 @@ const DEV = {
 // and the order shifts with the answers. Bitkey (phone-integrated, recovery
 // built in) leads for entry-level holders; more capable devices lead for the
 // technical (capability ≠ harder to use).
-function singleSigDevices(a) {
+export function singleSigDevices(a) {
   const budgetTight = a.stakes === 'learning' || a.stakes === 'meaningful';
   // Small amount / budget-conscious → economics leads; a cheap device is the right call.
   if (a.tech === 'simple' && budgetTight) {
@@ -444,11 +447,19 @@ const STEP_LABEL = {
 };
 
 function targetStepOf(primary) {
-  // The multisig fork's destination follows its LEAD path — collaborative-led
-  // forks target collaborative custody (step 4), not self-run 2-of-3, so the
-  // journey framing matches the card above it.
-  if (primary.fork) return SETUP_STEP[primary.rungSlug] ?? 3;
+  // The destination is the rung, full stop. This used to special-case a fork,
+  // whose destination followed whichever path led — necessary only while DIY
+  // multisig and collaborative custody shared a single card. They are separate
+  // rungs and separate cards now, so the rung IS the answer.
   return SETUP_STEP[primary.rungSlug] ?? 1;
+}
+
+// PURE ENTRY POINT (2026-08-01). journeyFor() took a CARD and read `primary.fork`
+// to decide where the reader was heading — which only worked while the two
+// multi-key rungs shared one card. They are separate cards now, so the
+// destination is simply the rung, and this takes it directly.
+export function journeyFrom(current, rungSlug) {
+  return journeyFor({ current }, { rungSlug });
 }
 
 function journeyFor(a, primary) {
@@ -464,7 +475,7 @@ function journeyFor(a, primary) {
     kind = 'start';
     headline = 'The best time to start is right now';
     message = 'Your Bitcoin is somewhere someone else can freeze or lose it. Your first move is the biggest and most valuable one: getting it onto a device where you alone hold the keys. Everything below is that first setup, one step at a time — you don’t have to do it all today.';
-  } else if (primary.fork && (curStep === 3 || curStep === 4) && (targetStep === 3 || targetStep === 4) && gap !== 0) {
+  } else if ((curStep === 3 || curStep === 4) && (targetStep === 3 || targetStep === 4) && gap !== 0) {
     // Both multisig flavors sit at the same security level — DIY vs collaborative is
     // a different holder for the third key, not more or less protection. The old
     // framing called a collaborative holder with pure-sovereignty answers "already
@@ -472,7 +483,7 @@ function journeyFor(a, primary) {
     // one were an upgrade on the other. It's a sideways move, and the copy says so.
     kind = 'sideways';
     headline = 'Same rung — a different holder for the third key';
-    message = `You’re running ${curLabel}, and your answers lean toward ${targetLabel}. That’s not a step up or down: both are 2-of-3 multisig, the same level of protection — the real difference is who holds the third key, and what you trade for it. Nothing forces a move; switching has real costs, and staying put is a sound call. Both paths are laid out below — read the one you’re not on and decide whether the trade fits you better.`;
+    message = `You’re running ${curLabel}, and your answers lean toward ${targetLabel}. That’s not a step up or down: both are 2-of-3 multisig, the same level of protection — the real difference is who holds the third key, and what you trade for it. Nothing forces a move; switching has real costs, and staying put is a sound call. The other one is the second choice below — read it and decide whether the trade fits you better.`;
   } else if (gap === 0) {
     kind = 'there';
     headline = 'Good news — you’re already right where you should be';

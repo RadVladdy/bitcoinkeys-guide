@@ -51,6 +51,17 @@ const fitCountCap = questionCountWordCap;
   const fitQuestions = questions;
   const questionById = Object.fromEntries(fitQuestions.map((q) => [q.id, q]));
   const CONCERN_BY_KEY = Object.fromEntries(CONCERNS.map((c) => [c.key, c]));
+  // The four WALKED risks — shares of expected loss, each with its own section
+  // and prompt bank. Distinct from the two concerns marked `preference: true`
+  // (stakes and exposure), which are scored the same way but come straight from
+  // a question the reader already answered rather than from prompts.
+  //
+  // These must not be mixed: the intro says "here's what actually goes wrong"
+  // and presents the bars as base rates, which is true of the four and false of
+  // the other two. Rendering all six there also produced two broken bars, since
+  // their defaults need the sovereignty and stakes answers to exist at all.
+  const RISK_CONCERNS = SECTION_ORDER.map((k) => CONCERN_BY_KEY[k]);
+  const ANSWER_CONCERNS = CONCERNS.filter((c) => c.preference);
 
   // ── state ──
   // Answers ride in memory only, exactly as before — nothing persists unless the
@@ -261,6 +272,10 @@ const fitCountCap = questionCountWordCap;
   // ── the assessment ──────────────────────────────────────────────────────────
 
   const stakesNow = () => answers.stakes || 'meaningful';
+  // The sovereignty answer seeds the `exposure` concern's default, so anything
+  // asking for defaults or a word for that concern has to pass it — omit it and
+  // the default comes back undefined and the bar renders empty.
+  const sovNow = () => answers.sovereignty || 'lean-self';
   function promptDerived() { return scoreFromPrompts([...checked], stakesNow(), [...skipped]); }
   function scoresNow() {
     const s = promptDerived();
@@ -290,7 +305,10 @@ const fitCountCap = questionCountWordCap;
   //
   // A tick also says the thing more precisely. A bar behind a bar asks the
   // reader to compare two lengths that share an origin; a mark says "typical is
-  // HERE" and lets the fill land short of it or past it.
+  // HERE" and lets the fill land short of it or past it — which matters more
+  // under the expected-bundle baseline than it did on the shipped engine,
+  // because here a CLEARED section lands BELOW the tick, and that gap is the
+  // signal the reader is owed back.
   const tickAt = (n) => Math.min(98.5, Math.max(1.5, n));
   // `ans` — where the reader's OWN ANSWERS put this bar, drawn only on the review
   // screen and only once they have nudged it by hand. Without it, "Set by hand —
@@ -335,8 +353,8 @@ const fitCountCap = questionCountWordCap;
   };
 
   function renderAssessIntro() {
-    const d = defaultsFor(stakesNow());
-    const rows = CONCERNS.map((c) => `<div class="as-prow">
+    const d = defaultsFor(stakesNow(), sovNow());
+    const rows = RISK_CONCERNS.map((c) => `<div class="as-prow">
       <span class="as-plabel">${esc(c.label)}</span>
       ${wordTag(c.key, 'typical')}
       <div class="as-bar" aria-hidden="true"><span class="as-ghost lit" style="width:${barW(d[c.key])}%"></span></div>
@@ -386,7 +404,7 @@ const fitCountCap = questionCountWordCap;
 
     const s = scoresNow()[c];
     const d = defaultsFor(stakesNow())[c];
-    const w = scoreWord(s, c, stakesNow());
+    const w = scoreWord(s, c, stakesNow(), sovNow());
     elCard.innerHTML = `<div class="q-card as-card">
       <h2 class="q-title">${esc(info.label)}</h2>
       <p class="q-help">${esc(SECTION_RECAP[c])}</p>
@@ -408,7 +426,7 @@ const fitCountCap = questionCountWordCap;
 
     function updateBar() {
       const sc = scoresNow()[c];
-      const wd = scoreWord(sc, c, stakesNow());
+      const wd = scoreWord(sc, c, stakesNow(), sovNow());
       const fill = elCard.querySelector(`[data-bar="${c}"] .as-fill`);
       fill.style.width = `${barW(sc)}%`;
       fill.className = `as-fill w-${wd}`;
@@ -468,16 +486,22 @@ const fitCountCap = questionCountWordCap;
     if (estimatedConcerns.has(c)) return `Estimated from your earlier answers. <button type="button" class="as-walk" data-walk="${c}">Walk it →</button>`;
     if (typeof overrides[c] === 'number') return `Set by hand — your call stands. <button type="button" class="as-reset" data-reset="${c}">Reset to my answers</button>`;
     const n = checkedCountFor(c);
-    if (!n) return 'Nothing you tapped moved this — you match the typical holder.';
+    // WALKED AND CLEARED — which is no longer the same as sitting on the
+    // default. The expected-bundle baseline means a reader who says none of a
+    // section is true of them scores BELOW the typical holder, and the bar and
+    // the word both say so. This line still said "you match the typical
+    // holder", directly contradicting the 'low' tag beside it and a fill sitting
+    // well under its own ghost. Same screen, opposite claims.
+    if (!n) return 'None of these are true of you — that puts you below the typical holder.';
     return `Moved by the ${n === 1 ? 'one thing' : `${numberWord(n)} things`} you said ${n === 1 ? 'is' : 'are'} true of you.`;
   }
 
   function renderReview() {
     assessDone = true;
-    const d = defaultsFor(stakesNow());
-    const rows = CONCERNS.map((c) => {
+    const d = defaultsFor(stakesNow(), sovNow());
+    const rows = RISK_CONCERNS.map((c) => {
       const s = scoresNow()[c.key];
-      const w = scoreWord(s, c.key, stakesNow());
+      const w = scoreWord(s, c.key, stakesNow(), sovNow());
       return `<div class="as-row" data-row="${c.key}">
         <div class="as-row-head"><span class="as-row-label">${esc(c.label)}</span>${wordTag(c.key, w)}</div>
         <div class="as-row-mid">
@@ -503,7 +527,7 @@ const fitCountCap = questionCountWordCap;
     function repaintRow(c) {
       const row = elCard.querySelector(`[data-row="${c}"]`);
       const s = scoresNow()[c];
-      const w = scoreWord(s, c, stakesNow());
+      const w = scoreWord(s, c, stakesNow(), sovNow());
       const fill = row.querySelector('.as-fill');
       fill.style.width = `${barW(s)}%`;
       fill.className = `as-fill w-${w}`;
@@ -550,14 +574,14 @@ const fitCountCap = questionCountWordCap;
       b.addEventListener('click', () => {
         const c = b.getAttribute('data-c');
         const dir = parseInt(b.getAttribute('data-dir'), 10);
-        const w = scoreWord(scoresNow()[c], c, stakesNow());
+        const w = scoreWord(scoresNow()[c], c, stakesNow(), sovNow());
         const ni = Math.min(WORD_ORDER.length - 1, Math.max(0, WORD_ORDER.indexOf(w) + dir));
         overrides[c] = detentsFor(c)[ni];
         skipped.delete(c);
         estimatedConcerns.delete(c);
         repaintRow(c);
       });
-      const i = WORD_ORDER.indexOf(scoreWord(scoresNow()[b.getAttribute('data-c')], b.getAttribute('data-c'), stakesNow()));
+      const i = WORD_ORDER.indexOf(scoreWord(scoresNow()[b.getAttribute('data-c')], b.getAttribute('data-c'), stakesNow(), sovNow()));
       const dir = parseInt(b.getAttribute('data-dir'), 10);
       b.disabled = (dir < 0 && i === 0) || (dir > 0 && i === WORD_ORDER.length - 1);
     });
@@ -621,27 +645,6 @@ const fitCountCap = questionCountWordCap;
     </div>`;
   }
 
-  // The multisig FORK: two equal paths (DIY self-sovereign vs collaborative), side
-  // by side, each with its honest trade-off. Never a funnel. saveControl is passed
-  // in so each path gets its own "save to my plan" band.
-  function forkHtml(fork, tier, saveControl) {
-    const cards = fork.paths.map((p) => {
-      const isLead = p.key === fork.lead;
-      return `<div class="r-path${isLead ? ' lead' : ''}">
-        ${isLead ? `<span class="r-path-tag mono">Leans to your answers</span>` : ''}
-        <h3 class="r-path-label">${esc(p.label)}</h3>
-        <p class="r-path-essence">${esc(p.essence)}</p>
-        <div class="r-tradeoff"><span class="r-k mono">The trade-off</span><p>${esc(p.tradeoff)}</p></div>
-        ${p.inheritanceNote ? `<div class="r-inherit"><span class="r-k mono">Self-custodied inheritance</span><p>${esc(p.inheritanceNote)}</p></div>` : ''}
-        ${walletCard(p, false, 0)}
-        ${checklistHandoff()}
-        ${p.vendors ? vendorsBlock(p.vendors) : ''}
-        <a class="r-how2" href="${rungAnchor(p.rungSlug)}">Read the ${esc(p.rungLabel)} walkthrough →</a>
-        ${saveControl(p.rungSlug, p.label, tier, 'quiz-fork-' + p.key, recSlugsFrom(p.wallets))}
-      </div>`;
-    }).join('<div class="r-or mono">— or —</div>');
-    return `<p class="r-leadnote">${esc(fork.leadNote)}</p><div class="r-paths">${cards}</div>`;
-  }
 
   // "Your journey" — frames the recommendation from where they are now (Q1).
   function journeyPath(j) {
@@ -667,22 +670,37 @@ const fitCountCap = questionCountWordCap;
     </div>`;
   }
 
-  // The profile strip — the result leads with the picture that produced it:
-  // your four levels over the typical holder's, words only, never numbers.
+  // The profile strip — the result leads with the whole picture that produced
+  // it, words only, never numbers. TWO groups, because they are two different
+  // kinds of thing and one heading cannot honestly cover both:
+  //
+  //   the four RISKS   — shares of expected loss, shown against the typical
+  //                      holder, because there IS a base rate to compare to
+  //   the two ANSWERS  — what you told us matters to you. There is no "typical"
+  //                      amount at stake and no typical appetite for a third
+  //                      party, so showing a ghost bar behind them would be
+  //                      inventing a norm nobody measured.
+  //
+  // Both groups feed the recommendation identically. They are separated here
+  // for honesty about where each number came from, not to rank them.
   function profileStrip(profile) {
-    const rows = CONCERNS.map((c) => {
+    const row = (c, ghost) => {
       const s = profile.scores[c.key];
       const w = profile.words[c.key];
       return `<div class="as-prow">
         <span class="as-plabel">${esc(c.label)}</span>
         ${wordTag(c.key, w)}
-        ${barHtml(c.key, s, profile.defaults[c.key], w)}
+        ${ghost ? barHtml(c.key, s, profile.defaults[c.key], w)
+                : `<div class="as-bar"><span class="as-fill lit" style="width:${barW(s)}%"></span></div>`}
       </div>`;
-    }).join('');
+    };
+    const risks = RISK_CONCERNS.map((c) => row(c, true)).join('');
+    const answered = ANSWER_CONCERNS.map((c) => row(c, false)).join('');
     const spoken = CONCERNS.map((c) => `${c.label}: ${profile.words[c.key]}`).join('. ');
     return `<div class="r-profile">
       <span class="r-k mono">Your risk picture — you against the typical holder</span>
-      ${rows}
+      ${risks}
+      ${answered ? `<span class="r-k mono r-k-sub">And what you told us matters to you</span>${answered}` : ''}
       <span class="vh">${esc(spoken)}</span>
     </div>`;
   }
@@ -695,6 +713,33 @@ const fitCountCap = questionCountWordCap;
     collaborative: 'collaborative 2-of-3 multisig',
     'three-of-five': '3-of-5 multisig',
   };
+  // NAME THE SETUP THAT WON (2026-08-01). This used to collapse both multi-key
+  // rungs to "2-of-3 multisig", because the fork card presented both paths and
+  // picked which LED from the sovereignty answer — so naming the raw winner could
+  // contradict the card beneath it. There is no fork now: the winner gets its own
+  // card, so the tie can and should name it exactly.
+  const tieLabel = (setup) => SETUP_TIE_LABEL[setup] || setup;
+
+  // Ladder position of a rendered card. Needed because the second choice is now
+  // derived from the SCORES rather than a rule, so it can legitimately be a
+  // LOWER rung than the first — "you could also just do less, and here is what
+  // that costs you". The old label ("where you'd go next") was written when a
+  // step-down was structurally impossible, and would be a plain lie on those.
+  const LADDER_POS = { 'single-sig': 1, passphrase: 2, multisig: 3, collaborative: 4, 'three-of-five': 3 };
+  const cardRung = (c) => (c ? (LADDER_POS[c.rungSlug] || null) : null);
+
+  // HOW MUCH A SETUP ASKS OF YOU, which is NOT the same as its ladder position —
+  // and separating the two multi-key rungs into their own cards is what exposed
+  // that. Collaborative custody sits ABOVE do-it-yourself multisig on the ladder
+  // (a service backstop is more protective) while asking LESS of you (two devices
+  // instead of three, and no descriptor to guard). So the old label, which read
+  // the rung, told a reader that three devices they run themselves were "the
+  // simpler alternative" to a service that does half the work for them.
+  const BURDEN = { 'single-sig': 1, passphrase: 2, collaborative: 3, multisig: 4 };
+  const burden = (c) => (c ? (BURDEN[c.rungSlug] ?? null) : null);
+  const bothMultiKey = (a2, b2) =>
+    ['multisig', 'collaborative'].includes(a2?.rungSlug) &&
+    ['multisig', 'collaborative'].includes(b2?.rungSlug);
 
   function renderResult() {
     renderProgress(null);
@@ -733,11 +778,17 @@ const fitCountCap = questionCountWordCap;
     // Computed holdbacks — the anti-add-on honesty, generated from the user's own
     // scores. Replaces the legacy card's single hand-written holdback line.
     const holdbacksHtml = (holdbacks || []).map((h) =>
-      `<div class="r-holdback"><span class="r-k mono">Why not more?</span><p>${esc(h.text)}</p></div>`).join('');
+      `<div class="r-holdback"><span class="r-k mono">${esc(h.label || 'Why not more?')}</span><p>${esc(h.text)}</p></div>`).join('');
     // A genuine either/or (C5): say so out loud, above the cards it's about.
+    // Two choices, and either is right — that is the whole spirit of a tie, so
+    // the copy says it in those words rather than implying a winner. The two
+    // are named in the order they appear below (first choice first), and the
+    // reader is told plainly that the pick is theirs.
     const tieHtml = tie
-      ? `<div class="r-tie"><span class="r-k mono">A genuine either/or</span>
-          <p>${esc(tie.note)} The two in question: <strong>${esc(SETUP_TIE_LABEL[tie.a] || tie.a)}</strong> and <strong>${esc(SETUP_TIE_LABEL[tie.b] || tie.b)}</strong> — the first is laid out below, and the trade the other one offers is in the second card.</p>
+      ? `<div class="r-tie"><span class="r-k mono">Two choices — either one is right</span>
+          <p>${esc(tie.note)}</p>
+          <p class="r-tie-pair"><strong>First choice:</strong> ${esc(tieLabel(tie.a))} — laid out below.<br>
+          <strong>Second choice:</strong> ${esc(tieLabel(tie.b))} — the trade it offers is in the card under it.</p>
         </div>`
       : '';
     // When the second card IS the other half of the tie, its label should say so
@@ -748,27 +799,37 @@ const fitCountCap = questionCountWordCap;
       ${journeyHtml(journey)}
       ${profileStrip(profile)}
       ${tieHtml}
-      <div class="r-card${primary.fork ? ' is-fork' : ''}">
-        <p class="r-tier mono">${journey && journey.gap > 0 && journey.kind !== 'sideways' ? 'Your destination · ' : ''}${tie ? 'Ahead by a hair' : '1st choice'}</p>
+      <div class="r-card">
+        <p class="r-tier mono">${journey && journey.gap > 0 && journey.kind !== 'sideways' ? 'Your destination · ' : ''}${tie ? '1st choice · either fits' : '1st choice'}</p>
         <h2 class="r-headline">Your setup: ${esc(primary.headline)}</h2>
         <p class="r-why">${primary.why}</p>
         ${reasonsHtml}
+        ${primary.tradeoff ? `<div class="r-tradeoff"><span class="r-k mono">The trade you are making</span><p>${primary.tradeoff}</p></div>` : ''}
+        ${primary.inheritanceNote ? `<div class="r-inherit"><span class="r-k mono">Self-custodied inheritance</span><p>${esc(primary.inheritanceNote)}</p></div>` : ''}
         ${holdbacksHtml}
-        ${/* ABOVE the fork branch, not inside it — the fork's two paths are two
-             ways to hold the same three keys, so what the reader owns reads the
-             same against both and saying it twice would be noise. Hoisted here
-             after it first shipped inside the non-fork branch only, which meant
-             the readers most likely to already own hardware — the ones being
-             sent to multisig — were the ones who never saw it. */''}
+        ${/* What the reader already owns, judged against the setup just
+             recommended. It sits ABOVE the wallet card and outside every
+             per-card branch, because it is one verdict about the reader's
+             drawer rather than a property of any one recommendation — the
+             version that shipped inside a single branch was invisible to
+             exactly the readers most likely to own hardware. READ-ONLY here by
+             design: no picker, no add or remove. Choosing hardware is
+             /my-plan's job, and that separation is what lets this name
+             devices at all. */''}
         ${ownedContext(primary)}
-        ${primary.fork ? forkHtml(primary.fork, primary.tier, saveControl) : `
         ${walletCard(primary, adaptive, sel)}
         ${checklistHandoff()}
         ${primaryHasVendors ? vendorsBlock(primary.vendors) : ''}
-        ${saveControl(primary.rungSlug, primary.rungLabel || primary.headline, primary.tier, 'quiz-primary', recSlugsFrom(primary.wallets))}`}
+        ${saveControl(primary.rungSlug, primary.rungLabel || primary.headline, primary.tier, 'quiz-primary', recSlugsFrom(primary.wallets))}
       </div>
       ${secondary ? `<div class="r-card secondary">
-        <p class="r-tier mono muted">${secondaryIsRival ? 'The other half of the either/or — here’s the trade' : '2nd choice · where you’d go next'}</p>
+        <p class="r-tier mono muted">${secondaryIsRival
+          ? '2nd choice · equally valid — here’s the trade'
+          : bothMultiKey(primary, secondary)
+            ? '2nd choice · the other way to hold three keys'
+            : (burden(secondary) !== null && burden(primary) !== null && burden(secondary) < burden(primary)
+                ? '2nd choice · the simpler alternative'
+                : '2nd choice · where you’d go next')}</p>
         <h2 class="r-headline sm">${esc(secondary.rungLabel)}</h2>
         <p class="r-step-act mono">${esc(secondary.headline)}</p>
         <p class="r-why">${esc(secondary.when)}</p>
@@ -1165,6 +1226,7 @@ const fitCountCap = questionCountWordCap;
   #finder .r-because ul { margin: 0; padding-left: 1.1rem; }
   #finder .r-because li { color: var(--muted); font-size: 0.92rem; line-height: 1.55; margin: 0.4rem 0; }
   #finder .r-because li::marker { color: var(--accent); }
+  #finder .r-k-sub { display: block; margin-top: 1rem; padding-top: .8rem; border-top: 1px solid var(--line); }
   #finder .r-tie { border: 1px dashed var(--accent); background: var(--accent-soft); border-radius: var(--radius); padding: 1rem 1.2rem; margin-bottom: 1rem; }
   #finder .r-tie p { margin: 0; color: var(--muted); font-size: 0.92rem; line-height: 1.55; }
   #finder .r-tie strong { color: var(--text); }
