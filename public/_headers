@@ -9,3 +9,18 @@
 # NIP-05 discovery must stay cross-origin readable for Nostr clients.
 /.well-known/nostr.json
   Access-Control-Allow-Origin: *
+
+# PDFs ARE MUTABLE CONTENT AT A FIXED FILENAME, which is the one combination a
+# long browser cache handles badly. The default here was max-age=14400 — four
+# hours during which a reader who had already opened one kept seeing the old
+# copy no matter what the CDN held, and no way for them to tell. It looked
+# exactly like a deploy that had not worked.
+#
+# max-age=0 + must-revalidate does NOT mean "download it every time": the
+# browser sends the ETag and gets a 304 with no body when nothing changed. It
+# costs one round trip and it means an updated worksheet is the one you get.
+#
+# These are printed and followed while handling seed words. A reader working
+# from a superseded procedure is the failure worth spending a round trip on.
+/*.pdf
+  Cache-Control: public, max-age=0, must-revalidate
