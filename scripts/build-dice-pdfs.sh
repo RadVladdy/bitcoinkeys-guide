@@ -4,8 +4,13 @@
 # THREE DOCUMENTS, and they are ASSEMBLED FROM RENDERED SHEETS, never re-laid-out:
 #
 #   public/bip39-word-table.pdf   the reference table on its own          (4 pp)
-#   public/roll-12-word-seed.pdf  method + 12-word worksheet + the table  (6 pp)
-#   public/roll-24-word-seed.pdf  method + 24-word worksheet + the table  (6 pp)
+#   public/roll-12-word-seed.pdf  12-word method + worksheet + the table  (6 pp)
+#   public/roll-24-word-seed.pdf  24-word method + worksheet + the table  (6 pp)
+#
+# THE METHOD SHEET IS PER LENGTH TOO, not shared. A single sheet saying
+# "twenty-three words, or eleven for a 12-word seed" makes every reader pick
+# their own half out of a sentence while holding key material, and it meant both
+# "per-length" documents shared a page that talked about the other one.
 #
 # WHY ASSEMBLY AND NOT THREE LAYOUTS. Every page here is a photograph of one of
 # two real pages — /dice-word-table for the method sheet and worksheets, and
@@ -56,7 +61,7 @@ node -e "import('./src/data/dice-table.js').then(m=>{require('fs').writeFileSync
 import sys, os, fitz
 
 tmp = sys.argv[1]
-src   = fitz.open(os.path.join(tmp, 'src.pdf'))     # method · ws12 · ws24 · table v1 ×4
+src   = fitz.open(os.path.join(tmp, 'src.pdf'))     # m12 · ws12 · m24 · ws24 · table v1 ×4
 table = fitz.open(os.path.join(tmp, 'table.pdf'))   # the v2 table, alone
 expected = [w.strip() for w in open(os.path.join(tmp, 'words.txt')) if w.strip()]
 
@@ -64,16 +69,18 @@ expected = [w.strip() for w in open(os.path.join(tmp, 'words.txt')) if w.strip()
 # trusted: if a worksheet ever spills or the method sheet grows, the sheet
 # indices below would silently pick the wrong pages and ship a document whose
 # instructions belong to a different length.
-if src.page_count != 7:
-    raise SystemExit(f"!! /dice-word-table rendered {src.page_count} pages, expected 7 "
-                     "(method · 12-word worksheet · 24-word worksheet · 4 table) — "
-                     "sheet indices below are no longer valid")
+if src.page_count != 8:
+    raise SystemExit(f"!! /dice-word-table rendered {src.page_count} pages, expected 8 "
+                     "(12-word method · 12-word worksheet · 24-word method · "
+                     "24-word worksheet · 4 table) — the sheet indices below are "
+                     "no longer valid")
 def sheet_is(doc, i, needle, what):
     if needle not in doc[i].get_text():
         raise SystemExit(f"!! page {i+1} of the source is not the {what}")
-sheet_is(src, 0, 'Rolling your own seed words', 'method sheet')
-sheet_is(src, 1, 'Worksheet — 12-word seed',   '12-word worksheet')
-sheet_is(src, 2, 'Worksheet — 24-word seed',   '24-word worksheet')
+sheet_is(src, 0, 'Rolling a 12-word seed',   '12-word method sheet')
+sheet_is(src, 1, 'Worksheet — 12-word seed', '12-word worksheet')
+sheet_is(src, 2, 'Rolling a 24-word seed',   '24-word method sheet')
+sheet_is(src, 3, 'Worksheet — 24-word seed', '24-word worksheet')
 
 def build(out, sheets, with_table, label):
     doc = fitz.open()
@@ -94,7 +101,7 @@ def build(out, sheets, with_table, label):
 
 build('public/bip39-word-table.pdf',  [],     True, 'bip39-word-table.pdf')
 build('public/roll-12-word-seed.pdf', [0, 1], True, 'roll-12-word-seed.pdf')
-build('public/roll-24-word-seed.pdf', [0, 2], True, 'roll-24-word-seed.pdf')
+build('public/roll-24-word-seed.pdf', [2, 3], True, 'roll-24-word-seed.pdf')
 PY
 
 for f in public/bip39-word-table.pdf public/roll-12-word-seed.pdf public/roll-24-word-seed.pdf; do

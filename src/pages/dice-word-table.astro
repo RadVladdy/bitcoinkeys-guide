@@ -79,75 +79,72 @@ const egFaces = (str) => str.split('').map((d) => FACE[d]);
       <a class="btn btn-ghost" href={pdfHref("/dice-word-table.pdf")} target="_blank" rel="noopener">Open the PDF</a></p>
   </section>
 
-  {/* THE METHOD SHEET — print only, and its own page.
-      The table pages stay strictly reference: no instructions interleaved with
+  {/* THE METHOD SHEET — print only, ONE PER SEED LENGTH, its own page each.
+      It used to be a single sheet carrying both lengths — "twenty-three words
+      for a 24-word seed, or eleven for a 12-word seed" — which makes every
+      reader do arithmetic to find their own half, on a sheet they are holding
+      while handling key material. Each sheet now states one number, and it is
+      theirs. That is also what lets the per-length PDFs be genuinely per-length:
+      before this, both documents shared a page that talked about the other one.
+      The table pages stay strictly reference; no instructions interleaved with
       2,048 rows. But the print-out cannot be method-less either, because the
       reader is holding paper away from the screen, and one thing here is not
-      inferable from the table at all — that 5s and 6s are rerolled, which is
-      why no heading contains one.
+      inferable from the table at all — that 5s and 6s are rerolled, which is why
+      no heading contains one.
       It names the site on purpose: this sheet gets passed around, and whoever
       receives it should land on the full procedure rather than work from a
       summary. */}
-  <section class="dwt-sheet">
-    <h2 class="ds-h">Rolling your own seed words — the method</h2>
-    <p class="ds-lead">
-      This sheet explains how to use the BIP-39 word table on the pages after the worksheets. The full procedure, including what to
-      do with the words once you have them, is at <strong>bitcoinkeys.guide/roll-your-own-seed</strong> — read
-      it before you begin. Do not work from this sheet alone.
-    </p>
-
-    <h3 class="ds-sh">What you need</h3>
-    <p>One six-sided die, one coin, pen and paper. No computer, no phone.</p>
-
-    <h3 class="ds-sh">For each word</h3>
-    <ol class="ds-steps">
-      <li><strong>Throw the die {DICE_PER_WORD} times.</strong> <strong>Reroll every 5 and 6</strong> — they
-        do not count and are not written down. Keep throwing until you have {DICE_PER_WORD} results that are
-        each 1, 2, 3 or 4. This is why no entry in the BIP-39 word table contains a 5 or a 6.</li>
-      <li><strong>Flip the coin once.</strong> <span class="mono">H</span> is heads,
-        <span class="mono">T</span> is tails. The coin is not optional: the die gives ten of the eleven bits a
-        word needs and the coin gives the eleventh. Always taking the same side halves the randomness of every
-        word you pick.</li>
-      <li><strong>Find your word.</strong> Blocks are headed by your first {PREFIX_THROWS} throws. Find that
-        block, then read down to the line matching your remaining
-        {DICE_PER_WORD - PREFIX_THROWS} throws and your flip.</li>
-      <li><strong>Write the word down, in order, by hand.</strong> Never type it, photograph it, or read it
-        aloud in earshot of anything with a microphone.</li>
-    </ol>
-
-    <h3 class="ds-sh">How many words</h3>
-    <p>
-      Twenty-three words for a 24-word seed, or eleven for a 12-word seed. <strong>You do not roll the last
-      word.</strong> It carries a checksum that has to be calculated, and your hardware wallet does that for
-      you — the procedure on the site explains how, for each device.
-    </p>
-
-    <h3 class="ds-sh">Two things worth knowing</h3>
-    <p>
-      <strong>This table holds no secret.</strong> It is the standard BIP-39 word list in a fixed order, and
-      anyone can regenerate it. Printing it, photographing it or keeping it on a phone is harmless. Your
-      <em>throws</em> and the <em>words</em> they produce are the secret, and those never touch a screen.
-    </p>
-    <p>
-      <strong>This is the same method and the same table BitBox publishes</strong> for its own devices. We
-      generated ours independently from the word list and checked all {tableRowCount.toLocaleString()} entries
-      against theirs: every one matches. Either table gives the same word for the same throws — but use one
-      table for a whole seed, not a mix.
-    </p>
-  </section>
-
-  {/* THE WORKSHEETS — print only, ONE PAGE EACH, and there are two of them.
-      They were a single 23-row sheet with a rule across row 11 marking where a
-      12-word seed stopped. That asked a 12-word reader to ignore twelve rows
-      below their finish line and a 24-word reader to ignore a line through the
-      middle of theirs, on the one artifact where writing on the wrong row is
-      the failure being designed against. Two sheets, each with exactly the rows
-      that length needs and no marks belonging to the other.
-      THE READER PRINTS ONE. The footer of each says so, because seven pages
-      arriving for a six-page job is confusing unless it is explained.
-      Unlike the BIP-39 word table, A WORKSHEET BECOMES THE SEED the moment it is
-      written on, so the warning leads rather than sitting in a footnote. */}
   {WORKSHEETS.map((ws) => (
+    <section class="dwt-sheet">
+      <h2 class="ds-h">Rolling a {ws.words}-word seed — the method</h2>
+      <p class="ds-lead">
+        This sheet explains how to use the BIP-39 word table on the pages after the worksheet, for a
+        <strong> {ws.words}-word seed</strong>. The full procedure, including what to do with the words once you
+        have them, is at <strong>bitcoinkeys.guide/roll-your-own-seed</strong> — read it before you begin. Do
+        not work from this sheet alone.
+      </p>
+
+      <h3 class="ds-sh">What you need</h3>
+      <p>One six-sided die, one coin, pen and paper. No computer, no phone.</p>
+
+      <h3 class="ds-sh">How many words you roll</h3>
+      <p>
+        <strong>{ws.chosen} words.</strong> Your seed is {ws.words} words long, and you roll all but the last
+        one. <strong>You do not roll word {ws.words}.</strong> It carries a checksum that has to be calculated,
+        so there is no entry for it in the table and no way to reach it with a die — your hardware wallet works
+        it out, and the procedure on the site explains how for each device.
+      </p>
+
+      <h3 class="ds-sh">For each of your {ws.chosen} words</h3>
+      <ol class="ds-steps">
+        <li><strong>Throw the die {DICE_PER_WORD} times.</strong> <strong>Reroll every 5 and 6</strong> — they
+          do not count and are not written down. Keep throwing until you have {DICE_PER_WORD} results that are
+          each 1, 2, 3 or 4. This is why no entry in the BIP-39 word table contains a 5 or a 6.</li>
+        <li><strong>Flip the coin once.</strong> <span class="mono">H</span> is heads,
+          <span class="mono">T</span> is tails. The coin is not optional: the die gives ten of the eleven bits a
+          word needs and the coin gives the eleventh. Always taking the same side halves the randomness of every
+          word you pick.</li>
+        <li><strong>Find your word.</strong> Blocks are headed by your first {PREFIX_THROWS} throws. Find that
+          block, then read down to the line matching your remaining
+          {DICE_PER_WORD - PREFIX_THROWS} throws and your flip.</li>
+        <li><strong>Write the word down, in order, by hand.</strong> Never type it, photograph it, or read it
+          aloud in earshot of anything with a microphone.</li>
+      </ol>
+
+      <h3 class="ds-sh">Two things worth knowing</h3>
+      <p>
+        <strong>The BIP-39 word table holds no secret.</strong> It is the standard word list in a fixed order,
+        and anyone can regenerate it. Printing it, photographing it or keeping it on a phone is harmless. Your
+        <em>throws</em> and the <em>words</em> they produce are the secret, and those never touch a screen.
+      </p>
+      <p>
+        <strong>This is the same method and the same table BitBox publishes</strong> for its own devices. We
+        generated ours independently from the word list and checked all {tableRowCount.toLocaleString()} entries
+        against theirs: every one matches. Either table gives the same word for the same throws — but use one
+        table for a whole seed, not a mix.
+      </p>
+    </section>
+
     <section class="dwt-work">
       <h2 class="ds-h">Worksheet — {ws.words}-word seed</h2>
       <p class="dw-warn">
@@ -169,53 +166,56 @@ const egFaces = (str) => str.split('').map((d) => FACE[d]);
           exists to prevent is a word written one line off. */}
       <table class="dw">
         <thead>
-          <tr>
-            <th class="dw-n">#</th>
-            <th colspan={PREFIX_THROWS}>Block <span class="dw-pips" aria-hidden="true">{PIPS.block}</span>
-              <span class="dw-th-s">first {PREFIX_THROWS} throws</span></th>
+          {/* TWO LINES, and the second one IS the example. Labels carry their own
+              parenthetical rather than a separate sub-caption line, and the
+              example sits directly beneath them as the header's second row —
+              so the sheet explains itself in the space it already had, with no
+              extra row for the eye to mistake for an entry. */}
+          <tr class="dw-head">
+            <th class="dw-n">Word #</th>
+            <th colspan={PREFIX_THROWS}>Block <span class="dw-th-s">1st {PREFIX_THROWS} rolls</span></th>
             <th class="dw-sp" aria-hidden="true"></th>
-            <th colspan={DICE_PER_WORD - PREFIX_THROWS}>Line <span class="dw-pips" aria-hidden="true">{PIPS.line}</span>
-              <span class="dw-th-s">next {DICE_PER_WORD - PREFIX_THROWS}</span></th>
-            <th class="dw-f">Flip <span class="dw-th-s">{PIPS.coin}</span></th>
-            <th class="dw-w">Word</th>
+            <th colspan={DICE_PER_WORD - PREFIX_THROWS}>Line <span class="dw-th-s">next {DICE_PER_WORD - PREFIX_THROWS}</span></th>
+            <th class="dw-sp" aria-hidden="true"></th>
+            <th class="dw-f">Flip <span class="dw-th-s">H / T</span></th>
+            <th class="dw-sp" aria-hidden="true"></th>
+            <th class="dw-w">Word <span class="dw-th-s">BIP-39 table</span></th>
           </tr>
-        </thead>
-        <tbody>
-          {/* THE WORKED EXAMPLE IS A ROW, not a box above the table. It shows
-              the 3 + 2 + flip split in the exact format the reader is about to
-              write in, which a paragraph cannot do — and it costs one row
-              instead of the four lines a prose box cost, which is what kept the
-              24-word sheet on one page. Values come from `rows`, so the example
-              is a real lookup and cannot disagree with the table pages. */}
           <tr class="dw-eg-row">
             <td class="dw-n"></td>
             {egFaces(EG.dice.slice(0, PREFIX_THROWS)).map((f) => (<td class="dw-die">{f}</td>))}
             <td class="dw-sp"></td>
             {egFaces(EG.dice.slice(PREFIX_THROWS)).map((f) => (<td class="dw-die">{f}</td>))}
+            <td class="dw-sp"></td>
             <td class="dw-die dw-coin"><span class="dw-coin-o">{EG.coin}</span></td>
+            <td class="dw-sp"></td>
             <td class="dw-ghost">{EG.word}</td>
           </tr>
+        </thead>
+        <tbody>
           {Array.from({ length: ws.chosen }, (_, i) => (
             <tr class:list={[(i + 1) % 5 === 0 ? 'dw-five' : null]}>
               <td class="dw-n">{i + 1}</td>
               {Array.from({ length: PREFIX_THROWS }, () => (<td class="dw-b"></td>))}
               <td class="dw-sp"></td>
               {Array.from({ length: DICE_PER_WORD - PREFIX_THROWS }, () => (<td class="dw-b"></td>))}
+              <td class="dw-sp"></td>
               <td class="dw-b dw-f"></td>
+              <td class="dw-sp"></td>
               <td class="dw-w"></td>
             </tr>
           ))}
           <tr class="dw-last">
             <td class="dw-n">{ws.words}</td>
-            <td class="dw-note" colspan={DICE_PER_WORD + 2}>Not rolled — your device calculates this one</td>
+            <td class="dw-note" colspan={DICE_PER_WORD + 4}>Not rolled — your device calculates this one</td>
             <td class="dw-w"></td>
           </tr>
         </tbody>
       </table>
       <p class="dw-foot">
-        <strong>This sheet is for a {ws.words}-word seed:</strong> you roll {ws.chosen} words and your
-        device supplies word {ws.words}, which carries the checksum. There is a separate sheet for
-        a {ws.other}-word seed — <strong>print only the one you are doing.</strong> Full procedure:
+        <strong>This sheet is for a {ws.words}-word seed:</strong> you roll {ws.chosen} words and your device
+        supplies word {ws.words}, which carries the checksum. A {ws.other}-word seed has its own sheet —
+        <strong>print only the one you are doing.</strong> Full procedure:
         <strong>bitcoinkeys.guide/roll-your-own-seed</strong>
       </p>
     </section>
@@ -295,9 +295,12 @@ const egFaces = (str) => str.split('').map((d) => FACE[d]);
        stray pixels, found by taking a colour census of the rendered page rather
        than by looking at it. The FLIP column keeps its grey on purpose: that
        tint marks the column, and it should run through the header too. */
-    .dw th { font-size: 7pt; text-transform: uppercase; letter-spacing: .07em; font-weight: 700;
-      padding: 0 .1rem .18rem; text-align: left; color: #000; border: none; background: #fff; }
-    .dw th.dw-f { background: #e6e6e6; }
+    /* EVERY HEADING ON EQUAL FOOTING. Flip carried the column's grey and read
+       as a different KIND of heading from the others — it is not, it is one of
+       five labels. The tint stays on the flip BOXES, where it marks the column
+       the reader has to remember is not a die. */
+    .dw th { font-size: 7.4pt; text-transform: uppercase; letter-spacing: .06em; font-weight: 700;
+      padding: 0 .1rem .2rem; text-align: left; color: #000; border: none; background: #fff; }
     /* The label carries the instruction, so the sheet says how to use itself. */
     .dw-th-s { display: block; text-transform: none; letter-spacing: 0; font-weight: 400;
       font-size: 6.4pt; color: #555; }
@@ -316,11 +319,19 @@ const egFaces = (str) => str.split('').map((d) => FACE[d]);
        enough to write over in pencil or biro without fighting the ink. */
     .dw td { border: .5pt solid #c9c9c9; border-radius: 2.5pt; height: 21pt; padding: 0 .2rem;
       background: #f7f7f7; }
-    .dw-n { width: 4.5%; border: none !important; text-align: right; font-size: 7.5pt;
-      color: #666; font-weight: 600; padding-right: .25rem; }
-    .dw-b { width: 5.2%; }
-    .dw-f { width: 6.5%; background: #e6e6e6; }
-    .dw-w { width: 38%; }
+    /* THE ROW NUMBER IS A LABEL, NOT A BOX. No fill, no border, centred against
+       the row it names rather than sitting on its baseline, and big enough to
+       find with a die in the other hand — it is what you check when you lose
+       your place, which is the mistake this sheet exists to prevent. */
+    .dw-n { width: 7%; border: none !important; background: none !important;
+      text-align: right; font-size: 9.5pt; color: #444; font-weight: 700;
+      padding-right: .3rem; vertical-align: middle; }
+    .dw-b { width: 5.4%; }
+    .dw-f { width: 5.4%; background: #e6e6e6; }
+    /* Narrower than it was. The word column had 38% for words averaging six
+       letters, and the space is worth more on the left where the numbers and the
+       gaps between sections had none to spare. */
+    .dw-w { width: 26%; }
     /* THE 3 + 2 SPLIT, DRAWN AS A REAL COLUMN. An empty borderless cell between
        the third and fourth box: the block lookup and the line lookup are two
        different operations and the sheet should show that.
@@ -330,7 +341,14 @@ const egFaces = (str) => str.split('').map((d) => FACE[d]);
        on every printed sheet had one box with a missing side. A spacer cell
        occupies space instead of covering it, so it cannot do that to a
        neighbour; do not go back to a shadow. */
-    .dw td.dw-sp, .dw th.dw-sp { width: 2.4%; border: none !important; background: none !important;
+    /* ONE GAP BETWEEN EVERY SECTION, none within them. There was a wide gap
+       between Block and Line and nothing anywhere else, so the sheet showed one
+       of its four boundaries and hid the other three. Block | Line | Flip | Word
+       are four separate things you fill in at four different moments; the boxes
+       inside each are one thing. The spacing should say that, and now it does.
+       A real column, never a shadow painted over a neighbour — see the note on
+       the box fill above. */
+    .dw td.dw-sp, .dw th.dw-sp { width: 2.6%; border: none !important; background: none !important;
       padding: 0; }
     /* The dice faces on the column headers. Only 1-4 are ever shown: 5s and 6s
        are rerolled and appear nowhere in the table. */
@@ -355,11 +373,11 @@ const egFaces = (str) => str.split('').map((d) => FACE[d]);
        example, because nothing needs to: dice are objects and a grey word is
        obviously not one you wrote. A reader who pauses over it works out what
        it is, and that pause is the explanation. */
-    .dw-eg-row td { border: none !important; background: none !important; height: 17pt;
-      text-align: center; padding: 0; }
-    .dw-eg-row .dw-die { font-size: 11pt; color: #333; line-height: 1; }
-    .dw-eg-row .dw-coin-o { display: inline-block; width: 9.5pt; height: 9.5pt; line-height: 9.1pt;
-      border: .5pt solid #888; border-radius: 50%; font-size: 6.4pt; color: #444;
+    .dw-eg-row td { border: none !important; background: none !important; height: 15pt;
+      text-align: center; padding: 0 0 .12rem; vertical-align: middle; }
+    .dw-eg-row .dw-die { font-size: 14pt; color: #333; line-height: 1; }
+    .dw-eg-row .dw-coin-o { display: inline-block; width: 11pt; height: 11pt; line-height: 10.4pt;
+      border: .5pt solid #888; border-radius: 50%; font-size: 7.4pt; color: #444;
       font-family: var(--mono); text-align: center; }
     .dw-eg-row .dw-ghost { text-align: left; padding-left: .3rem; font-size: 8.5pt;
       color: #a8a8a8; font-style: italic; }
@@ -370,6 +388,7 @@ const egFaces = (str) => str.split('').map((d) => FACE[d]);
        the boxes are shaded, so it tints the row rather than the box. */
     .dw-five td { background: #ececec; }
     .dw-five .dw-f { background: #dcdcdc; }
+    .dw-five .dw-n, .dw-five .dw-sp { background: none !important; }
     /* .dw-mark is GONE with the single-sheet worksheet. It drew a rule across
        row 11 to mark where a 12-word seed stopped, on a sheet that also had to
        serve 24-word readers. There are two sheets now and neither needs a line
