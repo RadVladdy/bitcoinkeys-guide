@@ -53,6 +53,20 @@ TOPICS = {
         stance=r'\b(in your head|memor(?:y|ise|ize)|remember|never writ|back(?:ed)? up|'
                r'stored?|written down|steel|metal)\b',
     ),
+    'passphrase-construction': dict(
+        why='How a passphrase is BUILT — a different subject from where it lives, and the '
+            'cascade trigger for the 2026-08-03 stance ("roll it, don\'t invent it") names this '
+            'topic by name. Three surfaces state it and dice.js computes the figures: rung 2 '
+            '`craft`, the passphrase-choose checklist step, /roll-your-own-seed. The drift to '
+            'watch for is the OLD advice — "choose one carefully" — surviving somewhere as a '
+            'standalone instruction, which is what this stance exists to replace; and any word '
+            'count or bit figure appearing as a TYPED number rather than from passphraseTargets.',
+        subject=r'\bpassphrase|25th word\b',
+        stance=r'\b(roll\w*|dice|generat\w*|invent\w*|choose|chose|pick\w*|memorable|guessab\w*|'
+               r'words?|bits?|throws?|flips?|entropy|ASCII|unicode|whitespace|space|capital\w*|'
+               r'length|limit|maximum|fingerprint|offline|crack\w*|PBKDF2|iterations?|'
+               r'strong|weak|complex\w*)\b',
+    ),
     'privacy-promise': dict(
         why='The site\'s most load-bearing promise. It must name every destination and '
             'then make the claim that actually holds — that WE never see it.',

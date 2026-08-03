@@ -103,7 +103,7 @@ export const glossary = [
   },
   {
     "term": "Passphrase (25th word)",
-    "def": "An extra secret word you add on top of your <em>seed phrase</em> for another layer of protection. Even someone who finds your written seed can't reach your Bitcoin without it, but if you forget it your funds are gone forever."
+    "def": "An extra secret added on top of your <em>seed phrase</em>. Despite the nickname it is not a word — any string works, and it is stored nowhere: your seed and your passphrase go into one calculation, and a wallet comes out. So there is no wrong passphrase, only a different one, and mistyping it opens a real, empty wallet with nothing to warn you. One seed opens any number of wallets this way. Roll it rather than inventing something memorable, and back it up as carefully as the seed but somewhere separate — forget it and the coins are gone even though the seed is safe."
   },
   {
     "term": "PayJoin",

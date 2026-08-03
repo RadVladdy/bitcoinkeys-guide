@@ -7,9 +7,16 @@
 // hardware those keys happen to live on. The rungs describe configurations;
 // hardware devices are just the recommended place to keep a key.
 //
-// Rung 1 (single-sig) has its own bespoke page (ladder/single-sig.astro).
-// Rungs 2-4 render from the rich fields below via ladder/[slug].astro.
+// ALL FOUR rungs render from the fields below, as SECTIONS of /learn/ladder
+// (#rung-1…4) — the five old per-rung routes 301. Rung 1 stopped being a
+// hand-written page of its own in 2026-07-30's merge; before that it was the one
+// rung nothing ever compared against the other three, which is how it drifted.
 // Shamir is an OPTIONAL backup method (shamirNote), not a numbered rung.
+//
+// Every rung owes the three-layer teaching shape: `mechanism` (how it works, and
+// what that makes functionally possible — including the arrangements we advise
+// against) BEFORE gains/costs, and `craft` where there is something to build.
+// A rung with gains and costs but no mechanism hands the reader a verdict.
 
 // Rung 2's construction guidance derives every figure from the same file the
 // dice procedure uses — words, bits and throws are never typed here.
@@ -36,6 +43,23 @@ export const ladder = [
     solves: 'Your coins leave someone else’s balance sheet and come under a key only you hold. That is the single biggest jump in safety on this whole ladder.',
     introduces: 'One seed backup that must never be lost and never be seen. Everything now rests on that one thing.',
     whatItIs: 'One hardware wallet holds a single seed. The device signs transactions; you confirm on its own screen and buttons. Your seed is backed up once or twice on metal, stored somewhere secure. That’s the whole setup — and for most people starting out, it’s the right one. This is the simplest setup that genuinely protects your coins, and there is a single mental model to learn.',
+    // LAYER 1 AND 2. Added 2026-08-03 in the three-layer sweep — rung 2
+    // was the only rung carrying the shape, so one page was teaching two different
+    // ways. The mechanism here is the one a beginner is almost never told: the
+    // coins are not in the device. Every other fact about rung 1 falls out of it,
+    // and a reader who has it can work out the backup rules rather than obey them.
+    mechanism: {
+      label: 'What one key actually is — and what that makes possible',
+      lead: 'Your Bitcoin is not <em>in</em> the device. The words on your backup are a compact way of writing down one very large secret number, and everything else — every address you receive at, every signature that spends — is calculated from that number by a published recipe that every wallet implements the same way. The device is a calculator that keeps the number behind glass. Almost everything true about this rung follows from that one fact.',
+      points: [
+        '<strong>It is why losing the device is not losing the coins.</strong> Buy another one — any maker, any model that supports the standard — type the words in, and the same wallet reappears with the same history and the same balance. Nothing was stored on the device that could not be recreated. The uncomfortable half of the same fact: anyone else who types those words in gets the same wallet, and there is nothing to stop them.',
+        '<strong>It is why the backup <em>is</em> the setup.</strong> The PIN protects the device against whoever is holding it, and that is all it does. It does not protect the coins, because the coins never depended on the device. This is the rung’s whole security model in one line: keep the words, and never let anyone else see them.',
+        '<strong>The device signs; it never hands the key over.</strong> Your computer builds the payment, the device signs it internally, and what comes back is a signature — the key itself never travels. That is what “cold” actually means, and it is why the device’s own screen matters: it is the one display that malware on your computer cannot rewrite, so the address you confirm there is the address that gets paid.',
+        '<strong>“One key” means one secret, not one address.</strong> A single seed generates an endless sequence of addresses, and a good wallet hands you a fresh one every time you get paid. That is a privacy habit rather than extra security — all of them spend with the same key — but it is why you never need to reuse one to “keep things simple.”',
+        '<strong>Nothing anywhere is checking your backup for you.</strong> No service knows whether the words you wrote are correct, complete, or still readable, and a wrong backup looks exactly like a right one until the day you need it. Proving it is its own lesson later in the course — <strong>Testing a backup</strong>, in 103 · Private key creation.',
+        '<strong>What people try instead of metal, and why we don’t.</strong> You can write the words on paper, and it works until water or fire reaches it. You can photograph them or keep them in a password manager, which puts your entire wallet on a machine that talks to the internet — the most common way a seed leaves a house. You can memorise them and write nothing down, which is the most thoroughly documented way people lose Bitcoin for good. You can split the list across two places; Shamir is the designed version of that idea and gets its own treatment later in this level, but halving the list by hand is not it — it doubles what has to survive and hands a finder a very large head start. Metal, kept somewhere fire and water don’t reach, is the boring answer that keeps working.',
+      ],
+    },
     gains: [
       '<strong>Simplicity.</strong> One device, one seed, one backup. Little to get wrong, little to forget.',
       '<strong>Cost.</strong> A capable device runs $59–$249. No coordination software, no service fees.',
@@ -70,11 +94,11 @@ export const ladder = [
     solves: 'A found or photographed seed is no longer enough to steal your coins. Plausible deniability.',
     introduces: 'A new way to lose everything — forget the passphrase and the funds are gone, even with the seed.',
     built: true,
-    whatItIs: 'Exactly rung 1, plus a passphrase you choose when you set up the wallet. The seed phrase on its own opens one wallet — a <em>decoy</em>. The seed phrase <strong>plus</strong> the passphrase opens a different, hidden wallet — your real one. The passphrase is sometimes called the “25th word.” <a href="/deep-dive/passphrase">Watch a passphrase open a different wallet →</a>',
+    whatItIs: 'Exactly rung 1, plus a passphrase you set when you set up the wallet. The seed phrase on its own opens one wallet — a <em>decoy</em>. The seed phrase <strong>plus</strong> the passphrase opens a different, hidden wallet — your real one. The passphrase is sometimes called the “25th word.” <a href="/deep-dive/passphrase">Watch a passphrase open a different wallet →</a>',
     gains: [
       '<strong>Protection against a found seed.</strong> A metal backup someone discovers, a photographed seed, a seed pulled off a compromised device — none of them alone can spend your real funds.',
       '<strong>Plausible deniability.</strong> The decoy wallet doesn’t look like a decoy. Under coercion you can hand over the seed and the (small) decoy wallet without revealing the real one.',
-      '<strong>Cheap to add.</strong> You already own the device. You just choose a passphrase during setup.',
+      '<strong>Cheap to add.</strong> You already own the device — no second purchase, no coordination software, no fees. The cost is the ten minutes it takes to roll one properly, not money.',
     ],
     costs: [
       '<strong>A brand-new single point of failure.</strong> Lose or forget the passphrase and the coins are gone — even though the seed is safe.',
@@ -141,6 +165,23 @@ export const ladder = [
     introduces: 'Six-plus items to manage, the <a href="/glossary#wallet-descriptor">wallet descriptor</a> to protect, and real operational complexity.',
     built: true,
     whatItIs: 'A wallet made of several keys where more than one is needed to sign — most commonly <strong>2-of-3</strong>: three keys, any two together can spend. Each key ideally lives on its own hardware device, from a <em>different</em> manufacturer, all held by you. The keys live in different places (a common split: home, a bank safe-deposit box, and a trusted family member or second property). This is the first rung that genuinely removes single points of failure for personal-scale holdings. <a href="/deep-dive/multisig">Tap through a live 2-of-3 wallet →</a>',
+    // LAYER 1 AND 2. Added 2026-08-03. The mechanism that has to land is
+    // that a multisig wallet is defined by a POLICY, not by a device — which is the
+    // only way the descriptor stops being an odd extra file to look after and
+    // becomes the thing without which the keys are useless. Written before the
+    // gains list on purpose: "no single point of failure" is a conclusion, and a
+    // reader who only gets the conclusion cannot tell 2-of-3 from 2-of-2.
+    mechanism: {
+      label: 'How several keys become one wallet — and what that makes possible',
+      lead: 'A multisig wallet is not a device and it is not a key. It is a <strong>rule</strong> — “these three specific keys exist, and any two of them together may spend” — written down in one line called a <a href="/glossary#wallet-descriptor">wallet descriptor</a>. Each device knows its own key and nothing about the others. The rule is what ties them into a single wallet, and it lives outside all of them.',
+      points: [
+        '<strong>It is why the descriptor is as necessary as the keys, and not secret.</strong> It holds no private keys — it cannot spend anything, and someone who steals it can only watch. But without it, two of your three keys rebuild nothing: the software has no way to know what wallet they belong to. <strong>Rung 1 had one thing to keep safe. This rung has that plus one thing to keep <em>findable</em></strong>, and they fail in opposite directions.',
+        '<strong>Nothing ever assembles the keys in one place.</strong> A part-signed transaction is passed from device to device — each one adds its signature and passes it on, and no computer, coordinator or device ever holds enough to spend by itself. That is the actual defence, and it is why the keys can sit in three different buildings without the setup being any harder to reason about.',
+        '<strong>The two numbers do different jobs, and confusing them is the classic mistake.</strong> In 2-of-3, the 2 is how many must agree — it decides what a thief needs. The 3 is how many exist — it decides how many you can lose. Raise the first and you are harder to rob; raise the second and you are harder to lock out. They pull against each other, which is why there is no configuration that is simply “more secure.”',
+        '<strong>What that makes possible, including the shapes we advise against.</strong> You can build <strong>2-of-2</strong> — and it is strictly worse than one key, because now either device failing locks you out permanently. You can build <strong>3-of-5</strong>, which is the same technology with more to manage (below). You can hold all three keys in one house, which spends the money and keeps the risk. You can hand one key to a family member, which is a real design and turns a technical setup into a conversation you have to be willing to have. And you can buy three devices from one maker — the arrangement that looks finished and defends against nothing, because one flaw in one firmware reaches all three at once.',
+        '<strong>You are not locked in to one company’s software.</strong> The descriptor is a standard, so a multisig created in one coordinator can be rebuilt in another with the same keys and the same file. Check that before you fund it, not after: a setup you can only reconstruct inside one vendor’s app has quietly reintroduced the single point of failure you paid three devices to remove.',
+      ],
+    },
     gains: [
       '<strong>No single point of failure.</strong> Losing any one key, or one location, or trusting any one vendor, no longer risks your coins.',
       '<strong>Full sovereignty.</strong> No company is involved. Nothing to freeze, fail, or subpoena.',
@@ -183,6 +224,22 @@ export const ladder = [
     introduces: 'A third party in the loop and an annual fee. Sovereign recovery is the make-or-break criterion.',
     built: true,
     whatItIs: 'The same 2-of-3 setup as rung 3 — but one of the three keys is held by a collaborative-custody company (Unchained, Nunchuk, AnchorWatch, The Bitcoin Adviser, and others). They hold one key and help coordinate spending, recovery, and inheritance. They <strong>cannot move your funds</strong> — they only hold one of three, and you hold the other two. You keep unilateral control. What you outsource is complexity, not custody.',
+    // LAYER 1 AND 2. Added 2026-08-03. Layer 1 here is short by design —
+    // the mechanism IS rung 3's, one section above, and re-teaching it would put
+    // the same detail in two places. What this rung actually owes the reader is
+    // the arithmetic of WHICH key the company holds, because "a company is
+    // involved" is the fact everyone arrives with and it is not the useful one.
+    mechanism: {
+      label: 'What the third key can and cannot do',
+      lead: 'The mechanism is rung 3’s, unchanged — three keys, a rule saying any two may spend, and a descriptor that ties them together. One thing is different: one of those keys belongs to a company. Everything people worry about here, and everything that actually goes wrong here, comes out of the arithmetic of <em>which</em> key that is.',
+      points: [
+        '<strong>They hold one of three, so they can never spend without you.</strong> Not with a court order, not if they are hacked, not if a rogue employee decides to. One key is not a quorum. This is a structural fact about the wallet rather than a promise in their terms of service, which is the entire reason this arrangement is on a ladder about self-custody at all.',
+        '<strong>And they can never stop you either — provided you can rebuild the wallet without them.</strong> You hold two of three, which is already enough to sign. The only thing standing between you and your coins if the company disappears is knowing the <em>rule</em>: the descriptor. If you hold that and can load it into software they don’t control, their disappearance is an inconvenience. If you don’t, it is a catastrophe with a friendly interface.',
+        '<strong>Which is why “sovereign recovery” is a mechanism question, not a marketing one.</strong> It has exactly one test, below, and it is the whole difference between a partner and a dependency.',
+        '<strong>The arithmetic that catches people out: your two keys are a quorum on their own.</strong> In rung 3 you hold three of three, so one maker covering two of them is a risk. Here you hold <em>two</em> of three — so if both of yours are the same make, or live in the same building, a single failure reaches a spending majority and the company’s key never comes into it. The safety net is on the other side of the problem.',
+        '<strong>What else is possible here, and where the line is.</strong> You can let the service keep the descriptor for you, which is convenient right up to the day you need it from them. You can pick a service whose key can only be used inside their own app, which quietly makes them load-bearing. And you can find arrangements where the company holds <em>two</em> of three — that is not this rung and not collaborative custody; it is custody with extra steps, and the moment they hold a quorum your coins are back on somebody else’s balance sheet.',
+      ],
+    },
     gains: [
       '<strong>Much less to manage.</strong> Typically five items instead of seven — for many holders, the difference between “manageable” and “overwhelming.”',
       '<strong>Convenient spending.</strong> Sign with one key, ask the partner to co-sign; your second key stays untouched in its secure spot.',

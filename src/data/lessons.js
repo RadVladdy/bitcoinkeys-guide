@@ -97,7 +97,7 @@ export const lessons = [
       },
       {
         "h": "If you use a passphrase, back it up too",
-        "body": "<p>Some wallets add an extra secret word of your own choosing, often called a <strong>passphrase</strong> or \"25th word.\" It is powerful protection, but it comes with its own rule: <strong>the passphrase is a separate secret, and it needs its own backup.</strong> Your seed words alone will not open the wallet without it.</p><ul><li>Back up the passphrase on its own, and keep it in a <strong>different location</strong> from the seed — so someone who finds one still can't reach your coins.</li><li>Include it in your inheritance notes (for example, \"in the sealed envelope at the attorney's office\"). \"I'll just remember it\" is the single most common way passphrase-protected coins are lost forever.</li></ul>"
+        "body": "<p>Some wallets let you add a second secret of your own on top of the seed, often called a <strong>passphrase</strong> or \"25th word\" — though it is not a word, and it is rolled rather than invented. It is powerful protection, but it comes with its own rule: <strong>the passphrase is a separate secret, and it needs its own backup.</strong> Your seed words alone will not open the wallet without it.</p><ul><li>Back up the passphrase on its own, and keep it in a <strong>different location</strong> from the seed — so someone who finds one still can't reach your coins.</li><li>Include it in your inheritance notes (for example, \"in the sealed envelope at the attorney's office\"). \"I'll just remember it\" is the single most common way passphrase-protected coins are lost forever.</li></ul>"
       },
       {
         "h": "Then prove it works — before you fund it",
@@ -126,7 +126,7 @@ export const lessons = [
     "verified": "2026-07-31",
     "title": "Testing a backup before you trust it — the step that turns a setup into a real one",
     "lead": "A backup you have not tested is a hope, not a backup. The one step that turns a setup into a real one is proving you can actually get your Bitcoin back.",
-    "intro": "<p>You wrote down your recovery words. You put them somewhere safe. It feels done. But there is one question you have not answered yet: <em>if your hardware wallet vanished tomorrow, could you actually restore it from that backup?</em> Until you have proven the answer is yes, you do not have a backup. You have a hope. This page walks you through the simple rehearsal that removes the doubt, done first with pocket change so any mistake is cheap to fix.</p><p>A quick word on terms. Your <strong>hardware wallet</strong> is the small dedicated device that holds your keys offline. Your <strong>seed phrase</strong> (also called recovery words) is the list of 12 or 24 words that can rebuild your wallet from scratch. A <strong>passphrase</strong> is an optional extra word you may have added on top. Rehearsing means pretending the worst has happened and rebuilding your wallet from those written words alone.</p>",
+    "intro": "<p>You wrote down your recovery words. You put them somewhere safe. It feels done. But there is one question you have not answered yet: <em>if your hardware wallet vanished tomorrow, could you actually restore it from that backup?</em> Until you have proven the answer is yes, you do not have a backup. You have a hope. This page walks you through the simple rehearsal that removes the doubt, done first with pocket change so any mistake is cheap to fix.</p><p>A quick word on terms. Your <strong>hardware wallet</strong> is the small dedicated device that holds your keys offline. Your <strong>seed phrase</strong> (also called recovery words) is the list of 12 or 24 words that can rebuild your wallet from scratch. A <strong>passphrase</strong> is an optional second secret you may have added on top of those words. Rehearsing means pretending the worst has happened and rebuilding your wallet from those written words alone.</p>",
     "sections": [
       {
         "h": "The first rehearsal: wipe and restore before you fund it",
@@ -367,7 +367,7 @@ export const lessons = [
   },
   {
     "slug": "inheritance",
-    "short": "Bitcoin inheritance",
+    "short": "Why Bitcoin doesn’t inherit",
     "verified": "2026-07-15",
     "title": "Why Bitcoin doesn’t inherit like money",
     "lead": "Most Bitcoin that’s lost forever wasn’t stolen — it was left behind with no instructions. Before you can write a plan, you need to see the two things that actually go wrong: your family can’t find it, and the setup you chose decides how hard it is to hand over.",

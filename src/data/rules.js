@@ -194,7 +194,7 @@ export const rules = [
     // rather than being the only lesson on the site without one.
     also: '/learn/recovery-kit',
     level: '104',
-    lesson: 'Bitcoin inheritance',
+    lesson: 'Why Bitcoin doesn’t inherit like money',
   },
 ];
 

@@ -1,7 +1,7 @@
 ---
-// THE EDUCATION PAGE. Everything conceptual about where a seed's randomness
-// comes from: the four options, what your device allows, why you would bother,
-// and how it goes wrong. No procedures — those are the tool page, and a
+// THE EDUCATION PAGE. Everything conceptual about a seed: how one is actually
+// built, the four options for where its randomness comes from, what your device
+// allows, why you would bother, and how it goes wrong. No procedures — those are the tool page, and a
 // procedure written in two places is a procedure that will disagree with
 // itself the first time a vendor moves a menu.
 //
@@ -16,6 +16,7 @@ import {
   diceVerified, methods, methodCount,
   ratedDevicesForMethod, devicesWithNoDicePath, devicesOutsideDiceQuestion,
   kit, failureModes, failureModeCount,
+  seedLengthByKey, WORDLIST_SIZE, bitsPerWord,
 } from '../../data/dice.js';
 import { seedCosts } from '../../data/dice-table.js';
 import { activeAdvisories } from '../../data/advisories.js';
@@ -37,20 +38,85 @@ const noPath = devicesWithNoDicePath.map((d) => trim(d.name));
 // were enumerated on this page and the twelfth was simply absent.
 const outside = devicesOutsideDiceQuestion.map((d) => ({ name: trim(d.name) }));
 const longCost = seedCosts.find((c) => c.words === 24);
+
+// LAYER 1, added 2026-08-03. This page ran options → why → what you need
+// — layers 2 and 3 with the mechanism missing, so a reader could pick an option
+// without ever being told what a seed IS. Every figure below is computed by
+// mnemonicShape() rather than typed, including the count of valid final words,
+// which is the one people assume is wrong.
+const s24 = seedLengthByKey['24'];
+const s12 = seedLengthByKey['12'];
 ---
 <Base
-  title="Where your seed's randomness comes from · BitcoinKeys.guide"
-  description="Your seed is one very large random number. Four ways to decide where it comes from — from letting the device pick to choosing every word yourself — and what your hardware actually allows."
+  title="How a seed is made — and where its randomness comes from · BitcoinKeys.guide"
+  description="A seed is one very large random number, written down as words. How that actually works, the four ways to decide where the number comes from — from letting the device pick to choosing it all yourself — and what your hardware actually allows."
   verified={diceVerified}
 >
   <section class="prose">
     <LessonEyebrow />
-    <h1>Where your seed's <span class="accent">randomness</span> comes from</h1>
+    <h1>How a seed is made — and where its <span class="accent">randomness</span> comes from</h1>
     <p class="lead">
       Your seed is one very large random number. Everything else — every address, every key, every coin you
       will ever hold — is worked out from it. Normally the device picks that number and you have no way to
       check that it picked well. You do not have to leave it at that.
     </p>
+  </section>
+
+  <section class="prose">
+    <h2 id="how">The three steps that turn a random number into words</h2>
+    <p>
+      Three steps, and none of them is clever. Knowing them is what turns every choice further down this
+      page from a preference into something you can reason about.
+    </p>
+    <ol>
+      <li>
+        <strong>A number is picked.</strong> {s24.shape.entropy} random bits for a {s24.words}-word seed,
+        {' '}{s12.shape.entropy} for a {s12.words}-word one. This is the only step where randomness enters,
+        and it is the entire subject of this lesson — everything after it is bookkeeping.
+      </li>
+      <li>
+        <strong>The number is cut into {bitsPerWord}-bit pieces, and each piece is looked up in a list.</strong>
+        The list holds exactly {WORDLIST_SIZE.toLocaleString()} ordinary words, because
+        {' '}{WORDLIST_SIZE.toLocaleString()} is how many different values {bitsPerWord} bits can take — one
+        word per piece, no waste. It is the same fixed, public list in every wallet ever made, which is why
+        your words are English and why any wallet can read them.
+      </li>
+      <li>
+        <strong>The last word carries a checksum.</strong> Part of that final word isn’t your number at all —
+        it’s a short fingerprint of everything before it. That is why exactly
+        {' '}<strong>{s24.shape.finalWordOptions} of the {WORDLIST_SIZE.toLocaleString()} words</strong> are
+        valid as the last word of a {s24.words}-word seed ({s12.shape.finalWordOptions} for
+        {' '}{s12.words} words), and it is not a restriction anyone chose — it falls out of the arithmetic.
+      </li>
+    </ol>
+    <p>
+      <strong>Four things follow from that, and they are the reason the rest of this page exists.</strong>
+    </p>
+    <ul>
+      <li>
+        <strong>Your words are a notation, not a password.</strong> Nobody invented them for you and nothing
+        remembers them; they are that one number written in a form a human can copy onto metal without
+        mistakes. Two people who pick the same number get the same wallet, wherever and whenever they do it.
+      </li>
+      <li>
+        <strong>It is why supplying your own randomness is even possible.</strong> Rolling dice is just doing
+        step 1 by hand. The wallet still does steps 2 and 3, exactly as it always would — you are not using a
+        different kind of seed, you are answering the one question the device would otherwise answer alone.
+      </li>
+      <li>
+        <strong>It is why a wrong word can be silent.</strong> Change a word and the checksum usually catches
+        it, which is the beeping error people expect. But a small fraction of wrong combinations pass the
+        check anyway — and then no error appears, because a valid seed is a valid seed. A real, empty,
+        perfectly ordinary wallet opens instead of yours. Proving your backup against this is its own lesson
+        later in the course — <strong>Testing a backup</strong>, in 103 · Private key creation.
+      </li>
+      <li>
+        <strong>It is why {s12.words} versus {s24.words} words is a question about the size of the
+        number, and nothing else.</strong> Both give you a whole wallet with the same features. The longer one
+        is a bigger number, costs more throws to roll and more metal to store, and defends against an attacker
+        who does not exist yet. We recommend {s24.words} words; {s12.words} is not negligent.
+      </li>
+    </ul>
   </section>
 
   <section class="prose">

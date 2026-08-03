@@ -64,7 +64,9 @@ export const levels = [
     blurb: `${ruleCountWordCap} rules hold up everything here. Meet them, then learn what a key is, how people lose Bitcoin, and why an exchange isn’t custody.`,
     lessons: [
       { href: '/learn/rules',              label: `The ${ruleCountWord} rules`,        short: `The ${ruleCountWord} rules`, note: 'read first' },
-      { href: '/learn/bitcoin-keys',       label: 'What are Bitcoin keys',           short: 'What are Bitcoin keys' },
+      // Not "What ARE Bitcoin keys" — a question, and the only interrogative label
+      // left after the 2026-08-03 sweep that made every title describe its material.
+      { href: '/learn/bitcoin-keys',       label: 'What Bitcoin keys are',           short: 'What Bitcoin keys are' },
       { href: '/learn/how-bitcoin-is-lost', label: 'How people lose Bitcoin',           short: 'How people lose Bitcoin' },
       { href: '/learn/not-your-keys',      label: 'Not your keys, not your coins',      short: 'Not your keys, not your coins' },
     ],
@@ -111,7 +113,10 @@ export const levels = [
     lessons: [
       { href: '/learn/phishing-and-scams', label: 'Phishing and everyday safety',        short: 'Phishing and everyday safety' },
       { href: '/learn/privacy',            label: 'Privacy / OpSec',                     short: 'Privacy / OpSec' },
-      { href: '/learn/inheritance',        label: 'Bitcoin inheritance',                 short: 'Bitcoin inheritance' },
+      // "Bitcoin inheritance" named the whole SUBJECT while this page is only its
+      // first half — the 2026-07-29 split gave the second half its own lesson, and
+      // a label covering both made the pair below it look like a repetition.
+      { href: '/learn/inheritance',        label: 'Why Bitcoin doesn’t inherit like money', short: 'Why Bitcoin doesn’t inherit' },
       { href: '/learn/recovery-kit',       label: 'Building a Recovery Kit',              short: 'Building a Recovery Kit' },
       // RUNNING A NODE ENDS THE COURSE (moved from 201, 2026-08-01). It was the
       // first half of an optional level whose other half was not a lesson at
