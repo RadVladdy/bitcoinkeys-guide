@@ -59,8 +59,27 @@ import { diceVerified } from '../data/dice.js';
       <strong> Nothing here is an instruction</strong> — the method and the worksheet stay on
       {' '}<a href="/dice-word-table">the shipped artifact</a>.
     </p>
-    <p class="v2-print"><button type="button" id="v2-print" class="btn">Print this table</button></p>
+    {/* THE PDF, NOT window.print(). Printing the page depends on the reader's
+        own browser margins, headers and background-graphics setting — three
+        things we do not control and one of which silently drops every tint.
+        The PDF is the artifact; the page is how you read it on a screen. */}
+    <p class="v2-print">
+      <a class="btn" href="/bip39-word-table.pdf" download>The table on its own — PDF, 4 pages</a>
+      <a class="btn ghost" href="/roll-12-word-seed.pdf" download>12-word seed — everything, 6 pages</a>
+      <a class="btn ghost" href="/roll-24-word-seed.pdf" download>24-word seed — everything, 6 pages</a>
+    </p>
   </section>
+
+  {/* THE PRINT TITLE. The artifact went out with no name on it: six sheets of
+      numbers and words and nothing saying what they were or where they came
+      from. A print-out gets passed around and separated from its download, so
+      it has to introduce itself and name the site — the same reason the shipped
+      method sheet does. Print-only: on screen the h1 above already says it. */}
+  <header class="v2-title">
+    <h2 class="v2-title-h">BIP-39 word table
+      <span class="v2-title-s">{tableRowCount.toLocaleString()} words · {DICE_PER_WORD} throws and a coin flip</span>
+      <span class="v2-title-u">bitcoinkeys.guide/roll-your-own-seed</span></h2>
+  </header>
 
   {v2Boxes.map((b) => (
     <section class="v2-box">
@@ -81,12 +100,8 @@ import { diceVerified } from '../data/dice.js';
   ))}
 </Base>
 
-<script>
-  const b = document.getElementById('v2-print');
-  if (b) b.addEventListener('click', () => window.print());
-</script>
-
 <style is:global>
+  .v2-title { display: none; }
   .v2-sub { font-size: 0.92rem; color: var(--muted); }
   .v2-print { margin: 1.2rem 0 2rem; }
 
@@ -111,6 +126,17 @@ import { diceVerified } from '../data/dice.js';
        print-out it is a full-bleed tint on every sheet — ink spent on nothing,
        and it greys down 6.6pt text that needs all the contrast it can get. */
     :root, body, main { background: #fff !important; }
+    /* AND NO TOP PADDING. The layout gives <main> breathing room that makes
+       sense under a sticky nav and is 23pt of blank paper once the nav is
+       hidden — measured: the title sat at y=51.9 on a page whose content began
+       at 28.8. That 23pt was the difference between four boxes on page one and
+       three. The BOTTOM padding matters just as much and is easier to miss: it
+       follows the last box, so it only ever costs the FINAL page — page four
+       held three boxes while pages one to three held four, and box 44 went to a
+       sheet of its own. */
+    main { padding: 0 !important; margin: 0 !important; }
+    .v2-title { margin-top: 0 !important; }
+    .v2-box:last-of-type { margin-bottom: 0 !important; }
 
     .v2-intro { display: none; }
     /* NO :global() WRAPPER HERE. This block is already `is:global`, and Astro
@@ -119,6 +145,27 @@ import { diceVerified } from '../data/dice.js';
        of page one, and cost a whole extra sheet. The shipped table needs the
        wrapper because its block is scoped; this one must not have it. */
     .adv-banner, header.nav, footer.foot { display: none !important; }
+    /* A WHOLE PAGE FOR THIRTY CHARACTERS. The layout's "last verified" line fell
+       past the end of the last box and took a fifth sheet to say one date — and
+       on THIS artifact the date is meaningless anyway: the BIP-39 wordlist is
+       frozen by the standard, so a printed copy can never go stale. Saying it
+       could is worse than saying nothing. */
+    .verified { display: none !important; }
+
+    /* TWO LINES AND NO MORE. The title is worth a page-one header but not worth
+       a box: at three lines it pushed box 14 onto page two and cascaded into a
+       fifth sheet holding one box. Paid for out of the first page's top margin
+       (@page :first below) rather than out of the table. */
+    /* ONE LINE. MEASURED. Box pitch is 175.5pt and four of them need to start by
+       y=64.5 on a 792pt page, so the header may occupy 35.7pt and no more. Three
+       lines cost 39pt and two cost 59 once the URL wrapped — either way one box
+       falls to page two and drags a fifth sheet along holding a single box. */
+    .v2-title { display: block; text-align: center; margin: 0 0 .3rem; }
+    .v2-title-h { font-size: 11.5pt; margin: 0; color: #000; font-weight: 700; line-height: 1.15; }
+    .v2-title-s { font-size: 8pt; font-weight: 400; color: #444; }
+    .v2-title-s::before { content: " — "; color: #888; }
+    .v2-title-u { font-size: 7.6pt; font-weight: 400; color: #666; font-family: var(--mono); }
+    .v2-title-u::before { content: " · "; color: #888; }
 
     /* THREE TONES, LIGHTEST TO DARKEST, OUTSIDE IN: white page → light box →
        slightly darker card. The nesting is the whole point of this layout, so
@@ -127,7 +174,7 @@ import { diceVerified } from '../data/dice.js';
        more than the panels need the presence, and a heavy fill behind 2,048
        small words prints muddy on anything but a good laser. */
     .v2-box { break-inside: avoid; background: #f7f7f7; border: .5pt solid #dcdcdc;
-      border-radius: 3.5pt; padding: .34rem .38rem .4rem; margin: 0 0 .42rem; }
+      border-radius: 3.5pt; padding: .34rem .38rem .4rem; margin: 0 0 .34rem; }
     /* The two-throw number, top left, sized to be found from across a desk —
        this is the thing you scan for first. */
     .v2-box-h { font-size: 11pt; margin: 0 0 .22rem; color: #000; font-weight: 700;
@@ -151,6 +198,13 @@ import { diceVerified } from '../data/dice.js';
        you match, the word is what you write down. */
     .v2-k { color: #555; margin-right: .18rem; }
 
-    @page { margin: 11mm 9mm; }
+    /* MEASURED, not chosen. Box pitch is 176.2pt and the title is worth 39pt,
+       so page one needed ~12pt more than the old 11mm margins gave it — one box
+       short, and one box short costs a whole extra sheet holding a single box.
+       9mm returns 11.3pt across the top and bottom.
+       @page :first { margin-top } WAS TRIED FIRST AND IS IGNORED by headless
+       Chrome — page one's content still began at the same y as page two's. Do
+       not reach for it again; the margin has to come off every page. */
+    @page { margin: 9mm 9mm; }
   }
 </style>
