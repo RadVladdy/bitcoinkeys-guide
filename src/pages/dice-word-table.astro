@@ -37,6 +37,13 @@ const EG = rows.find((r) => r.dice === '23142' && r.coin === 'H') || rows[0];
 // no unicode coin reads as one at 7pt.
 const PIPS = { block: '⚂⚀⚃', line: '⚁⚃', coin: 'H or T' };
 
+// Die faces for the example line. The example used to print DIGITS in bordered
+// boxes — the same shape as a row the reader fills in — so at a glance it read
+// as somebody's actual first word sitting on their blank sheet. Dice and a coin
+// are objects; nobody mistakes a drawn die for their own handwriting.
+const FACE = { '1': '⚀', '2': '⚁', '3': '⚂', '4': '⚃' };
+const egFaces = (str) => str.split('').map((d) => FACE[d]);
+
 ---
 <Base
   title="BIP-39 word table (printable) · BitcoinKeys.guide"
@@ -180,12 +187,12 @@ const PIPS = { block: '⚂⚀⚃', line: '⚁⚃', coin: 'H or T' };
               24-word sheet on one page. Values come from `rows`, so the example
               is a real lookup and cannot disagree with the table pages. */}
           <tr class="dw-eg-row">
-            <td class="dw-n">eg</td>
-            {EG.dice.slice(0, PREFIX_THROWS).split('').map((d) => (<td class="dw-b">{d}</td>))}
+            <td class="dw-n"></td>
+            {egFaces(EG.dice.slice(0, PREFIX_THROWS)).map((f) => (<td class="dw-die">{f}</td>))}
             <td class="dw-sp"></td>
-            {EG.dice.slice(PREFIX_THROWS).split('').map((d) => (<td class="dw-b">{d}</td>))}
-            <td class="dw-b dw-f">{EG.coin}</td>
-            <td class="dw-w">{EG.word}</td>
+            {egFaces(EG.dice.slice(PREFIX_THROWS)).map((f) => (<td class="dw-die">{f}</td>))}
+            <td class="dw-die dw-coin"><span class="dw-coin-o">{EG.coin}</span></td>
+            <td class="dw-ghost">{EG.word}</td>
           </tr>
           {Array.from({ length: ws.chosen }, (_, i) => (
             <tr class:list={[(i + 1) % 5 === 0 ? 'dw-five' : null]}>
@@ -205,8 +212,7 @@ const PIPS = { block: '⚂⚀⚃', line: '⚁⚃', coin: 'H or T' };
         </tbody>
       </table>
       <p class="dw-foot">
-        <strong>The dashed <span class="mono">eg</span> row is a worked example</strong> — do not write on
-        it. <strong>This sheet is for a {ws.words}-word seed:</strong> you roll {ws.chosen} words and your
+        <strong>This sheet is for a {ws.words}-word seed:</strong> you roll {ws.chosen} words and your
         device supplies word {ws.words}, which carries the checksum. There is a separate sheet for
         a {ws.other}-word seed — <strong>print only the one you are doing.</strong> Full procedure:
         <strong>bitcoinkeys.guide/roll-your-own-seed</strong>
@@ -268,6 +274,13 @@ const PIPS = { block: '⚂⚀⚃', line: '⚁⚃', coin: 'H or T' };
     /* Ink and paper. Everything above the table is screen furniture; the
        method lives on the procedure page, which is where a reader who needs
        it is standing anyway. */
+    /* WHITE PAPER, and no dead padding. The site's cream sat behind the method
+       sheet and both worksheets — a full-bleed tint on every sheet, ink spent on
+       nothing. <main>'s padding is breathing room under a sticky nav and is
+       blank paper once the nav is hidden. */
+    :root, body, main { background: #fff !important; }
+    main { padding: 0 !important; margin: 0 !important; }
+    .verified { display: none !important; }
     .dwt-intro { display: none; }
     /* Its own page, so the reference pages that follow carry nothing but
        the table. */
@@ -275,8 +288,15 @@ const PIPS = { block: '⚂⚀⚃', line: '⚁⚃', coin: 'H or T' };
     .dwt-work { display: block; color: #000; break-after: page; font-size: 10pt; }
     .dw-warn { border: 1pt solid #000; padding: .4rem .6rem; margin: 0 0 .6rem; font-size: 9pt; line-height: 1.35; }
     .dw { width: 100%; border-collapse: separate; border-spacing: 2pt 2.5pt; font-size: 9pt; }
+    /* WHITE, EXPLICITLY. The site's global table styling gives every th the
+       surface cream, which survived the page-level white override and left a
+       warm band straight across the top of an otherwise white sheet — 5,200
+       stray pixels, found by taking a colour census of the rendered page rather
+       than by looking at it. The FLIP column keeps its grey on purpose: that
+       tint marks the column, and it should run through the header too. */
     .dw th { font-size: 7pt; text-transform: uppercase; letter-spacing: .07em; font-weight: 700;
-      padding: 0 .1rem .18rem; text-align: left; color: #000; border: none; }
+      padding: 0 .1rem .18rem; text-align: left; color: #000; border: none; background: #fff; }
+    .dw th.dw-f { background: #e6e6e6; }
     /* The label carries the instruction, so the sheet says how to use itself. */
     .dw-th-s { display: block; text-transform: none; letter-spacing: 0; font-weight: 400;
       font-size: 6.4pt; color: #555; }
@@ -290,11 +310,15 @@ const PIPS = { block: '⚂⚀⚃', line: '⚁⚃', coin: 'H or T' };
        Measured against the rebuilt PDF at 22pt (8 pages) and 21pt (7). Do not
        raise it by eye, and re-measure if a row is ever added or removed —
        adding one row is exactly what invalidated the previous ceiling. */
-    .dw td { border: .6pt solid #9a9a9a; border-radius: 2pt; height: 21pt; padding: 0 .2rem; }
+    /* THE SAME TWO GREYS THE BIP-39 SHEET USES, so the two artifacts read as one
+       set rather than two documents that happen to be stapled together. Pale
+       enough to write over in pencil or biro without fighting the ink. */
+    .dw td { border: .5pt solid #c9c9c9; border-radius: 2.5pt; height: 21pt; padding: 0 .2rem;
+      background: #f7f7f7; }
     .dw-n { width: 4.5%; border: none !important; text-align: right; font-size: 7.5pt;
       color: #666; font-weight: 600; padding-right: .25rem; }
     .dw-b { width: 5.2%; }
-    .dw-f { width: 6.5%; background: #f4f4f4; }
+    .dw-f { width: 6.5%; background: #e6e6e6; }
     .dw-w { width: 38%; }
     /* THE 3 + 2 SPLIT, DRAWN AS A REAL COLUMN. An empty borderless cell between
        the third and fourth box: the block lookup and the line lookup are two
@@ -322,17 +346,29 @@ const PIPS = { block: '⚂⚀⚃', line: '⚁⚃', coin: 'H or T' };
        write in, and its height matches the rest so the sheet still reads as a
        grid. It is the first thing under the header for a reason: the reader
        sees one completed lookup before filling the first empty box. */
-    .dw-eg-row td { background: #eee; border-color: #888; border-style: dashed;
-      font-style: italic; color: #333; text-align: center; font-size: 8.5pt; }
-    .dw-eg-row .dw-n { font-style: normal; font-size: 6.5pt; text-transform: uppercase;
-      letter-spacing: .06em; color: #555; }
-    .dw-eg-row .dw-w { text-align: left; padding-left: .3rem; font-weight: 600; }
-    .dw-eg-row .dw-sp { background: none !important; }
+    /* THE EXAMPLE LINE IS NOT A ROW YOU COULD WRITE IN, and that is the whole
+       design. It printed digits inside bordered boxes — the same shape as the
+       rows below it — so a glance read it as somebody's actual first word
+       already sitting on the sheet. No boxes now: just the dice you threw, the
+       coin, and the word they give you, ghosted. Nothing labels it as an
+       example, because nothing needs to: dice are objects and a grey word is
+       obviously not one you wrote. A reader who pauses over it works out what
+       it is, and that pause is the explanation. */
+    .dw-eg-row td { border: none !important; background: none !important; height: 17pt;
+      text-align: center; padding: 0; }
+    .dw-eg-row .dw-die { font-size: 11pt; color: #333; line-height: 1; }
+    .dw-eg-row .dw-coin-o { display: inline-block; width: 9.5pt; height: 9.5pt; line-height: 9.1pt;
+      border: .5pt solid #888; border-radius: 50%; font-size: 6.4pt; color: #444;
+      font-family: var(--mono); text-align: center; }
+    .dw-eg-row .dw-ghost { text-align: left; padding-left: .3rem; font-size: 8.5pt;
+      color: #a8a8a8; font-style: italic; }
     /* Place-keeping. Every fifth row is tinted so a glance tells you which
        ten you are in — the failure this sheet exists to prevent is a word
        written one line off. */
-    .dw-five td { background: #f7f7f7; }
-    .dw-five .dw-f { background: #ededed; }
+    /* Place-keeping every fifth row. It has to sit BELOW the box fill now that
+       the boxes are shaded, so it tints the row rather than the box. */
+    .dw-five td { background: #ececec; }
+    .dw-five .dw-f { background: #dcdcdc; }
     /* .dw-mark is GONE with the single-sheet worksheet. It drew a rule across
        row 11 to mark where a 12-word seed stopped, on a sheet that also had to
        serve 24-word readers. There are two sheets now and neither needs a line
