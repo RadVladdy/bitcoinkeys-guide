@@ -37,6 +37,7 @@ import {
   tableRowCount, DICE_PER_WORD, PREFIX_THROWS, V2_BOX_THROWS,
 } from '../data/dice-table.js';
 import { diceVerified } from '../data/dice.js';
+import { pdfHref } from '../data/pdf-version.js';
 ---
 <Base
   title="BIP-39 word table v2 (layout experiment) · BitcoinKeys.guide"
@@ -71,9 +72,9 @@ import { diceVerified } from '../data/dice.js';
         affordance for a file you already know you want, not for one you are
         being invited to look at. */}
     <p class="v2-print">
-      <a class="btn" href="/bip39-word-table.pdf" target="_blank" rel="noopener">The table on its own — PDF, 4 pages</a>
-      <a class="btn btn-ghost" href="/roll-12-word-seed.pdf" target="_blank" rel="noopener">12-word seed — everything, 6 pages</a>
-      <a class="btn btn-ghost" href="/roll-24-word-seed.pdf" target="_blank" rel="noopener">24-word seed — everything, 6 pages</a>
+      <a class="btn" href={pdfHref("/bip39-word-table.pdf")} target="_blank" rel="noopener">The table on its own — PDF, 4 pages</a>
+      <a class="btn btn-ghost" href={pdfHref("/roll-12-word-seed.pdf")} target="_blank" rel="noopener">12-word seed — everything, 6 pages</a>
+      <a class="btn btn-ghost" href={pdfHref("/roll-24-word-seed.pdf")} target="_blank" rel="noopener">24-word seed — everything, 6 pages</a>
     </p>
   </section>
 

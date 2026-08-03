@@ -15,6 +15,7 @@
 import Base from '../layouts/Base.astro';
 import { diceVerified } from '../data/dice.js';
 import { blocks, rows, tableRowCount, DICE_PER_WORD, PREFIX_THROWS, seedCosts } from '../data/dice-table.js';
+import { pdfHref } from '../data/pdf-version.js';
 
 // ONE WORKSHEET PER SEED LENGTH, built from seedCosts — never typed. A
 // worksheet with the wrong number of rows is a seed with the wrong number of
@@ -75,7 +76,7 @@ const egFaces = (str) => str.split('').map((d) => FACE[d]);
       mix.</p>
     </div>
     <p class="dwt-print"><button type="button" id="dwt-print" class="btn">Print the table + worksheets</button>
-      <a class="btn ghost" href="/dice-word-table.pdf" download>Download as PDF</a></p>
+      <a class="btn btn-ghost" href={pdfHref("/dice-word-table.pdf")} target="_blank" rel="noopener">Open the PDF</a></p>
   </section>
 
   {/* THE METHOD SHEET — print only, and its own page.
