@@ -479,7 +479,7 @@ export const tableWalkSteps = [
   },
   {
     t: 'The sheet is your seed from the first mark you make on it',
-    d: 'Writing the throws down is the procedure working as intended — that is what the worksheet is for — but it means the paper in front of you is now key material, exactly as if the words were already on it. Never photograph it, never type it up, never leave it out, and keep it in the room until you are finished. The table itself is public and harmless; this sheet is not.',
+    d: 'Writing the throws down is the procedure working as intended — that is what the worksheet is for — and it makes the paper in front of you key material immediately, before a single word is written beside them: the throws on their own already ARE your seed, in another alphabet. By the time you finish, the same sheet carries the words as well, in the column next to them. So it holds both halves, and it never needed both to be dangerous. Never photograph it, never type it up, never leave it out, and keep it in the room until you are done. The table is public and harmless; this sheet is neither.',
   },
   {
     t: 'Count your words before the device is switched on',
