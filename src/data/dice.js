@@ -471,7 +471,7 @@ export const tableWalkSteps = [
   },
   {
     t: `Know how many words you are choosing — and it is not all of them`,
-    d: `You pick ${shape24.youPick} words for a 24-word seed, or ${shape12.youPick} for a 12-word one. You do not roll the last word. It carries the ${shape24.checksum}-bit checksum for a 24-word seed (${shape12.checksum} bits for a 12-word one), which is arithmetic over everything that came before it — there is no table entry for it and no way to reach it with a die. Write the target at the top of your sheet so "how many was I aiming for" is never a question you answer from memory.`,
+    d: `You pick ${shape24.youPick} words for a 24-word seed, or ${shape12.youPick} for a 12-word one. You do not roll the last word. It carries the ${shape24.checksum}-bit checksum for a 24-word seed (${shape12.checksum} bits for a 12-word one), which is arithmetic over everything that came before it — there is no table entry for it and no way to reach it with a die. There is nothing to write down or keep track of here: the worksheet is numbered, a rule across the sheet marks where a 12-word seed stops, the last row says in as many words that you do not roll it, and the line under the table spells out both lengths. Read that line once before you start and the counting is done for you.`,
   },
   {
     t: 'Fill in one row at a time — throws, flip, then the word',
