@@ -1,6 +1,10 @@
 ---
 import Base from '../layouts/Base.astro';
-import { CONCERNS, defaultsFor, HALF_BAND, prompts } from '../data/finder.js';
+import {
+  CONCERNS, SECTION_ORDER, defaultsFor, HALF_BAND, prompts,
+  EXPECTED_RAW, WEIGHT_POINTS, EXPOSURE_BY_SOV, STAKES_SCORE,
+} from '../data/finder.js';
+import { numberWord, numberWordCap } from '../data/numbers.js';
 
 // The methodology page behind the setup finder's risk assessment (Phase C of
 // the redesign, design § 7). Everything numeric here DERIVES from finder.js —
@@ -16,6 +20,35 @@ import { CONCERNS, defaultsFor, HALF_BAND, prompts } from '../data/finder.js';
 const d = defaultsFor('meaningful');
 const band = (key) => `${Math.max(d[key] - HALF_BAND[key], 0)}–${d[key] + HALF_BAND[key]}`;
 const promptCount = prompts.length;
+
+// SIX SCORED CONCERNS, FOUR OF WHICH YOU WALK — and the distinction is the whole
+// shape of this page, so both numbers derive. CONCERNS is every row the engine
+// scores; SECTION_ORDER is the subset with a research band that the assessment
+// walks you through. `stakes` and `exposure` are the other two: they are scored
+// exactly like the rest, but they are seeded from two plain questions rather
+// than from published base rates, so they have no band and no evidence card.
+// Typing either count is the bug invariant #10 exists for.
+const scoredCount = CONCERNS.length;
+const walkedCount = SECTION_ORDER.length;
+const scoredWord = numberWord(scoredCount);
+const walkedWord = numberWord(walkedCount);
+const walkedWordCap = numberWordCap(walkedCount);
+
+// The expected bundle, published as ESTIMATES because that is what they are.
+// Four of the 32 prompts carry a published prevalence; the rest are house
+// estimates of how common a situation is among self-custody holders, and they
+// are the softest numbers in the engine. Publishing them without that sentence
+// would dress a judgement call as research — the same false precision this page
+// already refuses on the score itself.
+const bundle = SECTION_ORDER.map((key) => ({
+  key,
+  label: CONCERNS.find((c) => c.key === key).label,
+  raw: EXPECTED_RAW[key],
+  available: prompts.filter((p) => p.concern === key)
+    .reduce((sum, p) => sum + WEIGHT_POINTS[p.weight], 0),
+}));
+const sourcedPrompts = prompts.filter((p) => p.prevalence === 'published').length;
+const estimatedPrompts = promptCount - sourcedPrompts;
 
 // Where each default comes from — the anchor evidence, one block per concern,
 // in the order the bars are shown. Sources are the primary documents, linked.
@@ -85,17 +118,25 @@ const notAsked = [
 ---
 <Base
   title="How we weigh risk — the research behind the setup finder · BitcoinKeys.guide"
-  description="The setup finder's risk assessment starts everyone from a published, sourced default: how Bitcoin is actually lost for a typical holder. This page shows the homework — the four concerns, the research bands behind each default, the questions we deliberately don't ask, and where the evidence is honestly uncertain."
-  verified="2026-07-31"
+  description="The setup finder's risk assessment starts everyone from a published, sourced default: how Bitcoin is actually lost for a typical holder. This page shows the homework — every concern the engine scores, the research bands behind each default, the estimates we lean on and admit to, the questions we deliberately don't ask, and where the evidence is honestly uncertain."
+  verified="2026-08-02"
 >
   <section class="prose">
     <p class="eyebrow">The finder’s methodology</p>
     <h1>How we weigh <span class="accent">risk</span></h1>
-    <p class="lead">The <a href="/find-your-setup">setup finder</a> walks you through a short risk assessment: four concerns, each starting at a research-based default and moved by facts about your situation. This page is the homework behind it — <strong>where every default comes from, what shifts it, what we refuse to ask, and where we’re honestly uncertain</strong>. No other part of the recommendation is hand-waved either, but this is the part worth publishing.</p>
+    <p class="lead">The <a href="/find-your-setup">setup finder</a> scores {scoredWord} concerns. {walkedWordCap} of them you walk through — each starts at a research-based default and moves with facts about your situation. This page is the homework behind it — <strong>where every default comes from, what shifts it, which numbers are estimates rather than research, what we refuse to ask, and where we’re honestly uncertain</strong>. No other part of the recommendation is hand-waved either, but this is the part worth publishing.</p>
   </section>
 
   <section class="prose">
-    <h2>The standard picture — the typical holder’s four risks</h2>
+    <div class="callout danger">
+      <span class="label">Our starting bias, stated up front</span>
+      <p>For money whose loss would genuinely hurt, <strong>we will not leave you on a single point of failure</strong> — one hardware wallet, one seed, no passphrase, nothing else that has to also be true. Above the smallest stakes, the finder’s recommendation always clears that bar. That is a stance, not a calculation, and the <a href="/advisory/coldcard-seed-entropy">Coldcard seed-generation flaw</a> is why it is stated this plainly: every wallet drained in that incident was a lone key with no second factor, and the people who came through it untouched were the ones with a passphrase, their own dice throws, or a key from a second maker. <strong>One thing failed, and for some holders that one thing was everything.</strong></p>
+      <p>If losing your Bitcoin genuinely wouldn’t change your life, one hardware wallet kept properly is still an honest answer, and the finder will still say so. Everywhere above that, <a href="/learn/ladder">levelling up and removing the single point of failure</a> is our recommendation — and it is checked on every path the engine can produce, not just asserted here.</p>
+    </div>
+  </section>
+
+  <section class="prose">
+    <h2>The standard picture — the typical holder’s {walkedWord} researched risks</h2>
     <p>Each bar is a concern’s <strong>share of expected loss</strong> for a typical holder — someone with meaningful but not life-changing money at stake, mixed custody, no public profile. Not a probability, a share: “of the ways this is likely to go wrong, how much of the danger lives here.” Beside each bar is the research band we publish with it — the honest range, not just the point.</p>
   </section>
 
@@ -116,7 +157,7 @@ const notAsked = [
 
   <section class="prose">
     <h2>Where each default comes from</h2>
-    <p>Four anchors, four very different kinds of evidence — a reported-loss flow, a lost-coin stock, a corporate failure history, and an incident registry. That mismatch is exactly why the bands above are wide (more on that below).</p>
+    <p>{walkedWordCap} anchors, {walkedWord} very different kinds of evidence — a reported-loss flow, a lost-coin stock, a corporate failure history, and an incident registry. That mismatch is exactly why the bands above are wide (more on that below).</p>
   </section>
 
   <section>
@@ -131,6 +172,40 @@ const notAsked = [
         </article>
       ))}
     </div>
+  </section>
+
+  <section class="prose">
+    <h2>The {scoredWord === walkedWord ? '' : 'other '}two concerns — scored, but not from base rates</h2>
+    <p>The {walkedWord} above are the ones with published research behind them, and they are the {walkedWord} you walk through. The engine scores {scoredWord} things in total. The other two come from questions you answer in plain words, and they are scored exactly like the rest rather than applied as a thumb on the scale afterwards:</p>
+    <ul class="asked">
+      <li class="ak">
+        <span class="ak-q">What’s at stake</span>
+        <p class="ak-why">How much losing this Bitcoin would hurt — never how much it is. This carries roughly double the weight of any other row, which is what “more at stake justifies more protection” looks like when it is stated rather than implied. It used to be a multiplier applied on top of everything, in several places at once; that let one answer count two and three times over. It is one row now.</p>
+      </li>
+      <li class="ak">
+        <span class="ak-q">How much you mind a third party</span>
+        <p class="ak-why">Whether you want a company anywhere near your keys. Collaborative custody scores badly here on purpose — that is its real cost, and the only place it should be charged. This used to be a flat penalty plus a hard rule about which option was allowed to lead, both of which were the model compensating for something it could not say out loud. Scored, it behaves like every other answer: it moves a bar, and the bar moves the recommendation.</p>
+      </li>
+    </ul>
+    <p>Neither has a research band, because neither is a base rate — they are facts about <em>you</em> that only you can supply, and the finder asks for them directly.</p>
+  </section>
+
+  <section class="prose">
+    <h2>The typical holder’s bundle — and this is the estimated part</h2>
+    <p>An untouched bar has to mean something. The obvious choice — start everyone at zero and let the questions add up — quietly asserts that the typical holder has none of these problems, which is false: it made a section you walked and cleared look identical to one you skipped, and those are opposite signals. So the baseline is a model of what a typical holder actually carries. Score above it and your bar rises; below it and it falls; land on it exactly and you sit on the published default, which is what “typical” is supposed to mean.</p>
+    <div class="callout warn">
+      <span class="label">Read these as estimates, because that is what they are</span>
+      <p>Of the {promptCount} statements the assessment can put to you, <strong>{numberWord(sourcedPrompts)}</strong> carry a published figure for how common that situation is among holders. The other <strong>{numberWord(estimatedPrompts)}</strong> are our own estimates. They are the softest numbers in this engine — softer than the bands above, which at least have papers behind them — and we would rather publish them and be argued with than keep them in the code where nobody can check them.</p>
+    </div>
+    <div class="bundle">
+      {bundle.map((b) => (
+        <div class="bn-row">
+          <span class="bn-label">{b.label}</span>
+          <span class="bn-fig mono">{b.raw} of {b.available} available</span>
+        </div>
+      ))}
+    </div>
+    <p class="bn-note">Points, not a count of statements — each one carries a small, medium or large weight, so “three of eight” describes different people depending on which three. <strong>Locking yourself out is deliberately the largest share</strong>, because it is the thing holders are genuinely worst at: most have never test-restored a backup, and nearly nine in ten have told nobody. <strong>Targeted physical theft is the smallest</strong>, matching its small share above — most holders are known to somebody, but very few are targets.</p>
   </section>
 
   <section class="prose">
@@ -162,7 +237,7 @@ const notAsked = [
   <section class="prose">
     <div class="callout warn">
       <span class="label">Where we’re uncertain — on purpose, out loud</span>
-      <p>Honesty about the seams: <strong>dormant coins aren’t proof of loss</strong> — the lost-coin estimates rest on heuristics about coins that haven’t moved, and some of those owners are just patient. <strong>Recovery firms publish no case-type breakdowns</strong>, so “forgotten passphrases dominate their caseload” is a qualitative claim from the firms, not a percentage. <strong>The physical-attack registry counts only media-reported cases</strong> — in one academic sample, two of eleven interviewed victims had reported at all, so the true count is plausibly several times higher. And <strong>no academic study splits expected loss across these four buckets</strong> — we composed it from flow data, stock estimates, and an incident registry with different denominators. That is exactly why the bands are wide, and why the finder speaks in words instead of decimals.</p>
+      <p>Honesty about the seams: <strong>dormant coins aren’t proof of loss</strong> — the lost-coin estimates rest on heuristics about coins that haven’t moved, and some of those owners are just patient. <strong>Recovery firms publish no case-type breakdowns</strong>, so “forgotten passphrases dominate their caseload” is a qualitative claim from the firms, not a percentage. <strong>The physical-attack registry counts only media-reported cases</strong> — in one academic sample, two of eleven interviewed victims had reported at all, so the true count is plausibly several times higher. And <strong>no academic study splits expected loss across these {walkedWord} buckets</strong> — we composed it from flow data, stock estimates, and an incident registry with different denominators. <strong>The typical holder’s bundle above is our estimate, not a measurement</strong>, and it is the number here we would most expect to be wrong. That is exactly why the bands are wide, and why the finder speaks in words instead of decimals.</p>
     </div>
     <p class="fresh">The headline statistics behind these defaults — the FBI’s IC3 annual report, Chainalysis’s crime reporting, and the physical-attack registry — are on our freshness watch and re-checked on a schedule, like the prices and claims everywhere else on this guide. The verified date at the bottom of this page is real, and it moves when the evidence does.</p>
   </section>
@@ -206,6 +281,28 @@ const notAsked = [
   .na-q::after { content: " — not asked"; color: var(--faint); font-weight: 400; font-size: 0.82rem;
     font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; }
   .na-why { margin: 0; color: var(--muted); font-size: 0.92rem; line-height: 1.55; }
+
+  /* The two ASKED-but-not-researched concerns. Same card shape as the not-asked
+     list, deliberately NOT the same classes: .na-q::after appends "— not asked",
+     so borrowing it would have printed the exact opposite of the claim on a
+     methodology page. Accent rule instead of grey, because these are live inputs
+     rather than a list of refusals. */
+  .asked { list-style: none; margin: 1.1rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.65rem; }
+  .ak { border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: var(--radius);
+    background: var(--surface); padding: 0.95rem 1.2rem; }
+  .ak-q { display: block; color: var(--text); font-weight: 650; margin-bottom: 0.25rem; }
+  .ak-q::after { content: " — scored, no research band"; color: var(--faint); font-weight: 400; font-size: 0.82rem;
+    font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; }
+  .ak-why { margin: 0; color: var(--muted); font-size: 0.92rem; line-height: 1.55; }
+
+  /* The expected-bundle table. */
+  .bundle { margin: 1.1rem 0 0.9rem; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+  .bn-row { display: flex; align-items: baseline; justify-content: space-between; gap: 0.8rem;
+    padding: 0.7rem 1.2rem; border-top: 1px solid var(--line-soft); flex-wrap: wrap; }
+  .bn-row:first-child { border-top: 0; }
+  .bn-label { color: var(--text); font-weight: 600; font-size: 0.95rem; }
+  .bn-fig { color: var(--accent); font-size: 0.85rem; white-space: nowrap; }
+  .bn-note { color: var(--muted); font-size: 0.92rem; line-height: 1.6; }
 
   .fresh { color: var(--muted); font-size: 0.92rem; }
 </style>

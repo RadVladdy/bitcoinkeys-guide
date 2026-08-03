@@ -541,6 +541,47 @@ for (const selfScore of [0, 20, 52, 80]) {
 }
 console.log(`  C10 passphrase warning — ${c10n} passphrase primaries, all carry the lockout warning`);
 
+// ── C11 · NO SINGLE POINT OF FAILURE ABOVE LEARNING STAKES ───────────────────
+// THE HOUSE STANCE, AND THE ONE THE SITE STATES ON ITS FRONT PAGE. One hardware
+// wallet with no passphrase is a single point of failure: one seed, one maker,
+// one firmware, and no second thing that has to also be true. For money whose
+// loss would actually hurt, the recommendation must clear that — rung 2 or
+// higher, every time.
+//
+// LEARNING STAKES ARE EXEMPT AND THAT IS THE POINT OF THE THRESHOLD. "Losing it
+// wouldn't change my life" is not significant holdings, and rung 1 remains the
+// hard floor there (principle 5). The stance is about consequence, never amount.
+//
+// WHY THIS IS ENUMERATED AND NOT SAMPLED. The whole answer space, not a spot
+// check: this is a property of EVERY path, and the branch that broke it last
+// time was one stakes level away from the one being edited. On the shipped
+// engine this constraint fails 7,425 times — 1,305 of them at life-changing
+// stakes — which is exactly why the front-page sentence and this engine have to
+// ship together. A prose-only invariant is a hope; this file is where it becomes
+// a fact.
+//
+// NEGATIVE CONTROL: drop the C7 rung floor and this fails loudly. Confirmed.
+const SCORE_LATTICE = [0, 50, 100];
+let c11n = 0;
+const c11bad = [];
+for (const stakes of STAKES) for (const current of CURRENT) for (const recovery of RECOVERY)
+for (const tech of TECH) for (const sovereignty of SOV)
+for (const a of SCORE_LATTICE) for (const b of SCORE_LATTICE)
+for (const c of SCORE_LATTICE) for (const d of SCORE_LATTICE) {
+  if (stakes === 'learning') continue;
+  const scores = { custodial: a, 'self-loss': b, remote: c, physical: d };
+  const res = recommendV2({ ...baseAnswers, stakes, current, recovery, tech, sovereignty, scores });
+  c11n++;
+  if (res.primary.rungSlug === 'single-sig') {
+    c11bad.push(`${stakes}/${current}/${recovery}/${tech}/${sovereignty} scores=${a}/${b}/${c}/${d}`);
+  }
+}
+if (c11bad.length) {
+  fail(`C11: ${c11bad.length} of ${c11n} combos recommend a lone hardware wallet with no passphrase above learning stakes`);
+  c11bad.slice(0, 3).forEach((w) => console.error(`        e.g. ${w}`));
+}
+console.log(`  C11 no single point of failure — ${c11n} combos above learning stakes, ${c11bad.length} bare single-sig`);
+
 // ════ result ════════════════════════════════════════════════════════════════
 console.log('');
 if (failures) {

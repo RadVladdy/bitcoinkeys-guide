@@ -240,7 +240,7 @@ export const prompts = [
 
   // ── self-loss ── (raises: self-inflicted loss)
   {
-    id: 's-forgot', concern: 'self-loss', weight: 'medium',
+    id: 's-forgot', prevalence: 'published', concern: 'self-loss', weight: 'medium',
     statement: 'I’ve forgotten or reset an important password in the last few years.',
     why: 'About four in ten US crypto owners have forgotten a crypto password. Ordinary forgetfulness is the base rate, not the exception.',
   },
@@ -250,7 +250,7 @@ export const prompts = [
     why: 'Recovery firms see seeds written down with errors all the time — and the error only surfaces at restore time, the worst moment to learn.',
   },
   {
-    id: 's-nobody-knows', concern: 'self-loss', weight: 'medium',
+    id: 's-nobody-knows', prevalence: 'published', concern: 'self-loss', weight: 'medium',
     statement: 'Nobody but me knows my Bitcoin exists, or how to reach it.',
     why: 'True of nearly nine in ten holders — and it is the QuadrigaCX failure mode: if something happens to you, the coins go with you.',
   },
@@ -318,7 +318,7 @@ export const prompts = [
     why: 'Clipboard-swapping malware rides in on exactly this — and it waits silently for a copied address.',
   },
   {
-    id: 'r-quick', concern: 'remote', weight: 'medium',
+    id: 'r-quick', prevalence: 'published', concern: 'remote', weight: 'medium',
     statement: 'I act on crypto messages quickly, and I’m confident I can spot a fake.',
     why: 'Quick responders and the self-confident click more, not less — about 80% of people overrate their own detection.',
   },
@@ -416,17 +416,36 @@ const H_SAT = { custodial: 25, 'self-loss': 29, remote: 36, physical: 28 };
 // WHY POINTS AND NOT A COUNT: prompts carry small/medium/large weights, so
 // "three of eight" describes different people depending on which three.
 //
-// HOW THESE WERE ESTIMATED, and how solid each is. Four prompts carry a
-// published prevalence in their own receipt (s-forgot ~40%, s-nobody-knows
-// ~87%, r-quick 80%, and c-exchange's figure is about EXCHANGES failing, not
-// about readers, so it is NOT usable here). The remaining 28 are house
-// estimates of how common the situation is among self-custody holders. They
-// are estimates, they are the softest numbers in this engine, and
+// HOW THESE WERE ESTIMATED, and how solid each is. THREE prompts carry a
+// published prevalence OF THE SITUATION AMONG HOLDERS, and they are marked
+// `prevalence: 'published'` so the count derives rather than being typed:
+// s-forgot (~40%), s-nobody-knows (~87%), r-quick (80%). Every other prompt is
+// a house estimate of how common the situation is among self-custody holders.
+// They are estimates, they are the softest numbers in this engine, and
 // /how-we-weigh-risk must publish them as estimates rather than as research.
 //
-//   custodial 22 of 74 available — most holders still have some on an
-//     exchange and few can name their auditor, but our mid-stakes reader is
-//     mid-migration by construction
+// c-exchange is deliberately NOT marked. Its receipt does carry a published
+// figure — roughly six in ten exchanges ever launched have closed — but that is
+// a statistic about EXCHANGES, not about how many readers have money on one,
+// and only the second is a prevalence. A receipt containing a percentage is not
+// the same as a prompt whose likelihood is measured.
+//
+// This paragraph used to read "four prompts … the remaining 28", against a bank
+// that had been 32 before the custodial trim. Both numbers were typed, both went
+// stale in one commit, and the page was about to publish them. Hence the field.
+//
+//   custodial 22 of 48 available — most holders still have some on an
+//     exchange, but our mid-stakes reader is mid-migration by construction.
+//     ⚠ THE SOFTEST OF THE FOUR, AND IT MOVED WITHOUT BEING RE-REASONED. It was
+//     22 of 74 when this section had seven prompts; the trim to four dropped the
+//     available points to 48 without changing the target, so the same 22 now
+//     asserts a much larger share of a smaller bank. It survives on the merits
+//     of neither reasoning in particular. What keeps it harmless is that
+//     `custodial` is deliberately inert — every setup scores 3, so no value here
+//     can change a recommendation — and C6 still finds it reachable. Re-reason
+//     it, do not re-tune it, at the next calibration. /how-we-weigh-risk derives
+//     the "of N" from the live bank, so the published figure cannot go stale
+//     the way this comment did.
 //   self-loss 42 of 88 — deliberately the highest share, because this is the
 //     thing holders are genuinely worst at: the large majority have never
 //     test-restored, and ~87% have told nobody
