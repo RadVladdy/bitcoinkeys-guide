@@ -71,6 +71,26 @@ const nextLevel = levelById('102');
     </p>
 
     <Diagram name="seed-to-words" caption="Your key is a huge random number. The words are the same key, written so a human can copy it." />
+    {/* LAYER 2, added 2026-08-03. This lesson was pure mechanism — five sections
+        of how it works with nothing on what that makes possible. The brain-wallet
+        idea in particular is one readers arrive with, it follows naturally from
+        "the words are just a number", and it has emptied real wallets. Naming it
+        here is cheaper than answering it after the fact. */}
+    <div class="callout warn">
+      <span class="label">One thing this makes possible, and it has cost people everything</span>
+      <p style="margin:0">
+        If the key is just a number, you might reasonably wonder why you cannot simply <em>choose</em> one —
+        pick a memorable sentence, run it through some maths, and carry your wallet in your head with nothing
+        to back up at all. You can. It is called a <strong>brain wallet</strong>, it needs no special software,
+        and it has been emptied at scale for over a decade. The reason is the one honest thing about
+        randomness: attackers generate keys from every phrase in every book, song, film and password leak ever
+        published, and they do it continuously, in advance, for the whole world at once. A phrase you were
+        pleased with has almost certainly been tried before you finished typing it. <strong>The number has to
+        come from something that is not you</strong> — which is the entire subject of a later lesson, and the
+        reason your wallet insists on generating it rather than asking.
+      </p>
+    </div>
+
     <p class="deeper"><strong>Deeper dive:</strong> <a href="/deep-dive/seed">watch a seed get created, one step at a time →</a> — a throwaway seed, generated safely in your browser. Or <a href="/deep-dive/dice">roll your own with dice →</a>.</p>
 
     <h2>3 · Private key → public key → address</h2>
