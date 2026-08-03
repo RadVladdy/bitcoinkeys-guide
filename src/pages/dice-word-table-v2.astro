@@ -62,11 +62,18 @@ import { diceVerified } from '../data/dice.js';
     {/* THE PDF, NOT window.print(). Printing the page depends on the reader's
         own browser margins, headers and background-graphics setting — three
         things we do not control and one of which silently drops every tint.
-        The PDF is the artifact; the page is how you read it on a screen. */}
+        The PDF is the artifact; the page is how you read it on a screen.
+        NO `download` ATTRIBUTE. It shipped with one and the links looked broken:
+        on Android — and on plenty of desktop setups — `download` fires a silent
+        background fetch with no tab, no viewer and no visible response, so the
+        reader clicks and nothing happens. Opening the PDF shows it immediately
+        and every browser still offers Save from there. `download` is the right
+        affordance for a file you already know you want, not for one you are
+        being invited to look at. */}
     <p class="v2-print">
-      <a class="btn" href="/bip39-word-table.pdf" download>The table on its own — PDF, 4 pages</a>
-      <a class="btn ghost" href="/roll-12-word-seed.pdf" download>12-word seed — everything, 6 pages</a>
-      <a class="btn ghost" href="/roll-24-word-seed.pdf" download>24-word seed — everything, 6 pages</a>
+      <a class="btn" href="/bip39-word-table.pdf" target="_blank" rel="noopener">The table on its own — PDF, 4 pages</a>
+      <a class="btn btn-ghost" href="/roll-12-word-seed.pdf" target="_blank" rel="noopener">12-word seed — everything, 6 pages</a>
+      <a class="btn btn-ghost" href="/roll-24-word-seed.pdf" target="_blank" rel="noopener">24-word seed — everything, 6 pages</a>
     </p>
   </section>
 
