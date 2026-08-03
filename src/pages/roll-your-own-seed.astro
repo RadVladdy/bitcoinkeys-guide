@@ -59,18 +59,22 @@ const shortCost = seedCosts.find((c) => c.words === 12);
         the procedure cannot start without, which is the same reason "print the
         table first" is here. Both lengths, both bit figures and the roll counts
         derive from seedLengths. */}
+    {/* THE FIRST DECISION ON THIS PAGE IS THE METHOD, and it used to be the
+        length. That was wrong twice over: the cost of a length depends entirely
+        on which method you pick (an evening of lookups, an hour of pressing, or
+        a few minutes), and it told every reader to "decide before you print
+        anything" when two of the three options print nothing at all. Each
+        option now opens by choosing its own length, with the numbers that
+        method actually costs. */}
     <div class="callout" role="note">
-      <span class="label">First, pick a length — {shortLen.words} words or {longLen.words}</span>
+      <span class="label">First, pick a method — the three below</span>
       <p style="margin-bottom:0">
-        Those are the two you will actually be offered, and every wallet worth owning takes both.
-        {shortLen.words} words carry {shortLen.target} bits of randomness and {longLen.words} carry
-        {longLen.target} — both so far past anything that could be guessed that neither is the weak point in
-        your setup, so what really differs is how much work it is. <strong>Decide before you print
-        anything</strong>: there is a worksheet for each length and you want only yours. Each procedure below
-        opens by helping you choose, with the throw counts that method actually costs.
-        <em>(The standard allows a few in-between lengths — you may see a {shortLen.words} / 18 /
-        {longLen.words} menu on a Coldcard — but almost nothing uses them, and our worksheets are built for
-        these two.)</em>
+        They differ in how much of the randomness is yours and how much work that takes, and
+        <strong>which of them your own hardware can do at all</strong> — each tab says so before you open it.
+        Everything else follows from that choice, including how long your seed should be, which each
+        procedure helps you decide once you are inside it. If you have not met these options before, or you
+        are not sure what your device allows, start at
+        {' '}<a href="/learn/generate-your-seed">where your seed's randomness comes from</a>.
       </p>
     </div>
 
@@ -80,9 +84,9 @@ const shortCost = seedCosts.find((c) => c.words === 12);
         There is no box to type your throws into, and there is not going to be one. <strong>The list of numbers
         you roll IS your seed</strong>, written in a different alphabet — anyone who has it has your coins.
         <RuleRef key="never-digital" /> says key material never touches anything digital, and we are not making
-        an exception for our own page. Your throws belong on <strong>paper</strong> — our printable worksheet is
-        made for exactly that, and it becomes part of your seed the moment you mark it — or straight into your
-        <strong>hardware wallet</strong>. Never onto a screen, and never into this one.
+        an exception for our own page. Every real throw goes <strong>straight into your hardware wallet</strong> — or, on the option that
+        uses a printed table, <strong>onto paper you will destroy afterwards</strong>. Never onto a screen,
+        and never into this one.
       </p>
     </div>
   </section>
@@ -135,6 +139,17 @@ const shortCost = seedCosts.find((c) => c.words === 12);
                 : 'As many throws as you feel like. There is no minimum, and more is simply better.'}
           </p>
 
+          <h3>The steps</h3>
+          {/* PER METHOD, never shared. Option 1 hands the device finished words
+              and asks for the last one; options 2 and 3 hand it throws. Rendering
+              one procedure under the other told option-1 readers to enter their
+              rolls into the device four lines under the sentence saying their
+              randomness never touches a machine. walkStepsFor() is what makes
+              that combination unreachable. */}
+          <ol class="wsteps">
+            {walkStepsFor(m.key).map((s) => (<li><strong>{s.t}.</strong> {s.d}</li>))}
+          </ol>
+
           {m.key === 'sovereign' && (
             <div class="callout" role="note">
               <span class="label">Print the PDF for your seed length</span>
@@ -155,17 +170,6 @@ const shortCost = seedCosts.find((c) => c.words === 12);
                 standard wordlist in a fixed order, and anyone can regenerate it.
             </div>
           )}
-
-          <h3>The steps</h3>
-          {/* PER METHOD, never shared. Option 1 hands the device finished words
-              and asks for the last one; options 2 and 3 hand it throws. Rendering
-              one procedure under the other told option-1 readers to enter their
-              rolls into the device four lines under the sentence saying their
-              randomness never touches a machine. walkStepsFor() is what makes
-              that combination unreachable. */}
-          <ol class="wsteps">
-            {walkStepsFor(m.key).map((s) => (<li><strong>{s.t}.</strong> {s.d}</li>))}
-          </ol>
 
           <h3>On your device</h3>
           {procsFor(m.key).map((p) => (

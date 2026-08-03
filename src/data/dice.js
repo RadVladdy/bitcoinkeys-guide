@@ -391,44 +391,80 @@ export const failureModes = [
 // holding a die in one hand must not hide the next instruction behind a button:
 // the ticks record where you are, they never gate what you can read.
 
-export const walkSteps = [
-  {
-    t: 'Update the firmware, then wipe the device',
-    d: 'Do this before anything else, on a device with no coins on it. A dice seed generated on old firmware is still a seed generated on old firmware. If the device already holds a wallet you care about, stop and deal with that separately — this procedure starts from empty.',
-  },
-  {
-    t: 'Clear the room',
-    d: 'Phones out of the room. Laptop lids shut. Nothing recording, nothing on a call, nobody behind you. Get the die, the pen and the paper out before you start so you are not walking around mid-sequence.',
-  },
-  {
-    t: 'Decide the length, and write the target down',
-    d: 'Longer is the easy answer if you are doing this by hand anyway — the extra effort is one more page of rolling, once, ever. Put the target number at the top of your tally sheet so that "how many was I aiming for" is never a question you have to answer from memory.',
-  },
-  {
-    t: 'Find the dice screen on your device',
-    d: 'Get to the exact screen before you throw anything. The menu path is different on every make and it has moved between firmware versions on at least one of them, so this is not the moment to be hunting.',
-  },
-  {
-    t: 'Roll, enter, repeat — one at a time',
-    d: 'Throw the die, read it, enter it, mark your tally, throw again. Do not throw a handful and read them off; do not roll ahead while entering. The moment you are working from a short list you have written down, that list is your seed sitting on a table.',
-  },
-  {
-    t: 'Pass the target, then keep going a little',
-    d: 'Overshooting costs you nothing and removes the only question you cannot answer later. If you lose your place, keep rolling rather than guessing — a sequence that is longer than you think is fine, and one that is shorter is not.',
-  },
-  {
-    t: 'Write the words down, on paper, by hand',
-    d: 'Read them off the device screen. Not a photo, not a QR code into anything, not read aloud. Check the spelling of each word against the device before moving on — half the BIP-39 list looks like another half of it at a glance.',
-  },
-  {
-    t: 'Destroy the tally, then wipe and restore',
-    d: 'The tally sheet is key material until it is gone; burn or shred it, do not bin it. Then wipe the device and restore it from the words you wrote, so you find out today rather than in five years whether your backup actually works.',
-  },
-  {
-    t: 'Fund it — small first',
-    d: 'Send a small amount, confirm it arrives, then send a spend back out to prove you can move it. Only after that does the rest follow. Then move the words to metal, and check them once more as you copy.',
-  },
-];
+// Roll counts for the copy below, derived: `rollsToClear` is the point at which
+// the reader's own dice carry the seed's full target strength by our own
+// arithmetic. Coinkite's stated minimums sit just under it, which is why the
+// recommendation is the derived number and not the vendor's.
+const W12 = seedLengths[0].words, W24 = seedLengths[1].words;
+const ROLLS12 = seedLengths[0].rollsToClear, ROLLS24 = seedLengths[1].rollsToClear;
+
+// THE DEVICE-ENTRY WALKTHROUGH — options 2 and 3, both Coldcard-only.
+//
+// ORDER IS A DEPENDENCY CHAIN, not a preference. The length is decided FIRST
+// because it picks the actual menu item on the device ("12 Word Dice Roll" or
+// "24 Word Dice Roll") and sets how long you will be rolling; it used to sit at
+// step three, after the firmware update and after the room had been locked
+// down, which is deciding something you already needed.
+//
+// NO TALLY, ON EITHER OPTION. The Coldcard counts your throws on its own screen
+// and shows a running hash — the reader never writes a number down, so the
+// "mark your tally / destroy the tally" steps were describing paperwork that
+// does not exist and telling readers to burn a sheet they never made.
+const deviceSteps = (kind) => {
+  const target = kind === 'dice-only';
+  return [
+    {
+      t: target ? 'Decide 12 words or 24, and a roll target' : 'Decide 12 words or 24',
+      d: target
+        ? `Pick the length first — it is the menu item you choose on the device, so you need it before you touch anything. Then pick how many times you will roll. ${ROLLS24} throws for a ${W24}-word seed is our recommendation and ${ROLLS12} for a ${W12}-word one; those are the counts at which your own dice alone carry the full strength of the seed, and Coinkite's own minimums sit just underneath them. The device counts for you and will not let you finish short, so the number is a target to head for rather than something to keep track of. It goes quicker than it sounds: roll, press, roll, press.`
+        : `Pick 12 or 24 words as usual; longer is the easy answer since the effort is the same either way. There is no roll target on this option — the device has already produced a full-strength seed on its own and yours is being added on top, so any number of throws is an improvement and none of them is a threshold.`,
+    },
+    {
+      t: 'Update the firmware, then wipe the device',
+      d: 'Do this before anything else, on a device with no coins on it — and do it now, while you still have a computer and the internet to hand, because the next step shuts all of that down. A dice seed generated on old firmware is still a seed generated on old firmware. If the device already holds a wallet you care about, stop and deal with that separately: this procedure starts from empty.',
+    },
+    {
+      t: 'Clear the room',
+      d: 'Phones out of the room. Laptop lids shut. Nothing recording, nothing on a call, nobody behind you. Get the die out before you start so you are not walking around mid-sequence.',
+    },
+    {
+      t: 'Find the dice screen on your device',
+      d: 'Get to the exact screen before you throw anything. The menu path is below and it is different on every make; on at least one it has moved between firmware versions. This is not the moment to be hunting.',
+    },
+    {
+      t: 'Roll and enter, one at a time',
+      d: 'Throw the die, read it, press it, throw again. Do not throw a handful and read them off, and do not roll ahead while entering — the moment you are working from a short list you have written down, that list is your seed sitting on a table. The device shows its own count as you go, so there is nothing for you to record.',
+    },
+    target
+      ? {
+          t: 'Keep going until you pass your target',
+          d: 'Watch the count on the screen and stop when it is past the number you picked. Overshooting costs you nothing and removes the only question you cannot answer later, so if you lose track, keep rolling rather than guessing — more throws than you think is fine, fewer is not.',
+        }
+      : {
+          t: 'Stop whenever you want to',
+          d: 'Ten throws are better than none and a hundred are better than ten, but nothing happens at any particular number and nothing is waiting to be satisfied. This is the step that costs you the least in the whole procedure, and it is why this is the option we suggest by default.',
+        },
+    {
+      t: 'Write the words down, on paper, by hand',
+      d: 'Read them off the device screen. Not a photo, not a QR code into anything, not read aloud. Check the spelling of each word against the device before moving on — half the BIP-39 list looks like the other half at a glance.',
+    },
+    {
+      t: 'Wipe the device and restore from your written words',
+      d: 'Before anything goes in. This is the step that tells you today, rather than in five years, whether what you wrote down actually rebuilds the wallet. If it does not restore, you have lost nothing yet.',
+    },
+    {
+      t: 'Copy the words to metal, and check each one as you copy',
+      d: 'Paper survives a drawer; it does not survive a fire or a flood. Read each word off your sheet and check it again on the metal — this is the second of the two times you transcribe your seed, and both are places one goes quietly wrong.',
+    },
+    {
+      t: 'Fund it — small first',
+      d: 'Send a small amount, confirm it arrives, then send a spend back out to prove you can move it. Only after that does the rest follow.',
+    },
+  ];
+};
+
+export const walkSteps = deviceSteps('dice-only');
+const enrichWalkSteps = deviceSteps('enrich');
 
 // ── OPTION 1 HAS ITS OWN PROCEDURE, AND IT IS NOT THIS ONE ──────────────────
 // The steps above are the DEVICE-ENTRY walkthrough: find the dice screen, press
@@ -488,7 +524,7 @@ export const tableWalkSteps = [
   },
   {
     t: 'Print the BIP-39 word table, a worksheet, and read the method sheet first',
-    d: 'Three separate things, and it matters which is which: the BIP-39 WORD TABLE is the reference you look words up in and it is public; the WORKSHEET is where you write, and it becomes your seed; the METHOD SHEET is the one-page instructions. There is a worksheet for each seed length — print only the one you are doing. Read the method before you throw anything — it is the part that says which throws map to which column, and that 5s and 6s are rerolled, which is why no entry on the table contains one. The table holds no secret and is safe to print, photograph or leave lying about: it is the standard word list in a fixed order, and anyone can regenerate it.',
+    d: 'Three separate things, and it matters which is which: the BIP-39 WORD TABLE is the reference you look words up in and it is public; the WORKSHEET is where you write, and it becomes your seed; the METHOD SHEET is the one-page instructions. There is a worksheet for each seed length — print only the one you are doing. The downloads are directly below this list of steps. Read the method before you throw anything — it is the part that says which throws map to which column, and that 5s and 6s are rerolled, which is why no entry on the table contains one. The table holds no secret and is safe to print, photograph or leave lying about: it is the standard word list in a fixed order, and anyone can regenerate it.',
   },
   {
     t: 'Update the firmware, then wipe the device',
@@ -500,11 +536,7 @@ export const tableWalkSteps = [
   },
   {
     t: 'Fill in one row at a time — throws, flip, then the word',
-    d: `The worksheet has a row per word: ${PREFIX_THROWS} boxes for the throws that find your block, ${DICE_PER_WORD - PREFIX_THROWS} for the ones that find the line inside it, one for the coin, and the word itself at the end. Complete a row before you throw for the next one. Rerolled 5s and 6s are the exception and do not go in a box — they do not count and are not recorded, which is why no entry in the table contains one. Do not roll several words ahead: the row bands every five rows are there because the mistake this sheet exists to prevent is a word written on the wrong line.`,
-  },
-  {
-    t: 'The sheet is your seed from the first mark you make on it',
-    d: 'Writing the throws down is the procedure working as intended — that is what the worksheet is for — and it makes the paper in front of you key material immediately, before a single word is written beside them: the throws on their own already ARE your seed, in another alphabet. By the time you finish, the same sheet carries the words as well, in the column next to them. So it holds both halves, and it never needed both to be dangerous. Never photograph it, never type it up, never leave it out, and keep it in the room until you are done. The table is public and harmless; this sheet is neither.',
+    d: `The worksheet has a row per word: ${PREFIX_THROWS} boxes for the throws that find your block, ${DICE_PER_WORD - PREFIX_THROWS} for the ones that find the line inside it, one for the coin, and the word itself at the end. Complete a row before you throw for the next one. Rerolled 5s and 6s are the exception and do not go in a box — they do not count and are not recorded, which is why no entry in the table contains one. Do not roll several words ahead: the row bands every five rows are there because the mistake this sheet exists to prevent is a word written on the wrong line. AND FROM THE FIRST MARK YOU MAKE, THIS SHEET IS YOUR SEED — the throws alone already are it, in another alphabet, before a word is written beside them. Never photograph it, never type it up, never leave it out, and keep it in the room until you are done.`,
   },
   {
     t: 'Count your words before the device is switched on',
@@ -532,45 +564,7 @@ export const tableWalkSteps = [
   },
 ];
 
-// ── OPTION 3 IS NOT OPTION 2 EITHER, in two steps out of nine ───────────────
-// Both hand their throws to the device, so they share the walkthrough — but two
-// of those steps are built around a ROLL TARGET, and option 3 does not have one.
-// Its own panel says so in as many words: "as many throws as you feel like,
-// there is no minimum, and more is simply better." So the reader was told to
-// write a target at the top of the sheet and then to pass it, on a screen that
-// had just told them no target exists. Same shape as the option-1 bug, one
-// panel over.
-//
-// The target is real for option 2: the vendor states a minimum roll count and
-// the device enforces it. For option 3 the device has already generated a full
-// seed on its own — your throws are added on top, and any number of them is an
-// improvement rather than a threshold to clear.
-const ENRICH_OVERRIDES = {
-  'Decide the length, and write the target down': {
-    t: 'Decide the seed length — but there is no roll target here',
-    d: 'Pick 12 or 24 words as usual; longer is the easy answer since the effort is the same either way. What you do NOT need is a number of throws to reach. The device has already produced a full-strength seed on its own and yours is being added to it, so there is no minimum to clear and no tally to keep — every throw is an improvement on the one before and you stop whenever you like.',
-  },
-  'Pass the target, then keep going a little': {
-    t: 'Stop whenever you want to — there is nothing to overshoot',
-    d: 'Ten throws are better than none and a hundred are better than ten, but nothing bad happens at any particular number and nothing is waiting to be satisfied. If you lose count it does not matter, because the count was never load-bearing. This is the step that costs you the least in the whole procedure, and it is the reason this option is the one we suggest by default.',
-  },
-  // The tally steps go too, and for a reason worth stating rather than just
-  // deleting: on option 2 your throws ARE the seed, so a written list of them is
-  // key material. Here they are mixed into randomness the device generated
-  // itself, so your throws alone reconstruct nothing. That is the whole
-  // difference between the two options, and it is why one needs a tally
-  // destroyed and the other never makes one.
-  'Roll, enter, repeat — one at a time': {
-    t: 'Roll and enter, one at a time',
-    d: 'Throw the die, read it, enter it, throw again. The device keeps its own count on screen, so there is nothing for you to record and nothing to lose your place in. Do not throw a handful and read them off — enter each one as it lands, and stop when you have had enough.',
-  },
-  'Destroy the tally, then wipe and restore': {
-    t: 'Wipe and restore before anything goes in',
-    d: 'There is no tally to destroy here — you never wrote one, and your throws on their own reconstruct nothing without the randomness the device mixed in. What still matters as much as ever: wipe the device and restore it from the words you wrote down, so you find out today rather than in five years whether your backup actually works.',
-  },
-};
 
-const enrichWalkSteps = walkSteps.map((s) => ENRICH_OVERRIDES[s.t] || s);
 
 /**
  * The right walkthrough for a method — three of them, not one.
