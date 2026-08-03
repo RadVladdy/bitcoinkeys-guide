@@ -336,8 +336,12 @@ const egFaces = (str) => str.split('').map((d) => FACE[d]);
     /* THE SAME TWO GREYS THE BIP-39 SHEET USES, so the two artifacts read as one
        set rather than two documents that happen to be stapled together. Pale
        enough to write over in pencil or biro without fighting the ink. */
+    /* MIDDLE, ON EVERY CELL. The site's global table rule is `vertical-align:
+       top`, which is why the row number needed an explicit override and why the
+       last row's note sat against the ceiling of its own field. Set it once here
+       and any text this sheet ever holds is centred in the box that holds it. */
     .dw td { border: .5pt solid #c9c9c9; border-radius: 2.5pt; height: 21pt; padding: 0 .2rem;
-      background: #f7f7f7; }
+      background: #f7f7f7; vertical-align: middle; }
     /* THE ROW NUMBER IS A LABEL, NOT A BOX. No fill, no border, centred against
        the row it names rather than sitting on its baseline, and big enough to
        find with a die in the other hand — it is what you check when you lose
@@ -420,8 +424,13 @@ const egFaces = (str) => str.split('').map((d) => FACE[d]);
        row 11 to mark where a 12-word seed stopped, on a sheet that also had to
        serve 24-word readers. There are two sheets now and neither needs a line
        through it — each has exactly its own rows. */
-    .dw-last td { background: #e8e8e8; border-color: #666; }
-    .dw-note { font-size: 7.5pt; color: #333; text-align: center; }
+    .dw-last td { background: #ebebeb; border-color: #9a9a9a; }
+    /* THE ONE ROW THAT IS NOT YOURS TO FILL IN, and it should read that way:
+       centred in its field, letter-spaced enough to look placed rather than
+       dropped in, and in the same grey italic as the example word — the sheet's
+       one visual idea for "this is here to be read, not written on". */
+    .dw-note { font-size: 8pt; color: #4a4a4a; text-align: center; font-style: italic;
+      letter-spacing: .02em; line-height: 1.2; }
     .dw-foot { font-size: 8pt; margin-top: .55rem; line-height: 1.45; padding-top: .35rem;
       border-top: .6pt solid #bbb; }
     .dwt-title { font-size: 13pt; margin: 0 0 .35rem; color: #000; }
