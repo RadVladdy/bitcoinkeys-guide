@@ -118,3 +118,59 @@ export const seedCosts = [12, 24].map((words) => {
     flips: chosen,
   };
 });
+
+// ── V2 LAYOUT — an experiment, and a second SHAPE of the same data ──────────
+//
+// The shipped table repeats the full lookup key on every line: `23142H globe`.
+// Three of those five digits are the block prefix, already printed as the
+// heading directly above — so 2,048 rows each carry three redundant characters.
+//
+// V2 nests one level higher. The outer box is the first TWO throws; inside it,
+// the four three-digit prefixes sit side by side as sub-columns, and each entry
+// prints only what is left: the last two throws, the coin, and the word.
+//
+//   box "23"  →  231  232  233  234        entry: `42H globe`
+//
+// SAME ROWS, SAME ORDER, DIFFERENT NESTING. This does not regenerate anything:
+// it re-groups `rows`, which is already asserted bijective onto the wordlist, so
+// v2 cannot contain a word the shipped table does not.
+export const V2_BOX_THROWS = 2;
+
+export const v2Boxes = (() => {
+  const boxes = new Map();
+  for (const r of rows) {
+    const boxKey = r.dice.slice(0, V2_BOX_THROWS);
+    const colKey = r.dice.slice(0, PREFIX_THROWS);
+    if (!boxes.has(boxKey)) boxes.set(boxKey, new Map());
+    const cols = boxes.get(boxKey);
+    if (!cols.has(colKey)) cols.set(colKey, []);
+    // `rest` is the whole lookup key minus what the headings already say.
+    cols.get(colKey).push({ rest: r.dice.slice(PREFIX_THROWS) + r.coin, word: r.word });
+  }
+  return [...boxes.entries()].map(([box, cols]) => ({
+    box,
+    cols: [...cols.entries()].map(([prefix, items]) => ({ prefix, items })),
+  }));
+})();
+
+// The same shape of assert the shipped table gets. A re-grouping that silently
+// dropped or duplicated an entry would still render as a plausible table, and
+// on this artifact a wrong row is a word the reader cannot recover from.
+if (v2Boxes.length !== DIE_FACES ** V2_BOX_THROWS) {
+  throw new Error(`dice-table v2: ${v2Boxes.length} boxes for a ${V2_BOX_THROWS}-throw key`);
+}
+{
+  const seen = new Set();
+  for (const b of v2Boxes) {
+    for (const c of b.cols) {
+      for (const it of c.items) seen.add(c.prefix + it.rest);
+    }
+  }
+  if (seen.size !== rows.length) {
+    throw new Error(`dice-table v2: regrouping covers ${seen.size} of ${rows.length} entries`);
+  }
+}
+
+export const v2BoxCount = v2Boxes.length;
+export const v2ColsPerBox = v2Boxes[0].cols.length;
+export const v2ItemsPerCol = v2Boxes[0].cols[0].items.length;

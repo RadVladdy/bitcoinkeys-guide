@@ -1,0 +1,140 @@
+---
+// V2 OF THE BIP-39 WORD TABLE — an experiment, and TABLE ONLY.
+//
+// No method sheet, no worksheet, no instructions: this page is the reference
+// pages and nothing else, so the layout can be judged on its own. The shipped
+// artifact at /dice-word-table keeps all three parts.
+//
+// WHAT IS DIFFERENT. The shipped table blocks on the first THREE throws and
+// prints the whole key on every line — `23142H globe` — so three of those five
+// characters repeat the heading directly above them, 2,048 times.
+//
+// V2 nests one level higher:
+//   · the outer BOX is the first two throws          ("23")
+//   · inside it, the four three-digit prefixes sit side by side  (231 232 233 234)
+//   · each entry prints only what is left            ("42H globe")
+//
+// Finding a word becomes: find the two-digit box, then the three-digit column,
+// then the last two throws and the flip — which is the order the dice actually
+// come out in, one lookup step per pair of throws rather than one big key.
+//
+// MEASURED, not guessed: 4 printed pages at 6.6pt — the same page count AND the
+// same type size as the shipped table, with the repetition gone. 7pt costs a
+// fifth page, so 6.6pt is the ceiling here exactly as it is there. Boxes fall
+// 4/5/5/2 across the pages; `break-inside: avoid` keeps every box whole, which
+// is the property worth paying for in a lookup table.
+//
+// NOINDEX: this is a second copy of the same 2,048 rows. It should not compete
+// with the real artifact in search, and it is not linked from the nav.
+//
+// SAME DATA, RE-GROUPED, NEVER REGENERATED. v2Boxes is built from `rows`, which
+// is already asserted bijective onto the wordlist, and the regrouping asserts it
+// still covers every entry exactly once. This page cannot hold a word the
+// shipped table does not.
+import Base from '../layouts/Base.astro';
+import {
+  v2Boxes, v2BoxCount, v2ColsPerBox, v2ItemsPerCol,
+  tableRowCount, DICE_PER_WORD, PREFIX_THROWS, V2_BOX_THROWS,
+} from '../data/dice-table.js';
+import { diceVerified } from '../data/dice.js';
+---
+<Base
+  title="BIP-39 word table v2 (layout experiment) · BitcoinKeys.guide"
+  description="A second layout for the dice-to-word table: nested by the first two throws, with each entry printing only what the headings do not already say."
+  verified={diceVerified}
+  noindex
+>
+  <section class="prose v2-intro">
+    <p class="eyebrow">Layout experiment · not the shipped artifact</p>
+    <h1>BIP-39 word table <span class="accent">v2</span></h1>
+    <p class="lead">
+      The same {tableRowCount.toLocaleString()} words as <a href="/dice-word-table">the shipped table</a>,
+      grouped differently. Boxed by your first {V2_BOX_THROWS} throws; inside each box, the four
+      {' '}{PREFIX_THROWS}-throw columns; and each line prints only the last
+      {' '}{DICE_PER_WORD - PREFIX_THROWS} throws and the flip, because the headings above it already say
+      the rest.
+    </p>
+    <p class="lead v2-sub">
+      {v2BoxCount} boxes · {v2ColsPerBox} columns each · {v2ItemsPerCol} lines per column.
+      <strong> Nothing here is an instruction</strong> — the method and the worksheet stay on
+      {' '}<a href="/dice-word-table">the shipped artifact</a>.
+    </p>
+    <p class="v2-print"><button type="button" id="v2-print" class="btn">Print this table</button></p>
+  </section>
+
+  {v2Boxes.map((b) => (
+    <section class="v2-box">
+      <h2 class="v2-box-h">{b.box}</h2>
+      <div class="v2-cols">
+        {b.cols.map((c) => (
+          <div class="v2-col">
+            <h3 class="v2-col-h">{c.prefix}</h3>
+            <ul class="v2-rows">
+              {c.items.map((it) => (
+                <li><span class="v2-k mono">{it.rest}</span>{it.word}</li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </div>
+    </section>
+  ))}
+</Base>
+
+<script>
+  const b = document.getElementById('v2-print');
+  if (b) b.addEventListener('click', () => window.print());
+</script>
+
+<style is:global>
+  .v2-sub { font-size: 0.92rem; color: var(--muted); }
+  .v2-print { margin: 1.2rem 0 2rem; }
+
+  /* SCREEN. Readable rather than dense — the print rules below are where the
+     layout is actually being judged. */
+  .v2-box { border: 1px solid var(--line); border-radius: var(--radius); padding: 0.9rem 1rem;
+    margin: 0 0 0.9rem; background: var(--surface); break-inside: avoid; }
+  .v2-box-h { font-size: 1.1rem; margin: 0 0 0.5rem; color: var(--accent); font-family: var(--mono); }
+  .v2-cols { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
+  .v2-col-h { font-size: 0.85rem; margin: 0 0 0.2rem; font-family: var(--mono); color: var(--text); }
+  .v2-rows { list-style: none; margin: 0; padding: 0; columns: 2; column-gap: 0.7rem;
+    font-size: 0.78rem; line-height: 1.35; }
+  .v2-rows li { color: var(--muted); }
+  .v2-k { color: var(--faint); margin-right: 0.3rem; }
+
+  @media (min-width: 900px) {
+    .v2-cols { grid-template-columns: repeat(4, 1fr); }
+  }
+
+  @media print {
+    /* Screen furniture off, exactly as the shipped table does it. */
+    .v2-intro { display: none; }
+    /* NO :global() WRAPPER HERE. This block is already `is:global`, and Astro
+       leaves `:global(...)` in the output as a selector no browser matches — so
+       the nav, the footer and the dated advisory banner all printed, ate the top
+       of page one, and cost a whole extra sheet. The shipped table needs the
+       wrapper because its block is scoped; this one must not have it. */
+    .adv-banner, header.nav, footer.foot { display: none !important; }
+
+    /* THE BOX IS THE UNIT AND MUST NOT SPLIT. A two-digit box broken across a
+       page break is the case that makes a lookup table hard to use — you find
+       the box, then discover half its columns are overleaf. Each box is 16
+       lines tall, comfortably under a page, so keeping it whole is both
+       possible and cheap. */
+    .v2-box { break-inside: avoid; border: .6pt solid #999; border-radius: 2pt;
+      padding: .18rem .3rem .22rem; margin: 0 0 .28rem; background: none; }
+    .v2-box-h { font-size: 9pt; margin: 0 0 .1rem; color: #000; font-weight: 700;
+      letter-spacing: .06em; }
+    /* The four three-throw columns, side by side inside the box. */
+    .v2-cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: .3rem; }
+    .v2-col-h { font-size: 6.6pt; margin: 0 0 .04rem; color: #000; font-weight: 700;
+      border-bottom: .4pt solid #ccc; }
+    /* Each column's 32 entries split into two, so the box is 8 columns across
+       and 16 lines deep rather than 4 across and 32 deep — which is what makes
+       a box fit beside its neighbours instead of running down the page. */
+    .v2-rows { columns: 2; column-gap: .3rem; font-size: 6.6pt; line-height: 1.05; }
+    .v2-rows li { color: #000; }
+    .v2-k { color: #444; margin-right: .2rem; }
+    @page { margin: 12mm 10mm; }
+  }
+</style>
