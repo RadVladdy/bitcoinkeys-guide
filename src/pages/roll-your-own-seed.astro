@@ -61,22 +61,16 @@ const shortCost = seedCosts.find((c) => c.words === 12);
         derive from seedLengths. */}
     <div class="callout" role="note">
       <span class="label">First, pick a length — {shortLen.words} words or {longLen.words}</span>
-      <p>
-        Those are the two you will actually be offered, and every wallet worth owning takes both. The
-        difference is how much randomness sits behind them: <strong>{shortLen.words} words carry
-        {' '}{shortLen.target} bits and {longLen.words} words carry {longLen.target}</strong> — and both are
-        so far past anything that could be guessed that neither is the weak point in your setup. What really
-        differs is the work: {longLen.words} words is more to roll, more to write down, more to check, and
-        more to copy onto metal later.
-      </p>
       <p style="margin-bottom:0">
-        <strong>We suggest {longLen.words} if you are doing this by hand anyway.</strong> The extra effort is
-        one more page of rolling, once, ever — and the margin is free after that. But
-        {' '}{shortLen.words} is a real answer, not a compromise, and it is the easier one to get right.
-        <strong> Decide before you throw anything</strong>, because it sets how many words you roll and which
-        screen you pick on the device; changing your mind halfway means starting again. <em>(The standard
-        does allow a few in-between lengths — you may see a {shortLen.words} / 18 / {longLen.words} menu on a
-        Coldcard — but almost nothing uses them, and our worksheet is built for these two.)</em>
+        Those are the two you will actually be offered, and every wallet worth owning takes both.
+        {shortLen.words} words carry {shortLen.target} bits of randomness and {longLen.words} carry
+        {longLen.target} — both so far past anything that could be guessed that neither is the weak point in
+        your setup, so what really differs is how much work it is. <strong>Decide before you print
+        anything</strong>: there is a worksheet for each length and you want only yours. Each procedure below
+        opens by helping you choose, with the throw counts that method actually costs.
+        <em>(The standard allows a few in-between lengths — you may see a {shortLen.words} / 18 /
+        {longLen.words} menu on a Coldcard — but almost nothing uses them, and our worksheets are built for
+        these two.)</em>
       </p>
     </div>
 

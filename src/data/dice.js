@@ -25,7 +25,7 @@ import { numberWord } from './numbers.js';
 // is actually holding. dice-table.js imports nothing from here, so there is no
 // cycle — and these must never be re-typed: the 3 + 2 grouping on the printed
 // worksheet comes from the same two constants.
-import { DICE_PER_WORD, PREFIX_THROWS } from './dice-table.js';
+import { DICE_PER_WORD, PREFIX_THROWS, seedCosts } from './dice-table.js';
 
 /** ISO date every vendor page and purchase link below was last loaded and re-read. */
 export const diceVerified = '2026-08-01';
@@ -456,7 +456,21 @@ export const walkSteps = [
 const shape24 = mnemonicShape(24);
 const shape12 = mnemonicShape(12);
 
+const COST12 = seedCosts.find((c) => c.words === 12);
+const COST24 = seedCosts.find((c) => c.words === 24);
+
 export const tableWalkSteps = [
+  {
+    // FIRST, because step two prints a worksheet and there is one per length —
+    // a reader who has not chosen yet cannot do step two. It used to sit at
+    // position four, after the printing, and spent its length explaining the
+    // checksum and which word you do not roll. That is true, and it is not what
+    // this step is for: the reader here is deciding between two lengths, and the
+    // checksum is already covered on the method sheet, on the worksheet's last
+    // row, and in the step that finally involves the device.
+    t: 'Decide 12 words or 24 — before you print anything',
+    d: `Both are standard and every wallet worth owning takes either. This is not really a security decision: ${COST24.words} words carries more randomness than ${COST12.words}, and both are already so far past anything that could be guessed that neither is the weak point in your setup. It is a decision about WORK, and by hand the difference is large. ${COST24.words} words means ${COST24.chosen} lookups and roughly ${COST24.throws} throws; ${COST12.words} means ${COST12.chosen} lookups and about ${COST12.throws}. That is an evening against an hour — and every lookup is another chance to write a word on the wrong line, which is the way this procedure actually goes wrong. Our suggestion: if this is a stack you mean to leave alone for years and you are doing it by hand anyway, take ${COST24.words}; the extra margin costs one more page of rolling, once, ever. If it is your first time, or the amount is modest, ${COST12.words} done carefully beats ${COST24.words} done tired. Whichever you pick, print that worksheet and only that one.`,
+  },
   {
     t: 'Print the BIP-39 word table, a worksheet, and read the method sheet first',
     d: 'Three separate things, and it matters which is which: the BIP-39 WORD TABLE is the reference you look words up in and it is public; the WORKSHEET is where you write, and it becomes your seed; the METHOD SHEET is the one-page instructions. There is a worksheet for each seed length — print only the one you are doing. Read the method before you throw anything — it is the part that says which throws map to which column, and that 5s and 6s are rerolled, which is why no entry on the table contains one. The table holds no secret and is safe to print, photograph or leave lying about: it is the standard word list in a fixed order, and anyone can regenerate it.',
@@ -468,10 +482,6 @@ export const tableWalkSteps = [
   {
     t: 'Clear the room',
     d: 'Phones out of the room. Laptop lids shut. Nothing recording, nothing on a call, nobody behind you. Get the die, the coin, the table, the pen and the paper out before you start so you are not walking around mid-sequence.',
-  },
-  {
-    t: `Know how many words you are choosing — and it is not all of them`,
-    d: `You pick ${shape24.youPick} words for a 24-word seed, or ${shape12.youPick} for a 12-word one. You do not roll the last word. It carries the ${shape24.checksum}-bit checksum for a 24-word seed (${shape12.checksum} bits for a 12-word one), which is arithmetic over everything that came before it — there is no table entry for it and no way to reach it with a die. There is nothing to write down or keep track of here: the worksheet is numbered, a rule across the sheet marks where a 12-word seed stops, the last row says in as many words that you do not roll it, and the line under the table spells out both lengths. Read that line once before you start and the counting is done for you.`,
   },
   {
     t: 'Fill in one row at a time — throws, flip, then the word',
