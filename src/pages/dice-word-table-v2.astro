@@ -107,7 +107,11 @@ import { diceVerified } from '../data/dice.js';
   }
 
   @media print {
-    /* Screen furniture off, exactly as the shipped table does it. */
+    /* WHITE PAPER. The site's cream sits behind everything on screen, and on a
+       print-out it is a full-bleed tint on every sheet — ink spent on nothing,
+       and it greys down 6.6pt text that needs all the contrast it can get. */
+    :root, body, main { background: #fff !important; }
+
     .v2-intro { display: none; }
     /* NO :global() WRAPPER HERE. This block is already `is:global`, and Astro
        leaves `:global(...)` in the output as a selector no browser matches — so
@@ -116,25 +120,37 @@ import { diceVerified } from '../data/dice.js';
        wrapper because its block is scoped; this one must not have it. */
     .adv-banner, header.nav, footer.foot { display: none !important; }
 
-    /* THE BOX IS THE UNIT AND MUST NOT SPLIT. A two-digit box broken across a
-       page break is the case that makes a lookup table hard to use — you find
-       the box, then discover half its columns are overleaf. Each box is 16
-       lines tall, comfortably under a page, so keeping it whole is both
-       possible and cheap. */
-    .v2-box { break-inside: avoid; border: .6pt solid #999; border-radius: 2pt;
-      padding: .18rem .3rem .22rem; margin: 0 0 .28rem; background: none; }
-    .v2-box-h { font-size: 9pt; margin: 0 0 .1rem; color: #000; font-weight: 700;
-      letter-spacing: .06em; }
-    /* The four three-throw columns, side by side inside the box. */
-    .v2-cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: .3rem; }
-    .v2-col-h { font-size: 6.6pt; margin: 0 0 .04rem; color: #000; font-weight: 700;
-      border-bottom: .4pt solid #ccc; }
-    /* Each column's 32 entries split into two, so the box is 8 columns across
-       and 16 lines deep rather than 4 across and 32 deep — which is what makes
-       a box fit beside its neighbours instead of running down the page. */
-    .v2-rows { columns: 2; column-gap: .3rem; font-size: 6.6pt; line-height: 1.05; }
+    /* THREE TONES, LIGHTEST TO DARKEST, OUTSIDE IN: white page → light box →
+       slightly darker card. The nesting is the whole point of this layout, so
+       it should be visible without reading a single character.
+       BOTH TINTS ARE DELIBERATELY PALE. At 6.6pt the text needs the contrast
+       more than the panels need the presence, and a heavy fill behind 2,048
+       small words prints muddy on anything but a good laser. */
+    .v2-box { break-inside: avoid; background: #f7f7f7; border: .5pt solid #dcdcdc;
+      border-radius: 3.5pt; padding: .34rem .38rem .4rem; margin: 0 0 .42rem; }
+    /* The two-throw number, top left, sized to be found from across a desk —
+       this is the thing you scan for first. */
+    .v2-box-h { font-size: 11pt; margin: 0 0 .22rem; color: #000; font-weight: 700;
+      letter-spacing: .04em; line-height: 1; }
+
+    .v2-cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: .34rem; }
+
+    /* EACH THREE-THROW GROUP IS ITS OWN CARD, not just a heading over a list.
+       Four cards side by side inside the box: you land on the box, then on one
+       card, and the card boundary is what stops the eye sliding into the
+       neighbouring column mid-lookup. */
+    .v2-col { background: #e6e6e6; border: .5pt solid #c9c9c9; border-radius: 3pt;
+      padding: .22rem .26rem .24rem; break-inside: avoid; }
+    .v2-col-h { font-size: 7.4pt; margin: 0 0 .14rem; color: #000; font-weight: 700;
+      letter-spacing: .03em; text-align: center; border-bottom: .5pt solid #b8b8b8;
+      padding-bottom: .08rem; }
+
+    .v2-rows { columns: 2; column-gap: .3rem; font-size: 6.8pt; line-height: 1.18; }
     .v2-rows li { color: #000; }
-    .v2-k { color: #444; margin-right: .2rem; }
-    @page { margin: 12mm 10mm; }
+    /* The key stays grey so the WORD is what the eye lands on — the key is what
+       you match, the word is what you write down. */
+    .v2-k { color: #555; margin-right: .18rem; }
+
+    @page { margin: 11mm 9mm; }
   }
 </style>
