@@ -22,5 +22,15 @@
 #
 # These are printed and followed while handling seed words. A reader working
 # from a superseded procedure is the failure worth spending a round trip on.
-/*.pdf
+# LISTED ONE BY ONE, not as /*.pdf — Cloudflare Pages did not match the suffix
+# glob and silently kept serving the four-hour header, which is the same class
+# of failure as the thing it is fixing: a rule that looks applied and is not.
+# Verified against the live response, not against this file.
+/dice-word-table.pdf
+  Cache-Control: public, max-age=0, must-revalidate
+/bip39-word-table.pdf
+  Cache-Control: public, max-age=0, must-revalidate
+/roll-12-word-seed.pdf
+  Cache-Control: public, max-age=0, must-revalidate
+/roll-24-word-seed.pdf
   Cache-Control: public, max-age=0, must-revalidate
