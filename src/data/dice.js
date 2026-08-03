@@ -21,6 +21,11 @@
 // hunting through a menu that no longer exists while holding their life savings.
 
 import { numberWord } from './numbers.js';
+// The worksheet's own shape, so option 1's steps describe the sheet the reader
+// is actually holding. dice-table.js imports nothing from here, so there is no
+// cycle — and these must never be re-typed: the 3 + 2 grouping on the printed
+// worksheet comes from the same two constants.
+import { DICE_PER_WORD, PREFIX_THROWS } from './dice-table.js';
 
 /** ISO date every vendor page and purchase link below was last loaded and re-read. */
 export const diceVerified = '2026-08-01';
@@ -425,8 +430,140 @@ export const walkSteps = [
   },
 ];
 
+// ── OPTION 1 HAS ITS OWN PROCEDURE, AND IT IS NOT THIS ONE ──────────────────
+// The steps above are the DEVICE-ENTRY walkthrough: find the dice screen, press
+// each roll in, read the words off the screen. That is `family: 'hashed'` —
+// options 2 and 3.
+//
+// Option 1 is the opposite shape and was being given those steps anyway. Under
+// "you pick every word", the page told the reader to find the dice screen on
+// their device and enter throws into it, four lines below its own sentence
+// saying the device never generates anything and their randomness never touches
+// a machine. Both halves on one screen, contradicting each other, on a
+// safety-critical procedure — and it also broke a promise made on
+// /dice-word-table, which tells the reader they do not roll the last word and
+// that "the procedure on the site explains how, for each device."
+//
+// THE SHAPE OF OPTION 1, which every `family: 'final-word'` device entry below
+// already encodes: you roll and read words off OUR printed table, by hand, on
+// paper. The device is not involved until every word but the last is chosen,
+// and its only job is the final word — the one carrying the checksum, which
+// cannot be rolled and cannot be worked out by hand.
+//
+// EVERY NUMBER HERE DERIVES from mnemonicShape() and seedCosts. `youPick`,
+// `finalWordOptions` and the throw counts all move on their own if the table's
+// arithmetic ever changes, which is the whole reason those helpers exist.
+const shape24 = mnemonicShape(24);
+const shape12 = mnemonicShape(12);
+
+export const tableWalkSteps = [
+  {
+    t: 'Print the table and read its method sheet first',
+    d: 'The dice → word table and the one-page method that comes with it. Read the method before you throw anything — it is the part that says which throws map to which column, and that 5s and 6s are rerolled, which is why no entry on the table contains one. The table holds no secret and is safe to print, photograph or leave lying about: it is the standard word list in a fixed order, and anyone can regenerate it.',
+  },
+  {
+    t: 'Update the firmware, then wipe the device',
+    d: 'Even though the device plays almost no part here, it still holds the finished seed at the end. Do this first, on a device with no coins on it. If it already holds a wallet you care about, stop and deal with that separately — this procedure starts from empty.',
+  },
+  {
+    t: 'Clear the room',
+    d: 'Phones out of the room. Laptop lids shut. Nothing recording, nothing on a call, nobody behind you. Get the die, the coin, the table, the pen and the paper out before you start so you are not walking around mid-sequence.',
+  },
+  {
+    t: `Know how many words you are choosing — and it is not all of them`,
+    d: `You pick ${shape24.youPick} words for a 24-word seed, or ${shape12.youPick} for a 12-word one. You do not roll the last word. It carries the ${shape24.checksum}-bit checksum for a 24-word seed (${shape12.checksum} bits for a 12-word one), which is arithmetic over everything that came before it — there is no table entry for it and no way to reach it with a die. Write the target at the top of your sheet so "how many was I aiming for" is never a question you answer from memory.`,
+  },
+  {
+    t: 'Fill in one row at a time — throws, flip, then the word',
+    d: `The worksheet has a row per word: ${PREFIX_THROWS} boxes for the throws that find your block, ${DICE_PER_WORD - PREFIX_THROWS} for the ones that find the line inside it, one for the coin, and the word itself at the end. Complete a row before you throw for the next one. Rerolled 5s and 6s are the exception and do not go in a box — they do not count and are not recorded, which is why no entry in the table contains one. Do not roll several words ahead: the row bands every five rows are there because the mistake this sheet exists to prevent is a word written on the wrong line.`,
+  },
+  {
+    t: 'The sheet is your seed from the first mark you make on it',
+    d: 'Writing the throws down is the procedure working as intended — that is what the worksheet is for — but it means the paper in front of you is now key material, exactly as if the words were already on it. Never photograph it, never type it up, never leave it out, and keep it in the room until you are finished. The table itself is public and harmless; this sheet is not.',
+  },
+  {
+    t: 'Count your words before the device is switched on',
+    d: `You should have exactly ${shape24.youPick} words in order (or ${shape12.youPick}), each one legible and spelled the way the table spells it. Check the count and the spelling now. Half the BIP-39 list looks like the other half at a glance, and a word you cannot read later is a seed you cannot restore.`,
+  },
+  {
+    t: 'Now the device — and only for the last word',
+    d: `Use the device's IMPORT or RESTORE flow, not "create a new wallet". That reads oddly the first time and it is correct: you are not asking it to make a seed, you are handing it one and asking for the final word. Type your words in, and at the last position the device does the only thing it does in this procedure — it produces a valid final word. Some devices calculate one for you; some offer the valid options and let you choose. There are ${shape24.finalWordOptions} of them for a 24-word seed and ${shape12.finalWordOptions} for a 12-word one, because a few bits of your own randomness still live in that word alongside the checksum. Your exact menu path is below.`,
+  },
+  {
+    t: 'Write the final word in the last row, then wipe and restore',
+    d: 'The worksheet keeps a box for it on the row marked "not rolled" — it is as much a part of your seed as the ones you chose. Then wipe the device and restore it from the full written list, so you find out today rather than in five years whether you transcribed it correctly.',
+  },
+  {
+    t: 'Copy to metal, and check each word as you copy',
+    d: 'This is the permanent backup, and it has to exist before the paper one goes. Read each word off the sheet and check it again on the metal — this is the second of the two transcriptions in this procedure, and both of them are places a seed goes quietly wrong.',
+  },
+  {
+    t: 'Only now, destroy the worksheet',
+    d: 'Once the words are on their permanent backup and you have restored successfully from it, the sheet has done its job and is nothing but a liability. Burn or shred it; do not simply bin it. Destroying it any earlier means the only copy of your seed is a device you have not finished testing.',
+  },
+  {
+    t: 'Fund it — small first',
+    d: 'Send a small amount, confirm it arrives, then send a spend back out to prove you can move it. Only after that does the rest follow.',
+  },
+];
+
+// ── OPTION 3 IS NOT OPTION 2 EITHER, in two steps out of nine ───────────────
+// Both hand their throws to the device, so they share the walkthrough — but two
+// of those steps are built around a ROLL TARGET, and option 3 does not have one.
+// Its own panel says so in as many words: "as many throws as you feel like,
+// there is no minimum, and more is simply better." So the reader was told to
+// write a target at the top of the sheet and then to pass it, on a screen that
+// had just told them no target exists. Same shape as the option-1 bug, one
+// panel over.
+//
+// The target is real for option 2: the vendor states a minimum roll count and
+// the device enforces it. For option 3 the device has already generated a full
+// seed on its own — your throws are added on top, and any number of them is an
+// improvement rather than a threshold to clear.
+const ENRICH_OVERRIDES = {
+  'Decide the length, and write the target down': {
+    t: 'Decide the seed length — but there is no roll target here',
+    d: 'Pick 12 or 24 words as usual; longer is the easy answer since the effort is the same either way. What you do NOT need is a number of throws to reach. The device has already produced a full-strength seed on its own and yours is being added to it, so there is no minimum to clear and no tally to keep — every throw is an improvement on the one before and you stop whenever you like.',
+  },
+  'Pass the target, then keep going a little': {
+    t: 'Stop whenever you want to — there is nothing to overshoot',
+    d: 'Ten throws are better than none and a hundred are better than ten, but nothing bad happens at any particular number and nothing is waiting to be satisfied. If you lose count it does not matter, because the count was never load-bearing. This is the step that costs you the least in the whole procedure, and it is the reason this option is the one we suggest by default.',
+  },
+  // The tally steps go too, and for a reason worth stating rather than just
+  // deleting: on option 2 your throws ARE the seed, so a written list of them is
+  // key material. Here they are mixed into randomness the device generated
+  // itself, so your throws alone reconstruct nothing. That is the whole
+  // difference between the two options, and it is why one needs a tally
+  // destroyed and the other never makes one.
+  'Roll, enter, repeat — one at a time': {
+    t: 'Roll and enter, one at a time',
+    d: 'Throw the die, read it, enter it, throw again. The device keeps its own count on screen, so there is nothing for you to record and nothing to lose your place in. Do not throw a handful and read them off — enter each one as it lands, and stop when you have had enough.',
+  },
+  'Destroy the tally, then wipe and restore': {
+    t: 'Wipe and restore before anything goes in',
+    d: 'There is no tally to destroy here — you never wrote one, and your throws on their own reconstruct nothing without the randomness the device mixed in. What still matters as much as ever: wipe the device and restore it from the words you wrote down, so you find out today rather than in five years whether your backup actually works.',
+  },
+};
+
+const enrichWalkSteps = walkSteps.map((s) => ENRICH_OVERRIDES[s.t] || s);
+
+/**
+ * The right walkthrough for a method — three of them, not one.
+ *   sovereign  → the table procedure; the device only computes the last word
+ *   dice-only  → device entry, with a roll target the vendor sets
+ *   enrich     → device entry, with no target at all
+ * The page must never render one under another. That is the bug this function
+ * exists to make unreachable rather than merely unlikely.
+ */
+export const walkStepsFor = (methodKey) => {
+  if (methodKey === 'sovereign') return tableWalkSteps;
+  if (methodKey === 'enrich') return enrichWalkSteps;
+  return walkSteps;
+};
+
 /** Derived counts for copy that states how many of these there are. */
 export const walkStepCount = walkSteps.length;
+export const tableWalkStepCount = tableWalkSteps.length;
 export const kitCount = kit.length;
 export const failureModeCount = failureModes.length;
 export const diceDeviceCount = deviceProcedures.length;

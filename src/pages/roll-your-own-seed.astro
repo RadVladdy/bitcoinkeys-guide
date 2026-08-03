@@ -16,8 +16,8 @@
 import Base from '../layouts/Base.astro';
 import RuleRef from '../components/RuleRef.astro';
 import {
-  diceVerified, methods, deviceProcedures, walkSteps,
-  ratedDevicesForMethod, DICE_METHOD_KEYS,
+  diceVerified, methods, deviceProcedures, walkStepsFor,
+  ratedDevicesForMethod, DICE_METHOD_KEYS, seedLengths,
 } from '../data/dice.js';
 import { seedCosts, tableRowCount, DICE_PER_WORD } from '../data/dice-table.js';
 
@@ -26,6 +26,11 @@ const tabs = methods.filter((m) => DICE_METHOD_KEYS.includes(m.key));
 const procsFor = (key) => deviceProcedures.filter((p) => (p.options || []).includes(key));
 const trim = (n) => n.replace(' (BTC-only)', '').replace('Blockstream ', '').replace('Foundation ', '');
 const devicesFor = (key) => ratedDevicesForMethod(key).map((d) => trim(d.name));
+// The device-entry roll counts are the VENDOR minimums from seedLengths, never
+// typed — the page said "ninety-nine throws" in words, which is a count with a
+// data file behind it and no link to it.
+const long24 = seedLengths.find((s) => s.words === 24);
+const short12 = seedLengths.find((s) => s.words === 12);
 const longCost = seedCosts.find((c) => c.words === 24);
 const shortCost = seedCosts.find((c) => c.words === 12);
 ---
@@ -48,7 +53,9 @@ const shortCost = seedCosts.find((c) => c.words === 12);
         There is no box to type your throws into, and there is not going to be one. <strong>The list of numbers
         you roll IS your seed</strong>, written in a different alphabet — anyone who has it has your coins.
         <RuleRef key="never-digital" /> says key material never touches anything digital, and we are not making
-        an exception for our own page. Every real digit goes into your hardware wallet and nowhere else.
+        an exception for our own page. Your throws belong on <strong>paper</strong> — our printable worksheet is
+        made for exactly that, and it becomes part of your seed the moment you mark it — or straight into your
+        <strong>hardware wallet</strong>. Never onto a screen, and never into this one.
       </p>
     </div>
   </section>
@@ -97,7 +104,7 @@ const shortCost = seedCosts.find((c) => c.words === 12);
             {m.key === 'sovereign'
               ? `About ${longCost.throws} throws and ${longCost.flips} coin flips for 24 words (${shortCost.throws} and ${shortCost.flips} for 12), each read off a printed table by hand. Set aside an evening.`
               : m.key === 'dice-only'
-                ? 'Ninety-nine throws for 24 words, entered straight into the device. No table, no transcription.'
+                ? `${long24.minRollsD6} throws for 24 words (${short12.minRollsD6} for 12), entered straight into the device. No table, no transcription.`
                 : 'As many throws as you feel like. There is no minimum, and more is simply better.'}
           </p>
 
@@ -115,8 +122,14 @@ const shortCost = seedCosts.find((c) => c.words === 12);
           )}
 
           <h3>The steps</h3>
+          {/* PER METHOD, never shared. Option 1 hands the device finished words
+              and asks for the last one; options 2 and 3 hand it throws. Rendering
+              one procedure under the other told option-1 readers to enter their
+              rolls into the device four lines under the sentence saying their
+              randomness never touches a machine. walkStepsFor() is what makes
+              that combination unreachable. */}
           <ol class="wsteps">
-            {walkSteps.map((s) => (<li><strong>{s.t}.</strong> {s.d}</li>))}
+            {walkStepsFor(m.key).map((s) => (<li><strong>{s.t}.</strong> {s.d}</li>))}
           </ol>
 
           <h3>On your device</h3>
