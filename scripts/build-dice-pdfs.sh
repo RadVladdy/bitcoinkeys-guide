@@ -12,9 +12,9 @@
 # their own half out of a sentence while holding key material, and it meant both
 # "per-length" documents shared a page that talked about the other one.
 #
-# WHY ASSEMBLY AND NOT THREE LAYOUTS. Every page here is a photograph of one of
-# two real pages — /dice-word-table for the method sheet and worksheets, and
-# /dice-word-table-v2 for the table. Building the per-length documents from
+# WHY ASSEMBLY AND NOT THREE LAYOUTS. Every page here is a photograph of ONE real
+# page — /dice-word-table, which carries the method sheets, the worksheets and the
+# table. Building the per-length documents from
 # their own templates would give this guide two renderings of one procedure,
 # which is the exact failure the original single-PDF script was written to
 # prevent for the table, applied to the instructions instead. A method sheet
@@ -36,9 +36,7 @@ PORT="${PORT:-4388}"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"; [ -n "${SRV:-}" ] && kill "$SRV" 2>/dev/null || true' EXIT
 
-for f in dist/dice-word-table/index.html dist/dice-word-table-v2/index.html; do
-  [ -f "$f" ] || { echo "!! $f not built — run npm run build first"; exit 1; }
-done
+[ -f dist/dice-word-table/index.html ] || { echo "!! dist/dice-word-table/index.html not built — run npm run build first"; exit 1; }
 
 npx astro preview --port "$PORT" >"$TMP/serve.log" 2>&1 &
 SRV=$!
@@ -50,8 +48,12 @@ render() {
     --print-to-pdf="$2" "http://localhost:$PORT/$1/" >/dev/null 2>&1
   [ -s "$2" ] || { echo "!! chrome produced no PDF for /$1/"; exit 1; }
 }
-render dice-word-table    "$TMP/src.pdf"
-render dice-word-table-v2 "$TMP/table.pdf"
+# ONE RENDER, not two. The table used to come from a second page
+# (/dice-word-table-v2) while /dice-word-table still printed the older grouping,
+# so the page a reader read and the PDF they printed from it were two different
+# layouts of the same 2,048 rows. The nested layout is now on the one page, and
+# the table pages below are sliced out of that same render.
+render dice-word-table "$TMP/src.pdf"
 
 node -e "import('./src/data/dice-table.js').then(m=>{require('fs').writeFileSync('$TMP/words.txt',m.rows.map(r=>r.word).join('\n'))})"
 
@@ -61,8 +63,7 @@ node -e "import('./src/data/dice-table.js').then(m=>{require('fs').writeFileSync
 import sys, os, fitz
 
 tmp = sys.argv[1]
-src   = fitz.open(os.path.join(tmp, 'src.pdf'))     # m12 · ws12 · m24 · ws24 · table v1 ×4
-table = fitz.open(os.path.join(tmp, 'table.pdf'))   # the v2 table, alone
+src = fitz.open(os.path.join(tmp, 'src.pdf'))      # m12 · ws12 · m24 · ws24 · table ×4
 expected = [w.strip() for w in open(os.path.join(tmp, 'words.txt')) if w.strip()]
 
 # The source page's own shape is an assumption, so it is asserted rather than
@@ -81,13 +82,17 @@ sheet_is(src, 0, 'Rolling a 12-word seed',   '12-word method sheet')
 sheet_is(src, 1, 'Worksheet — 12-word seed', '12-word worksheet')
 sheet_is(src, 2, 'Rolling a 24-word seed',   '24-word method sheet')
 sheet_is(src, 3, 'Worksheet — 24-word seed', '24-word worksheet')
+sheet_is(src, 4, 'BIP-39 word table',        'first table page')
+
+TABLE_PAGES = list(range(4, src.page_count))
 
 def build(out, sheets, with_table, label):
     doc = fitz.open()
     for i in sheets:
         doc.insert_pdf(src, from_page=i, to_page=i)
     if with_table:
-        doc.insert_pdf(table)
+        for i in TABLE_PAGES:
+            doc.insert_pdf(src, from_page=i, to_page=i)
     text = "\n".join(p.get_text() for p in doc)
     if with_table:
         missing = [w for w in expected if w not in text]

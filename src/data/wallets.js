@@ -544,6 +544,61 @@ export function keysForSetup({ rungSlug, label = '', tier = '' } = {}) {
   }
 }
 
+/**
+ * How many of the plan's keys it takes to SPEND. Lives beside keysForSetup()
+ * because the two answer one question between them and had better not be typed
+ * apart: keysForSetup says how many keys you hold, this says how many of them a
+ * problem has to reach before your coins move.
+ *
+ * Collaborative returns 2 on 2 held keys, and that is not a rounding error — the
+ * wallet is a 2-of-3 and you hold two of it, so BOTH of yours together are a
+ * quorum on their own and the service's key never comes into it.
+ */
+export function spendQuorum(plan = {}) {
+  const keys = keysForSetup(plan);
+  if (keys <= 1) return keys;          // single-sig / passphrase: no quorum question
+  if (keys === 5) return 3;            // legacy 3-of-5 saved plans
+  return 2;                            // every rung the finder recommends is a 2-of-3
+}
+
+/** The MAKER behind an owned or planned slug, or null when we cannot tell. */
+export function makerOf(slug) {
+  // Free text ("x:<name>") is deliberately NULL rather than its own bucket. Two
+  // devices we cannot identify are not thereby the same brand, and grouping them
+  // would manufacture a warning out of an unknown.
+  if (typeof slug !== 'string' || slug.startsWith('x:')) return null;
+  return (ownableBySlug[slug] && ownableBySlug[slug].brand) || null;
+}
+
+/**
+ * Is one maker holding a spending quorum of this plan's keys?
+ * Returns { maker, slugs, count, quorum } or null.
+ *
+ * WHY THIS IS COMPUTED AND NOT ADVISED. "Use a different maker for each key" is
+ * on the checklist, on /learn/choose-a-wallet and in the finder's card copy — it
+ * has been advice everywhere and a verdict nowhere, so a reader could fill every
+ * slot with the same brand and be told "✓ Every slot is filled". A multisig whose
+ * keys share a maker defends against nothing it was bought for: one firmware
+ * flaw, one seed generator, one supply chain reaches a quorum by itself. That is
+ * the 2026-07 Coldcard sweep with the numbers filed off.
+ *
+ * The threshold is the QUORUM, never a fixed 2 — see spendQuorum().
+ */
+export function makerQuorum(slugs = [], plan = {}) {
+  const quorum = spendQuorum(plan);
+  if (!quorum || quorum < 2) return null;
+  const by = new Map();
+  for (const s of slugs.filter(Boolean)) {
+    const m = makerOf(s);
+    if (!m) continue;
+    by.set(m, [...(by.get(m) || []), s]);
+  }
+  for (const [maker, list] of by) {
+    if (list.length >= quorum) return { maker, slugs: list, count: list.length, quorum };
+  }
+  return null;
+}
+
 // ── Ownership catalog: what someone might ALREADY OWN (make → model) ─────────
 // Deliberately broader than the comparison above — most people hold an
 // OLDER or discontinued model, so this leans legacy. Current-lineup models reuse

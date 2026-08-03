@@ -71,8 +71,14 @@ export const levels = [
   },
   {
     id: '102',
-    title: 'Your setup',
-    why: 'Now that you know the risks, decide where your money lives — then pick the simplest setup that covers it.',
+    // "Wallet setups", NOT "Your setup". The level teaches what the arrangements
+    // ARE; the "Your setup" nav group (nav.js) is the three pages that build
+    // YOURS. Both titles were live at once and both render on the home page, one
+    // in the level list and one on the card beside it — the same word for the
+    // idea and for the reader's own instance of it. The level is the generic one,
+    // so the level is what renamed.
+    title: 'Wallet setups',
+    why: 'Now that you know the risks: how every real setup is built, from one key upward — and how to tell which one would cover you.',
     blurb: 'Every real setup fits on one ladder. Find the lowest rung that covers you, and move up only when your situation genuinely outgrows it.',
     lessons: [
       { href: '/learn/hot-and-cold',     label: 'Hot and cold — where your money lives', short: 'Hot and cold' },

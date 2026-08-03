@@ -97,6 +97,44 @@ export const seedLengths = [
 
 export const seedLengthByKey = Object.fromEntries(seedLengths.map((s) => [s.key, s]));
 
+// ── Passphrase strength ─────────────────────────────────────────────────────
+// WHY A PASSPHRASE NEEDS REAL ENTROPY AND NOT CLEVERNESS. BIP-39 turns your
+// words plus your passphrase into a seed with PBKDF2-HMAC-SHA512 at 2,048
+// iterations — the standard's own figure, frozen, and thin by any modern
+// password-hashing standard. So an attacker holding your seed backup can test
+// candidate passphrases OFFLINE, as fast as their hardware allows, with no
+// wallet to rate-limit them and no lockout to trip. There is nothing between
+// them and your coins except how hard the passphrase is to guess.
+//
+// Which is why this guide gives a passphrase the same treatment it gives a
+// seed: build it from the same dice and the same printed word table, and let
+// the arithmetic say when it is enough. A phrase you invented is worth a small
+// fraction of what it feels like — the memorable structure IS the weakness, and
+// it is the part a cracking rig models first.
+//
+// THE TARGETS ARE NOT ROUND NUMBERS PICKED FOR THE PAGE. Six words clears the
+// 64-bit mark that is the usual floor for anything guessed offline; eight
+// clears 80, which is where the margin stops depending on assumptions about an
+// attacker's hardware. Both derive from bitsPerWord, so the bits on the page
+// can never disagree with the words on the page.
+export const PBKDF2_ITERATIONS = 2048;
+
+export const passphraseTargets = [
+  // `who` is rendered as its own sentence, so it is written as one.
+  { key: 'floor', words: 6, who: 'The floor for any passphrase worth having' },
+  { key: 'savings', words: 8, who: 'For savings, or anything you would not want to explain losing' },
+].map((t) => ({
+  ...t,
+  wordsWord: numberWord(t.words),
+  /** Whole bits, rounded down — never claim a fraction of a bit you don't have. */
+  bits: Math.floor(t.words * bitsPerWord),
+  /** Off the same printed table: five throws and a coin flip per word. */
+  throws: t.words * DICE_PER_WORD,
+  flips: t.words,
+}));
+
+export const passphraseByKey = Object.fromEntries(passphraseTargets.map((t) => [t.key, t]));
+
 /** The length this guide steers people to when they are rolling by hand anyway. */
 export const recommendedLength = seedLengthByKey['24'];
 

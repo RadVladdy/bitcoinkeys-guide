@@ -235,6 +235,24 @@ const notAsked = [
   </section>
 
   <section class="prose">
+    <h2>The concern we tested and did not add</h2>
+    <p>One risk on this list nearly became a seventh row: <strong>the device you bought is quietly broken and you cannot tell.</strong> It is not hypothetical — a hardware wallet we rate shipped a seed generator that produced predictable seeds, and the wallets drained because of it are the reason for our <a href="/advisory/coldcard-seed-entropy">standing advisory</a>. It is a real way to lose Bitcoin and it belongs somewhere on this site.</p>
+    <p>So before writing a word of it we ran it through the engine as if it were live, across every combination of answers the finder can produce, to see what it would actually change. The answer was the opposite of what we expected:</p>
+    <ul class="asked">
+      <li class="ak">
+        <span class="ak-q">It got quieter as the stakes got higher</span>
+        <p class="ak-why">Turned all the way up, it changed the recommendation for roughly half of readers holding Bitcoin they are learning with, one in five with meaningful money on the line, fewer than two in a hundred at serious stakes — and <strong>not one reader at all</strong> where losing it would change their life. Exactly backwards. It was loudest for the people we have deliberately decided not to push, and silent for everyone else, because our floor for money that would hurt to lose had already moved them.</p>
+      </li>
+      <li class="ak">
+        <span class="ak-q">And it would have moved bars nobody touched</span>
+        <p class="ak-why">Every concern here starts from a base rate, so a seventh one would have quietly re-weighted the answer for readers who never opened that section at all. The only version that left them alone was one whose base rate was zero — and a concern with no base rate is not a concern on this page, it is a thumb on the scale with a label.</p>
+      </li>
+    </ul>
+    <p><strong>What we did instead is the part that matters.</strong> The defence against a broken device is not a different rung — it is not having a component whose failure is total, which is <a href="/learn/ladder">already the floor we hold you to</a>. What it really argues for is a <em>property of how you build</em> your setup: keys from more than one maker, and randomness that did not come only from the device. Those are decisions you make on <a href="/my-plan">your plan</a> and <a href="/checklist">your checklist</a>, so that is where they now bite — including a plan that is fully filled in and still has one brand holding enough keys to spend on its own. A risk score would have been a worse version of a thing we can simply check.</p>
+    <p class="bn-note">We are publishing this because a finding that says “don’t build it” is worth as much as one that says build it, and because a method you cannot see us change our minds inside is not a method.</p>
+  </section>
+
+  <section class="prose">
     <div class="callout warn">
       <span class="label">Where we’re uncertain — on purpose, out loud</span>
       <p>Honesty about the seams: <strong>dormant coins aren’t proof of loss</strong> — the lost-coin estimates rest on heuristics about coins that haven’t moved, and some of those owners are just patient. <strong>Recovery firms publish no case-type breakdowns</strong>, so “forgotten passphrases dominate their caseload” is a qualitative claim from the firms, not a percentage. <strong>The physical-attack registry counts only media-reported cases</strong> — in one academic sample, two of eleven interviewed victims had reported at all, so the true count is plausibly several times higher. And <strong>no academic study splits expected loss across these {walkedWord} buckets</strong> — we composed it from flow data, stock estimates, and an incident registry with different denominators. <strong>The typical holder’s bundle above is our estimate, not a measurement</strong>, and it is the number here we would most expect to be wrong. That is exactly why the bands are wide, and why the finder speaks in words instead of decimals.</p>

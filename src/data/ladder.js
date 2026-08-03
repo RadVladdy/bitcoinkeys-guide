@@ -11,6 +11,13 @@
 // Rungs 2-4 render from the rich fields below via ladder/[slug].astro.
 // Shamir is an OPTIONAL backup method (shamirNote), not a numbered rung.
 
+// Rung 2's construction guidance derives every figure from the same file the
+// dice procedure uses — words, bits and throws are never typed here.
+import { passphraseByKey, PBKDF2_ITERATIONS } from './dice.js';
+
+const ppFloor = passphraseByKey.floor;
+const ppSavings = passphraseByKey.savings;
+
 export const ladder = [
   {
     slug: 'single-sig',
@@ -72,6 +79,24 @@ export const ladder = [
     keyRisk: {
       label: 'The passphrase-backup problem — the #1 inheritance failure',
       body: 'The most common documented way people lose passphrase-protected Bitcoin: they pick a strong passphrase, memorise it, never write it down (“if someone finds it, the whole point is gone”), then forget it or die. The seed is backed up, so the wallet <em>looks</em> recoverable — it isn’t. If you use a passphrase, you must back it up as carefully as the seed, stored separately from it, in a different place.',
+    },
+    // ADDED 2026-08-03. The site has told readers to "choose it carefully" and
+    // that "a weak one is almost as bad as none" since the rung was written, and
+    // has never once said HOW. That gap got worse the day this guide made rung 2
+    // its floor for money whose loss would hurt: we now route people here on
+    // purpose, so a passphrase anyone could guess is a floor we built ourselves.
+    craft: {
+      label: 'How to actually build one',
+      lead: 'A passphrase is the one part of this setup with no safety net anywhere in it. It cannot be reset, nothing rate-limits a guess, and there is no such thing as a “wrong passphrase” error — mistype it and a different wallet opens, empty and perfectly valid, with nothing to tell you which one you are looking at. Everything below follows from that.',
+      points: [
+        `<strong>Generate it. Don’t invent it.</strong> This is the whole thing, and it is the step almost everyone skips. A passphrase you thought of is worth a small fraction of the strength it feels like, because the part that makes it memorable — real words in a sensible order, a name, a date, a lyric, a substitution you thought was clever — is the first thing a cracking rig models. Roll it, the same way you rolled your seed, off <a href="/dice-word-table">the same printed word table</a>.`,
+        `<strong>${ppFloor.wordsWord.charAt(0).toUpperCase() + ppFloor.wordsWord.slice(1)} words is the floor. ${ppSavings.wordsWord.charAt(0).toUpperCase() + ppSavings.wordsWord.slice(1)} if it is protecting savings.</strong> That is ${ppFloor.bits} bits and ${ppSavings.bits} bits respectively — ${ppFloor.throws} throws and ${ppFloor.flips} coin flips for the first, ${ppSavings.throws} and ${ppSavings.flips} for the second. Ten minutes with dice you already have out. <a href="/roll-your-own-seed">The procedure is the same one</a> you use for a seed; you are just taking fewer words.`,
+        `<strong>Length, not symbols.</strong> BIP-39 stretches your passphrase with only ${PBKDF2_ITERATIONS.toLocaleString()} rounds of hashing — a number frozen into the standard and thin by any modern measure. Someone holding your seed backup can therefore test candidates offline, on their own hardware, with nothing to slow them down. Swapping letters for punctuation buys you a handful of bits and costs you accuracy when you copy it; another word off the table buys eleven.`,
+        `<strong>Plain ASCII, and no space at either end.</strong> Wallets genuinely disagree about how they treat accented letters, emoji and other non-ASCII characters, so a passphrase built from them can open your wallet on one make of device and not on another. A leading or trailing space is worse: invisible on paper, and part of the secret. Capitals and the spaces between words count too — write it down exactly as it is.`,
+        `<strong>Check the length your devices actually accept.</strong> Makers set different limits, and a passphrase longer than some other wallet’s maximum is a passphrase you cannot recover on that wallet. Find the limit for every device you might restore on, not just the one you are typing it into today.`,
+        `<strong>Prove it somewhere else before you fund it.</strong> The point of a passphrase is that your words plus your passphrase rebuild the wallet <em>anywhere</em>. That is a claim about other software, so test it on other software — restore on a second wallet, confirm the addresses match, and only then move coins. Testing a backup is its own lesson later in the course — <strong>Test your backup</strong>, in 103 · The build — and a passphrase doubles what there is to get wrong.`,
+      ],
+      foot: 'And then back it up as carefully as the seed, kept somewhere the seed is not — which is the failure directly above, and the one that actually costs people their Bitcoin.',
     },
     whoShould: 'Holders who want a second cryptographic layer without taking on the operational weight of multisig — especially when your realistic worry is “someone finds my seed backup” rather than a targeted attacker. Less useful if your real concern is sophisticated coercion, where the deniability argument gets shaky.',
     whenToClimb: 'If your holdings grow to where a single seed backup — decoy or not — feels like too much resting on one thing, the answer is to remove the single point of failure entirely with multisig (rung 3). If you want split backups without full multisig, look at the optional Shamir backup.',

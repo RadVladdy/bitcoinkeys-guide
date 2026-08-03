@@ -48,3 +48,8 @@
 # and because the word is needed for the per-lesson knowledge checks.
 /quiz  /find-your-setup  301
 /generate-your-seed  /learn/generate-your-seed  301
+
+# The nested table layout moved onto /dice-word-table 2026-08-03. It shipped as
+# an experiment on its own route while /dice-word-table still printed the older
+# grouping — one artifact rendered two ways, and the PDFs already used this one.
+/dice-word-table-v2  /dice-word-table  301

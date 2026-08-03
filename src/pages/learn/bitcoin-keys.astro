@@ -4,6 +4,12 @@ import LessonNav from '../../components/LessonNav.astro';
 import LessonEyebrow from '../../components/LessonEyebrow.astro';
 import Diagram from '../../components/Diagram.astro';
 import RuleBand from '../../components/RuleBand.astro';
+import { levelById } from '../../data/curriculum.js';
+
+// The level named in prose below is DERIVED, never typed. It was typed until
+// 2026-08-03, when 102 was retitled and this sentence kept naming the old title —
+// a level title is an inventory claim about the site, so it derives like a count.
+const nextLevel = levelById('102');
 
 // RETITLED + RE-FRAMED 2026-07-29. This page was "How your Bitcoin actually works,"
 // labelled OPTIONAL, and it opened by telling the reader they didn't need to read
@@ -139,7 +145,7 @@ import RuleBand from '../../components/RuleBand.astro';
       spending, it contains no secrets, and it completely defines the wallet. You don’t need one today — but it
       is worth knowing the word, because for multisig it becomes as important as the seed words themselves.
       Choosing which of these arrangements fits you is exactly what the next level,
-      <strong>102 · Your setup</strong>, is about.
+      <strong>{nextLevel.id} · {nextLevel.title}</strong>, is about.
     </p>
     <div class="callout warn">
       <span class="label">Hand out addresses. Don’t hand out an xpub.</span>

@@ -82,7 +82,7 @@ export const rules = [
     lesson: 'Not your keys, not your coins',
   },
 
-  // ---- 102 · Your setup ----
+  // ---- 102 · Wallet setups ----
   {
     n: 3,
     key: 'simplest-setup',

@@ -49,7 +49,8 @@ import WhereAmI from '../components/WhereAmI.astro';
     encryptPlanToEnvelope, decryptEnvelope, downloadEncryptedPlan, isEncryptedEnvelope,
   } from '../data/plan.js';
   import { getRung, rungAnchor } from '../data/ladder.js';
-  import { keysForSetup, assessDevices, ownedName, deviceBySlug } from '../data/wallets.js';
+  import { keysForSetup, assessDevices, ownedName, deviceBySlug, makerQuorum } from '../data/wallets.js';
+  import { numberWord } from '../data/numbers.js';
   import { custodianName, custodianBySlug } from '../data/custodians.js';
   import { mountOwnedPicker } from '../data/owned-picker.js';
   import { checklistLabels, checklistCount, checklistItems, itemApplies } from '../data/checklist.js';
@@ -329,13 +330,30 @@ import WhereAmI from '../components/WhereAmI.astro';
     // slots above already show, or the card contradicts itself in two lines.
     const flagged = assessDevices(assigned.filter(Boolean))
       .filter((d) => d.verdict === 'disqualified' || d.verdict === 'spending');
+    // SECOND VERDICT ON A FILLED PLAN, added 2026-08-03. "Use a different maker
+    // for each key" was advice on four surfaces and a verdict on none, so a
+    // reader could fill every slot from one brand and read "✓ Every slot is
+    // filled" — a completeness statement standing over a plan that defends
+    // against nothing it was built for.
+    const clash = makerQuorum(assigned.filter(Boolean), {
+      rungSlug: plan.quiz?.rung, label: plan.quiz?.primaryLabel, tier: plan.quiz?.primaryTier,
+    });
     let footer;
     if (plan.ownPrivate && !owned.length) {
       footer = `<p class="ps-road-gap">You’d rather not say which wallets you own — so we’ve laid out the full setup. <strong>You may already have some of these.</strong></p>`;
-    } else if (gaps === 0 && !custGap && flagged.length) {
-      const names = flagged.map((d) => esc(d.name)).join(' and ');
-      const one = flagged.length === 1;
-      footer = `<p class="ps-road-warn">Every slot is filled, but ${names} ${one ? "doesn't" : "don't"} clear <a href="/standard">our bar for cold storage</a>. You can still run this setup — just know what you're accepting, and see the <a href="/wallets">wallets we'd move you to</a>.</p>`;
+    } else if (gaps === 0 && !custGap && (flagged.length || clash)) {
+      // Both can be true at once, and both get said. Picking one would be the
+      // same failure in miniature: a judgement suppressed by another judgement.
+      const notes = [];
+      if (flagged.length) {
+        const names = flagged.map((d) => esc(d.name)).join(' and ');
+        const one = flagged.length === 1;
+        notes.push(`${names} ${one ? "doesn't" : "don't"} clear <a href="/standard">our bar for cold storage</a>. You can still run this setup — just know what you're accepting, and see the <a href="/wallets">wallets we'd move you to</a>.`);
+      }
+      if (clash) {
+        notes.push(`${numberWord(clash.count)} of your keys are ${esc(clash.maker)}, and it takes ${numberWord(clash.quorum)} to spend — so one flaw in that one brand would reach enough of them by itself. Not having a single component whose failure is total is the whole reason this setup has more than one key. <a href="/wallets">Swap one for another maker.</a>`);
+      }
+      footer = `<p class="ps-road-warn">Every slot is filled, but ${notes.join('</p><p class="ps-road-warn">')}</p>`;
     } else if (gaps === 0 && !custGap) {
       footer = `<p class="ps-road-done">✓ Every slot is filled. What’s left is configuring and testing the setup.</p>`;
     } else {

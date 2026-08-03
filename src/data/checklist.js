@@ -29,6 +29,9 @@
 
 import { ruleByKey } from './rules.js';
 import { assessDevices } from './wallets.js';
+// The passphrase step's word counts come from the same place /learn/ladder's
+// guidance takes them, so the step and the lesson cannot state different floors.
+import { passphraseByKey } from './dice.js';
 
 export const PHASES = [
   { key: 'setup',  tag: 'Step 1',    title: 'Get set up',        intro: 'The moves that get your Bitcoin out of someone else’s hands and into your own.' },
@@ -64,8 +67,20 @@ export const checklistItems = [
   { id: 'get-device', phase: 'setup', t: 'Get a hardware wallet',
     d: 'A device from our cold-storage tier — Bitcoin-only firmware available, its own screen, offline signing. Buy direct from the maker and check the tamper seal.',
     href: '/wallets', deviceSlot: true, rule: 'buy-direct' },
-  { id: 'multisig-brands', phase: 'setup', only: MULTI, t: 'Use different brands for your keys',
-    d: 'The cheapest big upgrade in all of self-custody. Three identical devices share one point of failure — a flaw in that brand hits every key at once. Different makers means a problem with one brand can only ever cost you one key.',
+  // TWO ITEMS, NOT ONE, since 2026-08-03 — and the split is the whole point.
+  // This step used to be a single item on `only: MULTI`, so a COLLABORATIVE
+  // reader was shown "three identical devices ... can only ever cost you one
+  // key". They hold TWO of the three keys, and two is a spending quorum: a
+  // same-maker pair does not cost them one key, it costs them the wallet. The
+  // sentence was wrong for that reader in the direction that understates the
+  // risk, while /my-plan said it correctly one page over — the two-surfaces
+  // shape, on the one subject where the arithmetic actually differs by rung.
+  // `multisig-brands` KEEPS ITS ID (saved plans store ticks by id).
+  { id: 'multisig-brands', phase: 'setup', only: ['multisig'], t: 'Use a different maker for each of your three keys',
+    d: 'The cheapest big upgrade in all of self-custody. Three identical devices share one point of failure — a flaw in that brand hits every key at once, and the multisig protects you from nothing it was bought for. Three different makers means any one brand’s problem can only ever reach one of your three keys.',
+    href: '/learn/choose-a-wallet' },
+  { id: 'collab-brands', phase: 'setup', only: ['collaborative'], t: 'Use a different maker for each of your two keys',
+    d: 'You hold two of the three keys, and two is enough to spend. So if both of your devices come from the same maker, one flaw in that brand reaches a spending quorum on its own — the service’s key never comes into it. Two different makers, and any one brand’s problem can only ever reach one key.',
     href: '/learn/choose-a-wallet' },
   // Every USB cold-tier device pairs with companion software, and until 2026-07-31
   // no page on the site said so — the step between "buy the device" and "generate
@@ -79,8 +94,12 @@ export const checklistItems = [
   { id: 'generate-seed', phase: 'setup', t: 'Generate a fresh seed — and add your own randomness',
     d: 'Power the device on and follow the maker’s official start page — the address printed in the box or on their site, not a link someone sent you. Set a PIN when it asks, then let the device create the seed in front of you: it shows the words on its own screen, and you copy them down by hand. Never use pre-set words, and never type the words into a computer or phone. Where your device allows it, add your own dice throws to the randomness it generates — it takes a few minutes, it cannot make the result worse, and it removes the one part of your setup you otherwise have to take on trust.',
     href: '/learn/generate-your-seed', rule: 'buy-direct' },
-  { id: 'passphrase-choose', phase: 'setup', only: ['passphrase'], t: 'Choose your passphrase carefully',
-    d: 'The secret “25th word” that opens your real wallet — the seed alone opens a decoy. It can’t be reset, rate-limited, or recovered, so a weak or guessable one is almost as bad as none.',
+  // "Choose it carefully" was the whole instruction until 2026-08-03, on a step
+  // whose own description said a weak one is almost as bad as none — advice that
+  // names a standard and then declines to say how to meet it. It ROLLS one now,
+  // off the table the reader may already have printed.
+  { id: 'passphrase-choose', phase: 'setup', only: ['passphrase'], t: 'Roll your passphrase — don’t invent one',
+    d: `The secret “25th word” that opens your real wallet; the seed alone opens a decoy. It can’t be reset, nothing rate-limits a guess, and there is no “wrong passphrase” error — mistype it and a different, empty, perfectly valid wallet opens instead. So don’t think one up: roll it off the same word table you used for the seed. ${passphraseByKey.floor.wordsWord.charAt(0).toUpperCase() + passphraseByKey.floor.wordsWord.slice(1)} words is the floor, ${passphraseByKey.savings.wordsWord} if this is protecting savings. Plain ASCII, no space at either end, and capitals count.`,
     href: '/learn/ladder#rung-2' },
   { id: 'set-pin', phase: 'setup', t: 'Set a PIN on the device',
     d: 'The PIN stops someone who physically grabs the device from using it. It does NOT protect the seed — anyone holding your recovery words needs no PIN at all, which is why the backup is the thing that must never be seen. Set one anyway; it is free and it closes the easiest theft there is.',

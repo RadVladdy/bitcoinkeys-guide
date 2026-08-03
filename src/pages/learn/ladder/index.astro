@@ -116,6 +116,15 @@ const rungs = ladder;
         </div>
       )}
 
+      {r.craft && (
+        <>
+          <h3>{r.craft.label}</h3>
+          <p set:html={r.craft.lead}></p>
+          <ul>{r.craft.points.map((p) => <li set:html={p}></li>)}</ul>
+          {r.craft.foot && <p set:html={r.craft.foot}></p>}
+        </>
+      )}
+
       {r.also && (
         <>
           <h3>{r.also.label}</h3>

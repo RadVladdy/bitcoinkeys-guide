@@ -18,6 +18,7 @@ import RuleRef from '../components/RuleRef.astro';
 import {
   diceVerified, methods, deviceProcedures, walkStepsFor,
   ratedDevicesForMethod, DICE_METHOD_KEYS, seedLengths,
+  passphraseTargets, PBKDF2_ITERATIONS,
 } from '../data/dice.js';
 import { seedCosts, tableRowCount, DICE_PER_WORD } from '../data/dice-table.js';
 import { pdfHref } from '../data/pdf-version.js';
@@ -165,8 +166,8 @@ const shortCost = seedCosts.find((c) => c.words === 12);
                 <a class="btn btn-ghost" href={pdfHref("/bip39-word-table.pdf")} target="_blank" rel="noopener">Just the table — 4 pages</a>
               </p>
               <p style="margin:0; font-size:0.85rem; color:var(--faint)">
-                Prefer to read it on a second screen? <a href="/dice-word-table">the shipped table</a> ·
-                <a href="/dice-word-table-v2">the newer layout</a>. The table contains no secret — it is the
+                Prefer to read it on a second screen? <a href="/dice-word-table">the word table</a>, in the
+                same layout as the PDF. The table contains no secret — it is the
                 standard wordlist in a fixed order, and anyone can regenerate it.
             </div>
           )}
@@ -188,6 +189,41 @@ const shortCost = seedCosts.find((c) => c.words === 12);
         </div>
       </div>
     ))}
+  </section>
+
+  {/* THE SAME DICE, THE SAME TABLE, A DIFFERENT SECRET. A passphrase is the one
+      thing on the ladder this guide sends people to as a FLOOR — above the
+      smallest stakes we say never to stop at a lone key — and until 2026-08-03
+      the site told readers to choose one "carefully" and never once said how.
+      It belongs on this page because it is the identical physical act: roll,
+      look the word up, write it on the sheet. The reasoning lives on the rung. */}
+  <section class="prose rys-pp">
+    <h2>Rolling a passphrase</h2>
+    <p>
+      If your setup is <a href="/learn/ladder#rung-2">a passphrase on top of your seed</a>, build that the
+      same way, with the same dice and the same table. It is the identical act — roll, look the word up,
+      write it down — and it takes minutes, because you need far fewer words.
+    </p>
+    <p>
+      <strong>Do not think one up.</strong> BIP-39 stretches a passphrase with only
+      {' '}{PBKDF2_ITERATIONS.toLocaleString()} rounds of hashing, so anyone holding your seed backup can test
+      guesses offline as fast as their hardware allows, with nothing to rate-limit them. The structure that
+      makes a phrase memorable is exactly what a cracking rig tries first.
+    </p>
+    <ul class="rys-pp-list">
+      {passphraseTargets.map((t) => (
+        <li>
+          <strong>{t.wordsWord.charAt(0).toUpperCase() + t.wordsWord.slice(1)} words</strong> — {t.bits} bits,
+          {' '}{t.throws} throws and {t.flips} coin flips. <span class="rys-pp-who">{t.who}.</span>
+        </li>
+      ))}
+    </ul>
+    <p>
+      Write the words down exactly as the table gives them, separated by single spaces, with
+      <strong> no space before the first or after the last</strong> — a stray space is invisible on paper and
+      is part of the secret. Then back it up as carefully as the seed and keep it somewhere the seed is not.
+      {' '}<a href="/learn/ladder#rung-2">The full reasoning, and the traps, are on rung 2.</a>
+    </p>
   </section>
 
   <section class="prose">
@@ -228,6 +264,10 @@ const shortCost = seedCosts.find((c) => c.words === 12);
 
 <style>
   .rys-dl { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.7rem 0; }
+  .rys-pp-list { list-style: none; padding: 0; margin: 1rem 0; }
+  .rys-pp-list li { border-left: 3px solid var(--accent); padding: 0.4rem 0 0.4rem 0.8rem;
+    margin-bottom: 0.5rem; }
+  .rys-pp-who { color: var(--muted); }
 
   .tabs { display: flex; flex-wrap: wrap; gap: .6rem; margin-bottom: 1.4rem; }
   .tab { flex: 1 1 14rem; text-align: left; cursor: pointer; font: inherit;

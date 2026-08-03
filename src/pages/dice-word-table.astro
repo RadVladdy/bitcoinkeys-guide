@@ -14,7 +14,18 @@
 // bijective onto the wordlist, so a broken table fails the build.
 import Base from '../layouts/Base.astro';
 import { diceVerified } from '../data/dice.js';
-import { blocks, rows, tableRowCount, DICE_PER_WORD, PREFIX_THROWS, seedCosts } from '../data/dice-table.js';
+// THE TABLE IS THE NESTED LAYOUT (v2) SINCE 2026-08-03 — `blocks` is gone from
+// this page. The old grouping blocked on the first THREE throws and printed the
+// whole key on every line (`23142H globe`), so three of five characters repeated
+// the heading directly above them, 2,048 times over. It lived at
+// /dice-word-table-v2 as an experiment while the shipped PDFs already used it for
+// their table pages — which meant the page and the print-out a reader made from
+// it were two different layouts of one artifact. That route is retired and this
+// is the only table now.
+import {
+  v2Boxes, v2BoxCount, v2ColsPerBox, v2ItemsPerCol, V2_BOX_THROWS,
+  rows, tableRowCount, DICE_PER_WORD, PREFIX_THROWS, seedCosts,
+} from '../data/dice-table.js';
 import { pdfHref } from '../data/pdf-version.js';
 
 // ONE WORKSHEET PER SEED LENGTH, built from seedCosts — never typed. A
@@ -237,19 +248,24 @@ const egFaces = (str) => str.split('').map((d) => FACE[d]);
       sheets could not tell from the artifact which one a sentence meant. The
       reference pages are the BIP-39 WORD TABLE; the ones with boxes are the
       WORKSHEET, and every reference on this site now says which. */}
-  <h2 class="dwt-title">BIP-39 word table <span class="dwt-title-s">{tableRowCount.toLocaleString()} words · {DICE_PER_WORD} throws and a coin flip · nothing to fill in</span></h2>
-  <section class="dwt-wrap">
-    {blocks.map((b) => (
-      <div class="dwt-block">
-        <h2 class="dwt-h">{b.prefix}<span class="dwt-hx">·</span></h2>
-        <ul class="dwt-rows">
-          {b.items.map((r) => (
-            <li><span class="dwt-k mono">{r.dice}{r.coin}</span>{r.word}</li>
-          ))}
-        </ul>
+  <h2 class="dwt-title">BIP-39 word table <span class="dwt-title-s">{tableRowCount.toLocaleString()} words · {DICE_PER_WORD} throws and a coin flip · nothing to fill in</span><span class="dwt-title-u">bitcoinkeys.guide/roll-your-own-seed</span></h2>
+  {v2Boxes.map((b) => (
+    <section class="v2-box">
+      <h2 class="v2-box-h">{b.box}</h2>
+      <div class="v2-cols">
+        {b.cols.map((c) => (
+          <div class="v2-col">
+            <h3 class="v2-col-h">{c.prefix}</h3>
+            <ul class="v2-rows">
+              {c.items.map((it) => (
+                <li><span class="v2-k mono">{it.rest}</span>{it.word}</li>
+              ))}
+            </ul>
+          </div>
+        ))}
       </div>
-    ))}
-  </section>
+    </section>
+  ))}
 </Base>
 
 <script>
@@ -273,14 +289,19 @@ const egFaces = (str) => str.split('').map((d) => FACE[d]);
      its own padding and borders 2,048 times over, which is what turned this
      into a 26-page print-out. Same markup for screen and print — a separate
      print-only rendering of 2,048 rows is two places for a word to be wrong. */
-  .dwt-wrap { columns: 4 13rem; column-gap: 1.5rem; margin-top: 1.4rem; }
-  .dwt-block { break-inside: avoid-column; margin-bottom: .8rem; }
-  .dwt-h { font-size: .74rem; margin: 0 0 .15rem; letter-spacing: .06em; color: var(--muted);
-    font-family: var(--mono); font-weight: 600; }
-  .dwt-hx { opacity: .45; margin-left: .3rem; }
-  .dwt-rows { list-style: none; padding: 0; margin: 0; font-size: .76rem; line-height: 1.35; }
-  .dwt-rows li { white-space: nowrap; }
-  .dwt-k { color: var(--muted); margin-right: .4rem; }
+  /* SCREEN — the nested layout. Readable rather than dense; the print rules
+     further down are where the density is actually tuned. */
+  .v2-box { border: 1px solid var(--line); border-radius: var(--radius); padding: 0.9rem 1rem;
+    margin: 0 0 0.9rem; background: var(--surface); break-inside: avoid; }
+  .v2-box-h { font-size: 1.1rem; margin: 0 0 0.5rem; color: var(--accent); font-family: var(--mono); }
+  .v2-cols { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.8rem; }
+  .v2-col-h { font-size: 0.85rem; margin: 0 0 0.2rem; font-family: var(--mono); color: var(--text); }
+  .v2-rows { list-style: none; margin: 0; padding: 0; columns: 2; column-gap: 0.7rem;
+    font-size: 0.78rem; line-height: 1.35; }
+  .v2-rows li { color: var(--muted); }
+  .v2-k { color: var(--faint); margin-right: 0.3rem; }
+  @media (min-width: 900px) { .v2-cols { grid-template-columns: repeat(4, 1fr); } }
+  .dwt-title-u { display: none; }
 
   @media print {
     /* Ink and paper. Everything above the table is screen furniture; the
@@ -290,9 +311,22 @@ const egFaces = (str) => str.split('').map((d) => FACE[d]);
        sheet and both worksheets — a full-bleed tint on every sheet, ink spent on
        nothing. <main>'s padding is breathing room under a sticky nav and is
        blank paper once the nav is hidden. */
-    :root, body, main { background: #fff !important; }
-    main { padding: 0 !important; margin: 0 !important; }
-    .verified { display: none !important; }
+    /* :global() ON EVERYTHING THE LAYOUT OWNS. This block is SCOPED, so a bare
+       `main` or `.verified` compiles to `main[data-astro-cid-<this page>]` and
+       matches nothing — those elements are Base.astro's and carry Base's cid.
+       `.verified` sat here unscoped and silently did nothing for the whole life
+       of this page; it cost nothing only because the old table's last sheet had
+       room to absorb one line. The nested table fills its fourth page exactly,
+       so the same dead rule immediately bought a NINTH sheet holding one date.
+       Caught by measuring the render, which is the only thing that catches it.
+       (Same failure the spine records for client-injected markup — a scoped rule
+       only ever matches markup this file's own template emits.) */
+    :global(:root), :global(body), :global(main) { background: #fff !important; }
+    :global(main) { padding: 0 !important; margin: 0 !important; }
+    /* A WHOLE SHEET FOR A DATE, and on this artifact the date is meaningless
+       anyway: the BIP-39 wordlist is frozen by the standard, so a printed copy
+       cannot go stale. Saying it could is worse than saying nothing. */
+    :global(.verified) { display: none !important; }
     .dwt-intro { display: none; }
     /* Its own page, so the reference pages that follow carry nothing but
        the table. */
@@ -433,9 +467,14 @@ const egFaces = (str) => str.split('').map((d) => FACE[d]);
       letter-spacing: .02em; line-height: 1.2; }
     .dw-foot { font-size: 8pt; margin-top: .55rem; line-height: 1.45; padding-top: .35rem;
       border-top: .6pt solid #bbb; }
-    .dwt-title { font-size: 13pt; margin: 0 0 .35rem; color: #000; }
-    .dwt-title-s { display: block; font-size: 7.5pt; font-weight: 400; color: #555;
-      text-transform: none; letter-spacing: 0; margin-top: .1rem; }
+    /* ONE LINE. The 13pt heading with a BLOCK subtitle under it was two lines,
+       and two lines is a fifth sheet — measured: the merged document rendered 9
+       pages until this collapsed to one. See the box-pitch arithmetic below. */
+    .dwt-title { font-size: 11.5pt; margin: 0 0 .3rem; color: #000; font-weight: 700;
+      line-height: 1.15; }
+    .dwt-title-s { display: inline; font-size: 8pt; font-weight: 400; color: #444;
+      text-transform: none; letter-spacing: 0; }
+    .dwt-title-s::before { content: " — "; color: #888; }
     .ds-h { font-size: 15pt; margin: 0 0 .5rem; color: #000; }
     .ds-sh { font-size: 11pt; margin: .9rem 0 .25rem; color: #000; }
     .ds-lead { margin: 0 0 .6rem; }
@@ -448,33 +487,56 @@ const egFaces = (str) => str.split('').map((d) => FACE[d]);
        printed copy of this should never go stale. Global selectors because
        the elements belong to the layout, not to this page's scope. */
     :global(.adv-banner), :global(header.nav), :global(footer.foot) { display: none !important; }
-    /* The min column width is load-bearing: `columns: N <min>` silently drops
-       to fewer columns when N × min exceeds the printable width, so asking for
-       six 8rem columns on A4 quietly produced four. Keep the minimum below
-       (page width − margins) ÷ N or the count is a suggestion. */
-    .dwt-wrap { columns: 6 5rem; column-gap: 0.8rem; margin: 0; }
-    .dwt-rows { font-size: 6.6pt; line-height: 1.03; }
-    .dwt-rows li { color: #000; }
-    .dwt-k { color: #444; margin-right: .25rem; }
-    .dwt-h { font-size: 7pt; color: #000; margin-bottom: .04rem; margin-top: .08rem; }
-    /* Blocks are 32 rows and comfortably shorter than a column, so keeping
-       each one whole is both possible and worth the space — a block split
-       across a column break is the case that makes a lookup table hard to
-       use. This was `auto` while blocks were 128 rows: at that size the rule
-       could not be honoured and instead left most of every column empty,
-       which is what made this a 26-page document. Revisit if the prefix
-       length changes again. */
-    /* BREATHING ROOM BETWEEN BLOCKS. This was .1rem, which packed 64 blocks
-       into a wall — with the last page left part-empty, so the space was
-       already paid for and simply not being used. A hairline above each block
-       gives the eye something to land on when scanning for a prefix.
-       THE PAGE COUNT IS THE CONSTRAINT: this is the one value here that can
-       push the table from four pages to five, so it is tuned against the
-       rebuilt PDF and not by eye. Re-run scripts/build-dice-pdf.sh and check
-       the count after touching it. */
-    .dwt-block { margin-bottom: .42rem; padding-top: .2rem; break-inside: avoid-column;
-      border-top: .4pt solid #d5d5d5; }
-    .dwt-block:first-child { border-top: none; padding-top: 0; }
+    /* ── THE TABLE PAGES ─────────────────────────────────────────────────
+       THE TITLE IS ONE LINE, AND THAT IS MEASURED. Box pitch is ~176pt and four
+       boxes have to start by y≈64 on a 792pt page, so this header may occupy
+       ~36pt and no more. Two lines cost 59pt once the URL wraps; either way one
+       box falls to the next sheet and drags a fifth one along holding a single
+       box. The URL is on it because a print-out gets separated from the page it
+       came from — whoever ends up holding it should land on the full procedure
+       rather than work from a table with no instructions. */
+    .dwt-title { text-align: center; }
+    .dwt-title-u { display: inline; font-size: 7.6pt; font-weight: 400; color: #666;
+      font-family: var(--mono); }
+    .dwt-title-u::before { content: " · "; color: #888; }
+
+    /* THREE TONES, LIGHTEST TO DARKEST, OUTSIDE IN: white page → light box →
+       slightly darker card. The nesting IS the layout, so it should be visible
+       without reading a character. Both tints are deliberately pale: at 6.8pt
+       the text needs the contrast more than the panels need the presence, and a
+       heavy fill behind 2,048 small words prints muddy on anything but a good
+       laser. Verified by sampling pixels, never by looking — the eye read these
+       as inverted on 2026-08-03 while a pixel sample proved them correct. */
+    .v2-box { break-inside: avoid; background: #f7f7f7; border: .5pt solid #dcdcdc;
+      border-radius: 3.5pt; padding: .34rem .38rem .4rem; margin: 0 0 .34rem; }
+    /* The two-throw number, top left, sized to be found from across a desk —
+       the first thing you scan for. */
+    .v2-box-h { font-size: 11pt; margin: 0 0 .22rem; color: #000; font-weight: 700;
+      letter-spacing: .04em; line-height: 1; }
+    .v2-cols { display: grid; grid-template-columns: repeat(4, 1fr); gap: .34rem; }
+    /* EACH THREE-THROW GROUP IS ITS OWN CARD, not just a heading over a list.
+       The card boundary is what stops the eye sliding into the neighbouring
+       column mid-lookup. */
+    .v2-col { background: #e6e6e6; border: .5pt solid #c9c9c9; border-radius: 3pt;
+      padding: .22rem .26rem .24rem; break-inside: avoid; }
+    .v2-col-h { font-size: 7.4pt; margin: 0 0 .14rem; color: #000; font-weight: 700;
+      letter-spacing: .03em; text-align: center; border-bottom: .5pt solid #b8b8b8;
+      padding-bottom: .08rem; }
+    .v2-rows { columns: 2; column-gap: .3rem; font-size: 6.8pt; line-height: 1.18; }
+    .v2-rows li { color: #000; }
+    /* The key stays grey so the WORD is what the eye lands on: the key is what
+       you match, the word is what you write down. */
+    .v2-k { color: #555; margin-right: .18rem; }
+    .v2-box:last-of-type { margin-bottom: 0 !important; }
+
+    /* 8mm, NOT the 9mm this table was tuned at while it lived on its own page.
+       The method sheets and worksheets on this same document are tuned at 8mm,
+       and one @page rule governs all eight sheets — so the table moved to the
+       tighter margin rather than the sheets moving to the looser one. 8mm gives
+       the table MORE printable area than 9mm did, so the direction is safe; the
+       page count is still measured after every change, never assumed.
+       @page :first { margin-top } IS IGNORED by headless Chrome — do not reach
+       for it. The margin has to come off every page. */
     @page { margin: 8mm; }
   }
 </style>
