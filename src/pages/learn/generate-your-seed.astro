@@ -22,6 +22,7 @@ import { seedCosts } from '../../data/dice-table.js';
 import { shortName } from '../../data/wallets.js';
 import LessonClose from '../../components/LessonClose.astro';
 import Typo from '../../components/demos/Typo.astro';
+import Seed from '../../components/demos/Seed.astro';
 import { activeAdvisories } from '../../data/advisories.js';
 import { numberWord } from '../../data/numbers.js';
 
@@ -96,6 +97,20 @@ const s12 = seedLengthByKey['12'];
         {' '}{s12.words} words), and it is not a restriction anyone chose — it falls out of the arithmetic.
       </li>
     </ol>
+
+    {/* THE THREE STEPS, ANIMATED, directly under the three steps in prose.
+        Moved here from /learn/bitcoin-keys on 2026-08-04: that lesson's §2 says
+        the seed words ARE the key, which the demo suits — but THIS lesson is
+        titled "How a seed is made" and the list above is literally the demo's
+        seven steps written out. A reader who had just read the mechanism found
+        a checksum demo instead and reasonably asked what had happened to the
+        one that shows a seed being born. Place a demo where its mechanism is
+        taught; this is the second time that rule has moved one. */}
+    <div class="inline-demo">
+      <p class="idemo-k mono">Watch it happen — the same demo that lives on its own page</p>
+      <Seed />
+    </div>
+
     <p>
       <strong>Four things follow from that, and they are the reason the rest of this page exists.</strong>
     </p>

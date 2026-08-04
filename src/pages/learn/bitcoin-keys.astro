@@ -5,7 +5,6 @@ import LessonEyebrow from '../../components/LessonEyebrow.astro';
 import Diagram from '../../components/Diagram.astro';
 import RuleBand from '../../components/RuleBand.astro';
 import KeySpace from '../../components/demos/KeySpace.astro';
-import Seed from '../../components/demos/Seed.astro';
 import '../../styles/demo.css';
 import { levelById } from '../../data/curriculum.js';
 
@@ -106,18 +105,14 @@ const nextLevel = levelById('102');
     </div>
 
 
-    {/* INLINE, and the second demo on this page — which is exactly why both
-        were rewritten to root-scoped selectors. Each originally queried
-        `document.getElementById('go')`, so together they would have wired both
-        buttons to whichever the parser reached first.
-
-        Seven steps and still the third-most-compact demo on the site (610px),
-        because a stepper swaps content instead of stacking it. It carries its
-        own "never your real seed" callout. */}
-    <div class="inline-demo">
-      <p class="idemo-k mono">Try it here — the same demo that lives on its own page</p>
-      <Seed />
-    </div>
+    {/* The seed demo MOVED to /learn/generate-your-seed on 2026-08-04. §2 here
+        says the seed words ARE the key, which it suited — but that lesson is
+        titled "How a seed is made" and its opening list is the demo's own steps
+        in prose, so a reader met the mechanism and then a different demo. This
+        section keeps the pointer; the demo is one click away and inline where it
+        belongs. key-space stays above: "hold the key, hold the coins" is the
+        strongest fit for it on the site. */}
+    <p class="deeper"><strong>See it work:</strong> <a href="/demos/seed">watch a seed get created, one step at a time →</a> — a throwaway seed, built in front of you from raw randomness to your first address.</p>
 
     <h2>3 · Private key → public key → address</h2>
     <p>
