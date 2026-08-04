@@ -39,7 +39,7 @@
 /learn/ladder/passphrase     /learn/ladder#rung-2  301
 /learn/ladder/multisig       /learn/ladder#rung-3  301
 /learn/ladder/collaborative  /learn/ladder#rung-4  301
-/learn/ladder/shamir         /deep-dive/shamir     301
+/learn/ladder/shamir         /demos/shamir         301
 
 # /quiz became /find-your-setup 2026-07-30. It was never a quiz: a quiz tests what
 # you know, and this asks about your situation and returns a setup, a roadmap and a
@@ -53,3 +53,11 @@
 # an experiment on its own route while /dice-word-table still printed the older
 # grouping — one artifact rendered two ways, and the PDFs already used this one.
 /dice-word-table-v2  /dice-word-table  301
+
+# The demos left /deep-dive 2026-08-04. "Deep dive" was the name of level 201 —
+# a course level removed on 2026-08-01 — so the demos kept a retired level's
+# vocabulary in the address bar while the menu had already moved on to
+# "Interactive demos". The splat covers all eleven demos and anything added
+# after; the hub needs its own line because a splat does not match the bare path.
+/deep-dive/*  /demos/:splat  301
+/deep-dive    /demos         301

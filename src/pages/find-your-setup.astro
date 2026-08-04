@@ -834,12 +834,12 @@ const fitCountCap = questionCountWordCap;
         <p class="r-step-act mono">${esc(secondary.headline)}</p>
         <p class="r-why">${esc(secondary.when)}</p>
         ${(!primaryHasVendors && secondary.vendors) ? vendorsBlock(secondary.vendors) : ''}
-        <a class="r-how2" href="${rungAnchor(secondary.rungSlug)}">Read the ${esc(secondary.rungLabel)} walkthrough →</a>
+        <a class="r-how2" href="${rungAnchor(secondary.rungSlug)}">How ${esc(secondary.rungLabel)} works →</a>
         ${saveControl(secondary.rungSlug, secondary.rungLabel, secondary.rungLabel, 'quiz-secondary')}
       </div>` : ''}
       <div class="r-links">
         <span id="r-next"></span>
-        <a class="btn-ghost" href="${rungAnchor(primary.rungSlug)}">Read the full ${esc(primary.rungLabel)} walkthrough</a>
+        <a class="btn-ghost" href="${rungAnchor(primary.rungSlug)}">Read how ${esc(primary.rungLabel)} works</a>
         <button class="btn-ghost" id="q-edit">← Change my answers</button>
         <button class="btn-ghost" id="q-restart">Start over</button>
       </div>

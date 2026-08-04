@@ -28,7 +28,7 @@ import { shamirNote, bip85 } from '../../data/ladder.js';
 // (Trezor implements SLIP-39 natively, others vary), so a reader who cares about it
 // needs to know before they spend money, not after.
 //
-// The explanation lives HERE, not on the demos. It briefly lived on /deep-dive/shamir
+// The explanation lives HERE, not on the demos. It briefly lived on /demos/shamir
 // (earlier the same day, when the ladder merge had nowhere else to put it) — that is
 // undone: the lesson explains, the demo shows, and the demo pages link back here.
 const s = shamirNote;
@@ -62,7 +62,7 @@ const s = shamirNote;
       <span class="label">What it costs you</span>
       <p style="margin:0">You have concentrated everything onto one seed. That master now deserves the care you would otherwise have spread across all of them — because it is no longer <em>a</em> backup, it is <em>every</em> backup. And you must remember which child index was which, which is a new note to keep, though not a secret one.</p>
     </div>
-    <p class="deeper"><strong>See it work:</strong> <a href="/deep-dive/bip85">watch one master spawn child seeds →</a> — verified against the BIP-85 spec test vectors, on throwaway keys.</p>
+    <p class="deeper"><strong>See it work:</strong> <a href="/demos/bip85">watch one master spawn child seeds →</a> — verified against the BIP-85 spec test vectors, on throwaway keys.</p>
   </section>
 
   <section class="prose">
@@ -87,7 +87,7 @@ const s = shamirNote;
 
     <h3>Who should use it</h3>
     <p set:html={s.whoShould}></p>
-    <p class="deeper"><strong>See it work:</strong> <a href="/deep-dive/shamir">split a throwaway secret into shares →</a> — then try to rebuild it with too few and watch it fail.</p>
+    <p class="deeper"><strong>See it work:</strong> <a href="/demos/shamir">split a throwaway secret into shares →</a> — then try to rebuild it with too few and watch it fail.</p>
   </section>
 
   <section class="prose">

@@ -142,7 +142,7 @@ export const checklistItems = [
     href: '/learn/test-your-backup', rule: 'test-backup' },
   { id: 'prove-passphrase', phase: 'prove', only: ['passphrase'], t: 'Restore with the passphrase, not just the seed',
     d: 'Restoring the seed alone lands you in the decoy wallet — and everything will look fine. Confirm the passphrase restores the wallet that actually holds your coins.',
-    href: '/deep-dive/passphrase' },
+    href: '/demos/passphrase' },
   { id: 'prove-multisig', phase: 'prove', only: MULTI, t: 'Rehearse a spend with your backup keys',
     d: 'Prove you can sign with the keys you’d actually reach for in an emergency — not just the two sitting on your desk. Do it on a small amount before the wallet holds anything real.',
     href: '/learn/test-your-backup' },

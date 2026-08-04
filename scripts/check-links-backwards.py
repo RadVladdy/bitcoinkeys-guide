@@ -14,16 +14,23 @@ That is the same failure the old /principles page was retired for — so it gets
 check rather than a promise.
 
 THE BLIND SPOT, found 2026-07-30: this only ever matched href="/learn/*", but
-/deep-dive IS a lesson — position 17 in curriculum.js. So every "deeper dive →"
-link was a forward link the check structurally could not see: seven of them on
-/learn/bitcoin-keys alone, plus the ladder and beyond-the-ladder. The invariant was
-passing because the regex missed, not because we had decided anything.
+the demo hub was a lesson then — position 17 in curriculum.js, under the name
+/deep-dive. So every "deeper dive →" link was a forward link the check
+structurally could not see: seven of them on /learn/bitcoin-keys alone, plus the
+ladder and beyond-the-ladder. The invariant was passing because the regex missed,
+not because we had decided anything.
 
-Those links stay. 201 calls itself optional and skippable, so a deeper-dive aside
-is not the same as sending a reader forward through the course — but that is a
-DECISION, and it now has to be declared rather than assumed. DEEP_DIVE_ASIDE below
-is the exception, and a forward link to any OTHER lesson still fails, /deep-dive
-included if it is ever linked as a lesson rather than as an aside.
+Those links stay. The demos call themselves optional and skippable, so an aside
+into one is not the same as sending a reader forward through the course — but
+that is a DECISION, and it has to be declared rather than assumed.
+
+WHAT CHANGED SINCE, and it is why DEMO_ASIDE now COUNTS rather than suppresses:
+level 201 was removed on 2026-08-01 and the hub stopped being a lesson at all, so
+a link into a demo can no longer be a forward link by construction. The exception
+is kept anyway, and the count is printed, because a number that appears in the
+output is a number somebody notices changing — if the demos are ever folded back
+into the course, this is the line that says so. Renamed /deep-dive → /demos on
+2026-08-04 with the rest of that vocabulary.
 
 Run against dist/ after a build:   python3 scripts/check-links-backwards.py
 Exits non-zero if any lesson points forward.
@@ -44,10 +51,10 @@ seq = json.loads(subprocess.run(
 
 order = {l['h'].rstrip('/'): i for i, l in enumerate(seq)}
 
-# The one declared exception. A demo under /deep-dive/<name> is an optional aside
-# into level 201, not a step in the course. The hub itself (/deep-dive) is a lesson,
-# so linking IT from an earlier lesson is still a forward link and still fails.
-DEEP_DIVE_ASIDE = re.compile(r'^/deep-dive/[^/]+/?$')
+# The one declared exception. A demo under /demos/<name> is an optional aside,
+# not a step in the course. If the hub is ever made a lesson again, linking IT
+# from an earlier lesson is a forward link and still fails.
+DEMO_ASIDE = re.compile(r'^/demos/[^/]+/?$')
 
 bad = []
 asides = 0
@@ -64,7 +71,7 @@ for href, pos in order.items():
     # Every internal link, not just /learn/* — that narrowing was the blind spot.
     for link in sorted(set(re.findall(r'href="(/[^"#?]*)', main))):
         target = link.rstrip('/')
-        if DEEP_DIVE_ASIDE.match(link):
+        if DEMO_ASIDE.match(link):
             asides += 1
             continue
         if target in order and order[target] > pos:
@@ -79,4 +86,4 @@ if bad:
     sys.exit(1)
 
 print(f'clean — no lesson links forward ({len(order)} lessons checked, '
-      f'{asides} declared deep-dive asides allowed)')
+      f'{asides} declared demo asides allowed)')

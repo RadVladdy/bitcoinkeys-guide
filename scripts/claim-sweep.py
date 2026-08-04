@@ -124,6 +124,39 @@ TOPICS = {
 SENTENCE = re.compile(r'[^.!?]*[.!?]')
 
 
+# Pages whose copy this sweep CANNOT read, filled in as it goes.
+#
+# THE LIMIT: this reads rendered <main>. A page that BUILDS its copy at runtime —
+# the finder's whole result screen, the plan's roadmap — puts none of that in the
+# HTML; Astro hoists the script to an external module and the sentences only
+# exist once the reader clicks. Nothing in a static read can see them.
+#
+# That is not a bug to fix by scanning minified JS. It is a limit that has to be
+# VISIBLE, because an empty report from a partial reader looks exactly like an
+# empty report from a complete one — and this file's whole job is telling a human
+# where to look.
+#
+# It has already cost something: "walkthrough" was retired vocabulary and this
+# sweep found one instance, on a lesson. Two more sat in the finder's result
+# markup — reader-visible, and structurally unreadable from here. Found by
+# grepping src/ by hand on 2026-08-04.
+#
+# The threshold is the excess over the site-wide baseline bundle (the nav's, on
+# every page). Listing all 48 pages would make this noise, and a warning that
+# fires everywhere is one nobody reads.
+UNREAD = {}
+RUNTIME_COPY_BYTES = 4096
+_bundles = []
+
+
+def unread_pages():
+    """Pages carrying materially more client JS than the site-wide baseline."""
+    if not _bundles:
+        return []
+    baseline = min(n for _, n in _bundles if n) if any(n for _, n in _bundles) else 0
+    return sorted(u for u, n in _bundles if n - baseline > RUNTIME_COPY_BYTES)
+
+
 def pages():
     for f in sorted(DIST.rglob('index.html')):
         url = f.parent.relative_to(DIST).as_posix()
@@ -131,6 +164,10 @@ def pages():
         html = f.read_text()
         if '<main' not in html or '</main>' not in html:
             continue
+        mods = {m for m in re.findall(r'src="(/_astro/[^"]+\.js)"', html)}
+        js = sum((DIST / m.lstrip('/')).stat().st_size
+                 for m in mods if (DIST / m.lstrip('/')).exists())
+        _bundles.append((url, js))
         body = html[html.index('<main'):html.index('</main>')]
         body = re.sub(r'<(script|style)[^>]*>.*?</\1>', '', body, flags=re.S)
         text = re.sub(r'<[^>]+>', ' ', body)
@@ -173,3 +210,10 @@ if __name__ == '__main__':
         total += sweep(name, TOPICS[name])
     print(f'\n{"─" * 78}\n{total} sentences across {len(want)} topic(s). '
           f'This is a reading list, not a verdict — invariant #11.')
+    unread = unread_pages()
+    if unread:
+        print('\n⚠ NOT SWEPT — these pages BUILD their copy at runtime, in a client '
+              'script this cannot read.\n  Grep src/ by hand before calling a topic '
+              'done. "Walkthrough" hid here for a fortnight:')
+        for url in unread:
+            print(f'    {url}')

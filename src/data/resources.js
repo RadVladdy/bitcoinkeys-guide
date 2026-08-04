@@ -25,7 +25,7 @@ export const resources = [
     ]
   },
   {
-    "name": "Video walkthroughs",
+    "name": "Video guides",
     "items": [
       {
         "title": "BTC Sessions (YouTube)",

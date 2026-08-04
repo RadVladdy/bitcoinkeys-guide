@@ -9,6 +9,12 @@
 // Entry types: 'price' | 'device' | 'spec' | 'security' | 'feature' | 'content'
 export const changelog = [
   {
+    date: '2026-08-04',
+    type: 'feature',
+    title: 'The interactive demos moved to a simpler address',
+    detail: 'They live at /demos now instead of /deep-dive. NOTHING ABOUT THEM CHANGED — same eleven demonstrations, same real cryptography running on throwaway keys in your own browser, same links from the lessons. Only the address in your bar is different, and every old link still works: a bookmark, a shared link, or an entry further down this log will take you straight to the same page. WHY BOTHER. "Deep dive" was the name of a course level we removed at the start of the month, when running a node became the last lesson of the long-haul level and the demos stopped pretending to be a chapter you had to complete. The menu has said "Interactive demos" ever since, so the only place the retired name survived was the address bar and a handful of "deeper dive" links inside the lessons. Two names for one thing is how a guide starts contradicting itself, and this one was ours rather than yours. The lesson links now say "See it work" and point at a demo, which is what they do.',
+  },
+  {
     date: '2026-08-03',
     type: 'feature',
     title: 'The word-table page was still handing you all eight sheets at once',

@@ -56,7 +56,7 @@ const nextLevel = levelById('102');
       Hold the key, hold the coins. Lose the key, lose the coins. There’s no bank to call to reset it,
       because there’s no bank — there’s just the key.
     </p>
-    <p class="deeper"><strong>Deeper dive:</strong> <a href="/deep-dive/key-space">see why that key can’t be guessed →</a> — the number of possible keys is so vast it stops feeling like a number.</p>
+    <p class="deeper"><strong>See it work:</strong> <a href="/demos/key-space">see why that key can’t be guessed →</a> — the number of possible keys is so vast it stops feeling like a number.</p>
 
     <h2>2 · The seed words <em>are</em> that key</h2>
     <p>
@@ -91,7 +91,7 @@ const nextLevel = levelById('102');
       </p>
     </div>
 
-    <p class="deeper"><strong>Deeper dive:</strong> <a href="/deep-dive/seed">watch a seed get created, one step at a time →</a> — a throwaway seed, generated safely in your browser. Or <a href="/deep-dive/dice">roll your own with dice →</a>.</p>
+    <p class="deeper"><strong>See it work:</strong> <a href="/demos/seed">watch a seed get created, one step at a time →</a> — a throwaway seed, generated safely in your browser. Or <a href="/demos/dice">roll your own with dice →</a>.</p>
 
     <h2>3 · Private key → public key → address</h2>
     <p>
@@ -136,7 +136,7 @@ const nextLevel = levelById('102');
     </p>
 
     <Diagram name="keys-mailbox" caption="Your address is the mail slot — anyone can drop coins in, and it gives nothing away about the key. The private key is the only thing that opens the back." />
-    <p class="deeper"><strong>Deeper dive:</strong> <a href="/deep-dive/addresses">see the four address formats one key produces →</a> — why addresses start with <span class="mono">1</span>, <span class="mono">3</span>, <span class="mono">bc1q</span>, or <span class="mono">bc1p</span>. Or <a href="/deep-dive/hd-tree">watch one seed grow a whole tree of them →</a>.</p>
+    <p class="deeper"><strong>See it work:</strong> <a href="/demos/addresses">see the four address formats one key produces →</a> — why addresses start with <span class="mono">1</span>, <span class="mono">3</span>, <span class="mono">bc1q</span>, or <span class="mono">bc1p</span>. Or <a href="/demos/hd-tree">watch one seed grow a whole tree of them →</a>.</p>
 
     <h2>4 · So what is a “wallet”, then?</h2>
     <p>
@@ -178,7 +178,7 @@ const nextLevel = levelById('102');
     </div>
 
     <Diagram name="multisig" caption="One way to arrange keys — 2-of-3 multisig: three keys exist, any two together approve a spend, so no single key is a point of failure." />
-    <p class="deeper"><strong>Deeper dive:</strong> <a href="/deep-dive/multisig">tap through a live 2-of-3 wallet →</a> — three real keys, and watch any two approve a spend.</p>
+    <p class="deeper"><strong>See it work:</strong> <a href="/demos/multisig">tap through a live 2-of-3 wallet →</a> — three real keys, and watch any two approve a spend.</p>
 
     <h2 id="signing">5 · Signing — proving it’s you without showing the key</h2>
     <p>
@@ -202,7 +202,7 @@ const nextLevel = levelById('102');
     </p>
 
     <Diagram name="signing" caption="You never send your key. The device signs inside itself and sends out a signature — proof anyone can check, but no one can reverse into the key." />
-    <p class="deeper"><strong>Deeper dive:</strong> <a href="/deep-dive/signing">sign a payment yourself →</a> — then try to tamper with it and watch the signature break.</p>
+    <p class="deeper"><strong>See it work:</strong> <a href="/demos/signing">sign a payment yourself →</a> — then try to tamper with it and watch the signature break.</p>
 
     </section>
 

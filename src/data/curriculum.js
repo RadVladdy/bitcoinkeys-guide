@@ -41,7 +41,7 @@
 // URLs moved to /learn/ in the same pass. The old /how-to/ prefix was the same
 // group-by-format habit the menu had already shed, and several pages under it were
 // not how-tos at all. /learn/* is now the course; everything else (/quiz, /wallets,
-// /glossary, /deep-dive…) is tools and reference. Old paths 301 in public/_redirects.
+// /glossary, /demos…) is tools and reference. Old paths 301 in public/_redirects.
 //
 // This file is the ONE source for: the Learn mega-menu, the /start syllabus, the
 // prev/next lesson footer, and the /learn index. Add a lesson here and every one of
@@ -132,11 +132,11 @@ export const levels = [
 
 // LEVEL 201 "UNDER THE HOOD" WAS REMOVED 2026-08-01. It held exactly two things
 // and they were different kinds of thing: a real lesson (run a node, now the
-// last lesson of 104) and /deep-dive, which is a TOOL — a hub of eleven
+// last lesson of 104) and /demos, which is a TOOL — a hub of eleven
 // interactive demos with no reading position, no rule, and nothing to complete.
 //
 // Counting the demo hub as "lesson 18" is what forced the whole no-forward-links
-// invariant to carry a named exception for /deep-dive/* links: every aside into a
+// invariant to carry a named exception for /demos/* links: every aside into a
 // demo looked like a link to material further along the course, because
 // structurally it was one. It never was. The demos now live in the Tools & demos
 // menu group where the rest of the interactive material sits, and an aside into

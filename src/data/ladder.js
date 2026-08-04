@@ -94,7 +94,7 @@ export const ladder = [
     solves: 'A found or photographed seed is no longer enough to steal your coins. Plausible deniability.',
     introduces: 'A new way to lose everything — forget the passphrase and the funds are gone, even with the seed.',
     built: true,
-    whatItIs: 'Exactly rung 1, plus a passphrase you set when you set up the wallet. The seed phrase on its own opens one wallet — a <em>decoy</em>. The seed phrase <strong>plus</strong> the passphrase opens a different, hidden wallet — your real one. The passphrase is sometimes called the “25th word.” <a href="/deep-dive/passphrase">Watch a passphrase open a different wallet →</a>',
+    whatItIs: 'Exactly rung 1, plus a passphrase you set when you set up the wallet. The seed phrase on its own opens one wallet — a <em>decoy</em>. The seed phrase <strong>plus</strong> the passphrase opens a different, hidden wallet — your real one. The passphrase is sometimes called the “25th word.” <a href="/demos/passphrase">Watch a passphrase open a different wallet →</a>',
     gains: [
       '<strong>Protection against a found seed.</strong> A metal backup someone discovers, a photographed seed, a seed pulled off a compromised device — none of them alone can spend your real funds.',
       '<strong>Plausible deniability.</strong> The decoy wallet doesn’t look like a decoy. Under coercion you can hand over the seed and the (small) decoy wallet without revealing the real one.',
@@ -164,7 +164,7 @@ export const ladder = [
     solves: 'Removes the single point of failure entirely. One key can be lost OR stolen and you’re still safe.',
     introduces: 'Six-plus items to manage, the <a href="/glossary#wallet-descriptor">wallet descriptor</a> to protect, and real operational complexity.',
     built: true,
-    whatItIs: 'A wallet made of several keys where more than one is needed to sign — most commonly <strong>2-of-3</strong>: three keys, any two together can spend. Each key ideally lives on its own hardware device, from a <em>different</em> manufacturer, all held by you. The keys live in different places (a common split: home, a bank safe-deposit box, and a trusted family member or second property). This is the first rung that genuinely removes single points of failure for personal-scale holdings. <a href="/deep-dive/multisig">Tap through a live 2-of-3 wallet →</a>',
+    whatItIs: 'A wallet made of several keys where more than one is needed to sign — most commonly <strong>2-of-3</strong>: three keys, any two together can spend. Each key ideally lives on its own hardware device, from a <em>different</em> manufacturer, all held by you. The keys live in different places (a common split: home, a bank safe-deposit box, and a trusted family member or second property). This is the first rung that genuinely removes single points of failure for personal-scale holdings. <a href="/demos/multisig">Tap through a live 2-of-3 wallet →</a>',
     // LAYER 1 AND 2. Added 2026-08-03. The mechanism that has to land is
     // that a multisig wallet is defined by a POLICY, not by a device — which is the
     // only way the descriptor stops being an odd extra file to look after and
@@ -283,7 +283,7 @@ export const shamirNote = {
   solves: 'No single backup location is a complete secret. Distribute shares across people or places.',
   introduces: 'At recovery the seed is reassembled on one device — a momentary single point. And more parts to track.',
   built: true,
-  whatItIs: 'This isn’t a signing configuration like the rungs — it’s a <strong>backup method</strong>, which is why it sits beside the ladder rather than on it. Instead of one or two complete seed backups, a single seed is mathematically split into several <em>shares</em> — for example, five shares where any three can rebuild the seed, but two or fewer reveal nothing at all. You distribute the shares across locations or trusted people. <a href="/deep-dive/shamir">Split a secret and rebuild it yourself →</a>',
+  whatItIs: 'This isn’t a signing configuration like the rungs — it’s a <strong>backup method</strong>, which is why it sits beside the ladder rather than on it. Instead of one or two complete seed backups, a single seed is mathematically split into several <em>shares</em> — for example, five shares where any three can rebuild the seed, but two or fewer reveal nothing at all. You distribute the shares across locations or trusted people. <a href="/demos/shamir">Split a secret and rebuild it yourself →</a>',
   gains: [
     '<strong>A single found share is useless.</strong> Someone who discovers one share (below the threshold) learns nothing about your seed.',
     '<strong>Redundancy without full copies.</strong> In a 3-of-5 split you can lose two shares entirely and still recover.',
@@ -304,7 +304,7 @@ export const shamirNote = {
 
 export const bip85 = {
   name: 'BIP-85 — the orthogonal simplifier',
-  note: 'BIP-85 sits beside the ladder rather than on it: it derives many child seeds from one master, cutting how many backups you keep. Useful at any rung — but it concentrates failure on that one master, which must then be protected at the level of everything derived from it. <a href="/deep-dive/bip85">See one master spawn child seeds →</a>',
+  note: 'BIP-85 sits beside the ladder rather than on it: it derives many child seeds from one master, cutting how many backups you keep. Useful at any rung — but it concentrates failure on that one master, which must then be protected at the level of everything derived from it. <a href="/demos/bip85">See one master spawn child seeds →</a>',
 };
 
 export function getRung(slug) {

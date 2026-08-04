@@ -5,7 +5,7 @@ import DemoMotif from '../components/DemoMotif.astro';
 import { lessonCount, levels } from '../data/curriculum.js';
 import { finderPromiseCap } from '../data/quiz.js';
 import { ruleByKey, ruleCountWord, umbrella } from '../data/rules.js';
-import { deepDives, featuredDives } from '../data/deepdives.js';
+import { demos, featuredDemos } from '../data/demos.js';
 import { custodians } from '../data/custodians.js';
 import { wallets, coldWallets, spendingWallets, disqualifiedWallets, tierCountWord } from '../data/wallets.js';
 
@@ -220,9 +220,9 @@ const optional = levels.filter((lv) => lv.optional);
 
   <section class="dives">
     <h2>Under the hood — see it for yourself</h2>
-    <p class="sub prose" style="margin-bottom:1.4rem;">You don’t need any of this to hold Bitcoin safely. It’s here so you don’t have to take it on faith: {deepDives.length} demos that run the real cryptography in your own browser, on throwaway keys, with nothing sent anywhere. <strong>None of them will ever ask for your seed words</strong> — that’s the whole point.</p>
+    <p class="sub prose" style="margin-bottom:1.4rem;">You don’t need any of this to hold Bitcoin safely. It’s here so you don’t have to take it on faith: {demos.length} demos that run the real cryptography in your own browser, on throwaway keys, with nothing sent anywhere. <strong>None of them will ever ask for your seed words</strong> — that’s the whole point.</p>
     <div class="d-rail">
-      {featuredDives.map((d) => (
+      {featuredDemos.map((d) => (
         <a href={d.href} class="d-card">
           <span class="d-art"><DemoMotif motif={d.motif} /></span>
           <span class="d-body">
@@ -233,7 +233,7 @@ const optional = levels.filter((lv) => lv.optional);
         </a>
       ))}
     </div>
-    <p class="sub" style="margin-top:1.2rem; font-size:0.9rem;"><a class="tap-link" href="/deep-dive">All {deepDives.length} demos →</a></p>
+    <p class="sub" style="margin-top:1.2rem; font-size:0.9rem;"><a class="tap-link" href="/demos">All {demos.length} demos →</a></p>
   </section>
 </Base>
 

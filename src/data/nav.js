@@ -77,7 +77,7 @@ export const navGroups = [
     // together. Order below is what-you-came-for first: browse the demos, then
     // the procedure, then the sheet the procedure needs.
     links: [
-      { href: '/deep-dive', label: 'Interactive demos' },
+      { href: '/demos', label: 'Interactive demos' },
       { href: '/roll-your-own-seed', label: 'Roll your own seed' },
       { href: '/dice-word-table', label: 'Dice → word table' },
     ],
