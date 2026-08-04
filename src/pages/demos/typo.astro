@@ -1,15 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import '../../styles/demo.css';
-import { seedLengthByKey } from '../../data/dice.js';
-import { numberWord } from '../../data/numbers.js';
-
-// THE ODDS A MISCOPIED PHRASE STILL VALIDATES, derived — never typed.
-// The checksum is `shape.checksum` bits, so a wrong phrase passes 1 in 2^that.
-// This demo uses a 12-word seed (4 bits → 1 in 16). If it ever showed 24 words
-// the figure moves to 1 in 256 on its own, which is the point of deriving it.
-const shape12 = seedLengthByKey['12'].shape;
-const passOdds = 2 ** shape12.checksum;
+import Typo from '../../components/demos/Typo.astro';
 ---
 <Base
   title="How the checksum catches a typo in your seed · BitcoinKeys.guide"
@@ -26,55 +18,10 @@ const passOdds = 2 ** shape12.checksum;
       slip a typo past it. <strong>Then read the part underneath the demo</strong>, because "most of the time" is doing real work in
       that sentence.
     </p>
-    <div class="callout danger" role="note">
-      <span class="label">🛑 A demonstration — never your real seed</span>
-      <p style="margin:0">The seed below is <strong>randomly generated in your browser</strong> and thrown away when you leave.
-        <strong>Never type your own seed words into any website.</strong> There's no free text box here, on purpose.</p>
-    </div>
   </section>
 
   <section>
-    <div class="demo" id="typo-demo">
-      <div id="intro" class="intro">
-        <p class="intro-lead">Make a valid throwaway seed, then tap a word to "miscopy" it.</p>
-        <button id="go" class="btn-go" type="button">🎲 Generate a valid seed</button>
-        <p class="intro-note mono">Runs entirely in your browser · nothing is sent, saved, or logged.</p>
-      </div>
-
-      <div id="result" hidden>
-        <div class="verdict" id="verdict"></div>
-        <p class="demo-cap" style="text-align:center;margin:1.1rem 0 0.6rem">Tap any word to introduce a typo — tap it again to fix it:</p>
-        <div class="words" id="words"></div>
-        <p class="hint mono" id="hint"></p>
-
-        {/* THE HONEST HALF, and it is the reason this demo exists in a guide
-            rather than as a toy. Everything above shows the checksum WORKING —
-            deliberately, because corruptWord() picks a replacement that always
-            breaks the maths. A reader who leaves with only that has been given
-            a reason NOT to test their backup, which is the single practice this
-            site cares most about. /learn/generate-your-seed already told them
-            the truth; for a fortnight this page told them something else. */}
-        <div class="callout warn" style="margin-top:1.3rem">
-          <span class="label">⚠️ A safety net, not a guarantee — and this demo is stacked in your favour</span>
-          <p style="margin:0">To make the point cleanly, this page always swaps in a word that <em>breaks</em> the maths. Real
-            miscopying is not so obliging. Roughly <strong>one wrong phrase in {numberWord(passOdds)}</strong> still adds up —
-            the checksum passes, <strong>no error appears at all</strong>, and a real, perfectly ordinary,
-            <strong>empty</strong> wallet opens instead of yours. Nothing tells you it is the wrong one.
-            <br><br>That is why a phrase being accepted is <strong>not</strong> proof your backup works. The only proof is
-            restoring from it — wiping a device and bringing the wallet back from your written words — before you trust it with
-            anything. It is a lesson of its own later in the course.</p>
-        </div>
-
-        <div class="callout" style="margin-top:1.3rem">
-          <span class="label">How it works</span>
-          <p style="margin:0">The last word isn't random — it packs a <strong>checksum</strong>: a few bits computed from all the other words
-            (you saw this in <a href="/demos/seed">how a seed is born</a>). Change a word and that math usually no longer adds up, so the
-            wallet knows something's off and stops you <em>before</em> you rely on a broken backup.</p>
-        </div>
-        <p class="honest mono">The checksum catches about <b>15 of every 16</b> single-word slips — a strong safety net, not a guarantee. Always verify your backup by test-restoring it.</p>
-        <button class="btn-regen" id="regen" type="button">↻ New seed</button>
-      </div>
-    </div>
+    <Typo />
   </section>
 
   <section class="prose">
@@ -86,66 +33,6 @@ const passOdds = 2 ** shape12.checksum;
   </section>
 </Base>
 
-<script>
-  let libs = null;
-  async function loadLibs() {
-    if (libs) return libs;
-    const [bip39, en] = await Promise.all([import('@scure/bip39'), import('@scure/bip39/wordlists/english.js')]);
-    libs = { generateMnemonic: bip39.generateMnemonic, validateMnemonic: bip39.validateMnemonic, wordlist: en.wordlist };
-    return libs;
-  }
-  const $ = (id) => document.getElementById(id);
-  const esc = (s) => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
-
-  let orig = [];      // original valid words
-  let cur = [];       // current words
-  let changed = [];   // booleans
-  let L = null;
-
-  // Pick a replacement for word i that guarantees the phrase becomes invalid (so the demo reliably shows the catch).
-  function corruptWord(i) {
-    const idx = L.wordlist.indexOf(orig[i]);
-    for (let k = 1; k <= 8; k++) {
-      const cand = L.wordlist[(idx + k) % 2048];
-      const trial = cur.slice(); trial[i] = cand;
-      if (!L.validateMnemonic(trial.join(' '), L.wordlist)) return cand;
-    }
-    return L.wordlist[(idx + 1) % 2048]; // fallback (extremely unlikely)
-  }
-
-  function paint() {
-    const valid = L.validateMnemonic(cur.join(' '), L.wordlist);
-    const v = $('verdict');
-    v.className = 'verdict ' + (valid ? 'ok' : 'no');
-    v.innerHTML = valid
-      ? `<span class="v-ico">✓</span><span class="v-msg">Valid — a wallet would accept this backup</span>`
-      : `<span class="v-ico">✗</span><span class="v-msg">Rejected — the checksum no longer matches</span>`;
-    $('words').innerHTML = cur.map((w, i) => `<button class="word${changed[i] ? ' bad' : ''}" type="button" data-i="${i}">
-      <span class="wi mono">${i + 1}</span><span class="wt">${esc(w)}</span>
-      ${changed[i] ? `<span class="was mono">was: ${esc(orig[i])}</span>` : ''}</button>`).join('');
-    $('words').querySelectorAll('.word').forEach((b) => b.addEventListener('click', () => toggle(+b.dataset.i)));
-    const nBad = changed.filter(Boolean).length;
-    $('hint').textContent = nBad === 0
-      ? 'All twelve words are correct — the phrase is valid.'
-      : `${nBad} word${nBad > 1 ? 's' : ''} changed — the wallet caught it.`;
-  }
-  function toggle(i) {
-    if (changed[i]) { cur[i] = orig[i]; changed[i] = false; }
-    else { cur[i] = corruptWord(i); changed[i] = true; }
-    paint();
-  }
-  async function generate() {
-    L = await loadLibs();
-    orig = L.generateMnemonic(L.wordlist, 128).split(' ');
-    cur = orig.slice();
-    changed = orig.map(() => false);
-    $('intro').hidden = true; $('result').hidden = false;
-    paint();
-  }
-  $('go').addEventListener('click', () => { $('go').disabled = true; generate().catch((e) => { $('go').disabled = false; console.error(e); }); });
-  $('regen').addEventListener('click', () => generate());
-</script>
-
 <style>
   .cta-row { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.2rem; }
   .btn { display: inline-flex; align-items: center; background: var(--accent); color: var(--accent-ink); font-weight: 700;
@@ -154,26 +41,3 @@ const passOdds = 2 ** shape12.checksum;
   .btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
 </style>
 
-<style is:global>
-  #typo-demo .verdict { display: flex; align-items: center; justify-content: center; gap: 0.7rem; padding: 0.9rem;
-    border-radius: 0.6rem; border: 1px solid var(--line); }
-  #typo-demo .verdict.ok { border-color: var(--safe); background: var(--safe-dim); }
-  #typo-demo .verdict.no { border-color: var(--warn); background: var(--warn-dim); }
-  #typo-demo .verdict .v-ico { font-size: 1.3rem; font-weight: 800; }
-  #typo-demo .verdict.ok .v-ico, #typo-demo .verdict.ok .v-msg { color: var(--safe); }
-  #typo-demo .verdict.no .v-ico, #typo-demo .verdict.no .v-msg { color: var(--warn); }
-  #typo-demo .verdict .v-msg { font-weight: 700; font-size: 1rem; }
-  #words { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
-  @media (max-width: 560px) { #words { grid-template-columns: repeat(2, 1fr); } }
-  #words .word { display: flex; align-items: baseline; gap: 0.45rem; cursor: pointer; text-align: left;
-    background: var(--surface-2); border: 1px solid var(--line); border-radius: 0.45rem; padding: 0.5rem 0.7rem;
-    font-size: 0.92rem; font-weight: 600; color: var(--text); position: relative; }
-  #words .word:hover { border-color: var(--accent); }
-  #words .word.bad { border-color: var(--warn); background: var(--warn-dim); color: var(--warn); }
-  #words .wi { color: var(--faint); font-size: 0.72rem; min-width: 1.1rem; }
-  #words .word.bad .wi { color: var(--warn); }
-  #words .was { position: absolute; right: 0.5rem; bottom: 0.15rem; font-size: 0.6rem; font-weight: 500; color: var(--faint); }
-  #typo-demo .hint { text-align: center; color: var(--muted); font-size: 0.8rem; margin: 0.8rem 0 0; }
-  #typo-demo .honest { text-align: center; color: var(--faint); font-size: 0.75rem; margin: 0.9rem 0 0; line-height: 1.5; }
-  #typo-demo .honest b { color: var(--muted); }
-</style>

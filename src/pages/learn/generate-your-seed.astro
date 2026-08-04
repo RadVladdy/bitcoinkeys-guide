@@ -21,6 +21,7 @@ import {
 import { seedCosts } from '../../data/dice-table.js';
 import { shortName } from '../../data/wallets.js';
 import LessonClose from '../../components/LessonClose.astro';
+import Typo from '../../components/demos/Typo.astro';
 import { activeAdvisories } from '../../data/advisories.js';
 import { numberWord } from '../../data/numbers.js';
 
@@ -123,6 +124,19 @@ const s12 = seedLengthByKey['12'];
         who does not exist yet. We recommend {s24.words} words; {s12.words} is not negligent.
       </li>
     </ul>
+
+    {/* INLINE, immediately under the paragraph it is evidence for. This lesson
+        names the checksum three times and is the only one that does; the demo
+        makes the mechanism visible, and — since 2026-08-04 — carries the same
+        caveat this list already gave, that a small fraction of wrong words pass
+        silently. It was placed here rather than on Testing a backup precisely
+        because that lesson never mentions the checksum: the demo belongs where
+        the mechanism is taught, not where the word "typo" would fit.
+        /demos/typo is unchanged and still its own page; same component. */}
+    <div class="inline-demo">
+      <p class="idemo-k mono">Try it here — the same demo that lives on its own page</p>
+      <Typo />
+    </div>
   </section>
 
   <section class="prose">
