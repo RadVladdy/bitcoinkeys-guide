@@ -21,13 +21,16 @@ import {
   passphraseTargets, PBKDF2_ITERATIONS,
 } from '../data/dice.js';
 import { seedCosts, tableRowCount, DICE_PER_WORD } from '../data/dice-table.js';
+import { shortName } from '../data/wallets.js';
 import { pdfHref, printablePdfs } from '../data/pdf-version.js';
 
 // Option 4 has no procedure, so the tabs are exactly the doing options.
 const tabs = methods.filter((m) => DICE_METHOD_KEYS.includes(m.key));
 const procsFor = (key) => deviceProcedures.filter((p) => (p.options || []).includes(key));
-const trim = (n) => n.replace(' (BTC-only)', '').replace('Blockstream ', '').replace('Foundation ', '');
-const devicesFor = (key) => ratedDevicesForMethod(key).map((d) => trim(d.name));
+// The short-name rule is wallets.js's. There were three copies of it — here,
+// on the seed lesson, and nowhere canonical — and check-device-coverage.py has
+// to recognise a device on the built page by the form the page printed.
+const devicesFor = (key) => ratedDevicesForMethod(key).map((d) => shortName(d.name));
 // The two lengths this guide's worksheet covers, by POSITION rather than by a
 // typed word count. Everything the page says about length — the counts, the bit
 // figures, the vendor roll minimums — comes off these, so the copy cannot drift

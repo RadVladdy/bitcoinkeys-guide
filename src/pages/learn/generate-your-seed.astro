@@ -19,6 +19,7 @@ import {
   seedLengthByKey, WORDLIST_SIZE, bitsPerWord,
 } from '../../data/dice.js';
 import { seedCosts } from '../../data/dice-table.js';
+import { shortName } from '../../data/wallets.js';
 import { activeAdvisories } from '../../data/advisories.js';
 import { numberWord } from '../../data/numbers.js';
 
@@ -26,7 +27,11 @@ const advisory = activeAdvisories.find((a) => a.vendor === 'Coinkite') || null;
 
 // Device support per option, joined from the same data /wallets filters on, so
 // a tile can never disagree with the comparison table.
-const trim = (n) => n.replace(' (BTC-only)', '').replace('Blockstream ', '').replace('Foundation ', '');
+//
+// The short-name rule is wallets.js's, not this page's. It used to be a local
+// `trim` here, and check-device-coverage.py has to recognise these devices on
+// the built page by the form the page prints.
+const trim = shortName;
 const optionTiles = methods.map((m) => ({
   ...m,
   devices: m.key === 'device' ? null : ratedDevicesForMethod(m.key).map((d) => trim(d.name)),

@@ -44,7 +44,7 @@ export const walletsVerified = '2026-07-31';
 // reproducible · recoverability), it needs a caveat saying so in words.
 
 // rating scale used in the compare table + chooser badges: 'yes' | 'partial' | 'no'
-import { diceCapability, SUPPORTED, DICE_METHOD_KEYS } from './dice.js';
+import { diceCapability, SUPPORTED, DICE_METHOD_KEYS, deviceDice } from './dice.js';
 
 export const wallets = [
   {
@@ -439,6 +439,25 @@ for (const w of wallets) {
   w.diceEntropy = DICE_METHOD_KEYS.some((k) => SUPPORTED.has(cap[k])) ? 'yes' : 'no';
 }
 
+// AND THE OTHER DIRECTION, which was open. The loop above catches a device we
+// rate with no dice entry; it cannot catch a dice entry claiming `rated: true`
+// for something this file does not rate. That entry would be published on the
+// seed lesson as one of the devices we rate — a roster of thirteen presented
+// under a heading that counts twelve — and every assert either file has would
+// pass, because each is internally consistent. `rated` is the join key between
+// two hand-maintained lists, so it is asserted in both directions or in neither.
+{
+  const ours = new Set(wallets.map((w) => w.name));
+  const strays = deviceDice.filter((d) => d.rated && !ours.has(d.name)).map((d) => d.name);
+  if (strays.length) {
+    throw new Error(
+      `wallets.js: dice.js marks ${strays.join(', ')} as rated, but this file does not rate `
+      + 'it. Either add the device here or set rated:false — the seed lesson publishes '
+      + "dice.js's rated set as \"the devices we rate\".",
+    );
+  }
+}
+
 // Derived groupings — nothing here is hand-maintained.
 export const tierOf = (w) => w.tier || 'cold';
 export const gateByKey = Object.fromEntries(standardGates.map((g) => [g.key, g]));
@@ -519,6 +538,18 @@ export const deviceCatalog = wallets.map((w) => ({
   tier: w.tier || 'cold',
 }));
 export const deviceBySlug = Object.fromEntries(deviceCatalog.map((d) => [d.slug, d]));
+
+// The SHORT display name — what a page prints where the maker is already obvious
+// from the surrounding sentence ("Jade Core", not "Blockstream Jade Core").
+//
+// Exported rather than kept local because it had been local: /learn/generate-
+// your-seed carried its own copy, and scripts/check-device-coverage.py has to
+// recognise a device on the BUILT page by whatever form the page chose to print.
+// A second copy of a naming rule does not announce itself when it drifts — the
+// checker simply stops finding a device and reports a page as incomplete, which
+// reads exactly like the bug it exists to catch.
+export const shortName = (n) =>
+  n.replace(' (BTC-only)', '').replace('Blockstream ', '').replace('Foundation ', '');
 export function deviceName(slug) { return (deviceBySlug[slug] && deviceBySlug[slug].name) || slug; }
 // Map a device display name (as the quiz recommends devices by name) → its slug.
 const _slugByName = Object.fromEntries(deviceCatalog.map((d) => [d.name, d.slug]));
