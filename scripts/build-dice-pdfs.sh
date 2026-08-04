@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 # Build every dice PDF this site ships, from the BUILT pages.
 #
+# THIS IS THE ONLY DICE PDF BUILDER. A `build-dice-pdf.sh` (singular) used to
+# sit beside it rebuilding the legacy public/dice-word-table.pdf, and nothing
+# distinguished the two by name. That file is frozen now and nothing on the site
+# offers it — see src/data/pdf-version.js.
+#
 # THREE DOCUMENTS, and they are ASSEMBLED FROM RENDERED SHEETS, never re-laid-out:
 #
 #   public/bip39-word-table.pdf   the reference table on its own          (4 pp)

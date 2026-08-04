@@ -56,6 +56,14 @@ export function pdfHref(path) {
  * everything-at-once document these three replaced; the file stays in public/
  * so any existing bookmark or printed reference still resolves, but nothing
  * offers it.
+ *
+ * IT IS FROZEN, AND IT HAS NO BUILDER ANY MORE. `scripts/build-dice-pdf.sh`
+ * (singular) regenerated it from whatever /dice-word-table currently renders,
+ * which meant a page-layout change would silently rewrite an artifact people
+ * have already printed — and it sat next to build-dice-pdfs.sh with no way for
+ * a reader to tell which one was live. Cut 2026-08-04. The file is checked in
+ * and complete (8 sheets, all 2,048 words verified present); if it ever has to
+ * move, retire the URL with a `_redirects` line rather than rebuilding it.
  */
 export const printablePdfs = [
   { file: '/roll-24-word-seed.pdf', label: '24-word seed', note: 'method + worksheet + the table' },
