@@ -45,6 +45,10 @@ const passOdds = 2 ** shape12.checksum;
     <p class="demo-cap" style="text-align:center;margin:1.1rem 0 0.6rem">Tap any word to introduce a typo — tap it again to fix it:</p>
     <div class="words ty-words"></div>
     <p class="hint mono ty-hint"></p>
+    {/* BESIDE THE WORDS IT REPLACES. This sat at the very bottom, under two
+        callouts — you had to scroll past the whole explanation to roll a fresh
+        phrase. The gap got worse when the caveat callout was added. */}
+    <button class="btn-regen ty-regen" type="button">↻ New seed</button>
 
     {/* THE HONEST HALF, and it is the reason this demo exists in a guide
         rather than as a toy. Everything above shows the checksum WORKING —
@@ -70,8 +74,6 @@ const passOdds = 2 ** shape12.checksum;
         (you saw this in <a href="/demos/seed">how a seed is born</a>). Change a word and that math usually no longer adds up, so the
         wallet knows something's off and stops you <em>before</em> you rely on a broken backup.</p>
     </div>
-    <p class="honest mono">The checksum catches about <b>15 of every 16</b> single-word slips — a strong safety net, not a guarantee. Always verify your backup by test-restoring it.</p>
-    <button class="btn-regen ty-regen" type="button">↻ New seed</button>
   </div>
 </div>
 
@@ -161,6 +163,4 @@ const passOdds = 2 ** shape12.checksum;
   .ty-demo .ty-words .word.bad .wi { color: var(--warn); }
   .ty-demo .ty-words .was { position: absolute; right: 0.5rem; bottom: 0.15rem; font-size: 0.6rem; font-weight: 500; color: var(--faint); }
   .ty-demo .hint { text-align: center; color: var(--muted); font-size: 0.8rem; margin: 0.8rem 0 0; }
-  .ty-demo .honest { text-align: center; color: var(--faint); font-size: 0.75rem; margin: 0.9rem 0 0; line-height: 1.5; }
-  .ty-demo .honest b { color: var(--muted); }
 </style>
