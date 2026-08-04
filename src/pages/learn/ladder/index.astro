@@ -5,6 +5,7 @@ import LessonEyebrow from '../../../components/LessonEyebrow.astro';
 import Diagram from '../../../components/Diagram.astro';
 import RuleBand from '../../../components/RuleBand.astro';
 import { ladder } from '../../../data/ladder.js';
+import LessonClose from '../../../components/LessonClose.astro';
 
 // GAINED 2026-07-29: the "how much money at which temperature" material from the
 // retired hot-vs-cold page. Deciding what lives hot and what lives cold is a SETUP
@@ -175,8 +176,14 @@ const rungs = ladder;
         property of a tool, which is where it belongs anyway. */}
     <div class="callout">
       <span class="label">Which rung is yours?</span>
-      <p>This page teaches the ladder; it doesn’t place you on it. The rule it’s built on does most of that work for you — <strong>the lowest rung that covers what you’re actually protecting against, and no higher</strong> — and you’ve just read what each one costs to run, which is the half of the trade people skip. Nothing here needs deciding today. Choosing hardware and building the thing come later, and the course gets you there in order.</p>
+      <p>This page teaches the ladder; it doesn’t place you on it. The rule it’s built on does most of that work for you — <strong>the lowest rung that covers what you’re actually protecting against, and no higher</strong> — and you’ve just read what each one costs to run, which is the half of the trade people skip.</p>
     </div>
+
+    <LessonClose
+      learned="what each rung on the ladder solves, and what it charges you to run"
+      action="When you want the rung named for your own situation rather than in general, the setup finder walks five plain questions and a short risk assessment and tells you which one fits — erring toward the lowest that covers you, which is the rule this whole page is built on."
+      locate="/find-your-setup"
+    />
   </section>
 
   <LessonNav />

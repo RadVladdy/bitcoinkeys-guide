@@ -98,6 +98,35 @@ export const navGroups = [
   },
 ];
 
+// ── WHERE A PAGE LIVES, IN THE READER'S OWN MENU ───────────────────────────
+//
+// A lesson may not link to a take-action page (see LessonClose.astro), so it has
+// to TELL the reader where to find one instead — "in the Hardware & services
+// menu, under Metal backups." That sentence is a claim about another surface,
+// and this project's whole history says a claim typed once about a surface it
+// cannot see goes stale silently. So it is derived from the menu itself: rename
+// a nav label and every lesson describing it updates in the same build.
+//
+// THROWS rather than returning null. A lesson pointing a reader at a menu entry
+// that does not exist sends them looking for something they will not find, and
+// that failure is invisible to every link checker precisely because there is no
+// link to check. Failing the build is the only place it can be caught.
+export function navWhere(href) {
+  const clean = String(href || '').replace(/\/$/, '');
+  for (const g of navGroups) {
+    for (const l of g.links || []) {
+      if (l.href.replace(/\/$/, '') === clean) return { group: g.title, label: l.label };
+    }
+    const lead = g.lead;
+    if (lead && lead.href.replace(/\/$/, '') === clean) return { group: g.title, label: lead.pin || lead.label };
+  }
+  throw new Error(
+    `nav.js: navWhere("${href}") — no menu entry. A lesson describes where this page lives `
+    + 'in words rather than linking to it, so it has to BE in the menu. Add it to navGroups, '
+    + 'or point the lesson somewhere a reader can actually find.',
+  );
+}
+
 // A lean flat list of the journey's spine — kept in sync with the groups above.
 // Not currently rendered (the four dropdowns replaced it); retained for any
 // surface that wants the short path rather than the full map.

@@ -4,6 +4,7 @@ import LessonNav from '../../components/LessonNav.astro';
 import LessonEyebrow from '../../components/LessonEyebrow.astro';
 import { numberWord } from '../../data/numbers.js';
 import RuleBand from '../../components/RuleBand.astro';
+import LessonClose from '../../components/LessonClose.astro';
 import { levelById, lessonFor } from '../../data/curriculum.js';
 
 // "103 · The build" as PLAIN TEXT, derived. The `covered` lines below deliberately
@@ -218,9 +219,15 @@ const buckets = [
         pulling anyone forward (invariant #9). */}
     <p class="closer">
       <strong>And you don’t need to defend against all {numberWord(buckets.length)} equally.</strong> Which of them are
-      really yours depends on how much is at stake, and on how and where you hold it. That is what
-      {' '}{lvl('102')} is for.
+      really yours depends on how much is at stake, and on how and where you hold it — which is what
+      {' '}{lvl('102')} works out.
     </p>
+
+    <LessonClose
+      learned={`the ${numberWord(buckets.length)} ways Bitcoin is actually lost, and which defence answers each one`}
+      action="When you want that weighed against your own situation rather than the average holder's, the setup finder walks five plain questions and a short risk assessment — starting from the same base rates this lesson just taught — and names the setup that covers what is actually yours."
+      locate="/find-your-setup"
+    />
   </section>
 
   <LessonNav />

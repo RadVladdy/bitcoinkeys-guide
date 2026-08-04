@@ -20,6 +20,7 @@ import {
 } from '../../data/dice.js';
 import { seedCosts } from '../../data/dice-table.js';
 import { shortName } from '../../data/wallets.js';
+import LessonClose from '../../components/LessonClose.astro';
 import { activeAdvisories } from '../../data/advisories.js';
 import { numberWord } from '../../data/numbers.js';
 
@@ -231,17 +232,16 @@ const s12 = seedLengthByKey['12'];
     <ul class="dlist">
       {failureModes.map((f) => (<li><strong>{f.t}.</strong> {f.d}</li>))}
     </ul>
-    <h2 id="next">When you are ready to do it</h2>
-    <p>
-      The procedures are on their own page — pick the option your device allows and it walks you through
-      only that one. If you are going to choose every word yourself, print the table and the worksheet first.
-    </p>
-    <p class="cta-row">
-      <a class="btn" href="/roll-your-own-seed">The procedures, step by step <span class="arw">→</span></a>
-      <a class="btn ghost" href="/dice-word-table">Table, worksheet and PDF</a>
-      <a class="btn ghost" href="/wallets">See which devices allow it</a>
-    </p>
   </section>
+
+  <section class="prose">
+    <LessonClose
+      learned={`where a seed's randomness comes from, and which of the ${numberWord(methodCount)} options your own hardware will actually let you use`}
+      action="When you are ready to do it, the procedures are on their own page — you pick the option your device allows and it walks you through only that one, with the word table and worksheet printable from the same place."
+      locate="/roll-your-own-seed"
+    />
+  </section>
+
   <LessonNav />
 </Base>
 
@@ -265,11 +265,4 @@ const s12 = seedLengthByKey['12'];
 
   .dlist { padding-left: 1.1rem; }
   .dlist li { margin-bottom: .8rem; }
-  .cta-row { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: 1.4rem; }
-  .btn { display: inline-flex; align-items: center; background: var(--accent); color: var(--accent-ink);
-    font-weight: 700; font-family: var(--mono); font-size: .9rem; padding: .65rem 1rem;
-    border-radius: .6rem; text-decoration: none; }
-  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
-  .btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
-  .arw { margin-left: .4rem; }
 </style>

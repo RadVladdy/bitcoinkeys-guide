@@ -6,6 +6,7 @@ import { lessons } from '../../data/lessons.js';
 import RuleBand from '../../components/RuleBand.astro';
 import LessonEyebrow from '../../components/LessonEyebrow.astro';
 import LessonCheck from '../../components/LessonCheck.astro';
+import LessonClose from '../../components/LessonClose.astro';
 // Page order below is load-bearing: lesson body, then the lesson's own short
 // checklist, then the knowledge check, then prev/next. The check sits after the material it tests and before the exit.
 // LessonCheck self-locates by rule and renders nothing where a rule has no check;
@@ -88,7 +89,12 @@ const accentize = (title, phrase) => {
 
   <LessonCheck href={`/learn/${h.slug}`} />
 
-
+  {/* Optional per-lesson closer. Present only where the lesson HAS a
+      take-action counterpart — a hollow "here's where the doing lives" on a
+      lesson with nothing to do is noise, and seventeen of them would train the
+      reader to skip the one that matters. The curriculum links to no
+      take-action page, so this describes the location instead. */}
+  {h.close && <section class="prose"><LessonClose {...h.close} /></section>}
 
   <LessonNav />
   </div>

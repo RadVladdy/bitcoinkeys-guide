@@ -1,0 +1,68 @@
+---
+// THE LESSON'S CLOSING BLOCK — and the reason it exists is that the alternative
+// was a button.
+//
+// THE POLICY: the curriculum links to NO take-action page.
+// Not the finder, not the plan, not the checklist, not the hardware pages. A
+// lesson that ends in "Find your setup →" hands the reader a door out of a
+// seventeen-lesson course at the exact point the material starts paying off —
+// and the ones that did it sat at lessons 3, 6, 8, 9 and 10, all in the half
+// where a reader has the least context for the decision they are being offered.
+//
+// The reader still has to be told where the doing lives, or the course reads as
+// a dead end. So this says it IN WORDS: what they just learned, that they are in
+// the course, and where the customized version of it is — named by its menu
+// group and its menu label, both derived from nav.js. The reader navigates
+// there themselves, which costs them one click and keeps the sequence intact.
+//
+// `locate` IS NOT AN HREF AND MUST NEVER BE RENDERED AS ONE. It is a lookup key
+// into the menu. It is named `locate` rather than `href` or `to` precisely so
+// that the next person to edit this file cannot reach for it absent-mindedly and
+// re-open the thing the policy closed. navWhere() throws at build if the page is
+// not in the menu — a lesson that sends a reader to a menu entry which does not
+// exist is a failure no link checker can see, because there is no link.
+//
+// WHAT IS STILL ALLOWED, so this is not read as a ban on all links: backward
+// links to earlier lessons, the glossary, and asides into /demos/* (limited,
+// self-contained, and they return the reader to the same place). Those are
+// references inside the material. This is about EXITS.
+import { navWhere } from '../data/nav.js';
+
+const { learned, action, locate } = Astro.props;
+const where = navWhere(locate);
+---
+<div class="lesson-close">
+  <span class="lc-label">You've learned it — here's where the doing lives</span>
+  <p>
+    That's the concept: {learned}. This is the course, and the course teaches — it doesn't set
+    anything up for you. {action} It's in the <strong>{where.group}</strong> menu, under
+    <strong>{where.label}</strong>, whenever you want it.
+  </p>
+</div>
+
+<style>
+  /* Reads as a closing note, not a call to action — deliberately quieter than
+     the callouts above it. It used to be a primary button; the whole point is
+     that it no longer competes with the next lesson. */
+  .lesson-close {
+    border-top: 1px solid var(--line);
+    margin: 2.2rem 0 0;
+    padding-top: 1.1rem;
+  }
+  .lc-label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 0.5rem;
+  }
+  .lesson-close p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 0.94rem;
+    line-height: 1.6;
+  }
+  .lesson-close strong { color: var(--text); }
+</style>
