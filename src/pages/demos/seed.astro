@@ -1,5 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
+import '../../styles/demo.css';
+import Seed from '../../components/demos/Seed.astro';
 ---
 <Base
   title="How a seed is born — watch one get created · BitcoinKeys.guide"
@@ -15,39 +17,10 @@ import Base from '../../layouts/Base.astro';
       to 12 words to a Bitcoin address.
     </p>
 
-    <div class="callout danger" role="note">
-      <span class="label">🛑 This is a demonstration — never your real seed</span>
-      <p style="margin:0">
-        The seed below is <strong>randomly generated in your browser</strong> and thrown away the moment you
-        leave. <strong>Never type your own seed words into any website — including this one.</strong> Notice
-        there's no input box here: that's on purpose. A guide that asks for your seed is a guide trying to rob you.
-      </p>
-    </div>
   </section>
 
   <section>
-    <div id="seed-demo" class="demo">
-      <div id="intro" class="intro">
-        <p class="intro-lead">Ready? We'll flip 128 digital coins and turn them into a seed phrase.</p>
-        <button id="go" class="btn-go" type="button">🎲 Generate a throwaway seed</button>
-        <p class="intro-note mono">Runs entirely in your browser · nothing is sent, saved, or logged.</p>
-      </div>
-
-      <div id="stepper" class="stepper" hidden>
-        <div class="step-top">
-          <span class="step-count mono">Step <b id="step-n">1</b> / 7</span>
-          <span class="step-title" id="step-title"></span>
-        </div>
-        <div class="step-body" id="step-body"></div>
-        <div class="step-cap" id="step-cap"></div>
-        <div class="step-nav">
-          <button id="back" class="btn-nav" type="button">← Back</button>
-          <div class="dots" id="dots" aria-hidden="true"></div>
-          <button id="next" class="btn-nav next" type="button">Next →</button>
-        </div>
-        <button id="regen" class="btn-regen" type="button">↻ Roll a different seed</button>
-      </div>
-    </div>
+    <Seed />
   </section>
 
   <section class="prose">
@@ -66,116 +39,6 @@ import Base from '../../layouts/Base.astro';
     </p>
   </section>
 </Base>
-
-<script>
-  // Heavy crypto libs load only when the user clicks Generate (keeps the page light).
-  let libs = null;
-  async function loadLibs() {
-    if (libs) return libs;
-    const [bip39, en, bip32, btc] = await Promise.all([
-      import('@scure/bip39'),
-      import('@scure/bip39/wordlists/english.js'),
-      import('@scure/bip32'),
-      import('@scure/btc-signer'),
-    ]);
-    libs = { mnemonicToSeedSync: bip39.mnemonicToSeedSync, wordlist: en.wordlist, HDKey: bip32.HDKey, p2wpkh: btc.p2wpkh };
-    return libs;
-  }
-
-  const $ = (id) => document.getElementById(id);
-  const toHex = (u8) => [...u8].map((b) => b.toString(16).padStart(2, '0')).join('');
-  const toBits = (u8) => [...u8].map((b) => b.toString(2).padStart(8, '0')).join('');
-
-  let data = null;      // computed seed data
-  let step = 1;
-  const STEPS = 7;
-
-  async function generate() {
-    const { mnemonicToSeedSync, wordlist, HDKey, p2wpkh } = await loadLibs();
-    // 128 bits of throwaway entropy
-    const entropy = crypto.getRandomValues(new Uint8Array(16));
-    const hash = new Uint8Array(await crypto.subtle.digest('SHA-256', entropy));
-    const entBits = toBits(entropy);                 // 128
-    const csBits = toBits(hash.slice(0, 1)).slice(0, 4); // 4 (ENT/32)
-    const allBits = entBits + csBits;                // 132
-    const chunks = allBits.match(/.{11}/g);          // 12 x 11
-    const rows = chunks.map((c, i) => ({ bits: c, num: parseInt(c, 2), word: wordlist[parseInt(c, 2)] }));
-    const words = rows.map((r) => r.word);
-    const mnemonic = words.join(' ');
-    const seed = mnemonicToSeedSync(mnemonic);
-    const hd = HDKey.fromMasterSeed(seed).derive("m/84'/0'/0'/0/0");
-    const address = p2wpkh(hd.publicKey).address;
-    data = { entHex: toHex(entropy), hashHex: toHex(hash), firstByteBits: toBits(hash.slice(0, 1)),
-             entBits, csBits, allBits, rows, words, mnemonic, seedHex: toHex(seed), address };
-    step = 1;
-    $('intro').hidden = true;
-    $('stepper').hidden = false;
-    render();
-  }
-
-  const esc = (s) => { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; };
-  const bitsHtml = (bits, cls) => `<span class="bits ${cls || ''}">${bits.replace(/(.{4})/g, '$1 ').trim()}</span>`;
-
-  const TITLES = [
-    'Pure randomness', 'Hash it (make the checksum)', 'Bolt the checksum on', 'Twelve chunks',
-    'Chunks become words', 'Your seed phrase', 'From words to an address',
-  ];
-  const CAPS = [
-    "Your device just flipped 128 coins. That's it — no company, no account. Whoever holds this number holds the coins.",
-    "Run the 128 bits through SHA-256 — a one-way fingerprint. We throw away almost all of it and keep only the very first 4 bits (that's 128 ÷ 32). Those 4 bits are the checksum.",
-    "Tack the 4 checksum bits onto the end of the 128 — now 132 bits. If you ever miscopy a word, a wallet re-hashes and this mismatch flags the typo before you lose anything.",
-    "The 132 bits get sliced into twelve equal chunks of 11 bits each. Eleven bits can count from 0 to 2047 — remember that number.",
-    "There's a fixed, public list of exactly 2048 words. Each chunk's number picks one word. Same list on every brand of wallet — that's why backups are portable.",
-    "These twelve words ARE your key, in a form a human can write down. Anyone who reads them can take everything; lose them with no backup and it's gone.",
-    "Stretched into a 512-bit master seed, the words unlock an endless tree of keys. Here's the very first receive address. The same words always rebuild the same wallet.",
-  ];
-
-  function stepBody(n) {
-    const d = data;
-    if (n === 1) return `<div class="panel">${bitsHtml(d.entBits, 'ent')}</div>
-      <p class="micro mono">128 bits — the entropy</p>`;
-    if (n === 2) return `<div class="panel"><div class="flow">
-        <div class="fbox"><span class="fh">the 128 bits, written as hex</span><span class="fv mono">${d.entHex}</span></div>
-        <span class="farrow">↓ SHA-256 (a one-way hash)</span>
-        <div class="fbox"><span class="fh">256-bit hash — we only look at the start</span><span class="fv mono"><b class="cs">${d.hashHex.slice(0, 2)}</b><span class="dimhex">${d.hashHex.slice(2)}</span></span></div>
-        <span class="farrow">↓ first byte <b class="cs">${d.hashHex.slice(0, 2)}</b> = <b class="cs">${d.firstByteBits.slice(0, 4)}</b>${d.firstByteBits.slice(4)} — keep the first 4</span>
-        <div class="fbox"><span class="fh">checksum (4 bits)</span><span class="fv mono cs csbig">${d.csBits}</span></div>
-      </div></div>`;
-    if (n === 3) return `<div class="panel">${bitsHtml(d.entBits, 'ent')} ${bitsHtml(d.csBits, 'cs')}</div>
-      <p class="micro mono"><span class="k ent">128 random</span> + <span class="k cs">4 checksum</span> = 132 bits</p>`;
-    if (n === 4) return `<div class="panel chunks">${d.rows.map((r, i) => `<span class="chunk"><span class="chunk-i mono">${i + 1}</span>${r.bits}</span>`).join('')}</div>
-      <p class="micro mono">12 chunks × 11 bits</p>`;
-    if (n === 5) return `<div class="panel"><table class="maptable">
-        <thead><tr><th>#</th><th>11 bits</th><th>=</th><th>№</th><th>word</th></tr></thead>
-        <tbody>${d.rows.map((r, i) => `<tr><td class="mono dim">${i + 1}</td><td class="mono">${r.bits}</td><td class="dim">→</td><td class="mono num">${r.num}</td><td class="w">${esc(r.word)}</td></tr>`).join('')}</tbody>
-      </table></div>`;
-    if (n === 6) return `<div class="panel words">${d.words.map((w, i) => `<span class="word${i === 11 ? ' last' : ''}"><span class="wi mono">${i + 1}</span>${esc(w)}</span>`).join('')}</div>
-      <p class="micro mono">word 12 carries the checksum</p>`;
-    if (n === 7) return `<div class="panel flow">
-        <div class="fbox"><span class="fh mono">12 words</span><span class="fv">${esc(d.words.slice(0, 2).join(' '))} … ${esc(d.words[11])}</span></div>
-        <span class="farrow">↓ PBKDF2 (2048 rounds)</span>
-        <div class="fbox"><span class="fh mono">512-bit master seed</span><span class="fv mono seedv">${d.seedHex.slice(0, 32)}…</span></div>
-        <span class="farrow">↓ derive m/84'/0'/0'/0/0</span>
-        <div class="fbox addr"><span class="fh mono">first receive address</span><span class="fv mono addrv">${esc(d.address)}</span></div>
-      </div>`;
-    return '';
-  }
-
-  function render() {
-    $('step-n').textContent = String(step);
-    $('step-title').textContent = TITLES[step - 1];
-    $('step-body').innerHTML = stepBody(step);
-    $('step-cap').textContent = CAPS[step - 1];
-    $('back').disabled = step === 1;
-    $('next').textContent = step === STEPS ? 'Done ✓' : 'Next →';
-    $('dots').innerHTML = Array.from({ length: STEPS }, (_, i) => `<span class="dot${i + 1 === step ? ' on' : ''}"></span>`).join('');
-  }
-
-  $('go').addEventListener('click', () => { $('go').disabled = true; $('go').textContent = 'Flipping coins…'; generate().catch((e) => { $('go').disabled = false; $('go').textContent = '🎲 Generate a throwaway seed'; console.error(e); }); });
-  $('regen').addEventListener('click', () => generate());
-  $('next').addEventListener('click', () => { if (step < STEPS) { step++; render(); } });
-  $('back').addEventListener('click', () => { if (step > 1) { step--; render(); } });
-</script>
 
 <style>
   .demo { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 1.6rem 1.4rem; margin: 1.4rem 0; }
@@ -213,41 +76,3 @@ import Base from '../../layouts/Base.astro';
   .btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
 </style>
 
-<style is:global>
-  /* Step content is injected via innerHTML (no Astro scope attr), so these must be global — namespaced under #step-body so they can't leak. */
-  #step-body .panel { width: 100%; background: var(--bg); border: 1px solid var(--line); border-radius: 0.6rem; padding: 1rem; overflow-x: auto; }
-  #step-body .bits { font-family: var(--mono); font-size: 0.9rem; line-height: 1.9; letter-spacing: 0.04em; word-break: break-all; }
-  #step-body .bits.ent { color: var(--text); }
-  #step-body .bits.cs { color: var(--accent); font-weight: 700; }
-  #step-body .micro { color: var(--muted); font-size: 0.8rem; margin: 0.7rem 0 0; text-align: center; }
-  #step-body .k { padding: 0.05rem 0.35rem; border-radius: 0.3rem; }
-  #step-body .k.ent { background: var(--surface-2); }
-  #step-body .k.cs { color: var(--accent); background: var(--accent-soft); }
-  #step-body .chunks { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-  #step-body .chunk { font-family: var(--mono); font-size: 0.82rem; background: var(--surface-2); border: 1px solid var(--line);
-    border-radius: 0.4rem; padding: 0.3rem 0.5rem; display: inline-flex; align-items: center; gap: 0.4rem; letter-spacing: 0.03em; }
-  #step-body .chunk-i { color: var(--faint); font-size: 0.68rem; }
-  #step-body .maptable { width: 100%; border-collapse: collapse; font-size: 0.86rem; }
-  #step-body .maptable th { text-align: left; color: var(--faint); font-family: var(--mono); font-size: 0.68rem; text-transform: uppercase;
-    letter-spacing: 0.08em; padding: 0.2rem 0.6rem; border-bottom: 1px solid var(--line); }
-  #step-body .maptable td { padding: 0.28rem 0.6rem; border-bottom: 1px solid var(--line-soft); }
-  #step-body .maptable .num { color: var(--accent); }
-  #step-body .maptable .w { font-weight: 600; }
-  #step-body .maptable .dim { color: var(--faint); }
-  #step-body .words { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
-  #step-body .word { display: flex; align-items: baseline; gap: 0.45rem; background: var(--surface-2); border: 1px solid var(--line);
-    border-radius: 0.45rem; padding: 0.5rem 0.7rem; font-size: 0.95rem; font-weight: 600; }
-  #step-body .word.last { border-color: var(--accent); }
-  #step-body .wi { color: var(--faint); font-size: 0.72rem; min-width: 1.1rem; }
-  #step-body .flow { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; text-align: center; }
-  #step-body .fbox { width: 100%; max-width: 30rem; background: var(--surface-2); border: 1px solid var(--line); border-radius: 0.55rem; padding: 0.7rem 0.9rem; }
-  #step-body .fbox.addr { border-color: var(--safe); }
-  #step-body .fh { display: block; color: var(--faint); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.2rem; }
-  #step-body .fv { font-size: 0.92rem; word-break: break-all; }
-  #step-body .addrv { color: var(--safe); font-weight: 600; }
-  #step-body .farrow { color: var(--muted); font-family: var(--mono); font-size: 0.74rem; }
-  #step-body .cs { color: var(--accent); font-weight: 700; }
-  #step-body .csbig { font-size: 1.15rem; letter-spacing: 0.14em; }
-  #step-body .dimhex { color: var(--faint); }
-  @media (max-width: 560px) { #step-body .words { grid-template-columns: repeat(2, 1fr); } }
-</style>

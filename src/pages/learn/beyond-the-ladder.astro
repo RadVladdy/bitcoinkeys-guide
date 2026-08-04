@@ -12,6 +12,8 @@ import LessonNav from '../../components/LessonNav.astro';
 import LessonEyebrow from '../../components/LessonEyebrow.astro';
 import Diagram from '../../components/Diagram.astro';
 import { shamirNote, bip85 } from '../../data/ladder.js';
+import Shamir from '../../components/demos/Shamir.astro';
+import '../../styles/demo.css';
 
 // ADDED 2026-07-30. Both of these used to be callouts on the ladder page, which was
 // wrong twice over: they are not rungs (neither changes how many keys sign), and a
@@ -87,7 +89,18 @@ const s = shamirNote;
 
     <h3>Who should use it</h3>
     <p set:html={s.whoShould}></p>
-    <p class="deeper"><strong>See it work:</strong> <a href="/demos/shamir">split a throwaway secret into shares →</a> — then try to rebuild it with too few and watch it fail.</p>
+
+    {/* INLINE. This lesson is the shortest of the three that reference demos
+        (877 words), and Shamir is the claim readers most often disbelieve —
+        that two shares reveal literally nothing. Reading that is not the same
+        as dropping a share and watching the value mask itself. The component
+        carries its own "never your real seed" callout, so inlining it cannot
+        leave the warning behind. /demos/shamir is unchanged and still its own
+        page; this is the same component, not a copy. */}
+    <div class="inline-demo">
+      <p class="idemo-k mono">Try it here — the same demo that lives on its own page</p>
+      <Shamir />
+    </div>
   </section>
 
   <section class="prose">

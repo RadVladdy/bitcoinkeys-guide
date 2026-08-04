@@ -1,0 +1,178 @@
+---
+// THE 2²⁵⁶ DEMO, as a component so it can run in TWO places at once: its own
+// page at /demos/key-space, and inline in /learn/bitcoin-keys §1, where the
+// lesson makes the claim this makes concrete.
+//
+// WHY A COMPONENT AND NOT A COPY. Two renderings of one demo is the failure
+// this repo keeps meeting — the dice table shipped as two layouts of one
+// artifact for two days. The standalone page and the lesson import the same
+// file, so they cannot drift.
+//
+// EVERY SELECTOR IS SCOPED TO A ROOT, and that is not tidiness. This demo used
+// `document.getElementById('go')`, and so does the seed demo — both are now
+// inlined into the SAME lesson, so a page-wide id lookup would have wired the
+// key-space button to whichever element the parser reached first. Ids are
+// classes now and the script walks `[data-ks]`, so any number of instances on
+// one page each drive their own markup.
+//
+// The comparison chart is server-rendered; the scenario cards are injected at
+// runtime, so their styles have to be `is:global` — a scoped style cannot match
+// markup the component did not render itself, and that failure is silent.
+
+// Orders of magnitude (log10), sorted ascending — used for the comparison chart.
+const scale = [
+  { label: 'Seconds since the Big Bang', log: 17.6 },
+  { label: 'Grains of sand on all of Earth', log: 18.9 },
+  { label: 'Stars in the observable universe', log: 24 },
+  { label: 'Atoms in your body', log: 27.8 },
+  { label: 'Atoms in the entire planet Earth', log: 50.1 },
+  { label: 'Possible Bitcoin private keys (2²⁵⁶)', log: 77.1, hot: true },
+  { label: 'Atoms in the observable universe', log: 80 },
+];
+const MAX = 80;
+---
+<div class="demo ks-demo" data-ks>
+  <div class="ks-intro intro">
+    <p class="intro-lead">Generate one random key — then watch how hopeless it is to guess it.</p>
+    <button class="ks-go btn-go" type="button">🎲 Pick a random key to "guess"</button>
+    <p class="intro-note mono">Runs entirely in your browser · nothing is sent, saved, or logged.</p>
+  </div>
+
+  <div class="ks-result" hidden>
+    <div class="fbox" style="max-width:none">
+      <span class="fh">a random 256-bit private key — one of 2²⁵⁶ possibilities</span>
+      <span class="fv mono keyv ks-target"></span>
+    </div>
+
+    <div class="counter">
+      <div class="ctr-line"><span class="ctr-label">Keys your browser has tried so far:</span> <span class="ctr-num mono ks-tried">0</span></div>
+      <div class="ctr-line"><span class="ctr-label">Share of all possible keys checked:</span> <span class="ctr-pct mono ks-pct">0.000000000000000000000000%</span></div>
+    </div>
+
+    <p class="demo-cap" style="text-align:center;margin:1.4rem 0 0.5rem">
+      Now suppose you had <em>real</em> computing power, running non-stop <strong>since the Big Bang</strong>. How much of the
+      keyspace would you cover?
+    </p>
+    <div class="scenarios ks-scenarios"></div>
+
+    <p class="demo-cap" style="text-align:center;margin:1.6rem 0 0.6rem">And here's that number next to things we usually call "countless":</p>
+    <div class="chart">
+      {scale.map((s) => (
+        <div class={"bar-row" + (s.hot ? " hot" : "")}>
+          <span class="bar-label">{s.label}</span>
+          <span class="bar-track"><span class="bar-fill" style={`width:${(s.log / MAX * 100).toFixed(1)}%`}></span></span>
+          <span class="bar-mag mono">10<sup>{Math.round(s.log)}</sup></span>
+        </div>
+      ))}
+      <p class="chart-foot mono">Bars are on a logarithmic scale — each step right is 10× bigger. On a normal scale, the key bar would dwarf the others off the edge of the screen.</p>
+    </div>
+
+    <button class="btn-regen ks-regen" type="button">↻ Pick another key</button>
+  </div>
+</div>
+
+<script>
+  const AGE = 4.355e17;                 // seconds since the Big Bang
+  const LOG2_256 = 256 * Math.log10(2); // ≈ 77.06
+
+  const SCENARIOS = [
+    { who: 'A fast laptop', detail: 'a billion guesses every second', kps: 1e9 },
+    { who: 'The entire Bitcoin mining network', detail: 'all the world’s miners at once', kps: 1e21 },
+    { who: 'A trillion planets', detail: 'each with its own Bitcoin network', kps: 1e33 },
+    { who: 'Every atom in the Earth', detail: 'each one a billion-guess-per-second computer', kps: 1.33e59 },
+  ];
+
+  // Format the fraction of 2^256 covered as a human string + a "leading zeros" count.
+  function fmt(kps) {
+    const logPct = Math.log10(kps) + Math.log10(AGE) - LOG2_256 + 2; // log10 of the percentage
+    if (logPct >= 0) {
+      const v = Math.pow(10, logPct);
+      return { headline: '≈ ' + (v >= 10 ? v.toFixed(0) : v.toFixed(1)) + '%', sub: 'a coin-flip — for one single key', big: true };
+    }
+    const zeros = -Math.floor(logPct) - 1;
+    const mant = Math.pow(10, logPct - Math.floor(logPct)); // 1..10
+    const digits = mant.toFixed(2).replace('.', '');
+    return { headline: zeros + ' zeros', sub: '0.' + '0'.repeat(Math.min(zeros, 30)) + (zeros > 30 ? '…' : '') + digits + '% of all keys', big: false };
+  }
+
+  // One handler set PER INSTANCE. Each closure keeps its own timer and counter,
+  // so two of these on one page do not share state or fight over an interval.
+  document.querySelectorAll('[data-ks]').forEach((root) => {
+    const q = (c) => root.querySelector('.' + c);
+
+    function paintScenarios() {
+      q('ks-scenarios').innerHTML = SCENARIOS.map((s) => {
+        const f = fmt(s.kps);
+        return `<div class="scn${f.big ? ' climax' : ''}">
+          <div class="scn-who">${s.who}</div>
+          <div class="scn-detail">${s.detail}, running since the Big Bang</div>
+          <div class="scn-headline">${f.headline}${f.big ? '' : '<span class="scn-hz"> before the first real digit</span>'}</div>
+          <div class="scn-sub mono">${f.sub}</div>
+        </div>`;
+      }).join('');
+    }
+
+    let timer = null, tried = 0;
+    function startCounter() {
+      if (timer) clearInterval(timer);
+      tried = 0;
+      timer = setInterval(() => {
+        tried += Math.floor(4e8 + Math.random() * 6e8); // ~half a billion "guesses" per tick
+        q('ks-tried').textContent = tried.toLocaleString();
+        q('ks-pct').textContent = '0.' + '0'.repeat(24) + '% (still nothing)';
+      }, 250);
+    }
+
+    function generate() {
+      const key = crypto.getRandomValues(new Uint8Array(32));
+      q('ks-target').textContent = [...key].map((b) => b.toString(16).padStart(2, '0')).join('');
+      paintScenarios();
+      startCounter();
+      q('ks-intro').hidden = true;
+      q('ks-result').hidden = false;
+    }
+    q('ks-go').addEventListener('click', generate);
+    q('ks-regen').addEventListener('click', generate);
+  });
+</script>
+
+<style>
+  /* Server-rendered chart — scoped styles are fine here because this component
+     rendered every one of these elements itself. */
+  .chart { margin-top: 0.4rem; }
+  .bar-row { display: grid; grid-template-columns: 1fr 2fr auto; align-items: center; gap: 0.7rem; padding: 0.35rem 0; }
+  .bar-label { font-size: 0.82rem; color: var(--muted); text-align: right; }
+  .bar-track { height: 0.85rem; background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .bar-fill { display: block; height: 100%; background: color-mix(in srgb, var(--faint) 55%, var(--surface)); }
+  .bar-mag { font-size: 0.72rem; color: var(--faint); min-width: 3.2rem; }
+  .bar-row.hot .bar-label { color: var(--accent); font-weight: 700; }
+  .bar-row.hot .bar-fill { background: var(--accent); }
+  .bar-row.hot .bar-mag { color: var(--accent); font-weight: 700; }
+  .chart-foot { color: var(--faint); font-size: 0.75rem; margin: 0.7rem 0 0; text-align: center; line-height: 1.5; }
+  @media (max-width: 560px) {
+    .bar-row { grid-template-columns: 1fr auto; }
+    .bar-track { display: none; }
+    .bar-label { text-align: left; }
+  }
+</style>
+
+<style is:global>
+  /* The scenario cards are injected by the script, so a scoped rule would match
+     nothing — the injector differs from the renderer and the failure is silent.
+     Keyed on .ks-demo rather than an id so several instances all pick it up. */
+  .ks-demo .keyv { color: var(--accent); font-size: 0.82rem; word-break: break-all; }
+  .ks-demo .counter { margin-top: 1rem; background: var(--bg); border: 1px solid var(--line); border-radius: 0.6rem; padding: 0.8rem 1rem; }
+  .ks-demo .ctr-line { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: space-between; padding: 0.2rem 0; }
+  .ks-demo .ctr-label { color: var(--muted); font-size: 0.85rem; }
+  .ks-demo .ctr-num { color: var(--text); font-size: 0.85rem; }
+  .ks-demo .ctr-pct { color: var(--warn); font-size: 0.8rem; }
+  .ks-demo .scenarios { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
+  @media (max-width: 620px) { .ks-demo .scenarios { grid-template-columns: 1fr; } }
+  .ks-demo .scn { background: var(--surface-2); border: 1px solid var(--line); border-radius: 0.7rem; padding: 0.9rem 1rem; }
+  .ks-demo .scn.climax { border-color: var(--accent); background: var(--accent-soft); }
+  .ks-demo .scn-who { font-weight: 700; font-size: 0.95rem; }
+  .ks-demo .scn-detail { color: var(--muted); font-size: 0.78rem; margin: 0.15rem 0 0.6rem; line-height: 1.45; }
+  .ks-demo .scn-headline { font-size: 1.35rem; font-weight: 800; color: var(--accent); }
+  .ks-demo .scn-hz { font-size: 0.72rem; font-weight: 500; color: var(--muted); }
+  .ks-demo .scn-sub { color: var(--faint); font-size: 0.72rem; margin-top: 0.3rem; word-break: break-all; }
+</style>

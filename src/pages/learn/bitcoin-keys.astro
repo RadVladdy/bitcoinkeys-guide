@@ -4,6 +4,9 @@ import LessonNav from '../../components/LessonNav.astro';
 import LessonEyebrow from '../../components/LessonEyebrow.astro';
 import Diagram from '../../components/Diagram.astro';
 import RuleBand from '../../components/RuleBand.astro';
+import KeySpace from '../../components/demos/KeySpace.astro';
+import Seed from '../../components/demos/Seed.astro';
+import '../../styles/demo.css';
 import { levelById } from '../../data/curriculum.js';
 
 // The level named in prose below is DERIVED, never typed. It was typed until
@@ -56,7 +59,18 @@ const nextLevel = levelById('102');
       Hold the key, hold the coins. Lose the key, lose the coins. There’s no bank to call to reset it,
       because there’s no bank — there’s just the key.
     </p>
-    <p class="deeper"><strong>See it work:</strong> <a href="/demos/key-space">see why that key can’t be guessed →</a> — the number of possible keys is so vast it stops feeling like a number.</p>
+
+    {/* INLINE, not a link out. The section above asserts that a key cannot be
+        guessed; this is where the reader can check that for themselves without
+        leaving the lesson. Chosen first of the seven demos this page references
+        because it is the ONLY one that generates no seed — so it needs no "never
+        your real seed" warning, and it costs the page ~1,000px rather than
+        ~1,150. The standalone /demos/key-space is unchanged and still linked
+        from the demos hub; this is the same component, not a copy. */}
+    <div class="inline-demo">
+      <p class="idemo-k mono">Try it here — the same demo that lives on its own page</p>
+      <KeySpace />
+    </div>
 
     <h2>2 · The seed words <em>are</em> that key</h2>
     <p>
@@ -91,7 +105,19 @@ const nextLevel = levelById('102');
       </p>
     </div>
 
-    <p class="deeper"><strong>See it work:</strong> <a href="/demos/seed">watch a seed get created, one step at a time →</a> — a throwaway seed, generated safely in your browser. Or <a href="/demos/dice">roll your own with dice →</a>.</p>
+
+    {/* INLINE, and the second demo on this page — which is exactly why both
+        were rewritten to root-scoped selectors. Each originally queried
+        `document.getElementById('go')`, so together they would have wired both
+        buttons to whichever the parser reached first.
+
+        Seven steps and still the third-most-compact demo on the site (610px),
+        because a stepper swaps content instead of stacking it. It carries its
+        own "never your real seed" callout. */}
+    <div class="inline-demo">
+      <p class="idemo-k mono">Try it here — the same demo that lives on its own page</p>
+      <Seed />
+    </div>
 
     <h2>3 · Private key → public key → address</h2>
     <p>

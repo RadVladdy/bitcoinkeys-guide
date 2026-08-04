@@ -1,18 +1,7 @@
 ---
 import Base from '../../layouts/Base.astro';
 import '../../styles/demo.css';
-
-// Orders of magnitude (log10), sorted ascending — used for the comparison chart.
-const scale = [
-  { label: 'Seconds since the Big Bang', log: 17.6 },
-  { label: 'Grains of sand on all of Earth', log: 18.9 },
-  { label: 'Stars in the observable universe', log: 24 },
-  { label: 'Atoms in your body', log: 27.8 },
-  { label: 'Atoms in the entire planet Earth', log: 50.1 },
-  { label: 'Possible Bitcoin private keys (2²⁵⁶)', log: 77.1, hot: true },
-  { label: 'Atoms in the observable universe', log: 80 },
-];
-const MAX = 80;
+import KeySpace from '../../components/demos/KeySpace.astro';
 ---
 <Base
   title="Why a Bitcoin key can't be guessed — the scale of 2²⁵⁶ · BitcoinKeys.guide"
@@ -30,45 +19,7 @@ const MAX = 80;
   </section>
 
   <section>
-    <div class="demo" id="ks-demo">
-      <div id="intro" class="intro">
-        <p class="intro-lead">Generate one random key — then watch how hopeless it is to guess it.</p>
-        <button id="go" class="btn-go" type="button">🎲 Pick a random key to "guess"</button>
-        <p class="intro-note mono">Runs entirely in your browser · nothing is sent, saved, or logged.</p>
-      </div>
-
-      <div id="result" hidden>
-        <div class="fbox" style="max-width:none">
-          <span class="fh">a random 256-bit private key — one of 2²⁵⁶ possibilities</span>
-          <span class="fv mono keyv" id="target"></span>
-        </div>
-
-        <div class="counter">
-          <div class="ctr-line"><span class="ctr-label">Keys your browser has tried so far:</span> <span class="ctr-num mono" id="tried">0</span></div>
-          <div class="ctr-line"><span class="ctr-label">Share of all possible keys checked:</span> <span class="ctr-pct mono" id="pct">0.000000000000000000000000%</span></div>
-        </div>
-
-        <p class="demo-cap" style="text-align:center;margin:1.4rem 0 0.5rem">
-          Now suppose you had <em>real</em> computing power, running non-stop <strong>since the Big Bang</strong>. How much of the
-          keyspace would you cover?
-        </p>
-        <div class="scenarios" id="scenarios"></div>
-
-        <p class="demo-cap" style="text-align:center;margin:1.6rem 0 0.6rem">And here's that number next to things we usually call "countless":</p>
-        <div class="chart">
-          {scale.map((s) => (
-            <div class={"bar-row" + (s.hot ? " hot" : "")}>
-              <span class="bar-label">{s.label}</span>
-              <span class="bar-track"><span class="bar-fill" style={`width:${(s.log / MAX * 100).toFixed(1)}%`}></span></span>
-              <span class="bar-mag mono">10<sup>{Math.round(s.log)}</sup></span>
-            </div>
-          ))}
-          <p class="chart-foot mono">Bars are on a logarithmic scale — each step right is 10× bigger. On a normal scale, the key bar would dwarf the others off the edge of the screen.</p>
-        </div>
-
-        <button class="btn-regen" id="regen" type="button">↻ Pick another key</button>
-      </div>
-    </div>
+    <KeySpace />
   </section>
 
   <section class="prose">
@@ -87,65 +38,6 @@ const MAX = 80;
   </section>
 </Base>
 
-<script>
-  const $ = (id) => document.getElementById(id);
-  const AGE = 4.355e17;                 // seconds since the Big Bang
-  const LOG2_256 = 256 * Math.log10(2); // ≈ 77.06
-
-  const SCENARIOS = [
-    { who: 'A fast laptop', detail: 'a billion guesses every second', kps: 1e9 },
-    { who: 'The entire Bitcoin mining network', detail: 'all the world’s miners at once', kps: 1e21 },
-    { who: 'A trillion planets', detail: 'each with its own Bitcoin network', kps: 1e33 },
-    { who: 'Every atom in the Earth', detail: 'each one a billion-guess-per-second computer', kps: 1.33e59 },
-  ];
-
-  // Format the fraction of 2^256 covered as a human string + a "leading zeros" count.
-  function fmt(kps) {
-    const logPct = Math.log10(kps) + Math.log10(AGE) - LOG2_256 + 2; // log10 of the percentage
-    if (logPct >= 0) {
-      const v = Math.pow(10, logPct);
-      return { headline: '≈ ' + (v >= 10 ? v.toFixed(0) : v.toFixed(1)) + '%', sub: 'a coin-flip — for one single key', big: true };
-    }
-    const zeros = -Math.floor(logPct) - 1;
-    const mant = Math.pow(10, logPct - Math.floor(logPct)); // 1..10
-    const digits = mant.toFixed(2).replace('.', '');
-    return { headline: zeros + ' zeros', sub: '0.' + '0'.repeat(Math.min(zeros, 30)) + (zeros > 30 ? '…' : '') + digits + '% of all keys', big: false };
-  }
-
-  function paintScenarios() {
-    $('scenarios').innerHTML = SCENARIOS.map((s) => {
-      const f = fmt(s.kps);
-      return `<div class="scn${f.big ? ' climax' : ''}">
-        <div class="scn-who">${s.who}</div>
-        <div class="scn-detail">${s.detail}, running since the Big Bang</div>
-        <div class="scn-headline">${f.headline}${f.big ? '' : '<span class="scn-hz"> before the first real digit</span>'}</div>
-        <div class="scn-sub mono">${f.sub}</div>
-      </div>`;
-    }).join('');
-  }
-
-  let timer = null, tried = 0;
-  function startCounter() {
-    if (timer) clearInterval(timer);
-    tried = 0;
-    timer = setInterval(() => {
-      tried += Math.floor(4e8 + Math.random() * 6e8); // ~half a billion "guesses" per tick
-      $('tried').textContent = tried.toLocaleString();
-      $('pct').textContent = '0.' + '0'.repeat(24) + '% (still nothing)';
-    }, 250);
-  }
-
-  function generate() {
-    const key = crypto.getRandomValues(new Uint8Array(32));
-    $('target').textContent = [...key].map((b) => b.toString(16).padStart(2, '0')).join('');
-    paintScenarios();
-    startCounter();
-    $('intro').hidden = true; $('result').hidden = false;
-  }
-  $('go').addEventListener('click', generate);
-  $('regen').addEventListener('click', generate);
-</script>
-
 <style>
   .cta-row { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.2rem; }
   .btn { display: inline-flex; align-items: center; background: var(--accent); color: var(--accent-ink); font-weight: 700;
@@ -153,38 +45,5 @@ const MAX = 80;
   .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
   .btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
 
-  /* the comparison chart is server-rendered, so it uses scoped styles */
-  .chart { margin-top: 0.4rem; }
-  .bar-row { display: grid; grid-template-columns: 1fr 2fr auto; align-items: center; gap: 0.7rem; padding: 0.35rem 0; }
-  .bar-label { font-size: 0.82rem; color: var(--muted); text-align: right; }
-  .bar-track { height: 0.85rem; background: var(--surface-2); border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
-  .bar-fill { display: block; height: 100%; background: color-mix(in srgb, var(--faint) 55%, var(--surface)); }
-  .bar-mag { font-size: 0.72rem; color: var(--faint); min-width: 3.2rem; }
-  .bar-row.hot .bar-label { color: var(--accent); font-weight: 700; }
-  .bar-row.hot .bar-fill { background: var(--accent); }
-  .bar-row.hot .bar-mag { color: var(--accent); font-weight: 700; }
-  .chart-foot { color: var(--faint); font-size: 0.75rem; margin: 0.7rem 0 0; text-align: center; line-height: 1.5; }
-  @media (max-width: 560px) {
-    .bar-row { grid-template-columns: 1fr auto; }
-    .bar-track { display: none; }
-    .bar-label { text-align: left; }
-  }
 </style>
 
-<style is:global>
-  #ks-demo .keyv { color: var(--accent); font-size: 0.82rem; word-break: break-all; }
-  #ks-demo .counter { margin-top: 1rem; background: var(--bg); border: 1px solid var(--line); border-radius: 0.6rem; padding: 0.8rem 1rem; }
-  #ks-demo .ctr-line { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: space-between; padding: 0.2rem 0; }
-  #ks-demo .ctr-label { color: var(--muted); font-size: 0.85rem; }
-  #ks-demo .ctr-num { color: var(--text); font-size: 0.85rem; }
-  #ks-demo .ctr-pct { color: var(--warn); font-size: 0.8rem; }
-  #scenarios { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; }
-  @media (max-width: 620px) { #scenarios { grid-template-columns: 1fr; } }
-  #scenarios .scn { background: var(--surface-2); border: 1px solid var(--line); border-radius: 0.7rem; padding: 0.9rem 1rem; }
-  #scenarios .scn.climax { border-color: var(--accent); background: var(--accent-soft); }
-  #scenarios .scn-who { font-weight: 700; font-size: 0.95rem; }
-  #scenarios .scn-detail { color: var(--muted); font-size: 0.78rem; margin: 0.15rem 0 0.6rem; line-height: 1.45; }
-  #scenarios .scn-headline { font-size: 1.35rem; font-weight: 800; color: var(--accent); }
-  #scenarios .scn-hz { font-size: 0.72rem; font-weight: 500; color: var(--muted); }
-  #scenarios .scn-sub { color: var(--faint); font-size: 0.72rem; margin-top: 0.3rem; word-break: break-all; }
-</style>

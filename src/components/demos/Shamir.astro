@@ -1,0 +1,184 @@
+---
+// THE SHAMIR DEMO, as a component so it runs in two places: its own page at
+// /demos/shamir, and inline in /learn/beyond-the-ladder, the lesson that
+// explains Shamir and BIP-85 together. The lesson explains, the demo shows.
+//
+// THE SAFETY CALLOUT IS PART OF THE COMPONENT, not of the page around it. It
+// used to sit in the standalone page's prose, above the widget — so inlining
+// the widget alone would have put a secret-splitting demo into a lesson with
+// no "never your real seed" warning attached. That is a safety regression a
+// build check cannot see. Bundling it here means the warning cannot be left
+// behind by whoever inlines this next.
+//
+// Selectors are root-scoped (`[data-sh]` + classes, never ids) so more than one
+// instance can live on a page without two demos wiring themselves to the same
+// button. See KeySpace.astro, which is inlined alongside another demo that had
+// the identical `#go`.
+---
+<div class="callout danger" role="note">
+  <span class="label">🛑 A demonstration — never your real seed</span>
+  <p style="margin:0">The secret below is <strong>randomly generated in your browser</strong> and thrown away when you leave.
+    <strong>Never split or enter your real seed on any website.</strong> Real SLIP-39 backups are created offline on your signing device.</p>
+</div>
+
+  <div class="demo sh-demo" data-sh>
+    <div class="sh-intro intro">
+      <p class="intro-lead">Generate a throwaway secret and split it into a 3-of-5 backup.</p>
+      <button class="sh-go btn-go" type="button">🎲 Generate &amp; split a secret</button>
+      <p class="intro-note mono">Runs entirely in your browser · nothing is sent, saved, or logged.</p>
+    </div>
+
+    <div class="sh-result" hidden>
+      <div class="fbox" style="max-width:none">
+        <span class="fh">the original secret (128 bits — imagine this is your seed)</span>
+        <span class="fv mono secret sh-secret"></span>
+      </div>
+
+      <p class="demo-cap" style="text-align:center;margin:1.2rem 0 0.6rem">
+        It's split into <strong>5 shares</strong>. Tap the ones you <em>hold</em> — you need any <strong>3</strong> to rebuild it:
+      </p>
+      <div class="shares sh-shares"></div>
+
+      <div class="recon sh-recon"></div>
+
+      <div class="callout" style="margin-top:1.3rem">
+        <span class="label">Why this beats a single backup</span>
+        <p style="margin:0">No single share is a target — steal one, or two, and you get <strong>nothing</strong> (not "most of it" —
+          <em>nothing</em>). Yet you can <strong>lose two shares entirely</strong> and still recover. Spread them across locations or
+          trusted people and no one place is a single point of failure, for loss <em>or</em> theft.</p>
+      </div>
+      <button class="btn-regen sh-regen" type="button">↻ New secret</button>
+    </div>
+  </div>
+
+<script>
+  // --- GF(256) arithmetic (Rijndael field 0x11b, generator 0x03) ---
+  const EXP = new Uint8Array(512), LOG = new Uint8Array(256);
+  (function () {
+    let x = 1;
+    for (let i = 0; i < 255; i++) {
+      EXP[i] = x;
+      LOG[x] = i;
+      // x = x * 3 in GF(256): 3*x = x ^ (x<<1)
+      let t = x ^ ((x << 1) & 0xff);
+      if (x & 0x80) t ^= 0x1b;
+      x = t & 0xff;
+    }
+    for (let i = 255; i < 512; i++) EXP[i] = EXP[i - 255];
+  })();
+  const mul = (a, b) => (a === 0 || b === 0) ? 0 : EXP[LOG[a] + LOG[b]];
+  const div = (a, b) => (a === 0) ? 0 : EXP[(LOG[a] - LOG[b] + 255) % 255];
+
+  // Split one byte-secret into n shares, threshold t. Returns [{x, y[]}].
+  function split(secret, n, t) {
+    const shares = [];
+    for (let x = 1; x <= n; x++) shares.push({ x, y: new Uint8Array(secret.length) });
+    for (let b = 0; b < secret.length; b++) {
+      const coeffs = new Uint8Array(t);
+      coeffs[0] = secret[b];
+      const rnd = crypto.getRandomValues(new Uint8Array(t - 1));
+      for (let i = 1; i < t; i++) coeffs[i] = rnd[i - 1];
+      for (const s of shares) {
+        let acc = 0, xp = 1;
+        for (let i = 0; i < t; i++) { acc ^= mul(coeffs[i], xp); xp = mul(xp, s.x); }
+        s.y[b] = acc;
+      }
+    }
+    return shares;
+  }
+  // Reconstruct the secret (value at x=0) from >=t shares via Lagrange interpolation.
+  function reconstruct(shares, len) {
+    const out = new Uint8Array(len);
+    for (let b = 0; b < len; b++) {
+      let acc = 0;
+      for (let j = 0; j < shares.length; j++) {
+        let num = 1, den = 1;
+        for (let m = 0; m < shares.length; m++) {
+          if (m === j) continue;
+          num = mul(num, shares[m].x);            // (0 - x_m) = x_m in GF(2^8)
+          den = mul(den, shares[j].x ^ shares[m].x); // (x_j - x_m) = x_j XOR x_m
+        }
+        acc ^= mul(shares[j].y[b], div(num, den));
+      }
+      out[b] = acc;
+    }
+    return out;
+  }
+
+  // ONE CLOSURE PER INSTANCE. `secret`, `shares` and `held` are per-demo state —
+  // module-level they would be shared, and two demos on a page would overwrite
+  // each other's secret. The Shamir math above is pure and stays shared.
+  document.querySelectorAll('[data-sh]').forEach((root) => {
+    const q = (c) => root.querySelector('.' + c);
+    const hex = (u8) => [...u8].map((b) => b.toString(16).padStart(2, '0')).join('');
+    const N = 5, T = 3;
+    let secret = null, shares = [], held = [];
+
+    function paintShares() {
+      q('sh-shares').innerHTML = shares.map((s, i) => `<button class="share${held[i] ? ' held' : ''}" type="button" data-i="${i}">
+        <span class="sh-ico">${held[i] ? '📄' : '▫'}</span>
+        <span class="sh-name">Share ${i + 1}</span>
+        <span class="sh-val mono">${hex(s.y).match(/.{1,2}/g).slice(0, 6).join(' ')}…</span>
+        <span class="sh-state">${held[i] ? '✓ you hold this' : 'tap if you have it'}</span></button>`).join('');
+      q('sh-shares').querySelectorAll('.share').forEach((c) => c.addEventListener('click', () => {
+        const i = +c.dataset.i; held[i] = !held[i]; paintShares(); recon();
+      }));
+    }
+    function recon() {
+      const sel = shares.filter((_, i) => held[i]);
+      const el = q('sh-recon');
+      if (sel.length < T) {
+        el.className = 'sh-recon recon no';   // keep the hook — className overwrite would drop it
+        el.innerHTML = `<span class="r-count mono">${sel.length} of ${T} shares</span>
+          <span class="r-msg">✗ Not enough — this reveals <strong>nothing</strong> about the secret</span>
+          <span class="r-val mono masked">•• •• •• •• •• •• •• •• •• •• •• •• •• •• •• ••</span>`;
+        return;
+      }
+      const got = reconstruct(sel, secret.length);
+      const ok = hex(got) === hex(secret);
+      el.className = 'sh-recon recon ok';
+      el.innerHTML = `<span class="r-count mono">${sel.length} of ${N} shares combined</span>
+        <span class="r-msg">✓ Rebuilt the secret${ok ? '' : ' (mismatch!)'}</span>
+        <span class="r-val mono">${hex(got)}</span>`;
+    }
+    function generate() {
+      secret = crypto.getRandomValues(new Uint8Array(16));
+      shares = split(secret, N, T);
+      held = [true, true, true, false, false];
+      q('sh-secret').textContent = hex(secret);
+      paintShares(); recon();
+      q('sh-intro').hidden = true; q('sh-result').hidden = false;
+    }
+    q('sh-go').addEventListener('click', () => { try { generate(); } catch (e) { console.error(e); } });
+    q('sh-regen').addEventListener('click', () => generate());
+  });
+</script>
+
+<style is:global>
+  /* The share tiles and the reconstruct panel are injected by the script, so a
+     scoped rule would match nothing — the injector is not the renderer, and the
+     failure is silent. Keyed on .sh-demo so several instances all pick it up. */
+  .sh-demo .secret { color: var(--accent); font-size: 0.9rem; word-break: break-all; }
+  .sh-demo .sh-shares { display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.6rem; }
+  @media (max-width: 640px) { .sh-demo .sh-shares { grid-template-columns: repeat(2, 1fr); } }
+  .sh-demo .sh-shares .share { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; cursor: pointer;
+    background: var(--surface-2); border: 1px solid var(--line); border-radius: 0.7rem; padding: 0.8rem 0.5rem; text-align: center; }
+  .sh-demo .sh-shares .share:hover { border-color: var(--accent); }
+  .sh-demo .sh-shares .share.held { border-color: var(--safe); background: color-mix(in srgb, var(--safe) 9%, var(--surface-2)); }
+  .sh-demo .sh-shares .sh-ico { font-size: 1.3rem; }
+  .sh-demo .sh-shares .sh-name { font-weight: 650; font-size: 0.9rem; }
+  .sh-demo .sh-shares .sh-val { color: var(--faint); font-size: 0.62rem; }
+  .sh-demo .sh-shares .sh-state { font-size: 0.7rem; color: var(--muted); }
+  .sh-demo .sh-shares .share.held .sh-state { color: var(--safe); font-weight: 600; }
+  .sh-demo .sh-recon { display: flex; flex-direction: column; align-items: center; gap: 0.4rem; margin-top: 1.2rem; padding: 1rem;
+    border-radius: 0.6rem; border: 1px solid var(--line); text-align: center; }
+  .sh-demo .sh-recon.ok { border-color: var(--safe); background: var(--safe-dim); }
+  .sh-demo .sh-recon.no { border-color: var(--warn); background: var(--warn-dim); }
+  .sh-demo .sh-recon .r-count { color: var(--faint); font-size: 0.78rem; }
+  .sh-demo .sh-recon .r-msg { font-weight: 700; font-size: 1.02rem; }
+  .sh-demo .sh-recon.ok .r-msg { color: var(--safe); }
+  .sh-demo .sh-recon.no .r-msg { color: var(--warn); }
+  .sh-demo .sh-recon .r-val { font-size: 0.82rem; word-break: break-all; margin-top: 0.2rem; }
+  .sh-demo .sh-recon .r-val.masked { color: var(--faint); letter-spacing: 0.1em; }
+  .sh-demo .sh-recon.ok .r-val { color: var(--safe); }
+</style>

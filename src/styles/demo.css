@@ -40,3 +40,18 @@
   background: var(--surface-2); border: 1px solid var(--line); border-radius: 2rem; padding: 0.45rem 0.95rem; }
 .demo .chip:hover { border-color: var(--accent); }
 .demo .chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); font-weight: 600; }
+
+/* ── A DEMO EMBEDDED IN A LESSON ────────────────────────────────────────────
+   Lives here rather than in each lesson because more than one lesson inlines a
+   demo, and two copies of a frame style is how two lessons start looking
+   different for no decided reason. Deliberately quiet: the demo is evidence for
+   the paragraph above it, not an interruption of the lesson. */
+.inline-demo { margin: 0.4rem 0 1.8rem; }
+.inline-demo .idemo-k {
+  display: block;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 0.6rem;
+}
