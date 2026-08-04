@@ -41,3 +41,60 @@ export function pdfHref(path) {
   cache.set(path, href);
   return href;
 }
+
+/**
+ * THE PRINTABLE PACK — one ordered list, offered identically wherever it is
+ * offered. Registered here because it was typed twice and the two copies had
+ * already diverged: /roll-your-own-seed offered these three documents while
+ * /dice-word-table still offered a browser-print of all eight sheets plus the
+ * legacy 8-page combined PDF, so the same reader met two different answers to
+ * "what do I print?" depending on which door they came in by.
+ *
+ * `pages` is derived per entry (see pdfPages) — never typed.
+ *
+ * The legacy /dice-word-table.pdf is deliberately NOT here. It is the
+ * everything-at-once document these three replaced; the file stays in public/
+ * so any existing bookmark or printed reference still resolves, but nothing
+ * offers it.
+ */
+export const printablePdfs = [
+  { file: '/roll-24-word-seed.pdf', label: '24-word seed', note: 'method + worksheet + the table' },
+  { file: '/roll-12-word-seed.pdf', label: '12-word seed', note: 'method + worksheet + the table' },
+  { file: '/bip39-word-table.pdf', label: 'Just the table', note: 'the word table alone' },
+].map((p) => ({ ...p, get pages() { return pdfPages(p.file); } }));
+
+const pageCache = new Map();
+
+/**
+ * `/roll-24-word-seed.pdf` → 6, read from the built file.
+ *
+ * WHY THIS EXISTS: two pages offer these documents by name AND BY LENGTH
+ * ("24-word seed — 6 pages"), and a PDF's page count is a moving constraint,
+ * not a fixed fact. The worksheet's row-height ceiling went 22pt → 21pt the day
+ * one example row was added, because one extra row is worth a whole extra
+ * sheet. A typed "6 pages" survives that change silently and is then wrong on
+ * every surface that offers the file — the exact shape invariant #10 exists to
+ * stop. Deriving it means a print-CSS change carries its own copy.
+ *
+ * Reads the page-tree /Count rather than opening the file with a PDF library,
+ * so the build keeps its zero-dependency posture. Cross-checked against
+ * PyMuPDF's own page_count for all four shipped documents (4 / 6 / 6 / 8).
+ * Returns null if the file or the count is unreadable — callers must render
+ * the link without a length rather than print a wrong one.
+ */
+export function pdfPages(path) {
+  if (pageCache.has(path)) return pageCache.get(path);
+  let n = null;
+  try {
+    const s = readFileSync(new URL(`../../public${path}`, import.meta.url)).toString('latin1');
+    const counts = [...s.matchAll(/\/Count\s+(\d+)/g)].map((m) => Number(m[1]));
+    const pages = (s.match(/\/Type\s*\/Page[^s]/g) || []).length;
+    // The page tree's root /Count is the answer; agreeing with a direct count of
+    // /Type /Page objects is what makes it trustworthy without a parser.
+    if (counts.length && pages && Math.max(...counts) === pages) n = pages;
+  } catch {
+    // null — see above
+  }
+  pageCache.set(path, n);
+  return n;
+}

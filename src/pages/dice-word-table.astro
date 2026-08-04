@@ -26,7 +26,7 @@ import {
   v2Boxes, v2BoxCount, v2ColsPerBox, v2ItemsPerCol, V2_BOX_THROWS,
   rows, tableRowCount, DICE_PER_WORD, PREFIX_THROWS, seedCosts,
 } from '../data/dice-table.js';
-import { pdfHref } from '../data/pdf-version.js';
+import { pdfHref, printablePdfs } from '../data/pdf-version.js';
 
 // ONE WORKSHEET PER SEED LENGTH, built from seedCosts — never typed. A
 // worksheet with the wrong number of rows is a seed with the wrong number of
@@ -86,8 +86,39 @@ const egFaces = (str) => str.split('').map((d) => FACE[d]);
       agreeing on every row is the reason to trust either. Use one of them for a whole seed, though, not a
       mix.</p>
     </div>
-    <p class="dwt-print"><button type="button" id="dwt-print" class="btn">Print the table + worksheets</button>
-      <a class="btn btn-ghost" href={pdfHref("/dice-word-table.pdf")} target="_blank" rel="noopener">Open the PDF</a></p>
+    {/* THE SAME CHOOSER AS /roll-your-own-seed, and it is the same three files.
+        This page used to offer exactly two things, and both were wrong for the
+        reader: a browser-print button that printed ALL EIGHT sheets — both
+        lengths' method sheets, both worksheets and the table — and the legacy
+        8-page combined PDF, which is the same everything-at-once document. A
+        reader here wants ONE of those: their length, or just the table.
+
+        The print-only sheets below stay exactly as they are. They are the SOURCE
+        the three documents are assembled from (scripts/build-dice-pdfs.sh renders
+        this page and slices it, asserting an 8-page shape first), so removing
+        them would break the build that produces the very files this offers. What
+        changed is only what the screen offers, not what the page renders. */}
+    <div class="callout" role="note">
+      <span class="label">Print the sheet you actually need</span>
+      <p style="margin:0">
+        <strong>Print the PDF, not this page.</strong> Printing from a browser depends on your own margins,
+        headers and background-graphics setting — and that last one silently drops every shade the sheets use
+        to show you where you are. Each seed-length document holds the method, the worksheet for
+        <em>that</em> length, and all {tableRowCount.toLocaleString()} words of the table. Nothing in any of
+        them talks about the other length.
+      </p>
+      <p class="dwt-print">
+        {printablePdfs.map((c, i) => (
+          <a class={i === 0 ? 'btn' : 'btn btn-ghost'} href={pdfHref(c.file)} target="_blank" rel="noopener">
+            {c.label}{c.pages ? ` — ${c.pages} pages` : ''}
+          </a>
+        ))}
+      </p>
+      <p style="margin:0; font-size:0.85rem; color:var(--faint)">
+        Doing this for the first time? <a href="/roll-your-own-seed">The full procedure is on the tool page</a>,
+        step by step and per device.
+      </p>
+    </div>
   </section>
 
   {/* THE METHOD SHEET — print only, ONE PER SEED LENGTH, its own page each.
@@ -268,10 +299,6 @@ const egFaces = (str) => str.split('').map((d) => FACE[d]);
   ))}
 </Base>
 
-<script>
-  const b = document.getElementById('dwt-print');
-  if (b) b.addEventListener('click', () => window.print());
-</script>
 
 <style>
   .dwt-sheet, .dwt-work { display: none; }

@@ -21,7 +21,7 @@ import {
   passphraseTargets, PBKDF2_ITERATIONS,
 } from '../data/dice.js';
 import { seedCosts, tableRowCount, DICE_PER_WORD } from '../data/dice-table.js';
-import { pdfHref } from '../data/pdf-version.js';
+import { pdfHref, printablePdfs } from '../data/pdf-version.js';
 
 // Option 4 has no procedure, so the tabs are exactly the doing options.
 const tabs = methods.filter((m) => DICE_METHOD_KEYS.includes(m.key));
@@ -160,10 +160,17 @@ const shortCost = seedCosts.find((c) => c.words === 12);
                 shade the sheets use to show you where you are. Each PDF holds the method, the worksheet for
                 that length, and all {tableRowCount.toLocaleString()} words of the BIP-39 word table.
               </p>
+              {/* ONE LIST, TWO PAGES. These were typed here and NOT on
+                  /dice-word-table, which is how that page ended up still
+                  offering the retired 8-page combined document. The page
+                  counts derive from the files — they are a moving constraint,
+                  not a fixed fact. */}
               <p class="rys-dl">
-                <a class="btn" href={pdfHref("/roll-24-word-seed.pdf")} target="_blank" rel="noopener">24-word seed — 6 pages</a>
-                <a class="btn btn-ghost" href={pdfHref("/roll-12-word-seed.pdf")} target="_blank" rel="noopener">12-word seed — 6 pages</a>
-                <a class="btn btn-ghost" href={pdfHref("/bip39-word-table.pdf")} target="_blank" rel="noopener">Just the table — 4 pages</a>
+                {printablePdfs.map((c, i) => (
+                  <a class={i === 0 ? 'btn' : 'btn btn-ghost'} href={pdfHref(c.file)} target="_blank" rel="noopener">
+                    {c.label}{c.pages ? ` — ${c.pages} pages` : ''}
+                  </a>
+                ))}
               </p>
               <p style="margin:0; font-size:0.85rem; color:var(--faint)">
                 Prefer to read it on a second screen? <a href="/dice-word-table">the word table</a>, in the
