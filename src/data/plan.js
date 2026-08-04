@@ -91,6 +91,9 @@ function normQuiz(q) {
     keysNeeded: typeof q.keysNeeded === 'number' ? q.keysNeeded : null,
     plannedDevices: strList(q.plannedDevices),
     recommendedDevices: strList(q.recommendedDevices),
+    // Coerced rather than carried by the spread, because an imported file is
+    // untrusted structure and this one feeds a date comparison.
+    decidedAt: typeof q.decidedAt === 'string' ? q.decidedAt : null,
   };
 }
 
@@ -244,6 +247,14 @@ export function savePlannedSetup({ rung, label, tier, device, source, answers, k
     // the quiz's recommended devices for THIS setup — suggested in empty slots +
     // annotated on /wallets ("recommended for your plan"). NOT a selection.
     recommendedDevices: Array.isArray(recommendedDevices) ? strList(recommendedDevices) : (sameSetup ? strList(prev.recommendedDevices) : []),
+    // WHEN THE READER DECIDED THIS, which is not the same as when the plan was
+    // last touched. `updated` moves on every auto-save — a checklist tick, a
+    // wallet added — so it answers "when were you last here", and someone who
+    // ticks one box after a year would look freshly decided. This moves only
+    // when the setup is saved, which is the thing the re-check re-decides.
+    // Re-saving the SAME setup still counts as deciding it again: the reader
+    // looked at the question and stood by the answer.
+    decidedAt: new Date().toISOString(),
   };
   // NOTE: we deliberately do NOT store the quiz's recommended device as a "chosen
   // device" — a recommendation isn't a selection. The user's real device choices are
@@ -368,6 +379,48 @@ export function retireOwned(slug) {
 export function planWasRestored() {
   const p = loadLocal();
   return Boolean(p && p.restored);
+}
+
+/**
+ * How long a plan sits before "has your situation changed?" is worth asking of
+ * a reader who built it right here. Six months.
+ *
+ * Long enough that nobody is asked twice about a quiet week — the thing that
+ * made this gated in the first place — and short enough that a plan made before
+ * a real change in someone's life gets looked at again. Stakes, family and
+ * holdings are the inputs it would move, and none of those change weekly.
+ */
+export const RECHECK_AFTER_MONTHS = 6;
+
+/**
+ * Should /my-plan offer the re-check? Returns the REASON, not just a boolean,
+ * because the two cases deserve different sentences: one reader's plan came
+ * from another device, the other's has simply been sitting a while.
+ *
+ *   'restored' — arrived by file import or Nostr restore. Another day, another
+ *                device; the question is fair on arrival.
+ *   'aged'     — decided here, more than RECHECK_AFTER_MONTHS ago.
+ *   null       — built here recently. Nothing has changed since the finder, and
+ *                asking implies something might have.
+ *
+ * AGE IS MEASURED FROM `quiz.decidedAt`, never from `updated`. See the note on
+ * that field: `updated` answers "when were you last here". A plan from before
+ * 2026-08-04 has no decidedAt, so it falls back to `updated` — which can only
+ * ever be LATER than the real decision, so the prompt arrives late rather than
+ * early. Late is the safe direction for a question that implies something has
+ * changed.
+ */
+export function planNeedsRecheck(now = new Date()) {
+  const p = loadLocal();
+  if (!p) return null;
+  if (p.restored) return 'restored';
+  const stamp = (p.quiz && p.quiz.decidedAt) || p.updated;
+  if (!stamp) return null;
+  const then = new Date(stamp);
+  if (Number.isNaN(then.getTime())) return null;
+  const cutoff = new Date(now.getTime());
+  cutoff.setMonth(cutoff.getMonth() - RECHECK_AFTER_MONTHS);
+  return then <= cutoff ? 'aged' : null;
 }
 
 /** The rung slug of the currently-planned setup, or null. */

@@ -43,7 +43,7 @@
 <script>
   import { ladder, getRung, rungAnchor } from '../data/ladder.js';
   import { setups, extras, climbQuestions, assess } from '../data/whereami.js';
-  import { saveLadderSlice, planWasRestored } from '../data/plan.js';
+  import { saveLadderSlice, planNeedsRecheck, RECHECK_AFTER_MONTHS } from '../data/plan.js';
 
   const elLocate = document.getElementById('wa-locate');
   const elResult = document.getElementById('wa-result');
@@ -223,18 +223,35 @@
     if (b) b.addEventListener('click', () => { pickedSlug = null; renderLocate(); document.getElementById('whereami').scrollIntoView({ behavior: 'smooth', block: 'start' }); });
   }
 
-  // THE GATE. A plan that arrived here — imported from a file, restored from Nostr —
-  // came from another day or another device, and "has your situation changed?" is a
-  // fair question to ask its owner. A plan built in this browser is minutes old, and
-  // it is not. See planWasRestored() in plan.js for why this is not an age test.
+  // THE GATE, and it now has TWO doors. A plan that arrived here — imported from a
+  // file, restored from Nostr — came from another day or another device. A plan
+  // DECIDED here more than six months ago has had time for the things it was
+  // built on to move. A plan built here this morning has not, and asking implies
+  // it might have, which is why this is gated at all.
+  //
+  // The time door was added because a plan built in this browser never brought
+  // the tool back, however long it was left — the one case where "has your
+  // situation changed?" is most likely to be answered yes. See
+  // planNeedsRecheck() for why the age is measured from when the setup was
+  // DECIDED and not from when the plan was last touched.
   //
   // Nothing below runs for anyone else: the tool is never built, so it costs a
   // hidden <section> and one localStorage read.
   const gate = document.getElementById('whereami');
+  const lead = gate.querySelector('.wa-lead');
   let built = false;
   function openGate() {
-    if (built || !planWasRestored()) return;
+    const why = planNeedsRecheck();
+    if (built || !why) return;
     built = true;
+    // SAY WHICH DOOR THEY CAME THROUGH. The two readers are in different
+    // situations and a single sentence covering both ends up describing neither
+    // — the aged reader is told nothing about why now, and the reader who just
+    // imported a plan is asked whether it has "been a while" when it has been
+    // ten seconds.
+    if (why === 'aged' && lead) {
+      lead.innerHTML = `It has been more than ${RECHECK_AFTER_MONTHS} months since you settled on this setup. Holdings grow, families change, and what worried you then may not be what worries you now — so it is worth asking. Re-place yourself and we'll show you what your setup covers, where it's weak, and <strong>honestly, whether you should climb at all.</strong> Most people are already on the right rung, and staying put is a real answer. This runs entirely in your browser; where you land is saved to your plan automatically — and nothing is ever sent anywhere.`;
+    }
     gate.hidden = false;
     renderLocate();
   }
