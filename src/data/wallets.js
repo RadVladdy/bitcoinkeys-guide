@@ -25,8 +25,10 @@
 //   and a carry/no-carry call. All other prices confirmed at vendor stores today.
 // 2026-07-31 (later): Jade Core CARRIED (editorial call) — 12th device, cold tier, explicit slug
 //   'jade-core-2026' ('jade-core' was already taken by the $79 Jade; slugs are persisted user data).
-//   Ships without device art for now (art render = front of the backlog); the image field is optional
-//   since this entry — renderers guard on it and the slug no longer derives from the image basename alone.
+//   Shipped without device art at first; the image field became optional at this entry — renderers guard
+//   on it and the slug no longer derives from the image basename alone.
+// 2026-08-04: Jade Core device art SHIPPED, so all 12 devices carry a portrait again. The optional-image
+//   mechanics stay — they are what let a device ship ahead of its art, and the next one will too.
 // Rule of the guide: every device is rated in three tiers against the published
 // standard (standardGates/tiers below, rendered at /standard). Within a tier,
 // fit decides — there is still no single "best" device, but there IS a bar.
@@ -239,7 +241,14 @@ export const wallets = [
   },
   {
     name: 'Blockstream Jade Core',
-    slug: 'jade-core-2026', // explicit: no device art yet (art is the front backlog item); 'jade-core' is TAKEN by the $79 Jade above
+    // EXPLICIT SLUG, AND IT STAYS EXPLICIT NOW THAT ART EXISTS. `jade-core` is
+    // TAKEN by the $79 Jade above — it is that device's persisted slug in saved
+    // plans, so deriving this one from its image basename would collide. The
+    // slug wins over the image here by construction (deviceCatalog reads
+    // `w.slug ?? w.image`), which is exactly why the art could be added without
+    // a plan.js migration.
+    slug: 'jade-core-2026',
+    image: '/devices/jade-core-2026.webp',
     barCaveat: 'Clears the bar — Bitcoin-only, fully open-source. Same deliberate trade-off as its siblings: no dedicated secure-element chip; a "blind oracle" acts as a virtual one, and Blockstream argues there is nothing physical on the device to steal.',
     ladderReach: { s: 'strong', p: 'ok', m: 'ok', note: 'Built as a guided first device; passphrase and multisig work but are not its focus.' },
     vendor: 'Blockstream',
