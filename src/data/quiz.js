@@ -42,11 +42,17 @@ export const questions = [
     type: 'single',
     q: 'How much would losing this Bitcoin hurt?',
     help: "We ask about the consequence, not an amount — no website should ever ask how much Bitcoin you hold.",
+    // `short` is the two-or-three-word version, for surfaces that show the
+    // reader their own answer back rather than asking it. Added 2026-08-04 for
+    // the risk picture on /find-your-setup: those two rows carried a band word
+    // that could only ever read "typical", because their score IS their default
+    // by construction — a label incapable of saying anything else, presented as
+    // if it measured the reader. The answer is the honest thing to show there.
     options: [
-      { value: 'learning',     label: "I'm still learning — losing it wouldn't change my life" },
-      { value: 'meaningful',   label: "It matters — I'd be upset, but I'd be okay" },
-      { value: 'serious',      label: "It's serious — a big chunk of my savings" },
-      { value: 'lifechanging', label: "It's life-changing — losing it would be devastating" },
+      { value: 'learning',     short: 'still learning',  label: "I'm still learning — losing it wouldn't change my life" },
+      { value: 'meaningful',   short: 'meaningful',      label: "It matters — I'd be upset, but I'd be okay" },
+      { value: 'serious',      short: 'serious',         label: "It's serious — a big chunk of my savings" },
+      { value: 'lifechanging', short: 'life-changing',   label: "It's life-changing — losing it would be devastating" },
     ],
   },
   {
@@ -84,9 +90,9 @@ export const questions = [
     q: 'How do you feel about a company ever holding one of your keys?',
     help: "Some setups lean on a Bitcoin service as a safety net; the most private, sovereign setups involve no company at all. Neither is wrong — it's a real trade-off, and your answer shapes what we recommend.",
     options: [
-      { value: 'pure',      label: 'No third party — I want pure self-custody, maximum privacy, no one to ask permission' },
-      { value: 'lean-self', label: "I lean self-reliant, but I'd consider help if it clearly lowers my risk" },
-      { value: 'open-help', label: "I'd welcome a trusted service holding a backup key if it makes me safer or simpler" },
+      { value: 'pure',      short: 'no third party',   label: 'No third party — I want pure self-custody, maximum privacy, no one to ask permission' },
+      { value: 'lean-self', short: 'lean self-reliant', label: "I lean self-reliant, but I'd consider help if it clearly lowers my risk" },
+      { value: 'open-help', short: 'open to help',     label: "I'd welcome a trusted service holding a backup key if it makes me safer or simpler" },
     ],
   },
 ];

@@ -280,7 +280,19 @@ const fitCountCap = questionCountWordCap;
   function promptDerived() { return scoreFromPrompts([...checked], stakesNow(), [...skipped]); }
   function scoresNow() {
     const s = promptDerived();
+    // scoreFromPrompts KNOWS ONLY THE FOUR WALKED RISKS. `stakes` and `exposure`
+    // come from questions, so it returns them undefined — and undefined is not
+    // harmless here: every comparison inside scoreWord is false against it, so
+    // both rows report 'high' for every reader. finder.js already records this
+    // exact failure and fills the gap inside normalizedScores; that fix covers
+    // the ENGINE, and this function is the second entry point to the same hole.
+    // It went unnoticed while nothing on this screen rendered those two rows —
+    // the moment the review screen did, a reader who chose "still learning" was
+    // shown "how much is riding on this: HIGH", disagreeing with the result page
+    // two clicks later, which fills them correctly.
+    const d = defaultsFor(stakesNow(), sovNow());
     for (const c of CONCERN_KEYS) {
+      if (typeof s[c] !== 'number') s[c] = d[c];
       if (!skipped.has(c) && typeof overrides[c] === 'number') s[c] = overrides[c];
     }
     return s;
@@ -338,6 +350,33 @@ const fitCountCap = questionCountWordCap;
     return promptDerived()[c];
   }
   function wordTag(c, w) { return `<span class="as-word w-${w}" data-word="${c}">${w}</span>`; }
+
+  // THE TWO ANSWER ROWS GET THEIR ANSWER BACK, NOT A BAND WORD.
+  //
+  // `stakes` and `exposure` are scored AT their own default by construction —
+  // d.stakes is STAKES_SCORE[the answer], and the score is that same number — so
+  // scoreWord could only ever return 'typical' for them, for every reader, on
+  // every screen. A tag that cannot say anything else is not a measurement; it
+  // reads as a verdict on the reader ("your stakes are typical") while carrying
+  // no information at all, and it shipped on the result's risk picture from the
+  // day that strip was built.
+  //
+  // The reader's own answer is the honest thing to show, it is derived from the
+  // same state, and it can distinguish four readers where the word could not
+  // distinguish any. Short forms live on the question in quiz.js — one source,
+  // so a reworded option cannot leave a stale echo here.
+  const ANSWER_ROW_Q = { stakes: 'stakes', exposure: 'sovereignty' };
+  function answerTag(key) {
+    const q = questionById[ANSWER_ROW_Q[key]];
+    const opt = q && (q.options || []).find((o) => o.value === answers[q.id]);
+    // NOT ASKED YET IS A REAL STATE, not an empty one. The review screen sits
+    // between the stakes question and the sovereignty question, so `exposure`
+    // reaches it unanswered every time — and the bar is drawn from the
+    // lean-self default nobody chose. A blank tag beside a full bar reads as a
+    // measurement; this says what it actually is.
+    if (!opt) return `<span class="as-word as-unasked" data-word="${key}">not asked yet</span>`;
+    return `<span class="as-word as-answered" data-word="${key}">${esc(opt.short || opt.label)}</span>`;
+  }
 
   // Two-sentence mechanism recaps, in the site's voice — the receipt for why
   // each concern is its own section.
@@ -497,6 +536,50 @@ const fitCountCap = questionCountWordCap;
     return `Moved by the ${n === 1 ? 'one thing' : `${numberWord(n)} things`} you said ${n === 1 ? 'is' : 'are'} true of you.`;
   }
 
+  // ── the two ANSWER rows, adjustable here too (2026-08-04) ─────────────────
+  //
+  // `stakes` and `exposure` are the two heaviest-weighted concerns and were the
+  // only bars on this screen the reader could not touch — read-only rows on a
+  // page whose whole promise is "your hand beats our arithmetic".
+  //
+  // THEY ARE ADJUSTED BY RE-ANSWERING, NOT BY NUDGING, and that is the whole
+  // design. The other four bars are scores derived from prompts, so a −/+ step
+  // is a coherent thing to do to them. These two are not: their value IS an
+  // answer to a question, and `stakes` in particular is not only a row — the
+  // stakes ANSWER sets the default band for every other concern on this screen
+  // and decides whether C11's floor applies at all. Nudging the stakes SCORE
+  // while leaving the answer alone would let a reader say "a great deal is
+  // riding on this" here and still be measured against the learning-stakes
+  // baseline everywhere else, and still be exempt from the no-single-point-of-
+  // failure floor. Two states for one fact, disagreeing — on the screen built to
+  // let them correct us.
+  //
+  // So the control is the question's own options, brought to where the reader is
+  // reviewing. Picking one changes the answer, and the screen re-renders whole,
+  // because every other bar's baseline may have just moved and they need to see
+  // that happen.
+  function answerRow(c, d) {
+    const qid = ANSWER_ROW_Q[c.key];
+    const q = questionById[qid];
+    const s = scoresNow()[c.key];
+    const w = scoreWord(s, c.key, stakesNow(), sovNow());
+    const cur = answers[qid];
+    const opts = (q ? q.options || [] : []).map((o) => `
+      <button type="button" class="as-opt${o.value === cur ? ' sel' : ''}" data-answer="${esc(qid)}"
+        data-value="${esc(o.value)}" aria-pressed="${o.value === cur ? 'true' : 'false'}">${esc(o.label)}</button>`).join('');
+    return `<div class="as-row as-row-answer" data-row="${c.key}">
+      <div class="as-row-head"><span class="as-row-label">${esc(c.label)}</span>${answerTag(c.key)}</div>
+      <div class="as-row-mid">
+        <div class="as-bar"><span class="as-fill lit w-${w}" style="width:${barW(s)}%"></span></div>
+      </div>
+      <p class="as-recap">${cur
+        ? 'This one comes straight from your answer, not from the assessment — so change the answer and it moves.'
+        : 'We have not asked you this one yet — it is coming up. The bar is the standard estimate until you answer, and you can answer it here instead.'}</p>
+      <div class="as-opts">${opts}</div>
+      <span class="vh" aria-live="polite">${esc(c.label)}: ${w}</span>
+    </div>`;
+  }
+
   function renderReview() {
     assessDone = true;
     const d = defaultsFor(stakesNow(), sovNow());
@@ -514,10 +597,17 @@ const fitCountCap = questionCountWordCap;
         <span class="vh" aria-live="polite" data-live="${c.key}">${esc(c.label)}: ${w}</span>
       </div>`;
     }).join('');
+    // Rendered under their own heading, because they are a different KIND of
+    // thing and the intro above promises base rates — true of the four, false of
+    // these two. Same separation the result's profile strip already makes.
+    const answerRows = ANSWER_CONCERNS.map((c) => answerRow(c, d)).join('');
     elCard.innerHTML = `<div class="q-card as-card">
       <h2 class="q-title">Your risk picture</h2>
       <p class="q-help">Here’s where you landed against the typical holder — the mark on each bar. The words are the whole scale — low, typical, elevated, high. If a bar doesn’t match how you honestly see it, nudge it with − and ＋: your hand beats our arithmetic, and the recommendation will follow it.</p>
       <div class="as-review">${rows}</div>
+      <span class="as-sub-k mono">And the two that came from your answers</span>
+      <p class="as-sub-help">These two carry the most weight of anything here, so they are the two most worth getting right. They are not scored from the assessment — each is an answer you gave, and you can change it without starting over.</p>
+      <div class="as-review">${answerRows}</div>
       <p class="as-method"><a href="/how-we-weigh-risk">How we weigh risk →</a></p>
       <div class="as-acts">
         <button class="q-back" id="q-back">← Back</button>
@@ -587,6 +677,19 @@ const fitCountCap = questionCountWordCap;
       b.disabled = (dir < 0 && i === 0) || (dir > 0 && i === WORD_ORDER.length - 1);
     });
     elCard.querySelectorAll('.as-row').forEach(wireRecap);
+    // Re-answering rebuilds the WHOLE screen, never just its own row. Changing
+    // the stakes answer moves every other concern's default band with it, so a
+    // targeted repaint would leave five bars measured against a baseline that no
+    // longer exists — visibly correct, silently stale. The list every partial
+    // repaint has to consult, this time, is "all of them".
+    elCard.querySelectorAll('.as-opt').forEach((b) => {
+      b.addEventListener('click', () => {
+        answers[b.getAttribute('data-answer')] = b.getAttribute('data-value');
+        renderReview();
+        const back = elCard.querySelector('.as-row-answer');
+        if (back) back.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+    });
     document.getElementById('q-continue').addEventListener('click', () => go(1));
     document.getElementById('q-back').addEventListener('click', () => go(-1));
   }
@@ -690,14 +793,19 @@ const fitCountCap = questionCountWordCap;
       const w = profile.words[c.key];
       return `<div class="as-prow">
         <span class="as-plabel">${esc(c.label)}</span>
-        ${wordTag(c.key, w)}
+        ${ghost ? wordTag(c.key, w) : answerTag(c.key)}
         ${ghost ? barHtml(c.key, s, profile.defaults[c.key], w)
                 : `<div class="as-bar"><span class="as-fill lit" style="width:${barW(s)}%"></span></div>`}
       </div>`;
     };
     const risks = RISK_CONCERNS.map((c) => row(c, true)).join('');
     const answered = ANSWER_CONCERNS.map((c) => row(c, false)).join('');
-    const spoken = CONCERNS.map((c) => `${c.label}: ${profile.words[c.key]}`).join('. ');
+    // The spoken line has to say what the SEEN line says, or a screen-reader
+    // user hears "typical" where a sighted reader sees their own answer.
+    const spokenFor = (c) => (c.preference
+      ? ((questionById[ANSWER_ROW_Q[c.key]].options.find((o) => o.value === answers[ANSWER_ROW_Q[c.key]]) || {}).short || 'not answered')
+      : profile.words[c.key]);
+    const spoken = CONCERNS.map((c) => `${c.label}: ${spokenFor(c)}`).join('. ');
     return `<div class="r-profile">
       <span class="r-k mono">Your risk picture — you against the typical holder</span>
       ${risks}
@@ -1251,6 +1359,19 @@ const fitCountCap = questionCountWordCap;
   #finder .as-estnote { color: var(--muted); font-size: 0.88rem; margin: 0 0 1.2rem; }
   #finder .as-estnote strong { color: var(--text); }
   /* the quiet methodology pointer on the intro + review screens */
+  /* review: the two ANSWER rows — same bar, a different control under it */
+  #finder .as-sub-k { display: block; margin-top: 1.4rem; padding-top: 1rem; border-top: 1px solid var(--line); }
+  #finder .as-sub-help { color: var(--muted); font-size: 0.88rem; line-height: 1.55; margin: 0.5rem 0 0.9rem; }
+  #finder .as-opts { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-top: 0.5rem; }
+  #finder .as-opt { font: inherit; font-size: 0.85rem; text-align: left; color: var(--text); background: var(--surface); border: 1px solid var(--line); border-radius: 0.6rem; padding: 0.45rem 0.8rem; cursor: pointer; }
+  #finder .as-opt:hover { border-color: var(--accent); color: var(--accent); }
+  /* Chosen is border + weight as well as colour, so it survives a reader who
+     cannot separate the two — same rule as the refill chips on the result. */
+  /* The answer tag: same slot as a band word, deliberately NOT the same colour
+     ramp — it is the reader's own answer, not a level we assigned them. */
+  #finder .as-answered { background: var(--surface); border: 1px solid var(--line); color: var(--muted); }
+  #finder .as-unasked { background: transparent; border: 1px dashed var(--line); color: var(--faint); }
+  #finder .as-opt.sel { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 700; }
   #finder .as-method { color: var(--faint); font-size: 0.8rem; margin: 0.2rem 0 0; }
   #finder .as-method a { color: var(--muted); text-decoration: none; }
   #finder .as-method a:hover { color: var(--accent); text-decoration: underline; }
