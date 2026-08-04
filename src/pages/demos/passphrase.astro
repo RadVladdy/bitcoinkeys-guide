@@ -33,7 +33,19 @@ import '../../styles/demo.css';
       <div id="result" hidden>
         <p class="lbl mono">Your throwaway 12-word seed</p>
         <div class="words" id="words"></div>
-        <p class="demo-cap" style="text-align:center;margin-bottom:0.8rem">Now add a passphrase and watch the address change:</p>
+        <p class="demo-cap" style="text-align:center;margin-bottom:0.4rem">Now add a passphrase and watch the address change:</p>
+        {/* THE EXAMPLES ARE DELIBERATELY WEAK AND MUST SAY SO. They are short so
+            you can read a chip at a glance — but "pizza", "correct horse" and
+            "moon 2024" are precisely the shapes rung 2 names as the first thing
+            a cracking rig models: a real word, real words in a sensible order, a
+            word plus a date. Left unlabelled, the demo teaches by example the
+            exact habit the guide argues against. The mechanism below does not
+            care how strong the passphrase is; the reader does. */}
+        <p class="demo-cap chip-warn" style="text-align:center;margin:0 0 0.7rem">
+          These examples are deliberately <strong>weak</strong> — short enough to read at a glance, and exactly the kind
+          you should not use. A real passphrase is <strong>rolled, not thought up</strong>; the passphrase rung below
+          covers how and why.
+        </p>
         <div class="chips" id="chips"></div>
         <div class="flow" style="margin-top:1.1rem">
           <div class="fbox"><span class="fh">seed + passphrase</span><span class="fv" id="pass"></span></div>
@@ -100,6 +112,7 @@ import '../../styles/demo.css';
 </script>
 
 <style>
+  .chip-warn { font-size: 0.84rem; color: var(--muted); line-height: 1.5; max-width: 46ch; margin-inline: auto; }
   .lbl { color: var(--faint); font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; text-align: center; margin: 0 0 0.6rem; }
   .cta-row { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.2rem; }
   .btn { display: inline-flex; align-items: center; background: var(--accent); color: var(--accent-ink); font-weight: 700;

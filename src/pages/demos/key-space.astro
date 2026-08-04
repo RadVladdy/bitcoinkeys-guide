@@ -25,10 +25,15 @@ import KeySpace from '../../components/demos/KeySpace.astro';
   <section class="prose">
     <div class="callout">
       <span class="label">The takeaway</span>
-      <p style="margin:0">Nobody guesses a Bitcoin key. Every real-world loss comes from the <a href="/learn/how-bitcoin-is-lost">human side</a> — a leaked or
-        photographed seed, a lost backup, a scam, a fake wallet — never from someone cracking the math. That's why this whole site is
-        about <strong>guarding your seed</strong>, not about "unbreakable encryption." The math already won; the job is not to hand the
-        key away.</p>
+      <p style="margin:0">Nobody guesses a Bitcoin key, and the maths has never been broken — which is exactly why attackers go after
+        everything else instead: a leaked or photographed seed, a lost backup, a scam, a fake wallet. Almost every real-world loss comes
+        from the <a href="/learn/how-bitcoin-is-lost">human side</a>.</p>
+      <p style="margin:0.8rem 0 0"><strong>One exception, and it proves the rule rather than breaking it: a key is only as unguessable
+        as the randomness behind it.</strong> Nothing above assumes an attacker is clever — only that your key was drawn from the whole
+        of that space. When a device has generated seeds from far less randomness than it should, the resulting keys have sat in a space
+        small enough to search, and coins have been taken that way. <strong>The keyspace was never the weak part; where the number came
+        from was.</strong> That is why this guide cares so much about how a seed is generated, and not at all about "unbreakable
+        encryption" — the maths already won, and the job is to feed it properly and not hand the key away.</p>
     </div>
     <p class="cta-row">
       <a class="btn" href="/learn/bitcoin-keys">← How it all works</a>

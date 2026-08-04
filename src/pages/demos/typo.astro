@@ -1,6 +1,15 @@
 ---
 import Base from '../../layouts/Base.astro';
 import '../../styles/demo.css';
+import { seedLengthByKey } from '../../data/dice.js';
+import { numberWord } from '../../data/numbers.js';
+
+// THE ODDS A MISCOPIED PHRASE STILL VALIDATES, derived — never typed.
+// The checksum is `shape.checksum` bits, so a wrong phrase passes 1 in 2^that.
+// This demo uses a 12-word seed (4 bits → 1 in 16). If it ever showed 24 words
+// the figure moves to 1 in 256 on its own, which is the point of deriving it.
+const shape12 = seedLengthByKey['12'].shape;
+const passOdds = 2 ** shape12.checksum;
 ---
 <Base
   title="How the checksum catches a typo in your seed · BitcoinKeys.guide"
@@ -12,8 +21,10 @@ import '../../styles/demo.css';
     <h1>How a typo <span class="accent">gets caught</span></h1>
     <p class="lead">
       When you copy down twelve <a href="/glossary#seed-phrase">seed words</a>, one nagging fear is: what if I write one down wrong?
-      Good news — those words have a built-in safety net called a <strong>checksum</strong>. Change a single word and a proper wallet
-      <em>refuses</em> the whole phrase, before a single coin is at risk. Generate a throwaway seed and try to slip a typo past it.
+      Those words carry a built-in safety net called a <strong>checksum</strong>, and <strong>most of the time</strong> it catches
+      exactly that — a proper wallet refuses the whole phrase before a single coin is at risk. Generate a throwaway seed and try to
+      slip a typo past it. <strong>Then read the part underneath the demo</strong>, because "most of the time" is doing real work in
+      that sentence.
     </p>
     <div class="callout danger" role="note">
       <span class="label">🛑 A demonstration — never your real seed</span>
@@ -36,11 +47,29 @@ import '../../styles/demo.css';
         <div class="words" id="words"></div>
         <p class="hint mono" id="hint"></p>
 
+        {/* THE HONEST HALF, and it is the reason this demo exists in a guide
+            rather than as a toy. Everything above shows the checksum WORKING —
+            deliberately, because corruptWord() picks a replacement that always
+            breaks the maths. A reader who leaves with only that has been given
+            a reason NOT to test their backup, which is the single practice this
+            site cares most about. /learn/generate-your-seed already told them
+            the truth; for a fortnight this page told them something else. */}
+        <div class="callout warn" style="margin-top:1.3rem">
+          <span class="label">⚠️ A safety net, not a guarantee — and this demo is stacked in your favour</span>
+          <p style="margin:0">To make the point cleanly, this page always swaps in a word that <em>breaks</em> the maths. Real
+            miscopying is not so obliging. Roughly <strong>one wrong phrase in {numberWord(passOdds)}</strong> still adds up —
+            the checksum passes, <strong>no error appears at all</strong>, and a real, perfectly ordinary,
+            <strong>empty</strong> wallet opens instead of yours. Nothing tells you it is the wrong one.
+            <br><br>That is why a phrase being accepted is <strong>not</strong> proof your backup works. The only proof is
+            restoring from it — wiping a device and bringing the wallet back from your written words — before you trust it with
+            anything. It is a lesson of its own later in the course.</p>
+        </div>
+
         <div class="callout" style="margin-top:1.3rem">
           <span class="label">How it works</span>
           <p style="margin:0">The last word isn't random — it packs a <strong>checksum</strong>: a few bits computed from all the other words
-            (you saw this in <a href="/demos/seed">how a seed is born</a>). Change any word and that math no longer adds up, so the wallet
-            knows something's off and stops you <em>before</em> you rely on a broken backup.</p>
+            (you saw this in <a href="/demos/seed">how a seed is born</a>). Change a word and that math usually no longer adds up, so the
+            wallet knows something's off and stops you <em>before</em> you rely on a broken backup.</p>
         </div>
         <p class="honest mono">The checksum catches about <b>15 of every 16</b> single-word slips — a strong safety net, not a guarantee. Always verify your backup by test-restoring it.</p>
         <button class="btn-regen" id="regen" type="button">↻ New seed</button>
