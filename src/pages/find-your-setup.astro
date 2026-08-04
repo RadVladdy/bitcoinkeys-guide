@@ -36,6 +36,7 @@ const fitCountCap = questionCountWordCap;
   import {
     CONCERNS, CONCERN_KEYS, SECTION_ORDER, defaultsFor, scoreWord, HALF_BAND,
     prompts, promptsFor, promptById, scoreFromPrompts, shimScores, recommendV2, FAMILY,
+    WORRY_CONCERNS,
   } from '../data/finder.js';
   import { numberWord } from '../data/numbers.js';
   import { wallets, keysForSetup, slugForName, assessDevices, ownableDevices } from '../data/wallets.js';
@@ -705,6 +706,46 @@ const fitCountCap = questionCountWordCap;
     </div>`;
   }
 
+  // ── THE WORRY REFILL ──────────────────────────────────────────────────────
+  //
+  // The result names the one risk the reader's answers say they are most exposed
+  // to, SAYS WHERE THAT CAME FROM, and lets them change it. Whatever it is left
+  // on is what the engine used — the block re-renders the whole result, so the
+  // bars, the reasons and the caveats underneath always describe the same
+  // picture as the sentence above them.
+  //
+  // The label doubles as a claim about provenance, which is why "from your
+  // answers" and "you told us" are different sentences rather than one neutral
+  // one. A reader who has changed it should never wonder whether we quietly kept
+  // our own version.
+  //
+  // A FLAT PICTURE IS SAID OUT LOUD. When nothing clears the noise the copy
+  // admits it and names the one that catches most people instead of dressing a
+  // rounding difference up as a finding — the same honesty the engine's own
+  // "nothing stands out" reason line already uses.
+  const worryLabel = (k) => (CONCERNS.find((c) => c.key === k) || {}).label || k;
+
+  function worryHtml(worry) {
+    const opts = WORRY_CONCERNS.map((k) => `
+      <button class="w-opt${k === worry.active ? ' sel' : ''}" data-worry="${esc(k)}"
+        aria-pressed="${k === worry.active ? 'true' : 'false'}">${esc(worryLabel(k))}</button>`).join('');
+    const lead = worry.stated
+      ? `<p class="w-lead">You told us this is the one that worries you: <strong>${esc(worryLabel(worry.stated))}</strong>. Everything below takes you at your word.</p>`
+      : worry.stood
+        ? `<p class="w-lead">From your answers, the one you are most exposed to is <strong>${esc(worryLabel(worry.derived))}</strong>.</p>`
+        : `<p class="w-lead">Nothing in your answers stood out, so we have gone with <strong>${esc(worryLabel(worry.derived))}</strong> — the one that catches most people.</p>`;
+    const revert = worry.stated
+      ? `<button class="w-revert" data-worry="">↺ Go back to what my answers said (${esc(worryLabel(worry.derived))})</button>`
+      : '';
+    return `<div class="r-worry">
+      <span class="r-k mono">The one that worries you</span>
+      ${lead}
+      <p class="w-ask">Not how it feels to you? Pick the one that does — we will redo the fit.</p>
+      <div class="w-opts">${opts}</div>
+      ${revert}
+    </div>`;
+  }
+
   // Readable names for the tie treatment — the engine's setup keys, in English.
   const SETUP_TIE_LABEL = {
     'single-sig': 'single-sig cold storage',
@@ -748,7 +789,7 @@ const fitCountCap = questionCountWordCap;
     elCard.hidden = true;
     elResult.hidden = false;
     const rec = recommendV2({ ...answers, ...assessAnswers() });
-    const { primary, secondary, journey, profile, reasons, holdbacks, tie } = rec;
+    const { primary, secondary, journey, profile, reasons, holdbacks, tie, worry } = rec;
     const devs = primary.wallets || [];
     const adaptive = devs.some((d) => d.adaptive);   // e.g. Bitkey has its own flow
     let sel = 0;
@@ -764,12 +805,31 @@ const fitCountCap = questionCountWordCap;
     // it. Say the true thing instead (this is the only combination that can
     // reach the fallback with an elevated word — every other concern gets
     // named by the engine).
+    //
+    // THE SAME GUARD IS NOW NEEDED FOR A STATED WORRY, and it is not a variation
+    // on the physical one — it is the identical failure reached by a second
+    // route. The refill raises the stated concern into `elevated`, which puts it
+    // among the CAVEATED concerns for a setup that is weak on it — and caveated
+    // concerns are deliberately excluded from the reasons, so the fallback fires.
+    // Result, on one screen, in three places: a bar reading ELEVATED, a line
+    // saying "nothing stands out", and a caveat saying "you rated that elevated".
+    //
+    // The fallback is not wrong about the SETUP — the simplest thing that covers
+    // the picture still wins, and the caveat below states the trade. It is wrong
+    // about the READER, who has just told us in as many words that something
+    // stands out. So the guard replaces the claim, not the conclusion.
     let reasonList = reasons || [];
-    const physUp = profile.words.physical === 'elevated' || profile.words.physical === 'high';
-    if (reasonList.length === 1 && reasonList[0].concern === null && physUp) {
+    const up = (c) => profile.words[c] === 'elevated' || profile.words[c] === 'high';
+    const fellBack = reasonList.length === 1 && reasonList[0].concern === null;
+    if (fellBack && up('physical')) {
       reasonList = [{
         concern: 'physical',
         text: `Your targeted-theft concern is ${profile.words.physical} — and at this level the setup itself stays simple. The win is a low profile: nothing at home needs to reveal what you hold, the privacy steps in your checklist carry most of the weight, and the step-up in the second card is the hardware answer when you want it.`,
+      }];
+    } else if (fellBack && worry.stated && up(worry.stated)) {
+      reasonList = [{
+        concern: worry.stated,
+        text: `You told us ${worryLabel(worry.stated).toLowerCase()} is what worries you, so we scored it above the typical holder’s picture and left the rest where your answers put it. Nothing else stands out — and against a picture with one raised concern, the simplest setup that covers it still wins, because every step up the ladder buys protection with complexity you would then have to operate. What this setup gives up on the one you named is below, in its own words, so you can weigh it rather than take ours.`,
       }];
     }
     const reasonsHtml = reasonList.length
@@ -798,6 +858,7 @@ const fitCountCap = questionCountWordCap;
     elResult.innerHTML = `
       ${journeyHtml(journey)}
       ${profileStrip(profile)}
+      ${worryHtml(worry)}
       ${tieHtml}
       <div class="r-card">
         <p class="r-tier mono">${journey && journey.gap > 0 && journey.kind !== 'sideways' ? 'Your destination · ' : ''}${tie ? '1st choice · either fits' : '1st choice'}</p>
@@ -943,6 +1004,22 @@ const fitCountCap = questionCountWordCap;
         });
       });
     }
+    // The refill. Re-renders the WHOLE result rather than repainting this block,
+    // because everything under it — the bars, the reasons, the caveats, both
+    // cards — is derived from the score this changes. A targeted repaint here
+    // would leave a card standing above a picture that no longer produced it,
+    // which is the partial-repaint failure /my-plan already shipped once.
+    elResult.querySelectorAll('[data-worry]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const v = btn.getAttribute('data-worry');
+        if (v) answers.statedWorry = v; else delete answers.statedWorry;
+        renderResult();
+        // Land them on the block they just used, not at the top of a page that
+        // silently rebuilt itself underneath them.
+        const back = elResult.querySelector('.r-worry');
+        if (back) back.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+    });
     document.getElementById('q-restart').addEventListener('click', () => {
       for (const k in answers) delete answers[k];
       checked.clear(); skipped.clear();
@@ -1221,6 +1298,21 @@ const fitCountCap = questionCountWordCap;
   /* result: the profile strip — the picture the recommendation came from */
   #finder .r-profile { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface-2); padding: 1.1rem 1.3rem 1.2rem; margin-bottom: 1rem; box-shadow: var(--shadow); }
   #finder .r-profile .r-k { margin-bottom: 0.6rem; }
+  /* result: the worry refill — derived, labelled as derived, and changeable.
+     Sits directly under the profile strip because it is a statement ABOUT that
+     picture, and reads as one continuous block with it. */
+  #finder .r-worry { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface-2); padding: 1.1rem 1.3rem 1.2rem; margin-bottom: 1rem; box-shadow: var(--shadow); }
+  #finder .r-worry .r-k { margin-bottom: 0.6rem; }
+  #finder .w-lead { margin: 0 0 0.5rem; color: var(--text); line-height: 1.55; }
+  #finder .w-ask { margin: 0 0 0.7rem; color: var(--muted); font-size: 0.9rem; }
+  #finder .w-opts { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+  #finder .w-opt { font: inherit; font-size: 0.88rem; color: var(--text); background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 0.45rem 0.9rem; cursor: pointer; }
+  #finder .w-opt:hover { border-color: var(--accent); color: var(--accent); }
+  /* The chosen one is marked by BORDER AND WEIGHT, never by colour alone —
+     the pressed state has to survive a reader who cannot separate the two. */
+  #finder .w-opt.sel { border-color: var(--accent); background: var(--accent-soft); color: var(--accent); font-weight: 700; }
+  #finder .w-revert { font: inherit; font-size: 0.85rem; color: var(--muted); background: none; border: 0; padding: 0.6rem 0 0; cursor: pointer; text-decoration: underline; }
+  #finder .w-revert:hover { color: var(--accent); }
   /* result: "because of your answers" + the either/or banner */
   #finder .r-because { border-left: 3px solid var(--accent); background: var(--accent-soft); border-radius: 0.5rem; padding: 0.9rem 1.1rem; margin: 0 0 1.2rem; }
   #finder .r-because ul { margin: 0; padding-left: 1.1rem; }

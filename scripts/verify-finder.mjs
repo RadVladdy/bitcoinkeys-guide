@@ -22,6 +22,7 @@ import {
   recommendV2, shimScores, fitFor, defaultsFor, scoreWord, scoreFromPrompts,
   CONCERN_KEYS, SECTION_ORDER, SETUP_KEYS, PROTECTION, FAMILY, TIE_MARGIN, prompts,
   EXPECTED_RAW, WEIGHT_POINTS, LADDER_RANK, CAVEAT_TEXT,
+  WORRY_CONCERNS, derivedWorry, applyStatedWorry, HALF_BAND,
 } from '../src/data/finder.js';
 
 let failures = 0;
@@ -581,6 +582,65 @@ if (c11bad.length) {
   c11bad.slice(0, 3).forEach((w) => console.error(`        e.g. ${w}`));
 }
 console.log(`  C11 no single point of failure — ${c11n} combos above learning stakes, ${c11bad.length} bare single-sig`);
+
+// ── C12 · THE STATED WORRY IS GOSPEL ─────────────────────────────────────────
+// The refill lets a reader overrule the assessment about which risk worries them
+// most. "Gospel" is a promise the copy makes in those words, so it is asserted
+// rather than assumed, in three parts:
+//
+//   1 · it TAKES  — the stated concern ends up the highest of the four risks,
+//                   measured against each one's own default, so "the one you are
+//                   most exposed to" is true of the picture on screen and not
+//                   merely written above it;
+//   2 · it LIFTS  — the word on that bar is elevated or high, never typical.
+//                   A sentence saying this worries you over a bar reading TYPICAL
+//                   is the two-surfaces-disagreeing bug, pre-built;
+//   3 · it ADDS   — no other score moves, in either direction. The prompts the
+//                   reader ticked are evidence and stay evidence; a stated worry
+//                   is one more fact, not a reset.
+//
+// Enumerated over the stakes × sovereignty × worry lattice, and over a reader
+// who has ticked prompts as well as one who has not — the floor is computed from
+// the OTHER concerns' gaps, so a picture that already has a raised bar is the
+// case where it can silently fail to take.
+const c12stakes = ['learning', 'meaningful', 'serious', 'lifechanging'];
+const c12sov = ['pure', 'lean-self', 'open-help'];
+const c12prompts = [[], prompts.filter((p) => p.concern === 'remote').slice(0, 4).map((p) => p.id),
+  prompts.filter((p) => p.concern === 'physical').slice(0, 3).map((p) => p.id)];
+let c12n = 0;
+const c12bad = [];
+for (const st of c12stakes) {
+  for (const sv of c12sov) {
+    for (const ticked of c12prompts) {
+      const assessed = scoreFromPrompts(ticked, st, []);
+      const d = defaultsFor(st, sv);
+      for (const c of ['stakes', 'exposure']) if (typeof assessed[c] !== 'number') assessed[c] = d[c];
+      for (const w of WORRY_CONCERNS) {
+        c12n++;
+        const after = applyStatedWorry(assessed, w, st, sv);
+        const gap = (k) => after[k] - d[k];
+        const rival = WORRY_CONCERNS.filter((k) => k !== w).map(gap);
+        const where = `${st}/${sv}/${w}/${ticked.length}p`;
+        if (rival.some((g) => g >= gap(w))) c12bad.push(`${where}: stated worry is not the top gap`);
+        const word = scoreWord(after[w], w, st, sv);
+        if (word !== 'elevated' && word !== 'high') c12bad.push(`${where}: reads ${word}, not elevated+`);
+        for (const k of CONCERN_KEYS) {
+          if (k !== w && after[k] !== assessed[k]) c12bad.push(`${where}: moved ${k} as a side effect`);
+        }
+        if (after[w] < assessed[w]) c12bad.push(`${where}: LOWERED the stated concern`);
+      }
+      // The derived worry must be one of the four, always — the result screen
+      // renders its label unconditionally, so a null here is a blank sentence.
+      const dw = derivedWorry(assessed, st, sv);
+      if (!WORRY_CONCERNS.includes(dw.concern)) c12bad.push(`${st}/${sv}: derived worry ${dw.concern} is not a risk concern`);
+    }
+  }
+}
+if (c12bad.length) {
+  fail(`C12: ${c12bad.length} of ${c12n} stated-worry cases are not gospel`);
+  c12bad.slice(0, 3).forEach((w) => console.error(`        e.g. ${w}`));
+}
+console.log(`  C12 stated worry is gospel — ${c12n} cases: tops the four risks, reads elevated+, moves nothing else`);
 
 // ════ result ════════════════════════════════════════════════════════════════
 console.log('');

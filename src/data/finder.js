@@ -971,6 +971,78 @@ function withPreferenceDefaults(scores, answers = {}) {
   return out;
 }
 
+// ── THE WORRY REFILL ────────────────────────────────────────────────────────
+//
+// The reader is shown the one thing their answers say they are most exposed to,
+// told plainly that it came from their answers, and allowed to change it. What
+// they leave it on is then treated as gospel by the engine.
+//
+// WHY IT IS A REFILL AND NOT A QUESTION. The retired quiz asked "what worries
+// you most?" cold, in one tap, before the reader had been shown anything — and
+// the answer decided the recommendation. The assessment replaced that with
+// evidence: walk the sections, tick what is true of you, and the bars move. But
+// an assessment can only see what it asked about, and the reader knows things it
+// did not ask. So the derived answer is shown as a first draft with its
+// provenance on its face, which is the same shape as every other claim here.
+//
+// It is deliberately NOT the thing that decides the setup. The whole model still
+// runs; this moves one input. A reader who disagrees with the picture can say so
+// without the result becoming whatever they last clicked.
+//
+// ONLY THE FOUR RISKS ARE CANDIDATES. `stakes` and `exposure` are answers to
+// direct questions rather than shares of expected loss — "how much would it hurt
+// to lose" is not a thing to be worried ABOUT, it is the multiplier on
+// everything else, and offering it here would ask the reader to rank a scale
+// against a risk.
+export const WORRY_CONCERNS = ['self-loss', 'remote', 'custodial', 'physical'];
+
+/**
+ * Which risk this reader's answers say they are most exposed to.
+ *
+ * Measured as the gap ABOVE the typical holder, not the raw share — self-loss
+ * has the largest default of the four, so a raw maximum would name it for almost
+ * everybody and the line would carry no information. `stood` is false when
+ * nothing clears the noise: the picture is ordinary, and the copy has to say so
+ * rather than manufacture a worry out of a rounding difference.
+ */
+export function derivedWorry(scores, stakes = 'meaningful', sovereignty = 'lean-self') {
+  const d = defaultsFor(stakes, sovereignty);
+  let best = null;
+  for (const c of WORRY_CONCERNS) {
+    const cand = { concern: c, delta: scores[c] - d[c], score: scores[c] };
+    if (!best || cand.delta > best.delta
+        || (cand.delta === best.delta && cand.score > best.score)) best = cand;
+  }
+  // Half a band is the same threshold the word scale uses to stop calling
+  // something typical, so "stands out" here means what it means everywhere else.
+  return { ...best, stood: best.delta > HALF_BAND[best.concern] / 2 };
+}
+
+/**
+ * Treat a stated worry as gospel: raise that concern until it is genuinely the
+ * top of the reader's picture and genuinely above the typical holder.
+ *
+ * WHY RAISE RATHER THAN OVERWRITE. The prompts the reader ticked are evidence
+ * and stay evidence — a stated worry adds a fact the assessment could not ask
+ * for, it does not delete the ones it did. So this is a floor, never a ceiling:
+ * a concern already scored higher than the floor keeps its own score, and
+ * nothing the reader ticked is thrown away.
+ *
+ * The floor is one half-band above the default (the bottom of `elevated`, so the
+ * word on the bar agrees with the sentence above it) and a point clear of every
+ * other risk, so "most exposed to" is true of the picture the reader is looking
+ * at rather than merely asserted over it.
+ */
+export function applyStatedWorry(scores, worry, stakes = 'meaningful', sovereignty = 'lean-self') {
+  if (!WORRY_CONCERNS.includes(worry)) return scores;
+  const d = defaultsFor(stakes, sovereignty);
+  const others = WORRY_CONCERNS.filter((c) => c !== worry).map((c) => scores[c] - d[c]);
+  const gapFloor = Math.max(0, ...others) + 1;         // clear of every other risk
+  const bandFloor = HALF_BAND[worry] + 1;              // into `elevated`, not merely typical
+  const floor = d[worry] + Math.max(gapFloor, bandFloor);
+  return { ...scores, [worry]: Math.min(100, Math.max(scores[worry], Math.round(floor))) };
+}
+
 function normalizedScores(answers) {
   if (answers.scores && typeof answers.scores === 'object') {
     const d = defaultsFor(answers.stakes || 'meaningful', answers.sovereignty);
@@ -1174,7 +1246,27 @@ function secondaryFor(runnerUp, words, answers) {
 
 export function recommendV2(answers = {}) {
   const stakes = STAKES_SCORE[answers.stakes] !== undefined ? answers.stakes : 'meaningful';
-  const scores = normalizedScores(answers);
+  const assessed = normalizedScores(answers);
+  // The worry the ASSESSMENT produced, computed before any override — the result
+  // has to be able to say "this is what your answers said" even when the reader
+  // has since changed it, or the change has nothing to be a change from.
+  const derived = derivedWorry(assessed, stakes, answers.sovereignty);
+  // `answers.statedWorry` is the reader's own word on it. Gospel, per its own
+  // section above — and applied to the SCORES, so everything downstream (the
+  // bars, the words, the reasons, the caveats, C11) reads one picture. An
+  // override that only reached the copy would put a sentence on the page the
+  // bars beneath it contradicted, which is this project's most-shipped bug.
+  //
+  // NOT `answers.worry`, and the collision is not hypothetical — it shipped in
+  // the first draft of this and was caught by the numbers, not by reading.
+  // `worry` is the RETIRED quiz's answer key, still read by shimScores() so that
+  // a plan saved before 2026-07-31 loads as an estimate. Its values are the old
+  // question's ('theft', 'exchange', 'targeted', 'self-loss'), which overlap
+  // these concern keys without meaning the same thing — so writing a stated
+  // worry into `worry` had the shim raise the concern too, on top of the floor
+  // below, and put self-loss two bands up instead of one.
+  const stated = WORRY_CONCERNS.includes(answers.statedWorry) ? answers.statedWorry : null;
+  const scores = stated ? applyStatedWorry(assessed, stated, stakes, answers.sovereignty) : assessed;
   const d = defaultsFor(stakes, answers.sovereignty);
   const words = {};
   const deltas = {};
@@ -1408,5 +1500,15 @@ export function recommendV2(answers = {}) {
     holdbacks,
     tie,
     fit: ranking,
+    // The refill, for the result screen to render and let the reader change.
+    // `derived` is what the assessment said; `stated` is what they told us
+    // instead, or null. `active` is the one the engine actually used, so the
+    // page never has to re-derive which of the two won.
+    worry: {
+      derived: derived.concern,
+      stood: derived.stood,
+      stated,
+      active: stated || derived.concern,
+    },
   };
 }
