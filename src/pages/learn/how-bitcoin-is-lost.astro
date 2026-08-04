@@ -2,7 +2,6 @@
 import Base from '../../layouts/Base.astro';
 import LessonNav from '../../components/LessonNav.astro';
 import LessonEyebrow from '../../components/LessonEyebrow.astro';
-import { finderPromise } from '../../data/quiz.js';
 import { numberWord } from '../../data/numbers.js';
 import RuleBand from '../../components/RuleBand.astro';
 import { levelById, lessonFor } from '../../data/curriculum.js';
@@ -207,17 +206,20 @@ const buckets = [
         walks the whole rehearsal.
       </p>
     </div>
-  </section>
-
-  <section class="prose next">
-    <h2>Now — which of these do <em>you</em> most need to defend?</h2>
-    <p>
-      You don’t need to defend against all {numberWord(buckets.length)} equally. The right setup is the simplest one that
-      covers <em>your</em> real risks. It’s {finderPromise} — starting from the same base rates this
-      lesson just taught — and we’ll point you to it.
-    </p>
-    <p class="cta-row">
-      <a class="btn" href="/find-your-setup">Find your setup →</a>
+    {/* CLOSES ON THE LESSON'S OWN POINT, AND SENDS NOBODY ANYWHERE.
+        This was a headed section pitching the setup finder with a button. It
+        read as the next thing to do, three lessons into a course whose whole
+        premise is that understanding comes before configuring — and the reader
+        who took it left the sequence at lesson 3 of 17. The finder is reachable
+        from the nav on every page and from /start; it does not need a door here.
+        The teaching point is worth keeping and is kept, in one sentence: the
+        ladder answers "which of these are mine", and it is named in PLAIN TEXT
+        the way /learn/rules names its lessons, so it stays findable without
+        pulling anyone forward (invariant #9). */}
+    <p class="closer">
+      <strong>And you don’t need to defend against all {numberWord(buckets.length)} equally.</strong> Which of them are
+      really yours depends on how much is at stake, and on how and where you hold it. That is what
+      {' '}{lvl('102')} is for.
     </p>
   </section>
 
@@ -225,6 +227,8 @@ const buckets = [
 </Base>
 
 <style>
+  /* the lesson's closing line — no heading, no outbound link */
+  .closer { margin-top: 1.6rem; }
   /* intro: two columns — copy on the left, key-fact rail on the right */
   .risk-intro { display: grid; grid-template-columns: minmax(0, 1fr) 15.5rem; gap: 2.8rem; align-items: start; }
   .intro-main .strip { margin-top: 1.5rem; }
@@ -257,8 +261,6 @@ const buckets = [
   .dcovered { font-size: 0.88rem !important; color: var(--faint) !important; border-left: 2px solid var(--line);
     padding-left: 0.75rem; margin: 0.7rem 0 0 !important; }
   .dcovered strong { color: var(--muted); font-weight: 600; }
-  .next h2 { margin-top: 0.5rem; }
-  .cta-row { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1rem; }
   .btn { display: inline-flex; align-items: center; background: var(--accent); color: var(--accent-ink); font-weight: 700;
     font-family: var(--mono); font-size: 0.95rem; padding: 0.7rem 1.1rem; border-radius: 0.6rem; text-decoration: none; }
   .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }

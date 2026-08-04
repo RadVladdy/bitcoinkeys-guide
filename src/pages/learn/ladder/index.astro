@@ -5,7 +5,6 @@ import LessonEyebrow from '../../../components/LessonEyebrow.astro';
 import Diagram from '../../../components/Diagram.astro';
 import RuleBand from '../../../components/RuleBand.astro';
 import { ladder } from '../../../data/ladder.js';
-import { finderPromise } from '../../../data/quiz.js';
 
 // GAINED 2026-07-29: the "how much money at which temperature" material from the
 // retired hot-vs-cold page. Deciding what lives hot and what lives cold is a SETUP
@@ -163,12 +162,20 @@ const rungs = ladder;
     </ul>
 
 
+    {/* THE SCOPE NOTE STAYS; THE DOOR OUT DOES NOT. A reader who has just read
+        four rungs reasonably expects to be told which is theirs, so saying that
+        this page does not do that is worth a sentence — leaving it out invites
+        them to decide for themselves on the spot, which is the one outcome this
+        lesson is trying to prevent. What went is the pitch and the button: this
+        is lesson 6 of 17 in a course whose premise is that understanding comes
+        before configuring, and a primary CTA here takes the reader out of the
+        sequence at the exact moment the material starts paying off. The finder
+        is in the nav on every page and on /start; it does not need a door here.
+        The rule the ladder is built on is stated as a rule rather than as a
+        property of a tool, which is where it belongs anyway. */}
     <div class="callout">
       <span class="label">Which rung is yours?</span>
-      <p>This page teaches the ladder; it doesn’t place you on it. The <a href="/find-your-setup">setup finder</a> does that — {finderPromise}, and it names the rung that fits what you’re actually protecting against. It errs toward the <em>lowest</em> rung that covers you, because that’s the rule this whole ladder is built on.</p>
-    </div>
-    <div class="cta-row">
-      <a href="/find-your-setup" class="btn btn-primary">Find my rung <span class="arw">→</span></a>
+      <p>This page teaches the ladder; it doesn’t place you on it. The rule it’s built on does most of that work for you — <strong>the lowest rung that covers what you’re actually protecting against, and no higher</strong> — and you’ve just read what each one costs to run, which is the half of the trade people skip. Nothing here needs deciding today. Choosing hardware and building the thing come later, and the course gets you there in order.</p>
     </div>
   </section>
 
@@ -177,7 +184,6 @@ const rungs = ladder;
 
 <style>
   section { margin-bottom: 0.5rem; }
-  .cta-row { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.4rem; }
 
   /* The at-a-glance table. The shared .scroll wrapper (global.css) gives it the
      sideways scroll, edge fade, and sticky header/first-column on phones. */

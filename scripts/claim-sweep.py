@@ -150,11 +150,19 @@ _bundles = []
 
 
 def unread_pages():
-    """Pages carrying materially more client JS than the site-wide baseline."""
+    """Pages carrying materially more client JS than the site-wide baseline.
+
+    DEDUPED, because pages() is a generator re-run for EVERY topic — so this list
+    accumulated one copy of each page per topic and a full sweep printed the
+    warning eight times over. A warning that scrolls is one nobody reads, which
+    is the exact failure this footer was added to prevent.
+    """
     if not _bundles:
         return []
-    baseline = min(n for _, n in _bundles if n) if any(n for _, n in _bundles) else 0
-    return sorted(u for u, n in _bundles if n - baseline > RUNTIME_COPY_BYTES)
+    sizes = dict(_bundles)
+    nonzero = [n for n in sizes.values() if n]
+    baseline = min(nonzero) if nonzero else 0
+    return sorted(u for u, n in sizes.items() if n - baseline > RUNTIME_COPY_BYTES)
 
 
 def pages():
