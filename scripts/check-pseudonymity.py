@@ -44,9 +44,20 @@ block, as `//` comments. Those are compiled away and never ship.
 Usage:  python3 scripts/check-pseudonymity.py     (exits non-zero on a finding)
         --warn-only   report §4 narrative hits without failing the build
         --stdin       scan text on stdin instead of the repo, using THIS repo's
-                      identifier list and allowlist. Lets an outside caller (the
-                      nightly sweep, checking commit messages) reuse the tuned
-                      per-site config instead of keeping a second copy that drifts.
+                      identifier list, allowlist and §4 narrative patterns. Lets an
+                      outside caller reuse the tuned per-site config instead of
+                      keeping a second copy that drifts. Its caller in this repo is
+                      scripts/check-commit-messages.py, which is the gate over the
+                      fourth surface — history — that this file cannot see.
+
+THE SURFACE THIS FILE DOES NOT COVER. Pseudonymity has four surfaces: authorship,
+content, history, built output. This script reads src/ and dist/, so it speaks to
+content and built output only, and it has never read a commit message. On
+2026-08-05 that gap was measured: 13 of 273 commit messages named the owner while
+this check exited 0 and was being cited as proof the repo was clean. History is
+now gated by scripts/check-commit-messages.py, which delegates here via --stdin.
+A clean run of THIS script is not a four-surface result and must not be reported
+as one.
 """
 import re
 import sys
@@ -165,15 +176,36 @@ def walk(root, exts):
             yield p
 
 
-# --stdin: same identifiers, same allowlist, arbitrary text. Report and exit.
+# --stdin: same identifiers, same allowlist, same narrative patterns, arbitrary
+# text. The caller supplies prose that is not a file in this repo — a commit
+# message being the case this exists for.
+#
+# It applies §4 as well as the identifier scan, and that is the point rather than
+# a convenience: the 13 commit messages this mode was written to catch name a
+# person AND narrate a session, and several would have been caught by only one of
+# the two. Prose is scanned whole here, not comment-by-comment — a commit message
+# is all comment.
+#
+# Tiering matches the file scan exactly, so there is one policy and not two:
+# an identifier or a NARRATIVE_FAIL shape exits 1; the softer shapes print and
+# exit 0. Anything stricter here would be a rule that exists only for commit
+# messages, and a rule that lives in one place drifts from the one it copied.
 if '--stdin' in sys.argv:
     _t = sys.stdin.read()
-    _hits = [f'    {_t[max(0, s - 80):e + 60].strip()}' for _k, s, e in scan(_t)]
+    _hits = [f'    …{ctx(_t, s, e)}…' for _k, s, e in scan(_t)]
+    _narr, _soft = [], []
+    for _pat, _why in NARRATIVE:
+        for _m in re.finditer(_pat, _t, re.I):
+            _line = f'    [{_why}] …{ctx(_t, _m.start(), _m.end())}…'
+            (_narr if FAIL_RE.search(_m.group(0)) else _soft).append(_line)
     if not NAMES_FILE.exists():
         print(f'DEGRADED: {NAMES_FILE} missing'); sys.exit(2)
-    if _hits:
-        print(f'{len(_hits)} identifier hit(s) in the supplied text:')
-        print('\n'.join(_hits))
+    for _line in _soft:
+        print(f'  -- narrates rather than states a constraint:\n  {_line}')
+    if _hits or _narr:
+        print(f'{len(_hits)} identifier hit(s), {len(_narr)} narrative hit(s) '
+              'in the supplied text:')
+        print('\n'.join(_hits + _narr))
         sys.exit(1)
     sys.exit(0)
 
