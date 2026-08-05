@@ -27,10 +27,11 @@
 // on an internet-connected device") used to be rule 01, on the keys lesson. Two
 // things were wrong with that. It opened the whole course on a storage directive
 // before the reader had any reason to care, and it sat on the lesson that DEFINES
-// hot and cold rather than the one where temperature becomes a decision. It now
-// lives on the ladder, beside the "how much belongs at each temperature" section,
-// which is that rule in its decision form. The keys lesson keeps teaching the
-// concept and simply owns no rule — same as the rules page itself.
+// hot and cold rather than the one where temperature becomes a decision. It moved
+// to the ladder first, then followed the tiering material to /learn/hot-and-cold
+// when that page came back on 07-30 (its `href` below is the truth). The keys
+// lesson keeps teaching the concept and simply owns no rule — same as the rules
+// page itself.
 //
 // The section did NOT move. Moving it to choose-a-wallet was considered and
 // rejected: the ladder is 102 lesson 1 and choose-a-wallet is 102 lesson 2, and
@@ -66,7 +67,7 @@ export const rules = [
     key: 'self-inflicted',
     short: 'You are the main risk',
     rule: 'You’re more likely to lose access to your Bitcoin than have it stolen.',
-    body: 'The mental picture is a hacker. The reality is a house fire, a single backup nobody copied, a word miscopied and never checked, or an owner who died without leaving instructions. Thieves are real and worth defending against — but they are not the main thing standing between you and your Bitcoin. You are.',
+    body: 'The mental picture is a hacker. The reality is a house fire, a single backup nobody copied, a word miscopied and never checked, or an owner who died without leaving instructions. Of all the Bitcoin ever lost, far more went that way than was ever taken. Thieves are real and worth defending against — but they are not the main thing standing between you and your Bitcoin. You are.',
     href: '/learn/how-bitcoin-is-lost',
     level: '101',
     lesson: 'How people lose Bitcoin',
@@ -191,7 +192,7 @@ export const rules = [
     href: '/learn/inheritance',
     // Rule 12 is the one rule taught across TWO lessons: why it goes wrong, then
     // how to build the fix. `also` lets the second lesson carry the same band
-    // rather than being the only lesson on the site without one.
+    // (several concept lessons legitimately carry none — see RuleBand.astro).
     also: '/learn/recovery-kit',
     level: '104',
     lesson: 'Why Bitcoin doesn’t inherit like money',

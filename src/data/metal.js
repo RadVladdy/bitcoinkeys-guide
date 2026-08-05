@@ -1,6 +1,6 @@
 // Choosing a metal seed backup.
 //
-// The guide rates eleven hardware wallets against a published standard and then tells
+// The guide rates twelve hardware wallets against a published standard and then tells
 // the reader to "move it to metal". Without this, that instruction had no answer
 // anywhere on the site.
 //

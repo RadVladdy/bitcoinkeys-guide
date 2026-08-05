@@ -9,8 +9,9 @@
 // KEYED BY RULE KEY, NOT BY LESSON SLUG. Every lesson exists to teach exactly one
 // rule, so a check tests THAT rule and is found the same way <RuleBand> finds its
 // rule — via rulesFor(pathname) in rules.js. Three consequences worth knowing:
-//   · A lesson that owns no rule (the rules page itself, and the two that set it
-//     up) gets no check and renders nothing, rather than inventing one.
+//   · A lesson that owns no rule (the rules page itself, plus the concept lessons
+//     — bitcoin-keys, beyond-the-ladder, generate-your-seed) gets no check and
+//     renders nothing, rather than inventing one.
 //   · /learn/privacy owns rules 10 and 11, so it can carry two checks.
 //   · Re-homing a rule to a different lesson MOVES ITS CHECK AUTOMATICALLY. That
 //     is the whole reason for keying on the rule: a slug map would have silently

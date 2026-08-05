@@ -18,6 +18,9 @@
 //      really two ideas: what hot and cold MEAN (a property of a wallet — belongs
 //      in the keys lesson, beside "a wallet is a configuration of keys") and how to
 //      TIER money across them (a setup decision — belongs on the ladder).
+//      (Reversed 07-30: /learn/hot-and-cold came back as 102's opening lesson —
+//      the tiering DECISION needed a page of its own before the ladder could
+//      answer it. See hot-and-cold.astro's header for the full round trip.)
 //   3. WRONG-NETWORK MERGED INTO SEND. Picking the right network is part of
 //      sending safely, not a separate discipline. The merge also flushed 254 words
 //      of air-gapped/PSBT material out of a beginner build lesson and up to 201.
@@ -31,17 +34,18 @@
 //      chain is single and linear: a public ledger, plus address reuse, plus an ID
 //      check that leaks, puts your name and your holdings in one file, which
 //      becomes a target list, which ends at your door. On-chain habits and
-//      real-world habits are the same defence at the two ends of it. Coin control
-//      and the optional tools (PayJoin, Silent Payments, CoinJoin) went up to 201,
-//      where "optional and skippable" is already the level's stated identity.
+//      real-world habits are the same defence at the two ends of it. The optional
+//      tools (PayJoin, Silent Payments, CoinJoin) went up to run-a-node (then 201,
+//      now the 104 finale); coin control STAYED in privacy as an everyday habit,
+//      with run-a-node recapping it in one line (settled 2026-08-04).
 //   5. INHERITANCE SPLIT. At 1,613 words it was the heaviest page here, and it was
 //      cleanly two: why Bitcoin doesn't inherit like money, then how to build the
 //      Recovery Kit. One rule (12) across two parts.
 //
 // URLs moved to /learn/ in the same pass. The old /how-to/ prefix was the same
 // group-by-format habit the menu had already shed, and several pages under it were
-// not how-tos at all. /learn/* is now the course; everything else (/quiz, /wallets,
-// /glossary, /demos…) is tools and reference. Old paths 301 in public/_redirects.
+// not how-tos at all. /learn/* is now the course; everything else (/find-your-setup,
+// /wallets, /glossary, /demos…) is tools and reference. Old paths 301 in public/_redirects.
 //
 // This file is the ONE source for: the Learn mega-menu, the /start syllabus, the
 // prev/next lesson footer, and the /learn index. Add a lesson here and every one of
@@ -50,9 +54,9 @@
 //
 // Levels are deliberately numbered. The numbering is a claim that this is a
 // SEQUENCE you progress through, not a flat map you browse — 100-level material
-// builds on itself in order; 200-level is a different KIND of material (optional,
-// skippable, "see it for yourself"), which is why it renders in the `safe` token
-// rather than the accent.
+// builds on itself in order, and since 201's removal (2026-08-01, see below)
+// every level is 100-level and required. The `safe`-token rendering for an
+// `optional` level survives in the renderers, dormant, should one return.
 
 import { ruleCountWord, ruleCountWordCap, rules, umbrella } from './rules.js';
 
@@ -73,7 +77,7 @@ export const levels = [
   },
   {
     id: '102',
-    // "Wallet setups", NOT "Your setup". The level teaches what the arrangements
+    // "Wallet configuration", NOT "Your setup". The level teaches what the arrangements
     // ARE; the "Your setup" nav group (nav.js) is the three pages that build
     // YOURS. Both titles were live at once and both render on the home page, one
     // in the level list and one on the card beside it — the same word for the

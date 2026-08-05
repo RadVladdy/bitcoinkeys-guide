@@ -33,7 +33,9 @@
 // this file, so this cannot create a cycle.
 import { wallets } from './wallets.js';
 
-export const custodiansVerified = '2026-07-20';
+// Bumped 2026-08-04: the Bitkey section arrived ~08-01 while this stamp still
+// read 07-20 — a stamp covers the page's newest material, not its oldest.
+export const custodiansVerified = '2026-08-01';
 
 export const custodians = [
   {

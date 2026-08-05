@@ -77,7 +77,7 @@ export const checklistItems = [
   // shape, on the one subject where the arithmetic actually differs by rung.
   // `multisig-brands` KEEPS ITS ID (saved plans store ticks by id).
   { id: 'multisig-brands', phase: 'setup', only: ['multisig'], t: 'Use a different maker for each of your three keys',
-    d: 'The cheapest big upgrade in all of self-custody. Three identical devices share one point of failure — a flaw in that brand hits every key at once, and the multisig protects you from nothing it was bought for. Three different makers means any one brand’s problem can only ever reach one of your three keys.',
+    d: 'The cheapest meaningful upgrade in all of self-custody. Three identical devices share one point of failure — a flaw in that brand hits every key at once, and the multisig protects you from nothing it was bought for. Three different makers means any one brand’s problem can only ever reach one of your three keys.',
     href: '/learn/choose-a-wallet' },
   { id: 'collab-brands', phase: 'setup', only: ['collaborative'], t: 'Use a different maker for each of your two keys',
     d: 'You hold two of the three keys, and two is enough to spend. So if both of your devices come from the same maker, one flaw in that brand reaches a spending quorum on its own — the service’s key never comes into it. Two different makers, and any one brand’s problem can only ever reach one key.',
@@ -105,7 +105,9 @@ export const checklistItems = [
     d: 'The PIN stops someone who physically grabs the device from using it. It does NOT protect the seed — anyone holding your recovery words needs no PIN at all, which is why the backup is the thing that must never be seen. Set one anyway; it is free and it closes the easiest theft there is.',
     href: '/learn/ladder' },
   { id: 'verify-address', phase: 'setup', t: 'Verify every address on the device’s own screen',
-    d: 'Malware exists that silently swaps the address you copied for an attacker’s, and your computer will show you the swap without blinking. The hardware wallet’s own screen can’t be faked that way. Read the address there, confirm it, then approve — every single time.',
+    // Shortened 2026-08-04 — this used to restate rule 08's body nearly verbatim,
+    // and the rule chip beside the item already carries the rule.
+    d: 'The device’s screen is the one display malware can’t rewrite — your computer will show a swapped address without blinking. Read the address on the device, confirm it, then approve — every single time.',
     href: '/learn/send-bitcoin-safely', rule: 'verify-address' },
   // SPLIT 2026-07-31 (safety-critical ordering). One item used to say "send a test
   // amount… then move the rest" HERE — before the backup existed (Step 2) or had been
