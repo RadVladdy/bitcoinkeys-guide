@@ -8,8 +8,10 @@
 /.well-known/lnurlp/tips  https://ln.bitcoinkeys.guide/.well-known/lnurlp/tips  302
 
 # Ladder restructure 2026-07-17: DIY 2-of-3 renamed to "multisig"; 3-of-5 folded in.
-/ladder/diy-multisig  /ladder/multisig  301
-/ladder/3-of-5        /ladder/multisig  301
+# Retargeted 2026-08-04 to the final destination — these used to chain through
+# /ladder/multisig → /learn/ladder/multisig → /learn/ladder#rung-3 (three hops).
+/ladder/diy-multisig  /learn/ladder#rung-3  301
+/ladder/3-of-5        /learn/ladder#rung-3  301
 
 # --- Linear restructure 2026-07-29 --------------------------------------------
 # The course moved to /learn/*. The old /how-to/ prefix grouped by FORMAT, which
@@ -21,7 +23,9 @@
 /principles                /learn/rules               301
 /rules                     /learn/rules               301
 /how-to                    /learn                     301
-/how-to/hot-vs-cold        /learn/bitcoin-keys        301
+# hot-vs-cold first merged into bitcoin-keys (07-29), then got its own page back
+# as /learn/hot-and-cold (07-30) — retargeted 2026-08-04 to follow the material.
+/how-to/hot-vs-cold        /learn/hot-and-cold        301
 /how-to/custodial-risk     /learn/not-your-keys       301
 /how-to/recovery-rehearsal /learn/test-your-backup    301
 /how-to/opsec-basics       /learn/phishing-and-scams  301
@@ -34,12 +38,14 @@
 
 # The four rung pages + the Shamir page merged into the ladder lesson 2026-07-30.
 # Learn is a linear course; the rungs were outside curriculum.js, so clicking one
-# dropped the reader off it. Shamir/BIP-85 moved to 201, where the demos already were.
+# dropped the reader off it. The Shamir TEACHING now lives on Beyond the ladder
+# (its /demos/shamir stopover was undone) — retargeted 2026-08-04 so the old URL
+# lands on the explanation, not a bare demo with no context.
 /learn/ladder/single-sig     /learn/ladder#rung-1  301
 /learn/ladder/passphrase     /learn/ladder#rung-2  301
 /learn/ladder/multisig       /learn/ladder#rung-3  301
 /learn/ladder/collaborative  /learn/ladder#rung-4  301
-/learn/ladder/shamir         /demos/shamir         301
+/learn/ladder/shamir         /learn/beyond-the-ladder  301
 
 # /quiz became /find-your-setup 2026-07-30. It was never a quiz: a quiz tests what
 # you know, and this asks about your situation and returns a setup, a roadmap and a
