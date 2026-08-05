@@ -6,7 +6,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 if [ -z "${CLOUDFLARE_API_TOKEN:-}" ]; then
-  TOKEN_FILE="$HOME/secure/cloudflare-pages-token"
+  TOKEN_FILE="$HOME/secure/cloudflare-deploy-token"
   if [ -f "$TOKEN_FILE" ]; then
     CLOUDFLARE_API_TOKEN="$(tr -d '\n\r ' < "$TOKEN_FILE")"
     export CLOUDFLARE_API_TOKEN
