@@ -105,9 +105,11 @@ TOPICS = {
     ),
     'finder-output': dict(
         why='What the finder recommends and why. The engine, /how-we-weigh-risk, the result card, '
-            '/my-plan and the checklist intro all describe one decision — and the result card\'s copy '
-            'comes from a DIFFERENT engine than the ranking behind it, which is exactly how a card '
-            'ended up naming a worry the reader had just rated low.',
+            '/my-plan and the checklist intro all describe one decision, and they are five renderings '
+            'of it. There is ONE engine as of 2026-08-04 — this line used to warn that the result '
+            'card\'s copy came from a different engine than the ranking behind it, which is how a card '
+            'once named a worry the reader had just rated low. That second engine is deleted, so the '
+            'remaining risk is the ordinary one: five surfaces, one subject, each internally fine.',
         subject=r'\b(setup|recommend\w*|passphrase|multisig|single-sig|collaborative|rung|concern|'
                 r'assessment|risk picture)\b',
         stance=r'\b(because your|we (?:did not|didn.t|deliberately)|your answers|scored?|fits you|'

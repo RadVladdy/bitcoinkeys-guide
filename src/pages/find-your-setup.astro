@@ -1,8 +1,8 @@
 ---
 import Base from '../layouts/Base.astro';
-import { questionCountWordCap } from '../data/quiz.js';
-// The ranked-worries question was replaced by the risk assessment (2026-07-31);
-// quiz.js no longer carries it, so the shared count is the count this page asks.
+import { questionCountWordCap } from '../data/finder-questions.js';
+// The ranked-worries question was replaced by the risk assessment (2026-07-31)
+// and is asked nowhere, so the shared count is the count this page asks.
 const fitCountCap = questionCountWordCap;
 ---
 <Base
@@ -37,7 +37,7 @@ const fitCountCap = questionCountWordCap;
 </Base>
 
 <script>
-  import { questions } from '../data/quiz.js';
+  import { questions } from '../data/finder-questions.js';
   import {
     CONCERNS, CONCERN_KEYS, SECTION_ORDER, defaultsFor, scoreWord, HALF_BAND,
     prompts, promptsFor, promptById, scoreFromPrompts, shimScores, recommendV2, FAMILY,
@@ -50,8 +50,8 @@ const fitCountCap = questionCountWordCap;
   import { mountOwnedPicker } from '../data/owned-picker.js';
   import { confirmDialog } from '../data/ui-dialog.js';
 
-  // The five plain questions — the ranked-worries question is retired (and gone
-  // from quiz.js since Phase C); the assessment (finder.js prompts → scores)
+  // The five plain questions — the ranked-worries question is retired; the
+  // assessment (finder.js prompts → scores)
   // sits in its place, between stakes and recovery, because the stakes answer
   // sets the assessment's defaults.
   const fitQuestions = questions;
@@ -368,7 +368,7 @@ const fitCountCap = questionCountWordCap;
   //
   // The reader's own answer is the honest thing to show, it is derived from the
   // same state, and it can distinguish four readers where the word could not
-  // distinguish any. Short forms live on the question in quiz.js — one source,
+  // distinguish any. Short forms live on the question in finder-questions.js — one source,
   // so a reworded option cannot leave a stale echo here.
   const ANSWER_ROW_Q = { stakes: 'stakes', exposure: 'sovereignty' };
   function answerTag(key) {

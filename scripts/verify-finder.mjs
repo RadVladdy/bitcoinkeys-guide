@@ -2,22 +2,28 @@
 // redesign). Run: node scripts/verify-finder.mjs
 //
 // Three jobs:
-//   A. LEGACY DIFF GRID — the 3,240-combo answer grid (5 current × 4 stakes ×
-//      3 recovery × 3 tech × 3 sovereignty × 6 representative worry orders)
-//      through quiz.js recommend() AND recommendV2(shimScores(...)); prints a
-//      diff table of every combo where the primary or secondary changed,
-//      grouped by pattern with counts and one example each. Informational —
-//      every pattern is for human review, not an automatic failure.
+//   A. LEGACY-SHIM SWEEP — the 3,240-combo answer grid (5 current × 4 stakes ×
+//      3 recovery × 3 tech × 3 sovereignty × 6 representative worry orders) put
+//      through recommendV2(shimScores(...)), asserting every one of them comes
+//      back well-shaped. This is the path a plan SAVED BEFORE 2026-07-31 takes,
+//      and it is the only remaining reader of the retired ranked-worries answer
+//      values — so it is exactly the coverage worth keeping.
+//        Until 2026-08-04 this section ran the same grid through quiz.js
+//      recommend() as well and printed a diff of every combo whose primary or
+//      secondary changed. It had one job, it did it (255 identical · 2,985
+//      changed in 13 patterns, every movement upward, reviewed and accepted),
+//      and it was the last thing anywhere calling that engine — so keeping it
+//      meant keeping a second engine alive to be compared against. The shape
+//      sweep it wrapped is what actually protects anything, and it stays.
 //   B. SCORE GRID — each concern at {0, default, 80} plus both C2 high-pair
-//      combos, crossed with stakes × tech × sovereignty, asserting the five
-//      calibration constraints (C1–C5, documented in finder.js).
+//      combos, crossed with stakes × tech × sovereignty, asserting the
+//      calibration constraints (C1–C12, documented in finder.js).
 //   C. SHAPE + STRING CONTRACT — every recommendV2 output carries the exact
-//      fields the current UI reads from recommend(), same-typed; and no output
-//      string contains 'quiz', 'Tier ', or a holdings dollar-bracket.
+//      fields the result page reads, same-typed; and no output string contains
+//      'quiz', 'Tier ', or a holdings dollar-bracket.
 //
-// Exit code: nonzero on any constraint (B) or contract (C) failure.
+// Exit code: nonzero on any shape (A), constraint (B) or contract (C) failure.
 
-import { recommend } from '../src/data/quiz.js';
 import {
   recommendV2, shimScores, fitFor, defaultsFor, scoreWord, scoreFromPrompts,
   CONCERN_KEYS, SECTION_ORDER, SETUP_KEYS, PROTECTION, FAMILY, TIE_MARGIN, prompts,
@@ -45,8 +51,13 @@ const WORRY_ORDERS = [
   ['theft', 'targeted', 'self-loss', 'exchange', 'unsure'],
 ];
 
+// `rec.primary.fork` can no longer be set — the combined fork card was retired
+// on 2026-08-01 and section C asserts its absence. The branch stays so that a
+// fork reappearing shows up as `fork(...)` in a report rather than as a
+// plausible-looking rung slug.
 const primaryId = (rec) => (rec.primary.fork ? `fork(${rec.primary.fork.lead})` : rec.primary.rungSlug);
-const secondaryId = (rec) => `${rec.secondary.rungSlug}·${rec.secondary.rungLabel}`;
+// secondaryId went with the legacy diff grid on 2026-08-04 — its only caller was
+// the old-vs-new comparison. The secondary card is still shape-checked below.
 
 // ── C. shape + string contract ──────────────────────────────────────────────
 const DOLLAR_BRACKET = /\$\s*\d+(?:\.\d+)?\s*[kKmM]\b|\$\s*\d{1,3}(?:,\d{3})+/;
@@ -129,10 +140,17 @@ function checkShape(res, label) {
   for (const h of hits) bad(`banned string — ${h}`);
 }
 
-// ════ A · LEGACY DIFF GRID ══════════════════════════════════════════════════
-console.log('A · Legacy diff grid — old recommend() vs recommendV2(shimScores())');
-const patterns = new Map();
-let combos = 0, changed = 0;
+// ════ A · LEGACY-SHIM SWEEP ═════════════════════════════════════════════════
+// Every pre-2026-07-31 saved plan arrives as a ranked-worries answer object and
+// reaches the engine through shimScores(). Nothing else reads those values any
+// more, so if this path breaks it breaks silently, for readers who saved a plan
+// and came back. The sweep proves each of the 3,240 legacy answer shapes still
+// produces a complete, well-typed result — and reports the spread of primaries,
+// because a shim that funnelled every old plan to one rung would pass a shape
+// check while being obviously wrong.
+console.log('A · Legacy-shim sweep — every pre-2026-07-31 saved plan still loads');
+const shimPrimaries = new Map();
+let combos = 0;
 for (const current of CURRENT)
 for (const stakes of STAKES)
 for (const recovery of RECOVERY)
@@ -141,23 +159,14 @@ for (const sovereignty of SOV)
 for (const worry of WORRY_ORDERS) {
   combos++;
   const a = { current, stakes, recovery, tech, sovereignty, worry };
-  const oldRes = recommend(a);
-  const newRes = recommendV2({ ...a, scores: shimScores(a) });
-  checkShape(newRes, JSON.stringify(a));
-  const oP = primaryId(oldRes), nP = primaryId(newRes);
-  const oS = secondaryId(oldRes), nS = secondaryId(newRes);
-  if (oP !== nP || oS !== nS) {
-    changed++;
-    const key = `${oP} → ${nP}   |   2nd: ${oS} → ${nS}`;
-    if (!patterns.has(key)) patterns.set(key, { count: 0, example: a });
-    patterns.get(key).count++;
-  }
+  const res = recommendV2({ ...a, scores: shimScores(a) });
+  checkShape(res, JSON.stringify(a));
+  const id = primaryId(res);
+  shimPrimaries.set(id, (shimPrimaries.get(id) || 0) + 1);
 }
-console.log(`  ${combos} combos · ${combos - changed} identical · ${changed} changed, in ${patterns.size} patterns:\n`);
-const sorted = [...patterns.entries()].sort((x, y) => y[1].count - x[1].count);
-for (const [key, { count, example }] of sorted) {
-  console.log(`  [${String(count).padStart(4)}×] ${key}`);
-  console.log(`          e.g. ${example.stakes}/${example.recovery}/${example.tech}/${example.sovereignty} worry=[${example.worry.join(',')}] current=${example.current}`);
+console.log(`  ${combos} legacy answer combos through shimScores() → recommendV2, all well-shaped`);
+for (const [id, n] of [...shimPrimaries.entries()].sort((x, y) => y[1] - x[1])) {
+  console.log(`  [${String(n).padStart(4)}×] ${id}`);
 }
 
 // ════ B · SCORE GRID — the five calibration constraints ═════════════════════

@@ -1,32 +1,40 @@
-// The setup finder's risk-assessment scoring engine — Phase A of the redesign.
+// The setup finder's risk-assessment scoring engine — and, since 2026-08-04, the
+// WHOLE of it. There is one engine.
 //
-// This file replaces the ranked-worries heuristics in quiz.js with a scored
-// model: four concerns, each 0–100 internally but ALWAYS presented as words
-// (low / typical / elevated / high — never numbers), seeded from research-based
+// It scores concerns 0–100 internally and ALWAYS presents them as words (low /
+// typical / elevated / high — never numbers), seeded from research-based
 // defaults, moved by evidence-backed situation prompts, and fed through a
-// protection-matrix fit function. recommendV2() returns the SAME output shape
-// as quiz.js recommend() — primary / secondary / journey — so the UI can swap
-// engines, extended with profile / reasons / holdbacks / tie / fit.
+// protection-matrix fit function. recommendV2() returns primary / secondary /
+// journey, extended with profile / reasons / holdbacks / tie / fit.
 //
-// PRIVACY UNCHANGED: no amounts are ever asked or stated. Stakes are the
-// consequence of loss, exactly as before. Pure functions; nothing persisted.
+// PRIVACY BY DESIGN: no amounts are ever asked or stated. Stakes are the
+// consequence of loss. Pure functions; nothing persisted.
 //
-// HOW THE TWO ENGINES RELATE (until Phase B/C retire quiz.js):
-//   • The fit engine here decides WHAT to recommend (which rung / fork).
-//   • quiz.js recommend() is then called with a synthesized answer set that
-//     forces that rung, so the card structure — fork paths, device pairs,
-//     wallet notes, journey framing — stays byte-identical with today's UI.
-//     The explanation layer (why / holdback) is replaced with computed copy.
-//   • shimScores() maps a legacy ranked-worries answer object to a score
-//     vector, so saved plans and prefilled finders keep working (Phase B wires
-//     it into plan.js).
+// THE SECOND ENGINE IS GONE (2026-08-04). `quiz.js` held the ranked-worries
+// heuristics this replaced, and it survived for three days after it stopped
+// deciding anything, because the card layer still called its recommend() with a
+// SYNTHESIZED answer set to get a card built. That synthesis was retired on
+// 2026-08-01 (see § THE RESULT CARDS) and the file was then dead weight with a
+// live hazard attached: TWO ENGINES CARRIED PARALLEL COPIES OF THE SAME RUNG
+// PITCHES — the passphrase decoy explanation existed twice, in wordings that had
+// already drifted apart, and nothing could tell you which one a reader saw.
+// Its device copy, vendor rows and journey framing were absorbed here (§ below);
+// its five questions went to finder-questions.js, which the pages import.
 //
-// Verified by scripts/verify-finder.mjs — the 3,240-combo legacy diff grid plus
-// the score grid asserting the five calibration constraints (C1–C5, § below).
+// WHAT SURVIVES THE RETIREMENT, deliberately: shimScores() maps a legacy
+// ranked-worries answer object to a score vector, so a plan saved before
+// 2026-07-31 still loads as a labelled estimate. It reads `answers.worry` —
+// the RETIRED question's key, whose values overlap the concern keys without
+// meaning the same thing. The live key is `statedWorry`; that collision has
+// already shipped once. Any new key added to the answers object gets grepped
+// against shimScores first.
+//
+// Verified by scripts/verify-finder.mjs — a 3,240-combo sweep of the legacy shim
+// path plus the score grid asserting the calibration constraints (C1–C12, below).
 
-import {
-  DEV, singleSigDevices, journeyFrom, collaborativeVendors,
-} from './quiz.js';
+import { savingsCustodians } from './custodians.js';
+import { deviceBySlug } from './wallets.js';
+import { numberWord } from './numbers.js';
 
 // ── 1 · The four concerns ───────────────────────────────────────────────────
 // Same buckets the finder has always used, now scored independently — "two
@@ -937,8 +945,8 @@ function passphraseHoldback(word) {
 //   skippedSections: ['physical', ...]          → those keep the default
 // Neither scores nor checkedPrompts present → shimScores(answers) (legacy).
 //
-// Returns { primary, secondary, journey } shaped exactly like quiz.js
-// recommend(), extended with:
+// Returns { primary, secondary, journey } — the shape the result page renders,
+// extended with:
 //   profile:   { scores, words, defaults, deltas }
 //   reasons:   [{ text, concern, setup }]   — from the top fit contributions
 //   holdbacks: [{ text, concern }]          — computed anti-add-on honesty
@@ -1085,6 +1093,158 @@ function normalizedScores(answers) {
 // multi-key/single-key; renaming them is churn for no gain.
 const isMultiKey = (fam) => fam === 'multisig' || fam === 'collaborative';
 
+// ── DEVICE COPY, VENDOR ROWS AND JOURNEY FRAMING ────────────────────────────
+//
+// ABSORBED FROM quiz.js 2026-08-04, when that file was deleted. They were the
+// last things it uniquely owned; this file was already their only consumer, and
+// keeping them a module away meant the engine imported from the engine it had
+// replaced. The five questions did NOT come here — they went to
+// finder-questions.js, because eight pages import that phrase and none of them
+// should pull a scoring engine in to render a sentence.
+
+// Bitcoin-only collaborative-custody services, derived LIVE from custodians.js
+// (the /collaborative page's single source of truth) so the finder and the
+// comparison page can never disagree on fees, KYC, or the service list.
+// Neutral + informational — NOT affiliate links, NOT ranked "best." Casa is
+// deliberately omitted there (it supports other coins), so it's omitted here.
+// RUNG 4 ONLY. `savingsCustodians`, not `custodians` — the finder recommends
+// collaborative custody as the third key of a LONG-TERM VAULT, and Bitkey is a
+// collaborative-custody product built for SPENDING. Listing it here made it a
+// candidate answer to "which service should hold the third key of my savings",
+// which is not a question it answers. It keeps its place on /collaborative, in
+// its own section, and its place on /wallets as a spending-tier device.
+const KYC_LABEL = { yes: 'No KYC', no: 'KYC required', partial: 'KYC varies' };
+export const collaborativeVendors = savingsCustodians.map((c) => ({
+  name: c.name,
+  url: c.url,
+  model: c.model,
+  kyc: KYC_LABEL[c.noKyc] || '—',
+  price: c.fee,
+  hw: c.devices,
+  note: c.bestFor,
+}));
+
+// Device options are always given as a PAIR of equal good fits — never a single
+// funnel. Rule of the guide: every device is rated in three tiers against the
+// published standard (/standard); savings recommendations draw from the
+// cold-storage tier, and spending-tier devices are labeled as such when they
+// appear. Within a tier, fit decides.
+// Price comes from wallets.js, which the freshness runner watches — a figure typed
+// here would drift silently the way "~$79" did (invariant #10).
+const price = (slug) => (deviceBySlug[slug] && deviceBySlug[slug].price) || '';
+
+const DEV = {
+  safe3:    { name: 'Trezor Safe 3', why: `the cheapest device that clears our bar (${price('trezor-safe-3')}) — buttons and a small screen rather than a touchscreen, but the same secure element and open-source firmware as its pricier siblings` },
+  jade:     { name: 'Blockstream Jade', why: 'genuinely good on a budget, simple, Bitcoin-only (connects by USB/Bluetooth — no on-device camera)' },
+  bitbox:   { name: 'BitBox02 (BTC-only)', why: 'Swiss, minimalist, fully open-source — an excellent multisig component' },
+  coldcard: { name: 'Coldcard Q',          why: 'the physical keyboard and clear menus make it the friendliest to operate — and it’s buy-once: the same device covers single-sig, a passphrase, and multisig, so you never re-buy as you climb (Bitcoin-only; premium price)' },
+  trezor:   { name: 'Trezor Safe 5',       why: 'colour touchscreen and mainstream UX — easy passphrase entry' },
+  bitkey:   { name: 'Bitkey',              why: 'phone-integrated and beginner-friendly — a 2-of-3 with recovery built in, so there’s no single seed to lose. A great first setup, especially if you live on your phone — note we rate it <a href="/standard#built-for-spending">built for spending</a>: when your stack becomes real savings, move it to a cold-storage-tier device',
+    // Bitkey's setup is app-guided and unlike the rest of the ladder (no manual seed
+    // to write down), so the result page renders its device pair as a tappable choice.
+    // This flag used to be an entire unrendered checklist whose only living job was
+    // being truthy; now it says what it does.
+    adaptive: true,
+  },
+};
+
+// Ordered device options for the single-sig recommendation — best fit LEADS,
+// and the order shifts with the answers. Bitkey (phone-integrated, recovery
+// built in) leads for entry-level holders; more capable devices lead for the
+// technical (capability ≠ harder to use).
+function singleSigDevices(a) {
+  const budgetTight = a.stakes === 'learning' || a.stakes === 'meaningful';
+  // Small amount / budget-conscious → economics leads; a cheap device is the right call.
+  if (a.tech === 'simple' && budgetTight) {
+    // Cold-storage tier LEADS. This branch used to lead with Bitkey and close on
+    // "as your stack becomes savings, make the Jade its cold home" — the same
+    // graduate-later shape retired from the learning branch on 2026-07-30, one
+    // stakes level up. Bitkey stays on offer, with its tier stated, because it is a
+    // genuinely good phone-first on-ramp; it just isn't the thing we lead a SAVINGS
+    // recommendation with.
+    return {
+      devices: [DEV.jade, DEV.bitkey],
+      headline: 'The simplest cold setup — with a phone-friendly alternative',
+      note: 'The Jade is a cold-storage-tier single-sig wallet and excellent value — the straightforward answer, and the one we would pick. Bitkey is the alternative if you live on your phone: a 2-of-3 with recovery built in and no single seed to lose, which makes it an unusually easy on-ramp — but we rate it built for spending rather than a long-term vault, so know what you are choosing.',
+    };
+  }
+  if (budgetTight) {
+    return { devices: [DEV.jade, DEV.bitbox], note: 'Both are strong value for a first single-sig wallet — the Jade especially if you’re keeping costs down; the BitBox02 is a Swiss, Bitcoin-only step up that also makes a great multisig key later.' };
+  }
+  // Bigger stakes, budget not the deciding factor → lead with a buy-once device
+  // that also carries you up the ladder (passphrase, multisig) without new hardware.
+  if (a.tech === 'technical') {
+    return { devices: [DEV.coldcard, DEV.bitbox], note: 'Both are cold-storage-tier and climb the ladder without re-buying. The Coldcard Q’s keyboard makes it the easiest to operate at every rung and stays a lean Bitcoin-only signer; the BitBox02 is the minimalist Swiss alternative — fully open-source, and an excellent multisig key later.' };
+  }
+  return { devices: [DEV.coldcard, DEV.jade], note: 'The Coldcard Q is the friendliest to operate (a real keyboard, simple menus) and buy-once — it climbs to a passphrase or multisig later without new hardware, which is worth the premium if you expect to grow. The Jade is the budget alternative: spend less now, re-buy only if you ever climb.' };
+}
+
+// ── "Your journey" — the recommendation is a DESTINATION; frame it from where
+// the reader is now (Q1). The current setup never changes the target (that is
+// threat-model-driven); it only sets the framing — how far, the encouragement,
+// and the difference. Deliberately encouraging about wherever they are, and it
+// never tells anyone to downgrade.
+const SETUP_STEP = { pre: 0, 'single-sig': 1, passphrase: 2, multisig: 3, collaborative: 4 };
+const STEP_LABEL = {
+  0: 'an exchange or hot wallet',
+  1: 'single-signature cold storage',
+  2: 'single-sig + a passphrase',
+  3: 'self-run multisig (2-of-3)',
+  4: 'collaborative multisig',
+};
+
+/**
+ * TAKES THE RUNG, NOT A CARD. It used to read `primary.fork` to work out where a
+ * combined card was heading, which only made sense while DIY multisig and
+ * collaborative custody shared one card. They are separate rungs and separate
+ * cards now, so the destination is simply the rung.
+ */
+export function journeyFrom(current, rungSlug) {
+  const curStep = SETUP_STEP[current];
+  if (curStep == null) return null;              // Q1 not answered → no journey block
+  const targetStep = SETUP_STEP[rungSlug] ?? 1;
+  const gap = targetStep - curStep;
+  const curLabel = STEP_LABEL[curStep];
+  const targetLabel = STEP_LABEL[targetStep];
+  let kind, headline, message;
+
+  if (curStep === 0) {
+    kind = 'start';
+    headline = 'The best time to start is right now';
+    message = 'Your Bitcoin is somewhere someone else can freeze or lose it. Your first move is the biggest and most valuable one: getting it onto a device where you alone hold the keys. Everything below is that first setup, one step at a time — you don’t have to do it all today.';
+  } else if ((curStep === 3 || curStep === 4) && (targetStep === 3 || targetStep === 4) && gap !== 0) {
+    // Both multisig flavors sit at the same security level — DIY vs collaborative is
+    // a different holder for the third key, not more or less protection. The old
+    // framing called a collaborative holder with pure-sovereignty answers "already
+    // ahead of what your situation needs" (and the reverse "one step away"), as if
+    // one were an upgrade on the other. It's a sideways move, and the copy says so.
+    kind = 'sideways';
+    headline = 'Same rung — a different holder for the third key';
+    message = `You’re running ${curLabel}, and your answers lean toward ${targetLabel}. That’s not a step up or down: both are 2-of-3 multisig, the same level of protection — the real difference is who holds the third key, and what you trade for it. Nothing forces a move; switching has real costs, and staying put is a sound call. The other one is the second choice below — read it and decide whether the trade fits you better.`;
+  } else if (gap === 0) {
+    kind = 'there';
+    headline = 'Good news — you’re already right where you should be';
+    message = `Your current setup — ${curLabel} — is exactly what fits your situation. There’s nothing to add; the win now is keeping it healthy. Treat the checklist below as a maintenance pass: test your recovery, confirm your backups, and make sure someone could find them if they needed to.`;
+  } else if (gap < 0) {
+    kind = 'ahead';
+    headline = 'You’re already ahead of what your situation needs';
+    message = `You’re running ${curLabel}, and your answers point to ${targetLabel} as plenty. That’s not a mistake — extra protection is fine, it’s just more to maintain than your situation strictly requires. Nothing to add here; you’re in great shape. And if it ever feels heavier than you want, it’s good to know the simpler setup would also have you covered.`;
+  } else if (gap === 1) {
+    kind = 'one';
+    headline = 'You’re just one step away';
+    message = `You’re already doing the hard part — your Bitcoin is at ${curLabel}. Your situation points one rung further, to ${targetLabel}. It’s a single, well-trodden step; below is exactly what it changes and how to make it.`;
+  } else {
+    // One BUILD, not a staged series of migrations — "about N steps" read as N
+    // separate moves up the ladder, when the right way to make this climb is to
+    // build the destination setup once, prove it, and move the Bitcoin one time.
+    // The gap is distance (more that's new), not a count of moves.
+    kind = 'few';
+    headline = 'You’ve got a clear path — one build';
+    message = `Today you’re at ${curLabel}, and the setup that fits your situation is ${targetLabel}. That’s ${numberWord(gap)} rungs higher on the ladder — but it isn’t ${numberWord(gap)} separate moves. You build ${targetLabel} once, prove it works, and move your Bitcoin a single time. The distance just means more of it will be new to you; there’s no rush, and below is the destination and how to get there.`;
+  }
+  return { kind, gap, curStep, targetStep, curLabel, targetLabel, headline, message };
+}
+
 // ── THE RESULT CARDS, BUILT HERE (2026-08-01) ───────────────────────────────
 //
 // This replaces makeLegacyAnswers(), which synthesized a fake answer set to make
@@ -1108,8 +1268,9 @@ const isMultiKey = (fam) => fam === 'multisig' || fam === 'collaborative';
 // answers except `tech` (which devices suit them) and `recovery` (whether heirs
 // are in the picture), and both are read directly.
 //
-// quiz.js still owns the device copy, the vendor rows and the journey framing.
-// Those are imported as DATA. It no longer emits a card.
+// The device copy, the vendor rows and the journey framing live above in this
+// file since 2026-08-04 — they were quiz.js's last unique holdings, and it was
+// deleted with them. They are DATA the card layer reads, never a card.
 
 const CARD = {
   'single-sig': {
@@ -1198,8 +1359,7 @@ function primaryCard(setup, a) {
 }
 
 // The step-up (2nd-choice) card, computed from the profile rather than from a
-// worry ranking. Same shape as quiz.js secondaries: {rungSlug, rungLabel,
-// headline, when}.
+// worry ranking. Shape: {rungSlug, rungLabel, headline, when}.
 function secondaryFor(runnerUp, words, answers) {
   const S = (rungSlug, rungLabel, headline, when) => ({ rungSlug, rungLabel, headline, when });
   if (!runnerUp) return null;
@@ -1363,8 +1523,8 @@ export function recommendV2(answers = {}) {
       }
     : null;
 
-  // ── the card structure, from the legacy engine (fork paths, device pairs,
-  //    journey framing — everything the current UI renders) ──
+  // ── the card structure (device pairs, wallet notes, journey framing —
+  //    everything the result page renders) ──
   const primary = primaryCard(top.setup, { ...answers, stakes });
   // The journey frames the destination from where the reader is today. It takes
   // the RUNG now, not a card — it used to read `primary.fork` to work out where a
