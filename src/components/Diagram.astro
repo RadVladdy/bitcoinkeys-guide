@@ -35,7 +35,7 @@ const { name, caption } = Astro.props;
   )}
 
   {name === 'signing' && (
-    <svg viewBox="0 0 480 210" role="img" aria-label="Signing keeps the private key inside the device">
+    <svg viewBox="0 0 480 182" role="img" aria-label="Signing keeps the private key inside the device">
       <text x="12" y="95" fill="var(--muted)" font-family="var(--mono)" font-size="12">Payment</text>
       <text x="12" y="112" fill="var(--muted)" font-family="var(--mono)" font-size="12">to approve</text>
       <path d="M95 100 L165 100" stroke="var(--text)" stroke-width="2"/><path d="M171 100 l-9 -6 l0 12 z" fill="var(--text)"/>
@@ -47,7 +47,6 @@ const { name, caption } = Astro.props;
       <path d="M305 100 L375 100" stroke="var(--safe)" stroke-width="2"/><path d="M381 100 l-9 -6 l0 12 z" fill="var(--safe)"/>
       <text x="392" y="95" fill="var(--safe)" font-family="var(--mono)" font-size="12">Signature</text>
       <text x="392" y="112" fill="var(--faint)" font-family="var(--mono)" font-size="11">= proof</text>
-      <text x="240" y="198" text-anchor="middle" fill="var(--muted)" font-size="12.5">Anyone can verify it — no one can extract the key from it.</text>
     </svg>
   )}
 
@@ -111,7 +110,7 @@ const { name, caption } = Astro.props;
   )}
 
   {name === 'shamir' && (
-    <svg viewBox="0 0 470 200" role="img" aria-label="Shamir splits one seed into shares">
+    <svg viewBox="0 0 470 172" role="img" aria-label="Shamir splits one seed into shares">
       <rect x="185" y="14" width="100" height="44" rx="8" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="2"/>
       <text x="235" y="41" text-anchor="middle" fill="var(--accent)" font-family="var(--mono)" font-size="12">one seed</text>
       <g stroke="var(--muted)" stroke-width="1.5" fill="none">
@@ -124,7 +123,6 @@ const { name, caption } = Astro.props;
         <rect x="290" y="112" width="66" height="46" rx="6" fill="none" stroke="var(--line)" stroke-width="1.5" stroke-dasharray="4 4"/><text x="323" y="140" text-anchor="middle" fill="var(--faint)">share 4</text>
         <rect x="377" y="112" width="66" height="46" rx="6" fill="none" stroke="var(--line)" stroke-width="1.5" stroke-dasharray="4 4"/><text x="410" y="140" text-anchor="middle" fill="var(--faint)">share 5</text>
       </g>
-      <text x="235" y="184" text-anchor="middle" fill="var(--muted)" font-size="12.5">Any 3 of 5 rebuild the seed — two or fewer reveal nothing.</text>
     </svg>
   )}
 
