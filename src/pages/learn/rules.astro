@@ -3,6 +3,7 @@ import Base from '../../layouts/Base.astro';
 import LessonNav from '../../components/LessonNav.astro';
 import LessonEyebrow from '../../components/LessonEyebrow.astro';
 import LessonCrumb from '../../components/LessonCrumb.astro';
+import LessonToc from '../../components/LessonToc.astro';
 import { rules, umbrella, ruleCount, ruleCountWord, ruleCountWordCap } from '../../data/rules.js';
 
 // Lesson 1 of the whole course, and the only page on the site that deliberately
@@ -105,16 +106,10 @@ import { rules, umbrella, ruleCount, ruleCountWord, ruleCountWordCap } from '../
   <LessonNav />
   </div>
 
-  <aside class="toc" aria-label="On this page">
-    <p class="toc-k mono">The {ruleCountWord} rules</p>
-    <ol>
-      {rules.map((r) => (
-        <li>
-          <a href={`#rule-${r.n}`}><span class="toc-n mono">{String(r.n).padStart(2, '0')}</span> {r.short}</a>
-        </li>
-      ))}
-    </ol>
-  </aside>
+  <LessonToc
+    label={`The ${ruleCountWord} rules`}
+    items={rules.map((r) => ({ id: `rule-${r.n}`, n: String(r.n).padStart(2, '0'), label: r.short }))}
+  />
   </div>
 </Base>
 
@@ -150,18 +145,7 @@ import { rules, umbrella, ruleCount, ruleCountWord, ruleCountWordCap } from '../
     .r-body h2 { font-size: 1.08rem; }
   }
 
-  /* Desktop-only "On this page" rail — one line per rule, anchored to the ids the
-     rest of the site already deep-links. Phones and tablets never see it. */
-  .toc { display: none; }
-  @media (min-width: 1200px) {
-    .lgrid { display: grid; grid-template-columns: minmax(0, 1fr) 15rem; gap: 3.5rem; align-items: start; }
-    .toc { display: block; position: sticky; top: 5.5rem; max-height: calc(100vh - 7rem);
-      overflow-y: auto; border-left: 1px solid var(--line-soft); padding-left: 1.25rem; }
-    .toc-k { font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase;
-      color: var(--faint); font-weight: 600; margin: 0 0 0.7rem; }
-    .toc ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.55rem; }
-    .toc a { display: block; color: var(--muted); font-size: 0.86rem; line-height: 1.4; text-decoration: none; }
-    .toc a:hover { color: var(--accent); }
-    .toc-n { color: var(--accent); font-weight: 700; font-size: 0.78rem; }
-  }
+  /* The rail lives in LessonToc.astro — one definition, four pages. This page's
+     rail is the NUMBERED variant, anchored to the #rule-N ids the rest of the
+     site already deep-links. */
 </style>

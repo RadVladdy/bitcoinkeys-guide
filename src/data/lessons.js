@@ -29,6 +29,16 @@
 //
 // Order in this file is not meaningful — curriculum.js owns the sequence, and
 // rules.js owns which rule each lesson teaches. Both match on href/slug.
+// The metal stress-test outcome is Jameson Lopp's data, and the ONE copy of it is
+// metal.js — the same object /metal-backups derives its figures from. The section
+// below used to restate it as fraction-words ("three quarters", "one in eight"),
+// guarded only by a comment saying to re-sync them by hand. That exact pair has
+// drifted before: the changelog owns a "roughly half fail" claim against a table
+// where three quarters passed, wrong by 4x on a safety-critical page and wrong in
+// the direction that makes readers more anxious than the evidence warrants. It is
+// interpolated now, so a new test round moves the lesson and the page together.
+import { metalOutcome } from './metal.js';
+
 export const lessons = [
   {
     "slug": "choose-a-wallet",
@@ -104,12 +114,11 @@ export const lessons = [
       },
       {
         "h": "Not all \"indestructible\" metal actually survives",
-        // The "three quarters" / "one in eight" fractions below restate
-        // metalOutcome in metal.js (56/75 came through clean, 10/75 did badly).
-        // They agree today — this exact pair drifted once before (changelog
-        // 2026-07-2x, "roughly half fail"), so re-sync the words if metal.js
-        // ever absorbs a new test round.
-        "body": "<p>Metal backups are the standard — but the label on the box is not a guarantee. Jameson Lopp, a well-known self-custody expert, has run several rounds of stress tests on these products, burning them, soaking them in acid, and crushing them. The finding is more reassuring than you might expect: <strong>most of them are fine.</strong> Three quarters of the devices he tested came through everything with nothing lost. About one in eight did badly — and those failures cluster in a few specific designs rather than being scattered at random, which means you can avoid them by knowing what to look for.</p><ul><li><strong>Heat.</strong> A house fire can hold well over 1,000°F for hours. Good stamped stainless steel comes through readable; some cheaper plates warp or become illegible.</li><li><strong>Corrosion.</strong> Stainless steel shrugs off water and acid; weaker products don't.</li><li><strong>Deformation.</strong> Drops and crushing can knock loose the letter tiles that some designs rely on.</li></ul><p>What actually holds up: <strong>high-quality stamped stainless steel plates</strong> (and titanium, which survives everything but costs several times more for little real-world gain). Marketing words are not a guide — pick a specific product that has been independently stress-tested and passed. <strong>We name five, with the criteria behind them, and the ones to avoid, on the metal-backups page.</strong> And do a <strong>practice run with a throwaway seed first</strong>: stamp a dummy set of words, see how the product behaves, then commit your real seed. One more trap to avoid: products that etch the words and fill them with ink can go blank in a fire when the ink burns away, so make sure the engraving is deep enough to read on its own.</p>"
+        // DERIVED from metalOutcome (metal.js) since 2026-08-05 — see the note
+        // at the top of this file. A comment telling the next editor to re-sync
+        // two numbers by hand is the weakest possible guard, and this pair had
+        // already drifted once through exactly that guard.
+        "body": `<p>Metal backups are the standard — but the label on the box is not a guarantee. Jameson Lopp, a well-known self-custody expert, has run several rounds of stress tests on these products, burning them, soaking them in acid, and crushing them. The finding is more reassuring than you might expect: <strong>most of them are fine.</strong> Of the ${metalOutcome.reviewed} products he has tested, <strong>${metalOutcome.topGrade} came through everything with nothing lost</strong>. Only ${metalOutcome.poor} did badly — and those failures cluster in a few specific designs rather than being scattered at random, which means you can avoid them by knowing what to look for.</p><ul><li><strong>Heat.</strong> A house fire can hold well over 1,000°F for hours. Good stamped stainless steel comes through readable; some cheaper plates warp or become illegible.</li><li><strong>Corrosion.</strong> Stainless steel shrugs off water and acid; weaker products don't.</li><li><strong>Deformation.</strong> Drops and crushing can knock loose the letter tiles that some designs rely on.</li></ul><p>What actually holds up: <strong>high-quality stamped stainless steel plates</strong> (and titanium, which survives everything but costs several times more for little real-world gain). Marketing words are not a guide — pick a specific product that has been independently stress-tested and passed. <strong>We name five, with the criteria behind them, and the ones to avoid, on the metal-backups page.</strong> And do a <strong>practice run with a throwaway seed first</strong>: stamp a dummy set of words, see how the product behaves, then commit your real seed. One more trap to avoid: products that etch the words and fill them with ink can go blank in a fire when the ink burns away, so make sure the engraving is deep enough to read on its own.</p>`
       },
       {
         "h": "Spread your backups across separate locations",

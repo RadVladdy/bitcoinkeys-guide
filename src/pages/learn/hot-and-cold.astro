@@ -91,19 +91,20 @@ import Diagram from '../../components/Diagram.astro';
       tier, everyday spending from the hot one. The payoff is that you’re never <em>afraid to touch</em> your
       savings, because you haven’t mixed them with your spending money.
     </p>
-    <p>
-      Match the effort to the amount. A phone wallet is fine for spending money — but the moment any of it
-      is savings, it belongs cold, however small. At that point add a hardware wallet and keep only spending
-      money on the phone. You may also hear people insist on strict <strong>air-gapping</strong> — a device
-      that never plugs in and communicates only by scanned QR codes. It’s the most isolated form of cold
-      storage, but for most people a well-managed hardware wallet that plugs in by USB is already strong
-      enough. The discipline you bring matters more than the air gap.
-    </p>
+    {/* LAYER 2 — added 2026-08-03, MOVED ABOVE THE RECOMMENDATION 2026-08-05.
+        The lesson had the mechanism and the recommendation and nothing between
+        them, so a reader arriving with one of these arrangements already in mind
+        never saw it addressed. It was then written in below the recommendation,
+        which is layers 2 and 3 in the wrong order — a reader met our answer
+        before their own idea was named. It sits between them now, which is where
+        the standard puts it. Brief on purpose: naming an option and its failure
+        is the whole job.
 
-    {/* LAYER 2, added 2026-08-03. The lesson had the mechanism and the
-        recommendation and nothing between them, so a reader arriving with one of
-        these arrangements already in mind never saw it addressed. Brief on
-        purpose — naming an option and its failure is the whole job. */}
+        THIS PAGE IS NOT THE DIRECTIVE-FIRST CASE. Its mechanism has always been
+        §1; only layers 2 and 3 were swapped. Directive-first is a separate,
+        sanctioned exception (_Decisions 2026-08-05) covering pages whose payload
+        is a reflex that must survive a reader who stops reading — phishing and
+        test-your-backup. Neither was reordered, on purpose. */}
     <p>
       <strong>The arrangements people reach for instead, and where each one goes wrong.</strong> None of
       them is stupid; each is a reasonable idea that runs into the same distinction above.
@@ -126,6 +127,15 @@ import Diagram from '../../components/Diagram.astro';
         for good reasons: it is usually printed by a computer, it has no recovery standard behind it, and
         spending from one safely is a procedure most people get wrong the first time.</li>
     </ul>
+
+    <p>
+      Match the effort to the amount. A phone wallet is fine for spending money — but the moment any of it
+      is savings, it belongs cold, however small. At that point add a hardware wallet and keep only spending
+      money on the phone. You may also hear people insist on strict <strong>air-gapping</strong> — a device
+      that never plugs in and communicates only by scanned QR codes. It’s the most isolated form of cold
+      storage, but for most people a well-managed hardware wallet that plugs in by USB is already strong
+      enough. The discipline you bring matters more than the air gap.
+    </p>
 
     <div class="callout safe">
       <span class="label">The one line to take from this lesson</span>

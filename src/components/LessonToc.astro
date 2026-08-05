@@ -1,0 +1,63 @@
+---
+// The desktop "On this page" rail — one definition, four pages.
+//
+// EXTRACTED 2026-08-05. The rail existed as page-local copies on the [slug]
+// lesson template and on /learn/rules; giving it to /learn/ladder and
+// /learn/bitcoin-keys (backlog 16c) would have made FOUR copies of one thing,
+// which is this project's most-repeated bug shape applied to CSS. The copies
+// had already drifted in small ways nobody would ever have noticed, because a
+// rail that looks slightly different on one page reads as a design choice.
+//
+// THE GRID LIVES HERE TOO, and it has to be `is:global`. The two-column layout
+// is a property of the PAGE's wrapper (`.lgrid`), an element this component does
+// not render — and an Astro scoped rule compiles to `.lgrid[data-astro-cid-<this
+// file>]`, which matches nothing. That is the silent-scoped-style failure already
+// registered in the spine; it is silent precisely because the page still renders,
+// just in one column. Verify a new rail by loading the page at ≥1200px and
+// confirming there are two columns, never by reading the diff.
+//
+// Desktop only, by design: it fills the empty right canvas on wide screens and
+// phones never see it. Static anchor list, no scroll-spy — a rail that tracks
+// scroll position is a behaviour to maintain, and this one only has to be a map.
+//
+// PROPS
+//   items    [{ id, label, n? }]  — `n` renders a monospace number before the
+//                                   label (the /learn/rules variant)
+//   label    the rail's own heading; defaults to "On this page"
+//   min      hide the rail below this many items (default 3) — a two-entry
+//            table of contents is furniture, not navigation
+const { items = [], label = 'On this page', min = 3 } = Astro.props;
+const show = items.length >= min;
+---
+{show && (
+  <aside class="toc" aria-label={label}>
+    <p class="toc-k mono">{label}</p>
+    <ol>
+      {items.map((t) => (
+        <li>
+          <a href={`#${t.id}`}>
+            {t.n != null && <span class="toc-n mono">{t.n}</span>}
+            {t.label}
+          </a>
+        </li>
+      ))}
+    </ol>
+  </aside>
+)}
+
+<style is:global>
+  /* `.lgrid` is the PAGE's wrapper, not this component's — see the header note
+     on why these rules cannot be scoped. */
+  .toc { display: none; }
+  @media (min-width: 1200px) {
+    .lgrid { display: grid; grid-template-columns: minmax(0, 1fr) 15rem; gap: 3.5rem; align-items: start; }
+    .toc { display: block; position: sticky; top: 5.5rem; max-height: calc(100vh - 7rem);
+      overflow-y: auto; border-left: 1px solid var(--line-soft); padding-left: 1.25rem; }
+    .toc-k { font-size: 0.78rem; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--faint); font-weight: 600; margin: 0 0 0.7rem; }
+    .toc ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.55rem; }
+    .toc a { display: block; color: var(--muted); font-size: 0.86rem; line-height: 1.4; text-decoration: none; }
+    .toc a:hover { color: var(--accent); }
+    .toc-n { color: var(--accent); font-weight: 700; font-size: 0.78rem; margin-right: 0.45rem; }
+  }
+</style>

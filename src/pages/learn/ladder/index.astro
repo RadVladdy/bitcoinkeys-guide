@@ -8,6 +8,8 @@ import { ladder } from '../../../data/ladder.js';
 import LessonClose from '../../../components/LessonClose.astro';
 import LessonCheck from '../../../components/LessonCheck.astro';
 import LessonCrumb from '../../../components/LessonCrumb.astro';
+import LessonToc from '../../../components/LessonToc.astro';
+import { numberWord } from '../../../data/numbers.js';
 import { finderPromise } from '../../../data/finder-questions.js';
 
 // GAINED 2026-07-29: the "how much money at which temperature" material from the
@@ -46,6 +48,9 @@ const rungs = ladder;
   verified="2026-08-04"
 >
   <LessonCrumb href="/learn/ladder" />
+
+  <div class="lgrid">
+  <div class="lmain">
   <section class="prose">
     <LessonEyebrow />
     <h1>The wallet configuration <span class="accent">ladder</span></h1>
@@ -198,6 +203,19 @@ const rungs = ladder;
   </section>
 
   <LessonNav />
+  </div>
+
+  {/* THE RAIL IS THE ANSWER TO THIS PAGE'S LENGTH, and it is deliberately not a
+      split. At ~5,500 words the ladder is the longest lesson on the site by a
+      wide margin — that weight is the price of reading rung 2's costs against
+      rung 3's gains on one screen, which is the whole reason the four rung pages
+      were merged here on 2026-07-30. So the problem to solve was never "too
+      long", it was "not navigable": four deep-linked rung anchors and no way to
+      see them. Recorded as a deliberate position in _Foundation rather than left
+      for the next audit to re-flag. */}
+  <LessonToc label={`The ${numberWord(rungs.length)} rungs`}
+    items={rungs.map((r) => ({ id: `rung-${r.step}`, n: String(r.step), label: r.short }))} />
+  </div>
 </Base>
 
 <style>

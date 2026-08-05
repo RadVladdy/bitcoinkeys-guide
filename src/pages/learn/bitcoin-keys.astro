@@ -3,6 +3,7 @@ import Base from '../../layouts/Base.astro';
 import LessonNav from '../../components/LessonNav.astro';
 import LessonEyebrow from '../../components/LessonEyebrow.astro';
 import LessonCrumb from '../../components/LessonCrumb.astro';
+import LessonToc from '../../components/LessonToc.astro';
 import Diagram from '../../components/Diagram.astro';
 import RuleBand from '../../components/RuleBand.astro';
 import KeySpace from '../../components/demos/KeySpace.astro';
@@ -32,6 +33,18 @@ const nextLevel = levelById('102');
 // descriptors). So the chain comes first (§3, one-way, which is what makes an address
 // safe to share), the wallet is then defined as BOTH questions (§4), and the
 // signing-device explanation moved to §5 beside signing, where it was always about.
+// The five section headings, and the ids they anchor. ONE list: the headings
+// render from it and the rail reads it, so a reworded heading cannot leave a
+// stale entry in the rail — the drift a hand-typed rail invites. `signing` is
+// the pre-existing id and is kept verbatim; renaming it would break a link that
+// resolves today, which no checker can see.
+const sections = [
+  { id: 'your-bitcoin-is-a-key',      n: '1', label: 'Your Bitcoin is really a key' },
+  { id: 'the-seed-words-are-the-key', n: '2', label: 'The seed words are that key' },
+  { id: 'key-to-address',             n: '3', label: 'Key → public key → address' },
+  { id: 'what-a-wallet-is',           n: '4', label: 'So what is a “wallet”?' },
+  { id: 'signing',                    n: '5', label: 'Signing — proving it’s you' },
+];
 ---
 <Base
   title="What Bitcoin keys are, and how they work · BitcoinKeys.guide"
@@ -39,6 +52,9 @@ const nextLevel = levelById('102');
   verified="2026-08-04"
 >
   <LessonCrumb href="/learn/bitcoin-keys" />
+
+  <div class="lgrid">
+  <div class="lmain">
   <section class="prose">
     <LessonEyebrow />
     <h1>What Bitcoin keys are, <span class="accent">and how they work</span></h1>
@@ -51,7 +67,7 @@ const nextLevel = levelById('102');
     <RuleBand />
     <hr class="lead-sep" />
 
-    <h2>1 · Your Bitcoin is really a key</h2>
+    <h2 id="your-bitcoin-is-a-key">1 · Your Bitcoin is really a key</h2>
     <p>
       Your coins don’t sit inside your phone or your hardware wallet the way cash sits in a leather one —
       nothing is stored on the gadget itself. Every bitcoin lives on a shared public ledger — the
@@ -73,7 +89,7 @@ const nextLevel = levelById('102');
       <KeySpace />
     </div>
 
-    <h2>2 · The seed words <em>are</em> that key</h2>
+    <h2 id="the-seed-words-are-the-key">2 · The seed words <em>are</em> that key</h2>
     <p>
       A key is really just an enormous, utterly random number — hopeless to copy down by hand without a
       mistake. So your wallet turns it into something human: a list of
@@ -116,7 +132,7 @@ const nextLevel = levelById('102');
         strongest fit for it on the site. */}
     <p class="deeper"><strong>See it work:</strong> <a href="/demos/seed">watch a seed get created, one step at a time →</a> — a throwaway seed, built in front of you from raw randomness to your first address.</p>
 
-    <h2>3 · Private key → public key → address</h2>
+    <h2 id="key-to-address">3 · Private key → public key → address</h2>
     <p>
       Your key isn’t one thing — it’s the start of a short chain, and the chain only runs one way.
     </p>
@@ -161,7 +177,7 @@ const nextLevel = levelById('102');
     <Diagram name="keys-mailbox" caption="Your address is the mail slot — anyone can drop coins in, and it gives nothing away about the key. The private key is the only thing that opens the back." />
     <p class="deeper"><strong>See it work:</strong> <a href="/demos/addresses">see the four address formats one key produces →</a> — why addresses start with <span class="mono">1</span>, <span class="mono">3</span>, <span class="mono">bc1q</span>, or <span class="mono">bc1p</span>. Or <a href="/demos/hd-tree">watch one seed grow a whole tree of them →</a>.</p>
 
-    <h2>4 · So what is a “wallet”, then?</h2>
+    <h2 id="what-a-wallet-is">4 · So what is a “wallet”, then?</h2>
     <p>
       This is the word that causes the most trouble, because it gets used for at least three different things.
       Start with what a wallet is <em>not</em>: it is not the app on your phone, and it is not the little
@@ -230,6 +246,10 @@ const nextLevel = levelById('102');
     </section>
 
   <LessonNav />
+  </div>
+
+  <LessonToc items={sections} />
+  </div>
 </Base>
 
 <style>
