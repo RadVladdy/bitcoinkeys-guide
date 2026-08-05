@@ -2,6 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import LessonNav from '../../components/LessonNav.astro';
 import LessonEyebrow from '../../components/LessonEyebrow.astro';
+import LessonCrumb from '../../components/LessonCrumb.astro';
 import { rules, umbrella, ruleCount, ruleCountWord, ruleCountWordCap } from '../../data/rules.js';
 
 // Lesson 1 of the whole course, and the only page on the site that deliberately
@@ -29,9 +30,10 @@ import { rules, umbrella, ruleCount, ruleCountWord, ruleCountWordCap } from '../
 ---
 <Base
   title={`The ${ruleCount} rules of holding your own Bitcoin · BitcoinKeys.guide`}
-  description={`The whole guide, compressed into ${ruleCount} plain-English rules. Follow them and your Bitcoin is safe. Every lesson that follows is one of these rules in full.`}
-  verified="2026-07-31"
+  description={`The whole guide, compressed into ${ruleCount} plain-English rules. Follow them and your Bitcoin is safe. Every rule gets a lesson of its own, in full, later in the course.`}
+  verified="2026-08-04"
 >
+  <LessonCrumb href="/learn/rules" />
   <div class="lgrid">
   <div class="lmain">
   <section class="prose">
@@ -40,7 +42,7 @@ import { rules, umbrella, ruleCount, ruleCountWord, ruleCountWordCap } from '../
     <p class="lead">
       Everything on this site compresses into the rules below. Follow them and your Bitcoin is safe —
       genuinely, that is the entire deal. You don’t have to understand all of them yet. That’s what the
-      rest of the course is for: every lesson after this one is a single rule, in full.
+      rest of the course is for: every rule below gets a lesson of its own, in full.
     </p>
     <hr class="lead-sep" />
 

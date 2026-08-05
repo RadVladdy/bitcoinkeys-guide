@@ -21,8 +21,9 @@
 //
 // The `rb-n` class stays — the spine's rules-chain check finds placed rules by it.
 //
-// Lessons that own no rule (the rules page itself, and the two that set it up)
-// render nothing rather than inventing a number.
+// Lessons that own no rule (the rules page itself, plus the concept lessons —
+// bitcoin-keys, beyond-the-ladder, generate-your-seed) render nothing rather
+// than inventing a number.
 // `href` is accepted explicitly so dynamic routes can pass their own path rather
 // than relying on Astro.url inside a [slug] page; static pages can just omit it.
 import { rulesFor } from '../data/rules.js';

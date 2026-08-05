@@ -1,0 +1,23 @@
+---
+// The "The course / <lesson>" breadcrumb every lesson page carries.
+//
+// ADDED 2026-08-04. The markup and styles lived inline in [slug].astro, so the
+// seven hand-written lesson pages silently shipped without a crumb — the exact
+// "standalone page misses a template element" drift the restructure history
+// warns about. Now both kinds of page render this one component.
+//
+// Self-locates from curriculum.js by href (same idiom as RuleBand/LessonCheck):
+// renders nothing for a page that isn't in the course, and a lesson retitle
+// can never strand a hand-written page with a stale crumb.
+import { lessonFor } from '../data/curriculum.js';
+const { href } = Astro.props;
+const l = lessonFor(href);
+---
+{l && (
+  <nav class="crumb"><a href="/learn">The course</a> <span aria-hidden="true">/</span> <span>{l.short ?? l.label}</span></nav>
+)}
+<style>
+  .crumb { font-family: var(--mono); font-size: 0.8rem; color: var(--muted); margin-bottom: 1.2rem; display: flex; gap: 0.5rem; }
+  .crumb a { color: var(--muted); text-decoration: none; }
+  .crumb a:hover { color: var(--accent); }
+</style>

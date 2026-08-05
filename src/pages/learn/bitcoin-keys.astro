@@ -2,6 +2,7 @@
 import Base from '../../layouts/Base.astro';
 import LessonNav from '../../components/LessonNav.astro';
 import LessonEyebrow from '../../components/LessonEyebrow.astro';
+import LessonCrumb from '../../components/LessonCrumb.astro';
 import Diagram from '../../components/Diagram.astro';
 import RuleBand from '../../components/RuleBand.astro';
 import KeySpace from '../../components/demos/KeySpace.astro';
@@ -35,8 +36,9 @@ const nextLevel = levelById('102');
 <Base
   title="What Bitcoin keys are, and how they work · BitcoinKeys.guide"
   description="Plain English, from the ground up: why your Bitcoin is really a key, what the seed words are, how a private key becomes a public key and then an address (and why that only runs one way), what a 'wallet' actually is, and how signing proves you hold the key without revealing it."
-  verified="2026-07-31"
+  verified="2026-08-04"
 >
+  <LessonCrumb href="/learn/bitcoin-keys" />
   <section class="prose">
     <LessonEyebrow />
     <h1>What Bitcoin keys are, <span class="accent">and how they work</span></h1>
@@ -61,7 +63,7 @@ const nextLevel = levelById('102');
 
     {/* INLINE, not a link out. The section above asserts that a key cannot be
         guessed; this is where the reader can check that for themselves without
-        leaving the lesson. Chosen first of the seven demos this page references
+        leaving the lesson. Chosen first of the six demos this page references
         because it is the ONLY one that generates no seed — so it needs no "never
         your real seed" warning, and it costs the page ~1,000px rather than
         ~1,150. The standalone /demos/key-space is unchanged and still linked

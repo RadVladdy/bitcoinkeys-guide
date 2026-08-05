@@ -11,6 +11,8 @@
 import Base from '../../layouts/Base.astro';
 import LessonNav from '../../components/LessonNav.astro';
 import LessonEyebrow from '../../components/LessonEyebrow.astro';
+import LessonCrumb from '../../components/LessonCrumb.astro';
+import RuleBand from '../../components/RuleBand.astro';
 import RuleRef from '../../components/RuleRef.astro';
 import {
   diceVerified, methods, methodCount,
@@ -60,6 +62,7 @@ const s12 = seedLengthByKey['12'];
   description="A seed is one very large random number, written down as words. How that actually works, the four ways to decide where the number comes from — from letting the device pick to choosing it all yourself — and what your hardware actually allows."
   verified={diceVerified}
 >
+  <LessonCrumb href="/learn/generate-your-seed" />
   <section class="prose">
     <LessonEyebrow />
     <h1>How a seed is made — and where its <span class="accent">randomness</span> comes from</h1>
@@ -68,6 +71,10 @@ const s12 = seedLengthByKey['12'];
       will ever hold — is worked out from it. Normally the device picks that number and you have no way to
       check that it picked well. You do not have to leave it at that.
     </p>
+    {/* Inert today — this lesson owns no rule, and RuleBand renders nothing for
+        it. Present so a future rule assignment behaves like every other page
+        (the convention bitcoin-keys already follows). */}
+    <RuleBand />
   </section>
 
   <section class="prose">

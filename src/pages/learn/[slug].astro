@@ -7,6 +7,7 @@ import RuleBand from '../../components/RuleBand.astro';
 import LessonEyebrow from '../../components/LessonEyebrow.astro';
 import LessonCheck from '../../components/LessonCheck.astro';
 import LessonClose from '../../components/LessonClose.astro';
+import LessonCrumb from '../../components/LessonCrumb.astro';
 // Page order below is load-bearing: lesson body, then the lesson's own short
 // checklist, then the knowledge check, then prev/next. The check sits after the material it tests and before the exit.
 // LessonCheck self-locates by rule and renders nothing where a rule has no check;
@@ -38,15 +39,15 @@ const accentize = (title, phrase) => {
 // The eyebrow says where you are in the COURSE ("103 · The build · lesson 3 of 3")
 // rather than what format the page is ("How-to"). Grouping by format is the habit
 // this whole restructure removed; the eyebrow was the last place still doing it.
-// It lives in LessonEyebrow now so the four hand-written lesson pages share the one
-// format string instead of typing their own position (2026-07-30).
+// It lives in LessonEyebrow now so the hand-written lesson pages (seven, as of
+// 2026-08-04) share the one format string instead of typing their own position.
 ---
 <Base
   title={`${h.title} · BitcoinKeys.guide`}
   description={h.lead}
   verified={h.verified}
 >
-  <nav class="crumb"><a href="/learn">The course</a> <span aria-hidden="true">/</span> <span>{h.short ?? h.slug}</span></nav>
+  <LessonCrumb href={`/learn/${h.slug}`} />
 
   <div class="lgrid">
   <div class="lmain">
@@ -112,9 +113,6 @@ const accentize = (title, phrase) => {
 
 <style>
   .lead-sep { border: 0; border-top: 1px solid var(--line-soft); max-width: 46ch; margin: 1.4rem 0 1.5rem; }
-  .crumb { font-family: var(--mono); font-size: 0.8rem; color: var(--muted); margin-bottom: 1.2rem; display: flex; gap: 0.5rem; }
-  .crumb a { color: var(--muted); text-decoration: none; }
-  .crumb a:hover { color: var(--accent); }
   .prose :global(ul), .prose :global(ol) { padding-left: 1.3rem; }
   .prose :global(li) { margin: 0.4rem 0; }
   .prose :global(li::marker) { color: var(--accent); }

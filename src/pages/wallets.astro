@@ -22,6 +22,11 @@ const tableGroups = [
   { key: 'spending', title: 'Built for spending', rows: spendingWallets },
   { key: 'disqualified', title: 'Doesn’t clear our bar', rows: disqualifiedWallets },
 ];
+// Cards render in the SAME tier order as the comparison table below (cold →
+// spending → disqualified). Until 2026-08-04 they rendered wallets.js's raw
+// vendor-clustered order, so one page showed the same twelve devices in two
+// different sequences and the card grid put a spending-tier device third.
+const cardWallets = tableGroups.flatMap((g) => g.rows);
 ---
 <Base
   title="Compare Bitcoin hardware wallets · BitcoinKeys.guide"
@@ -110,7 +115,7 @@ const tableGroups = [
     </p>
 
     <div class="cards" aria-live="polite">
-      {wallets.map((w, i) => (
+      {cardWallets.map((w, i) => (
         <article class:list={['wcard', tierOf(w) !== 'cold' && `tier-${tierMeta[tierOf(w)].cls}`]} data-idx={i}>
           {tierOf(w) !== 'cold' && (
             <a class:list={['tier-ribbon', tierMeta[tierOf(w)].cls]} href={tierMeta[tierOf(w)].anchor}>{tierMeta[tierOf(w)].ribbon}</a>
@@ -221,7 +226,11 @@ const tableGroups = [
 </Base>
 
 <script>
-  import { wallets, budgetBuckets } from '../data/wallets.js';
+  import { budgetBuckets, coldWallets, spendingWallets, disqualifiedWallets } from '../data/wallets.js';
+
+  // MUST mirror the server-rendered card order (cardWallets in the frontmatter):
+  // the filter works by index into the tile list, so the two orders are one fact.
+  const wallets = [...coldWallets, ...spendingWallets, ...disqualifiedWallets];
 
   const state = { filters: new Set(), chips: new Set(), budget: 'any' };
 

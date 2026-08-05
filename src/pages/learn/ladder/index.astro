@@ -6,6 +6,9 @@ import Diagram from '../../../components/Diagram.astro';
 import RuleBand from '../../../components/RuleBand.astro';
 import { ladder } from '../../../data/ladder.js';
 import LessonClose from '../../../components/LessonClose.astro';
+import LessonCheck from '../../../components/LessonCheck.astro';
+import LessonCrumb from '../../../components/LessonCrumb.astro';
+import { finderPromise } from '../../../data/quiz.js';
 
 // GAINED 2026-07-29: the "how much money at which temperature" material from the
 // retired hot-vs-cold page. Deciding what lives hot and what lives cold is a SETUP
@@ -28,18 +31,21 @@ import LessonClose from '../../../components/LessonClose.astro';
 // The comparison table was already sitting in ladder.js: `solves` and `introduces`
 // were written as one-liners per rung and had never been rendered side by side.
 //
-// Shamir and BIP-85 moved OUT to /demos/*, where the interactive demos already hold
-// their demonstrations and already calls itself "optional, skippable."
+// Shamir and BIP-85 TEACHING lives on /learn/beyond-the-ladder (a brief 07-30
+// stopover on /demos/* was undone the same week — see that file's header); the
+// demos themselves stay under /demos.
 //
-// Two rules live on this page (03 simplest-setup, 04 savings-offline) — RuleBand
-// renders both; don't assume one.
+// One rule lives on this page (03 simplest-setup). Rule 04 savings-offline moved
+// to /learn/hot-and-cold when that page came back 07-30 — RuleBand renders
+// whatever rules.js assigns here; don't assume a count either way.
 const rungs = ladder;
 ---
 <Base
   title="The wallet configuration ladder · BitcoinKeys.guide"
   description="Every serious Bitcoin self-custody setup fits on one ladder of rising complexity — from single-signature to collaborative multisig. What each rung solves, what it costs you, and how to find the lowest one that covers you."
-  verified="2026-07-31"
+  verified="2026-08-04"
 >
+  <LessonCrumb href="/learn/ladder" />
   <section class="prose">
     <LessonEyebrow />
     <h1>The wallet configuration <span class="accent">ladder</span></h1>
@@ -179,9 +185,14 @@ const rungs = ladder;
       <p>This page teaches the ladder; it doesn’t place you on it. The rule it’s built on does most of that work for you — <strong>the lowest rung that covers what you’re actually protecting against, and no higher</strong> — and you’ve just read what each one costs to run, which is the half of the trade people skip.</p>
     </div>
 
+  </section>
+
+  <LessonCheck href="/learn/ladder" />
+
+  <section class="prose">
     <LessonClose
       learned="what each rung on the ladder solves, and what it charges you to run"
-      action="When you want the rung named for your own situation rather than in general, the setup finder walks five plain questions and a short risk assessment and tells you which one fits — erring toward the lowest that covers you, which is the rule this whole page is built on."
+      action={`When you want the rung named for your own situation rather than in general, the setup finder walks ${finderPromise} and tells you which one fits — erring toward the lowest that covers you, which is the rule this whole page is built on.`}
       locate="/find-your-setup"
     />
   </section>

@@ -15,7 +15,7 @@ const termCount = glossary.length;
 <Base
   title="Start here — the whole guide, in order · BitcoinKeys.guide"
   description={`Brand new to holding your own Bitcoin? This is the whole guide laid out in teaching order — ${lessonCount} lessons across ${levels.length} levels, from what a key actually is, through how people lose Bitcoin, to the ladder of real setups.`}
-  verified="2026-07-28"
+  verified="2026-08-04"
 >
   <section class="prose">
     <p class="eyebrow">Start here · the whole course</p>
@@ -37,7 +37,7 @@ const termCount = glossary.length;
       <p>Every custody choice trades off <strong>losing access yourself</strong> against <strong>someone else getting access</strong>. Almost every safeguard against one makes the other worse. You don’t need zero risk — you need risks you can <em>name</em>. That’s what this course is for.</p>
     </div>
 
-    <p class="sub" style="margin-top:1.1rem">Read it in order if you can — each level assumes the one above it. It’s about an hour end to end, and you’ll understand your own setup better than most people who already have one. Every lesson points to the next, so you never have to find your place again.</p>
+    <p class="sub" style="margin-top:1.1rem">Read it in order if you can — each level assumes the one above it. It’s a couple of hours end to end — an evening, not a weekend — and you’ll understand your own setup better than most people who already have one. Every lesson points to the next, so you never have to find your place again.</p>
   </section>
 
   <section>
@@ -85,11 +85,14 @@ const termCount = glossary.length;
       <p class="ho-k mono">When you’re ready to build it</p>
       <p>The reading is the hard part; the doing is a checklist. When this all makes sense — or if you’d rather see where you’d land first — finding your setup is {finderPromise} — it names the one that fits you, then turns it into a step-by-step checklist. <strong>It never asks how much Bitcoin you hold</strong>, and it runs entirely in your browser.</p>
       <div class="cta-row">
-        <a href="/find-your-setup" class="btn btn-primary">Find your setup <span class="arw">→</span></a>
-        {/* /learn/rules, not /learn/bitcoin-keys — the syllabus above lists the
+        {/* Course entry carries the primary style, the finder rides ghost —
+            swapped 2026-08-04. This is the syllabus page of an education-first
+            site, and its loudest element was the door PAST the course.
+            /learn/rules, not /learn/bitcoin-keys — the syllabus above lists the
             rules as lesson 1 and tags them "read first"; this button used to
             start the reader at lesson 2. */}
-        <a href="/learn/rules" class="btn btn-ghost">Start level 101</a>
+        <a href="/learn/rules" class="btn btn-primary">Start level 101 <span class="arw">→</span></a>
+        <a href="/find-your-setup" class="btn btn-ghost">Find your setup</a>
       </div>
     </div>
   </section>

@@ -119,7 +119,7 @@ const notAsked = [
 <Base
   title="How we weigh risk — the research behind the setup finder · BitcoinKeys.guide"
   description="The setup finder's risk assessment starts everyone from a published, sourced default: how Bitcoin is actually lost for a typical holder. This page shows the homework — every concern the engine scores, the research bands behind each default, the estimates we lean on and admit to, the questions we deliberately don't ask, and where the evidence is honestly uncertain."
-  verified="2026-08-02"
+  verified="2026-08-04"
 >
   <section class="prose">
     <p class="eyebrow">The finder’s methodology</p>
@@ -181,11 +181,11 @@ const notAsked = [
     <ul class="asked">
       <li class="ak">
         <span class="ak-q">What’s at stake</span>
-        <p class="ak-why">How much losing this Bitcoin would hurt — never how much it is. This carries roughly double the weight of any other row, which is what “more at stake justifies more protection” looks like when it is stated rather than implied. It used to be a multiplier applied on top of everything, in several places at once; that let one answer count two and three times over. It is one row now.</p>
+        <p class="ak-why">How much losing this Bitcoin would hurt — never how much it is. This carries roughly double the weight of any other row, which is what “more at stake justifies more protection” looks like when it is stated rather than implied. And it is exactly one row, so it can never count twice.</p>
       </li>
       <li class="ak">
         <span class="ak-q">How much you mind a third party</span>
-        <p class="ak-why">Whether you want a company anywhere near your keys. Collaborative custody scores badly here on purpose — that is its real cost, and the only place it should be charged. This used to be a flat penalty plus a hard rule about which option was allowed to lead, both of which were the model compensating for something it could not say out loud. Scored, it behaves like every other answer: it moves a bar, and the bar moves the recommendation.</p>
+        <p class="ak-why">Whether you want a company anywhere near your keys. Collaborative custody scores badly here on purpose — that is its real cost, and the only place it is charged. It behaves like every other answer: it moves a bar, and the bar moves the recommendation. No hidden penalty, no option barred from leading.</p>
       </li>
     </ul>
     <p>Neither has a research band, because neither is a base rate — they are facts about <em>you</em> that only you can supply, and the finder asks for them directly.</p>
@@ -193,7 +193,7 @@ const notAsked = [
 
   <section class="prose">
     <h2>The typical holder’s bundle — and this is the estimated part</h2>
-    <p>An untouched bar has to mean something. The obvious choice — start everyone at zero and let the questions add up — quietly asserts that the typical holder has none of these problems, which is false: it made a section you walked and cleared look identical to one you skipped, and those are opposite signals. So the baseline is a model of what a typical holder actually carries. Score above it and your bar rises; below it and it falls; land on it exactly and you sit on the published default, which is what “typical” is supposed to mean.</p>
+    <p>An untouched bar has to mean something. The obvious choice — start everyone at zero and let the questions add up — would quietly assert that the typical holder has none of these problems, which is false: it would make a section you walked and cleared look identical to one you skipped, and those are opposite signals. So the baseline is a model of what a typical holder actually carries. Score above it and your bar rises; below it and it falls; land on it exactly and you sit on the published default, which is what “typical” is supposed to mean.</p>
     <div class="callout warn">
       <span class="label">Read these as estimates, because that is what they are</span>
       <p>Of the {promptCount} statements the assessment can put to you, <strong>{numberWord(sourcedPrompts)}</strong> carry a published figure for how common that situation is among holders. The other <strong>{numberWord(estimatedPrompts)}</strong> are our own estimates. They are the softest numbers in this engine — softer than the bands above, which at least have papers behind them — and we would rather publish them and be argued with than keep them in the code where nobody can check them.</p>

@@ -16,6 +16,8 @@ import WhereAmI from '../components/WhereAmI.astro';
     <h1>Your plan — held by <span class="accent">you, not us</span></h1>
     <p class="lead">The setup finder, the ladder, and the checklist build one picture of your setup: <strong>where you are today, the hardware you own, the setup you're aiming for, and the roadmap between them</strong>. Save it if you want to pick up where you left off — but on your terms. This site is <strong>keyless and dataless</strong>: by default it keeps nothing.</p>
 
+    {/* One of the three statements of the privacy promise — see the comment in
+        find-your-setup.astro: claims identical everywhere, framing per page. */}
     <div class="promise">
       <span class="pn-label mono">🔒 How this works</span>
       <p>Your plan lives <strong>in this browser</strong> — your ticks and re-checks save there as you make them, and nothing about them ever leaves your device. Keeping it anywhere else is always your explicit choice: <strong>a file you download</strong>, or — only if you pick it — <strong>encrypted to your own Nostr key</strong>, on relays you choose. The file never leaves your device at all; the Nostr copy leaves it already encrypted, readable by you alone. <strong>We never see your plan in any of them.</strong> There is no account and no server on our side. Clear it any time.</p>

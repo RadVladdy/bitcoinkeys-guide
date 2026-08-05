@@ -185,7 +185,7 @@ const shortCost = seedCosts.find((c) => c.words === 12);
           <h3>On your device</h3>
           {procsFor(m.key).map((p) => (
             <div class={`dev${p.partial ? ' is-partial' : ''}`}>
-              <p class="dev-h">{p.label}{p.partial && <span class="dev-flag">with an asterisk</span>}</p>
+              <p class="dev-h">{p.label}{p.partial && <span class="dev-flag">partial — see note</span>}</p>
               <p class="dev-path mono">{p.path.join('  →  ')}</p>
               {p.pathNote && <p class="dev-note">{p.pathNote}</p>}
               {p.caution && <p class="dev-caution">{p.caution}</p>}

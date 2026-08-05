@@ -5,11 +5,14 @@ import LessonEyebrow from '../../components/LessonEyebrow.astro';
 import { numberWord } from '../../data/numbers.js';
 import RuleBand from '../../components/RuleBand.astro';
 import LessonClose from '../../components/LessonClose.astro';
+import LessonCheck from '../../components/LessonCheck.astro';
+import LessonCrumb from '../../components/LessonCrumb.astro';
 import { levelById, lessonFor } from '../../data/curriculum.js';
+import { finderPromise } from '../../data/quiz.js';
 
-// "103 · The build" as PLAIN TEXT, derived. The `covered` lines below deliberately
-// name where a defence is taught without linking to it (invariant 9 — the course is
-// linear and this is lesson 3 of 17), and until 2026-08-03 they typed the level
+// "103 · Private key creation" as PLAIN TEXT, derived. The `covered` lines below
+// deliberately name where a defence is taught without linking to it (invariant 9 —
+// the course is linear and this is lesson 3 of 17), and until 2026-08-03 they typed the level
 // title as well as the number. A level title is an inventory claim about the site:
 // 102 was retitled and four sentences in this one file would have gone on naming
 // the old one, silently and unlinkably.
@@ -19,7 +22,7 @@ const lessonLabel = (href) => lessonFor(href).label;
 // The five ways Bitcoin is lost, in plain English, each with the defence.
 //
 // DE-FORWARD-LINKED 2026-07-30. Every bucket used to end in a row of links to
-// "the page in this guide that defends against it" — and this is lesson 3 of 15,
+// "the page in this guide that defends against it" — and this is lesson 3 of 17,
 // so eight of those nine links pointed at material the reader had not reached.
 // That is exactly what the old /principles page was doing at position 5, and it
 // is what invariant #9 exists to prevent: on this site links point backwards.
@@ -36,7 +39,7 @@ const lessonLabel = (href) => lessonFor(href).label;
 // DIFFERENT ones. Bucket 2 offered "What a key really is," which its covered line
 // never mentions. Bucket 4 said "the very next lesson is this one in full" and then
 // offered "The twelve rules" and "Start here" — pulling the reader back to lesson 1
-// and out to the syllabus, at position 3 of 15, immediately after being told the
+// and out to the syllabus, at position 3 of 17, immediately after being told the
 // answer was one lesson away. Backward, and still exactly wrong. `covered` is the
 // device this page uses; there is no `links` field any more, so it cannot regrow.
 const buckets = [
@@ -75,7 +78,7 @@ const buckets = [
       { h: 'The “$5 wrench.”', d: 'The blunt truth: cryptography can’t protect you from someone willing to threaten you until you hand it over. If they know you hold Bitcoin and can reach you, the strong encryption doesn’t matter.' },
       { h: 'Being picked as a target.', d: 'These attacks are almost never random. It usually starts with a data leak — an exchange gets breached and your name and home address end up on a list — which gets cross-referenced with anything you’ve posted publicly about holding Bitcoin. That’s the pipeline: leak → list → your door.' },
     ],
-    defense: 'The best physical protection isn’t a gadget, it’s a habit: <strong>talk about Bitcoin as loudly as you like — never about <em>your</em> Bitcoin.</strong> Don’t attach your own name to the fact that you hold and self-custody it, and never attach a number. That includes the people you trust, because they have people they trust too.<br><br>Then make what a searcher finds not enough: keep backups out of obvious places, and split things up so no single location holds enough to spend.<br><br>For a targeted threat, a <strong>passphrase</strong> turns your base seed into a <strong>decoy wallet</strong>: the recovery words alone open only a small, believable stash, while the real coins sit behind a passphrase stored somewhere the words are not.<br><br>One warning if you go that way: <strong>back the passphrase up as carefully as the seed, and keep it in a separate place.</strong> A passphrase living only in your memory is “I’ll just remember it” all over again — risk number one on this page wearing a disguise — and it is the single most documented way this setup loses people their Bitcoin.',
+    defense: 'The best physical protection isn’t a gadget, it’s a habit: <strong>talk about Bitcoin as loudly as you like — never about <em>your</em> Bitcoin.</strong> Don’t attach your own name to the fact that you hold and self-custody it, and never attach a number. That includes the people you trust, because they have people they trust too.<br><br>Beyond the habit, the defence is structural: keep backups out of obvious places, and arrange your keys so that no single location — and no single confrontation — holds enough to hand over everything. The setups that make that real, and the backup warning that comes with them, are taught in the lessons named below.',
     covered: `The habits that keep you off the list are <strong>Privacy / OpSec</strong>, in ${lvl('104')}. The decoy setup itself is a rung on the ladder, in ${lvl('102')}.`,
   },
   {
@@ -86,7 +89,7 @@ const buckets = [
       { h: 'The company goes bankrupt or runs off with it.', d: 'This is not hypothetical — it’s Bitcoin’s most repeated disaster. Mt. Gox lost about 850,000 coins in 2014. FTX vaporised roughly $8 billion of customer money in 2022. The list of collapsed exchanges is long, and it keeps getting longer.' },
       { h: 'Your account gets frozen.', d: 'Even a healthy exchange can lock your withdrawals — during a hack, a legal order, or a “review” — and there’s nothing you can do but wait, sometimes forever.' },
     ],
-    defense: 'Move your Bitcoin off the exchange and into your own custody after you buy — that single step is what this whole guide is about. And buy from a reputable <strong>Bitcoin-only</strong> service (River, Swan, Strike) rather than a multi-coin exchange: fewer products competing for your attention, withdrawal to your own wallet treated as a first-class feature, and a company whose entire business is Bitcoin.',
+    defense: 'Move your Bitcoin off the exchange and into your own custody after you buy — that single step is what this whole guide is about. Choosing a buying service you don’t have to live on, and the habit of withdrawing early, are part of the same lesson.',
     covered: 'The very next lesson — <strong>Not your keys, not your coins</strong> — is this one in full.',
   },
   {
@@ -106,8 +109,9 @@ const buckets = [
 <Base
   title="How people actually lose Bitcoin · BitcoinKeys.guide"
   description={`The plain-English map of how Bitcoin is really lost — mostly mistakes, not hackers. Learn the ${numberWord(buckets.length)} ways it happens so you can see each one coming, with the exact page in this guide that defends against each.`}
-  verified="2026-07-31"
+  verified="2026-08-04"
 >
+  <LessonCrumb href="/learn/how-bitcoin-is-lost" />
   <section class="risk-intro">
    <div class="prose intro-main">
     <LessonEyebrow />
@@ -117,23 +121,24 @@ const buckets = [
       <em>from</em>. Here’s the honest surprise: most Bitcoin that’s been lost was never stolen by a
       hacker. It was forgotten, misplaced, or fumbled by its own owner.
     </p>
+    <RuleBand />
     <div class="callout safe strip">
       <span class="label">The short version</span>
       <p style="margin:0">
-        Almost none of the Bitcoin that’s ever been lost was stolen. Over <strong>80% of what gets
-        called “theft” is really a scam or a simple slip</strong> — and it’s avoidable. Learn the handful
+        Almost none of the Bitcoin that’s ever been lost was taken by breaking anyone’s security. Over
+        <strong>80% of what gets called “theft” is really a scam or a simple slip</strong> — and it’s avoidable. Learn the handful
         of ways it happens below and you sidestep nearly all of it.
       </p>
     </div>
     <p>
-      Those scary-sounding numbers trace back to Bitcoin’s earliest years — coins worth pennies, held by
+      You may have heard that somewhere between <strong>11% and 23% of all Bitcoin is lost forever</strong>.
+      The figure is real — but it traces back to Bitcoin’s earliest years: coins worth pennies, held by
       people who had no idea they’d ever matter, lost to reformatted drives and forgotten passwords. It’s
-      a one-time artifact of that era — that’s the “11–25% of all Bitcoin is lost” figure — <em>not</em> a “one in six of today’s coins are doomed” risk hanging over you now. The single
-      biggest thing separating you from those early losers is simple: <strong>you already know what you’re
-      holding.</strong> So read the list below not as what’s <em>likely</em> to happen to you, but as the
-      short, knowable set of things to design around.
+      a one-time artifact of that era, <em>not</em> a “one in six of today’s coins are doomed” risk hanging
+      over you now. The single biggest thing separating you from those early losses is simple: <strong>you
+      already know what you’re holding.</strong> So read the list below not as what’s <em>likely</em> to
+      happen to you, but as the short, knowable set of things to design around.
     </p>
-    <RuleBand />
    </div>
    <aside class="rail" aria-label="Key facts">
      <div class="stat">
@@ -141,7 +146,7 @@ const buckets = [
        <div class="stat-c">of Bitcoin “theft” is really a scam or a simple mistake — not a hacker.</div>
      </div>
      <div class="stat">
-       <div class="stat-n num">11–25%</div>
+       <div class="stat-n num">11–23%</div>
        <div class="stat-c">of all Bitcoin is lost — but almost all of it in the earliest years, by people who didn’t know to protect it.</div>
      </div>
      <div class="stat">
@@ -223,9 +228,14 @@ const buckets = [
       {' '}{lvl('102')} works out.
     </p>
 
+  </section>
+
+  <LessonCheck href="/learn/how-bitcoin-is-lost" />
+
+  <section class="prose">
     <LessonClose
       learned={`the ${numberWord(buckets.length)} ways Bitcoin is actually lost, and which defence answers each one`}
-      action="When you want that weighed against your own situation rather than the average holder's, the setup finder walks five plain questions and a short risk assessment — starting from the same base rates this lesson just taught — and names the setup that covers what is actually yours."
+      action={`When you want that weighed against your own situation rather than the average holder's, the setup finder walks ${finderPromise} — starting from the same base rates this lesson just taught — and names the setup that covers what is actually yours.`}
       locate="/find-your-setup"
     />
   </section>

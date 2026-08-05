@@ -4,6 +4,8 @@ import LessonNav from '../../components/LessonNav.astro';
 import LessonEyebrow from '../../components/LessonEyebrow.astro';
 import RuleBand from '../../components/RuleBand.astro';
 import RuleRef from '../../components/RuleRef.astro';
+import LessonCheck from '../../components/LessonCheck.astro';
+import LessonCrumb from '../../components/LessonCrumb.astro';
 import Diagram from '../../components/Diagram.astro';
 
 // ADDED 2026-07-30, and it is a REUNION rather than a new topic. The 7/29 pass split
@@ -27,8 +29,9 @@ import Diagram from '../../components/Diagram.astro';
 <Base
   title="Hot and cold — where savings belong · BitcoinKeys.guide"
   description="Hot wallets are connected to the internet; cold wallets aren't. Which matters less than the decision that follows from it: how much of your Bitcoin sits at each temperature, and how money moves between them."
-  verified="2026-07-31"
+  verified="2026-08-04"
 >
+  <LessonCrumb href="/learn/hot-and-cold" />
   <section class="prose">
     <LessonEyebrow />
     <h1>Hot and cold — <span class="accent">where savings belong</span></h1>
@@ -129,6 +132,8 @@ import Diagram from '../../components/Diagram.astro';
       <p style="margin:0">Spending money can be hot. <strong>Savings are cold, and they stay cold.</strong> Never let the two mix, and never keep a meaningful amount in a phone wallet. Everything in the rest of this level is about how to arrange the keys that hold the cold side.</p>
     </div>
   </section>
+
+  <LessonCheck href="/learn/hot-and-cold" />
 
   <LessonNav />
 </Base>

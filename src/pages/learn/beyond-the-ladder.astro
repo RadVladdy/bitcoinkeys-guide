@@ -10,6 +10,7 @@ const lvl = (id) => { const l = levelById(id); return `${l.id} · ${l.title}`; }
 const lvlLesson = (href) => lessonFor(href).label;
 import LessonNav from '../../components/LessonNav.astro';
 import LessonEyebrow from '../../components/LessonEyebrow.astro';
+import LessonCrumb from '../../components/LessonCrumb.astro';
 import Diagram from '../../components/Diagram.astro';
 import { shamirNote, bip85 } from '../../data/ladder.js';
 import Shamir from '../../components/demos/Shamir.astro';
@@ -40,6 +41,7 @@ const s = shamirNote;
   description="Two optional refinements that aren't rungs on the ladder: BIP-85 derives many seeds from one master so you keep fewer backups, and Shamir (SLIP-39) splits one backup into shares where any few rebuild it. What each buys you, and what each costs."
   verified="2026-07-31"
 >
+  <LessonCrumb href="/learn/beyond-the-ladder" />
   <section class="prose">
     <LessonEyebrow />
     <h1>Beyond the ladder — <span class="accent">two refinements that aren’t rungs</span></h1>
