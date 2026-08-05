@@ -10,18 +10,23 @@
 // featured four carry a motif today; the rest can gain one when /demos adopts the
 // same cards. Keyed by MOTIF NAME rather than by slug, so a demo can be renamed or
 // re-homed without stranding its artwork.
+// ORDER: the sequence the course meets each idea (101 keys → 102 setups →
+// 103 seed creation), so the hub reads as a tour rather than a pile. Reordered
+// 2026-08-04 — the old order was accretion order and put the lesson-2 concept
+// (key-space) tenth. The identical `tag: 'live'` chips were dropped the same
+// day: a tag every card carries tells nobody anything.
 export const demos = [
-  { href: '/demos/seed', featured: true, motif: 'seed', title: 'Watch a seed get born', desc: 'Generate a throwaway seed and follow it from 128 random bits — with the real SHA-256 checksum — to twelve words to a Bitcoin address.', tag: 'live' },
-  { href: '/demos/passphrase', title: 'The passphrase (25th word)', desc: 'Same seed, add a passphrase, land in a completely different wallet. See the decoy-vs-hidden idea for yourself.', tag: 'live' },
-  { href: '/demos/bip85', title: 'BIP-85 — one seed, many seeds', desc: 'How one master seed derives an endless supply of fresh, independent child seeds — back up one, re-derive the rest.', tag: 'live' },
-  { href: '/demos/multisig', featured: true, motif: 'multisig', title: 'Multisig — why 2-of-3 works', desc: 'Three keys, one wallet, any two to spend. Tap the keys and watch the threshold rule enforce itself — no single point of failure.', tag: 'live' },
-  { href: '/demos/dice', featured: true, motif: 'dice', title: 'Roll your own randomness', desc: "Don't trust the device's RNG? Roll a die ~50 times and hash it into a seed that's provably random by your own hand.", tag: 'live' },
-  { href: '/demos/signing', title: 'Signing — prove it, without showing the key', desc: "Sign a payment, watch anyone verify it came from your key — then try to tamper with the payment and watch the signature break.", tag: 'live' },
-  { href: '/demos/addresses', title: 'One key, four address formats', desc: "Why addresses start with 1, 3, bc1q, or bc1p — all four come out of the same seed, and they're all your Bitcoin.", tag: 'live' },
-  { href: '/demos/hd-tree', title: 'One seed, endless addresses', desc: 'How one seed grows a whole tree of addresses — and how an xpub lets someone watch a wallet without ever being able to spend.', tag: 'live' },
-  { href: '/demos/shamir', title: 'Split a secret into shares', desc: 'The Shamir math behind SLIP-39: cut a backup into five pieces where any three rebuild it and any two reveal nothing.', tag: 'live' },
-  { href: '/demos/key-space', featured: true, motif: 'key-space', title: "Why a key can't be guessed", desc: 'Make 2²⁵⁶ concrete — every atom in the Earth computing since the Big Bang barely reaches a coin-flip for one key.', tag: 'live' },
-  { href: '/demos/typo', title: 'How a typo gets caught', desc: 'Change one word in a throwaway seed and watch the built-in checksum make a wallet reject it — before any coins are at risk.', tag: 'live' },
+  { href: '/demos/key-space', featured: true, motif: 'key-space', title: "Why a key can't be guessed", desc: 'Make 2²⁵⁶ concrete — every atom in the Earth computing since the Big Bang barely reaches a coin-flip for one key.' },
+  { href: '/demos/signing', title: 'Signing — prove it, without showing the key', desc: "Sign a payment, watch anyone verify it came from your key — then try to tamper with the payment and watch the signature break." },
+  { href: '/demos/addresses', title: 'One key, four address formats', desc: "Why addresses start with 1, 3, bc1q, or bc1p — all four come out of the same seed, and they're all your Bitcoin." },
+  { href: '/demos/hd-tree', title: 'One seed, endless addresses', desc: 'How one seed grows a whole tree of addresses — and how an xpub lets someone watch a wallet without ever being able to spend.' },
+  { href: '/demos/multisig', featured: true, motif: 'multisig', title: 'Multisig — why 2-of-3 works', desc: 'Three keys, one wallet, any two to spend. Tap the keys and watch the threshold rule enforce itself — no single point of failure.' },
+  { href: '/demos/passphrase', title: 'The passphrase (25th word)', desc: 'Same seed, add a passphrase, land in a completely different wallet. See the decoy-vs-hidden idea for yourself.' },
+  { href: '/demos/bip85', title: 'BIP-85 — one seed, many seeds', desc: 'How one master seed derives an endless supply of fresh, independent child seeds — back up one, re-derive the rest.' },
+  { href: '/demos/shamir', title: 'Split a secret into shares', desc: 'The Shamir math behind SLIP-39: cut a backup into five pieces where any three rebuild it and any two reveal nothing.' },
+  { href: '/demos/seed', featured: true, motif: 'seed', title: 'Watch a seed get born', desc: 'Generate a throwaway seed and follow it from 128 random bits — with the real SHA-256 checksum — to twelve words to a Bitcoin address.' },
+  { href: '/demos/dice', featured: true, motif: 'dice', title: 'Roll your own randomness', desc: "Don't trust the device's RNG? Roll a die ~50 times and hash it into a seed that's provably random by your own hand." },
+  { href: '/demos/typo', title: 'How a typo gets caught', desc: 'Change one word in a throwaway seed and watch the built-in checksum catch it — and meet the rare wrong word that slips through unannounced.' },
 ];
 
 /** The demos shown on the home page — derived, never hand-listed (invariant #10). */

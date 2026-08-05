@@ -39,7 +39,7 @@ const groupActive = (g) =>
           {g.mega ? (
             <div class="mega-panel">
               <div class="wrap mega-inner">
-                <div class="lv-grid">
+                <div class="lv-grid" style={`--lv-count: ${levels.length}`}>
                   {levels.map((lv) => (
                     <div class:list={['lv', { opt: lv.optional }]}>
                       <p class="lv-h"><span class="lv-n">{lv.id}</span><span class="lv-t">{lv.title}</span></p>
@@ -274,14 +274,16 @@ const groupActive = (g) =>
     border-top: 1px solid var(--line-soft); font-family: var(--mono); font-size: 0.64rem;
     letter-spacing: 0.13em; text-transform: uppercase; color: var(--faint); }
 
-  /* ── The Learn mega-panel: the curriculum, five levels wide ──────────────
+  /* ── The Learn mega-panel: the curriculum, one column per level ──────────
      Full-bleed rather than anchored to the button, because it holds every lesson
-     on the site — a 12rem dropdown can't. */
+     on the site — a 12rem dropdown can't. Column count comes from levels.length
+     (four since 201 was removed 2026-08-01; a hardcoded repeat(5) left a
+     permanently empty fifth column here for three days). */
   .mega-panel { position: absolute; top: 100%; left: 0; right: 0; z-index: 30; display: none;
     background: var(--bg); border-bottom: 1px solid var(--line); box-shadow: var(--shadow); }
   .section:hover .mega-panel, .section:focus-within .mega-panel, .section.open .mega-panel { display: block; }
   .mega-inner { padding: 1.5rem 1.4rem 1.1rem; }
-  .lv-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.4rem 1.3rem; }
+  .lv-grid { display: grid; grid-template-columns: repeat(var(--lv-count), 1fr); gap: 1.4rem 1.3rem; }
   .lv { display: flex; flex-direction: column; gap: 0.05rem; min-width: 0; }
   .lv-h { display: flex; align-items: center; gap: 0.45rem; margin: 0 0 0.5rem;
     padding-bottom: 0.55rem; border-bottom: 1px solid var(--line); }

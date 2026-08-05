@@ -12,15 +12,20 @@ const year = 2026;
 //
 // The footer was trying to be a second copy of the mega-menu. It doesn't need to be:
 // the nav links all 17 lessons from EVERY page (verified before cutting), so nothing
-// here is a last path to anything. It now lists the five LEVELS, anchored into the
-// /start syllabus, which already carries an id per level.
+// here is a last path to anything. It now lists the LEVELS (four since 201 was
+// removed), anchored into the /start syllabus, which already carries an id per level.
 //
-// Five balanced columns of 3–6 items. Reference (glossary, further reading) gets its
-// own column rather than hiding under Learn — those are the `ref: true` links in
-// nav.js, where they still belong in the MENU. Same data, different job.
+// Balanced columns of 3–6 items, one per group, count derived below. Reference
+// (glossary, further reading) gets its own column rather than hiding under Learn —
+// those are the `ref: true` links in nav.js, where they still belong in the MENU.
+// Same data, different job.
 const learn = navGroups.find((g) => g.mega);
 const others = navGroups.filter((g) => !g.mega);
 const reference = (learn?.links || []).filter((l) => l.ref);
+// One column per group actually rendered below: Learn + each non-mega group +
+// Reference. Derived, because a hardcoded repeat(5) silently became wrong when
+// the Tools & demos group was added 2026-08-01 and the sixth column wrapped.
+const colCount = 1 + others.length + (reference.length > 0 ? 1 : 0);
 ---
 <footer class="foot">
   <div class="wrap foot-inner">
@@ -28,7 +33,7 @@ const reference = (learn?.links || []).filter((l) => l.ref);
       <p class="pledge-line"><span class="accent-text">We hold no keys and sell no device.</span></p>
       <p class="sub">BitcoinKeys.guide is an independent, Bitcoin-only guide to holding your own coins. No affiliate hardware brand, no custody service, nothing to sell you — just the simplest setup that fits you, and how to build it.</p>
     </div>
-    <nav class="foot-map" aria-label="Footer">
+    <nav class="foot-map" aria-label="Footer" style={`--foot-cols: ${colCount}`}>
       <div class="foot-col">
         <p class="foot-col-title">{learn.title}</p>
         {learn.lead && <a href={learn.lead.href}>{learn.lead.pin}</a>}
@@ -67,7 +72,7 @@ const reference = (learn?.links || []).filter((l) => l.ref);
   .pledge { max-width: 64ch; margin-bottom: 2.2rem; }
   .pledge-line { font-size: 1.05rem; font-weight: 700; margin: 0 0 0.5rem; }
   .pledge .sub { margin: 0; font-size: 0.92rem; }
-  .foot-map { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.6rem 1.2rem; }
+  .foot-map { display: grid; grid-template-columns: repeat(var(--foot-cols, 5), 1fr); gap: 1.6rem 1.2rem; }
   .foot-col { display: flex; flex-direction: column; gap: 0.5rem; }
   .foot-col-title { margin: 0 0 0.15rem; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.12em;
     text-transform: uppercase; color: var(--faint); }

@@ -5,7 +5,7 @@ import { demos } from '../../data/demos.js';
 <Base
   title="Interactive demos — see how Bitcoin actually works · BitcoinKeys.guide"
   description="Hands-on demonstrations of the machinery under Bitcoin self-custody — seed generation, passphrases, BIP-85. Every one uses a throwaway seed generated in your browser. Never your real seed."
-  verified="2026-07-29"
+  verified="2026-08-04"
 >
   <section class="prose">
     <p class="eyebrow">Tools &amp; demos</p>
@@ -27,7 +27,6 @@ import { demos } from '../../data/demos.js';
     <div class="cards">
       {demos.map((d) => (
         <a class="dcard" href={d.href}>
-          <span class="dtag mono">{d.tag}</span>
           <h3>{d.title}</h3>
           <p>{d.desc}</p>
           <span class="darrow">Open the demo →</span>
@@ -37,12 +36,10 @@ import { demos } from '../../data/demos.js';
     <p class="more mono">Each one runs entirely in your browser. More may follow.</p>
   </section>
 
-  <section class="prose">
-    <p class="cta-row">
-      <a class="btn" href="/learn/bitcoin-keys">← How it all works</a>
-      <a class="btn ghost" href="/learn/ladder">The ladder →</a>
-    </p>
-  </section>
+  {/* No CTA row. There used to be one ("← How it all works" / "The ladder →"),
+      a leftover from when the demos were course level 201 — a door into lesson 6
+      from a tools page. Demos are a tool: readers arrive from a lesson or the
+      menu and go back the way they came. */}
 
 </Base>
 
@@ -53,15 +50,8 @@ import { demos } from '../../data/demos.js';
     border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); padding: 1.3rem 1.4rem;
     transition: border-color .14s ease, transform .14s ease; }
   .dcard:hover { border-color: var(--accent); transform: translateY(-2px); }
-  .dtag { align-self: flex-start; font-size: 0.62rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--safe);
-    border: 1px solid color-mix(in srgb, var(--safe) 45%, var(--line)); background: var(--safe-dim); border-radius: 999px; padding: 0.12rem 0.5rem; }
   .dcard h3 { margin: 0.3rem 0 0; font-size: 1.1rem; }
   .dcard p { margin: 0; font-size: 0.92rem; color: var(--muted); line-height: 1.55; }
   .dcard .darrow { margin-top: 0.3rem; color: var(--accent); font-family: var(--mono); font-size: 0.85rem; }
   .more { color: var(--faint); font-size: 0.82rem; margin: 0.4rem 0 0; }
-  .cta-row { display: flex; flex-wrap: wrap; gap: 0.7rem; margin-top: 1.4rem; }
-  .btn { display: inline-flex; align-items: center; background: var(--accent); color: var(--accent-ink); font-weight: 700;
-    font-family: var(--mono); font-size: 0.9rem; padding: 0.65rem 1rem; border-radius: 0.6rem; text-decoration: none; }
-  .btn.ghost { background: transparent; color: var(--text); border: 1px solid var(--line); }
-  .btn.ghost:hover { border-color: var(--accent); color: var(--accent); }
 </style>
