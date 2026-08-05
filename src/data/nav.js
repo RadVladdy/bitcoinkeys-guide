@@ -27,9 +27,18 @@ export const navGroups = [
     // declared here.
     mega: true,
     lead: { href: '/start', label: 'The whole syllabus, in order', pin: 'Start here' },
+    // ADDED 2026-08-05. The privacy cluster is `ref: true` and it belongs HERE
+    // rather than in Tools & demos, whose own test is that you DO something on
+    // the page and nothing is saved — these are read, not operated. It is not in
+    // Hardware & services either: that group's test is outbound vendor links, and
+    // these pages deliberately name software without linking to it. What is left
+    // is what they actually are — reference sitting beside the course, in the
+    // same class as the glossary: a reader goes there when the lesson raised a
+    // question it deliberately did not answer at length.
     links: [
       { href: '/glossary', label: 'Glossary', ref: true },
       { href: '/resources', label: 'Further reading', ref: true },
+      { href: '/privacy-tools', label: 'Privacy tools', ref: true },
     ],
   },
   {

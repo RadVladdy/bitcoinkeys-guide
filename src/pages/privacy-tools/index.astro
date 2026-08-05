@@ -1,0 +1,137 @@
+---
+// The cluster door. Its job is to let a reader leave without opening anything.
+//
+// THE FRAMING IS THE PAGE. Three pages about privacy tools, sitting one menu
+// click away, will read to some readers as "here is the real privacy advice, the
+// lesson was the beginner version" — which is the opposite of what this site
+// believes and of what the privacy lesson says in its own key callout. So the
+// order and the optionality are stated here, once, at the top, before any tool is
+// named; the three pages inherit both from privacy-tools.js rather than each
+// restating a stance in its own words.
+//
+// The cards are deliberately decision-shaped rather than teaser-shaped: what it
+// fixes, who it is for, what it costs. A reader for whom none of the three
+// applies should be able to establish that here and go back to the course.
+import Base from '../../layouts/Base.astro';
+import {
+  privacyTools, privacyToolsVerified, privacyToolHref, privacyPremise,
+} from '../../data/privacy-tools.js';
+---
+<Base
+  title="The optional privacy tools · BitcoinKeys.guide"
+  description={`PayJoin, Silent Payments and CoinJoin explained plainly — what each one actually fixes, who it is for, what it costs, and why the free everyday habits still do more of the work than any of them. No affiliate links.`}
+  verified={privacyToolsVerified}
+>
+  <section class="prose">
+    <p class="eyebrow">Going further on privacy</p>
+    <h1>The optional <span class="accent">privacy tools</span></h1>
+    <p class="lead">
+      There is a layer above the everyday privacy habits: a small number of tools that change what
+      the chain reveals about you. This is that layer, honestly described — including which of these
+      we would tell most readers to walk straight past. {privacyPremise.optional}
+    </p>
+  </section>
+
+  <section class="prose">
+    <div class="callout safe">
+      <span class="label">Start by not needing any of this</span>
+      <p style="margin:0">
+        The two things that do most of the work are {privacyPremise.doesMost}. They are free, they
+        need no software, and together they defeat more than anything on this page.
+        <a href="/learn/privacy">The privacy lesson</a> teaches both, and it is the page to read
+        first — nothing here is an upgrade on it, and one of the three below is a fix for a case
+        where the habit simply cannot be applied.
+      </p>
+    </div>
+
+    <h2>The three, in the order we would consider them</h2>
+    <p>
+      Cheapest first, not most interesting first. Ordering these by how much has been written about
+      them would put the heaviest one at the top and quietly recommend it — so the one that costs
+      you nothing and helps a little leads, and the one that costs money, time and ongoing care
+      comes last, with the reasons attached.
+    </p>
+  </section>
+
+  <section>
+    <ul class="tools">
+      {privacyTools.map((t) => (
+        <li>
+          <a class="t-card" href={privacyToolHref(t.slug)}>
+            <span class="t-head">
+              <span class="t-name">{t.name}</span>
+              <span class="t-spec mono">{t.spec}</span>
+            </span>
+            <span class="t-line">{t.oneLine}</span>
+            <dl class="t-facts">
+              <div><dt>Fixes</dt><dd>{t.fixes}</dd></div>
+              <div><dt>For</dt><dd>{t.forWho}</dd></div>
+              <div><dt>Costs</dt><dd>{t.cost}</dd></div>
+            </dl>
+            <span class="t-verdict">{t.verdict} <span class="arw">→</span></span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section class="prose">
+    <h2>What none of them fix</h2>
+    <p>
+      Worth having in front of you before you spend anything on this layer, because all three are
+      sometimes sold as if they did:
+    </p>
+    <ul class="cannot">
+      {privacyPremise.cannotFix.map((x) => <li>{x}</li>)}
+    </ul>
+    <p>
+      That is not an argument against any of them. It is the difference between improving your
+      position from today and undoing a position you already have — and only one of those is on
+      offer.
+    </p>
+
+    <h2>Where this sits in the course</h2>
+    <p>
+      Nothing on these pages is needed to hold Bitcoin safely, and nothing here is part of the
+      course. <a href="/learn/privacy">The privacy lesson</a> is where the habits are taught, and
+      <a href="/learn/run-a-node"> the lesson on running your own node</a> is where the one habit
+      these tools sit on top of — being able to see and choose which of your coins you spend —
+      stops being abstract. Read those first. These will still be here.
+    </p>
+  </section>
+</Base>
+
+<style>
+  .prose :global(ul) { padding-left: 1.3rem; }
+  .prose :global(li) { margin: 0.5rem 0; }
+  .prose :global(li::marker) { color: var(--accent); }
+
+  .tools { list-style: none; padding: 0; margin: 0 0 2rem; display: flex;
+    flex-direction: column; gap: 1rem; }
+
+  .t-card { display: block; border: 1px solid var(--line); border-radius: var(--radius);
+    background: var(--surface); padding: 1.25rem 1.4rem; text-decoration: none; color: inherit;
+    transition: border-color 0.15s ease, transform 0.15s ease; }
+  .t-card:hover { border-color: var(--accent); transform: translateY(-1px); }
+
+  .t-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.4rem 0.8rem; }
+  .t-name { font-size: 1.22rem; font-weight: 700; color: var(--text); }
+  .t-spec { font-size: 0.72rem; color: var(--faint); }
+  .t-line { display: block; margin: 0.45rem 0 1rem; color: var(--muted); }
+
+  .t-facts { margin: 0 0 1rem; display: grid; gap: 0.55rem; }
+  .t-facts > div { display: grid; grid-template-columns: 4.2rem 1fr; gap: 0.7rem; align-items: baseline; }
+  .t-facts dt { font-family: var(--mono); font-size: 0.66rem; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--accent); }
+  .t-facts dd { margin: 0; color: var(--text); font-size: 0.95rem; }
+
+  .t-verdict { display: block; font-weight: 600; color: var(--accent); }
+  .t-card:hover .arw { margin-left: 0.25rem; }
+  .arw { transition: margin-left 0.15s ease; }
+
+  .cannot { list-style: none; padding: 0; margin: 0 0 1.4rem; display: flex;
+    flex-direction: column; gap: 0.65rem; }
+  .cannot li { position: relative; padding-left: 1.8rem; color: var(--muted); }
+  .cannot li::before { content: "✕"; position: absolute; left: 0; top: 0; color: var(--danger);
+    font-family: var(--mono); font-weight: 700; }
+</style>

@@ -32,11 +32,20 @@
 // shown to go red.
 import { chromium } from 'playwright';
 
+// EVERY PAGE THAT RENDERS A DIAGRAM MUST BE LISTED HERE. This is a hand-kept list
+// against a component used across the site, which is the exact shape of a check
+// that goes quietly blind: a diagram added to an unlisted page is never measured,
+// and the run stays green while covering less than it did. Adding a page here is
+// part of adding a diagram — see the privacy-tools entries, added with the three
+// drawings that shipped on 2026-08-05.
 const PAGES = [
   '/learn/bitcoin-keys/',
   '/learn/ladder/',
   '/learn/beyond-the-ladder/',
   '/learn/hot-and-cold/',
+  '/privacy-tools/payjoin/',
+  '/privacy-tools/silent-payments/',
+  '/privacy-tools/coinjoin/',
 ];
 const BASE = process.argv[2] || 'http://localhost:4399';
 const PAD = 3;    // a glyph this close to a stroke reads as touching it

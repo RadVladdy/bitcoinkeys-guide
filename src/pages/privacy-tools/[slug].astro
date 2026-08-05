@@ -1,0 +1,108 @@
+---
+// One page per optional privacy tool, rendered from src/data/privacy-tools.js.
+//
+// A DYNAMIC ROUTE RATHER THAN THREE PAGES, for the reason the lessons are one:
+// three pages of identical furniture is three copies of a heading order, and the
+// copies drift. Here the furniture IS the argument — how it works, then what else
+// you could do including the things we advise against, then what we would do —
+// so a page that quietly grew only two of those would be the defect. The data
+// file refuses to build with fewer than three.
+//
+// The page order below is deliberate and is not the same as a lesson's: the
+// at-a-glance strip sits directly under the lead so a reader can decide this
+// isn't for them without reading a word of the mechanism, and the dated status
+// facts sit LAST, because they are the part that will be wrong first.
+import Base from '../../layouts/Base.astro';
+import Diagram from '../../components/Diagram.astro';
+import LessonToc from '../../components/LessonToc.astro';
+import {
+  privacyTools, privacyToolsVerified, privacyToolsHref, privacyPremise,
+} from '../../data/privacy-tools.js';
+
+export function getStaticPaths() {
+  return privacyTools.map((t) => ({ params: { slug: t.slug }, props: { t } }));
+}
+
+const { t } = Astro.props;
+// Same slug idiom as the lessons and the glossary, so the rail's anchors and the
+// headings can never come apart: both are computed from the heading text itself.
+const sid = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const toc = [...t.layers.map((l) => l.h), t.statusH].map((h) => ({ id: sid(h), label: h }));
+---
+<Base
+  title={`${t.name} · BitcoinKeys.guide`}
+  description={t.lead}
+  verified={privacyToolsVerified}
+>
+  <div class="lgrid">
+  <div class="lmain">
+
+  <section class="prose">
+    <p class="eyebrow"><a href={privacyToolsHref}>Optional privacy tools</a></p>
+    <h1>{t.h1}</h1>
+    <p class="lead">{t.lead}</p>
+  </section>
+
+  <section>
+    <dl class="glance">
+      <div><dt>What it fixes</dt><dd>{t.fixes}</dd></div>
+      <div><dt>Who it is for</dt><dd>{t.forWho}</dd></div>
+      <div><dt>What it costs you</dt><dd>{t.cost}</dd></div>
+    </dl>
+  </section>
+
+  <section class="prose">
+    <Diagram name={t.diagram.name} caption={t.diagram.caption} />
+
+    {t.layers.map((l) => (
+      <>
+        <h2 id={sid(l.h)}>{l.h}</h2>
+        <div set:html={l.body}></div>
+      </>
+    ))}
+
+    <h2 id={sid(t.statusH)}>{t.statusH}</h2>
+    <ul class="status">
+      {t.status.map((s) => <li>{s}</li>)}
+    </ul>
+
+    <div class="callout">
+      <span class="label">Before any of this</span>
+      <p style="margin:0">
+        The two habits that do most of the work are {privacyPremise.doesMost} — both free, both
+        covered in <a href="/learn/privacy">the privacy lesson</a>, and both worth more than everything on
+        this page. {privacyPremise.optional} <a href={privacyToolsHref}>The other optional tools</a> sit
+        alongside this one, in the order we would consider them.
+      </p>
+    </div>
+  </section>
+
+  </div>
+  <LessonToc items={toc} />
+  </div>
+</Base>
+
+<style>
+  .prose :global(ul), .prose :global(ol) { padding-left: 1.3rem; }
+  .prose :global(li) { margin: 0.5rem 0; }
+  .prose :global(li::marker) { color: var(--accent); }
+  .prose :global(code) { font-family: var(--mono); font-size: 0.92em; background: var(--surface-2);
+    border: 1px solid var(--line); border-radius: 4px; padding: 0.05em 0.35em; }
+
+  .eyebrow :global(a) { color: inherit; text-decoration: none; border-bottom: 1px solid var(--line); }
+  .eyebrow :global(a:hover) { color: var(--accent); }
+
+  .glance { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line);
+    border-radius: var(--radius); overflow: hidden; margin: 0; }
+  .glance > div { background: var(--surface); padding: 0.95rem 1.2rem; }
+  .glance dt { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 0.35rem; }
+  .glance dd { margin: 0; color: var(--text); }
+  @media (min-width: 720px) { .glance { grid-template-columns: repeat(3, 1fr); } }
+
+  .status { list-style: none; padding: 0; margin: 0 0 1.6rem; display: flex;
+    flex-direction: column; gap: 0.7rem; }
+  .status li { position: relative; padding-left: 1.5rem; color: var(--muted); }
+  .status li::before { content: "·"; position: absolute; left: 0.35rem; top: -0.1rem;
+    color: var(--accent); font-weight: 700; font-size: 1.2rem; line-height: 1.4; }
+</style>

@@ -142,6 +142,79 @@ const { name, caption } = Astro.props;
     </svg>
   )}
 
+  {name === 'payjoin' && (
+    <svg viewBox="0 0 480 196" role="img" aria-label="A PayJoin payment: the seller adds one of their own coins as an input, so the two inputs are not both the buyer's">
+      <text x="240" y="16" text-anchor="middle" fill="var(--muted)" font-family="var(--mono)" font-size="11">Chain analysis reads both of these as yours</text>
+      <rect x="8" y="34" width="104" height="42" rx="8" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
+      <text x="60" y="60" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="11">your coin</text>
+      <rect x="8" y="118" width="104" height="42" rx="8" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="2.5"/>
+      <text x="60" y="144" text-anchor="middle" fill="var(--accent)" font-family="var(--mono)" font-size="11">their coin</text>
+      <text x="60" y="178" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="9.5">added by the seller</text>
+      <path d="M118 55 L164 55" stroke="var(--text)" stroke-width="2" fill="none"/><path d="M173 55 l-9 -6 l0 12 z" fill="var(--text)"/>
+      <path d="M118 139 L164 139" stroke="var(--accent)" stroke-width="2" fill="none"/><path d="M173 139 l-9 -6 l0 12 z" fill="var(--accent)"/>
+      <rect x="180" y="40" width="120" height="114" rx="10" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="2"/>
+      <text x="240" y="92" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="11">one ordinary</text>
+      <text x="240" y="110" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="11">payment</text>
+      <path d="M306 55 L352 55" stroke="var(--text)" stroke-width="2" fill="none"/><path d="M361 55 l-9 -6 l0 12 z" fill="var(--text)"/>
+      <path d="M306 139 L352 139" stroke="var(--text)" stroke-width="2" fill="none"/><path d="M361 139 l-9 -6 l0 12 z" fill="var(--text)"/>
+      <rect x="368" y="34" width="104" height="42" rx="8" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
+      <text x="420" y="60" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="11">to the seller</text>
+      <rect x="368" y="118" width="104" height="42" rx="8" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
+      <text x="420" y="144" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="11">change to you</text>
+    </svg>
+  )}
+
+  {name === 'silent-payments' && (
+    <svg viewBox="0 0 480 214" role="img" aria-label="One published silent payment code, from which every sender derives a different fresh address">
+      <rect x="8" y="60" width="136" height="60" rx="10" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="2.5"/>
+      <text x="76" y="86" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="11">your one code</text>
+      <text x="76" y="106" text-anchor="middle" fill="var(--accent)" font-family="var(--mono)" font-size="11">sp1…</text>
+      <text x="76" y="42" text-anchor="middle" fill="var(--muted)" font-family="var(--mono)" font-size="10.5">published anywhere</text>
+      <g stroke="var(--muted)" stroke-width="1.5" fill="none">
+        <path d="M144 90 L322 42"/><path d="M144 90 L322 106"/><path d="M144 90 L322 170"/>
+      </g>
+      <g font-family="var(--mono)" font-size="11">
+        <rect x="330" y="22" width="142" height="40" rx="8" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="401" y="47" text-anchor="middle" fill="var(--text)">a fresh address</text>
+        <rect x="330" y="86" width="142" height="40" rx="8" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="401" y="111" text-anchor="middle" fill="var(--text)">a fresh address</text>
+        <rect x="330" y="150" width="142" height="40" rx="8" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="401" y="175" text-anchor="middle" fill="var(--text)">a fresh address</text>
+      </g>
+      <text x="240" y="208" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="9.5">nothing on the chain ties them together</text>
+    </svg>
+  )}
+
+  {name === 'coinjoin' && (
+    <svg viewBox="0 0 480 200" role="img" aria-label="A CoinJoin: several people's coins enter one transaction and equal-sized amounts come back out">
+      <g font-family="var(--mono)" font-size="11">
+        <rect x="8" y="20" width="96" height="38" rx="8" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="2.5"/>
+        <text x="56" y="44" text-anchor="middle" fill="var(--accent)">you</text>
+        <rect x="8" y="76" width="96" height="38" rx="8" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="56" y="100" text-anchor="middle" fill="var(--muted)">someone</text>
+        <rect x="8" y="132" width="96" height="38" rx="8" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="56" y="156" text-anchor="middle" fill="var(--muted)">someone</text>
+      </g>
+      <g stroke="var(--muted)" stroke-width="1.5" fill="none">
+        <path d="M110 39 L164 39"/><path d="M110 95 L164 95"/><path d="M110 151 L164 151"/>
+      </g>
+      <rect x="170" y="20" width="124" height="150" rx="10" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="2"/>
+      <text x="232" y="99" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="11">one transaction</text>
+      <g stroke="var(--muted)" stroke-width="1.5" fill="none">
+        <path d="M300 39 L354 39"/><path d="M300 95 L354 95"/><path d="M300 151 L354 151"/>
+      </g>
+      <g font-family="var(--mono)" font-size="11">
+        <rect x="360" y="20" width="112" height="38" rx="8" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="416" y="44" text-anchor="middle" fill="var(--text)">same amount</text>
+        <rect x="360" y="76" width="112" height="38" rx="8" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="416" y="100" text-anchor="middle" fill="var(--text)">same amount</text>
+        <rect x="360" y="132" width="112" height="38" rx="8" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="416" y="156" text-anchor="middle" fill="var(--text)">same amount</text>
+      </g>
+      <text x="240" y="192" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="9.5">nothing marks which one came back to you</text>
+    </svg>
+  )}
+
   {caption && <figcaption>{caption}</figcaption>}
 </figure>
 

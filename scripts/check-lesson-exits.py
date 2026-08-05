@@ -21,6 +21,13 @@ WHAT IS ALLOWED, and the distinction is the whole rule:
   · backward links to earlier lessons — the course is linear and that is fine
   · /glossary, /resources, /how-we-weigh-risk, /about — reference and
     methodology, not things to go and DO
+  · /privacy-tools/* — the same class, and declared here rather than left to
+    the fact that it simply is not in the list below. Added 2026-08-05, when
+    three tools were promoted out of run-a-node's last section onto their own
+    pages. They send the reader nowhere to buy or sign up, they name software
+    without linking to it, and they hand the reader back to the privacy lesson.
+    A page that ever starts linking out to a wallet vendor stops qualifying and
+    belongs in ACTION_PREFIXES instead.
   · /demos/<name> — limited, self-contained, and they hand the reader back
   · the security advisory — a safety warning, not an action surface, and it is
     linked site-wide from the banner on every page anyway. Removing it from a
