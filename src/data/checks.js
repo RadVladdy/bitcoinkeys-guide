@@ -24,7 +24,7 @@
 //      deliberate action, it is learning, and filing it would put the three privacy
 //      promises (/find-your-setup, /my-plan, /checklist) back in question exactly
 //      the way /my-plan did on 2026-07-30. Transient by construction, which also
-//      means the feature needs no consent copy at all. Transient by construction.
+//      means the feature needs no consent copy at all.
 //   2. ZERO ANALYTICS (invariant #7). Answers never leave the DOM, so there is
 //      nothing to leak and no request to make.
 //   3. LINKS POINT BACKWARDS (invariant #9). An explanation teaches IN PLACE. No
@@ -47,6 +47,28 @@ import { rules } from './rules.js';
 
 /** @type {Record<string, { q: string, options: { t: string, c?: true }[], why: string }[]>} */
 export const checks = {
+  // ── Rule 01 · /learn/how-bitcoin-is-lost ─────────────────────────────────
+  'self-inflicted': [
+    {
+      q: 'Of all the Bitcoin that has been lost so far, what accounts for the largest share?',
+      options: [
+        { t: 'Hackers breaking into wallets and exchanges over the internet' },
+        { t: 'Owners losing access to it themselves, with no thief involved', c: true },
+        { t: 'Exchange bankruptcies and government seizures' },
+      ],
+      why: 'Most Bitcoin that has been lost was never stolen. It went to a backup nobody copied, a single copy that burned, a word miscopied and never checked, or an owner who died leaving no instructions. Even among the losses people do call theft, over 80% turn out to be a scam or a simple slip rather than anyone breaking security. Thieves are real and worth defending against — they are just not the main thing standing between you and your Bitcoin.',
+    },
+    {
+      q: 'You add a secret passphrase so that a burglar who finds your written words still cannot spend the coins. What has that done to your overall risk?',
+      options: [
+        { t: 'Lowered it with no downside — the seed backup is exactly as safe as it was' },
+        { t: 'Defended against theft and created a fresh way to lock yourself out', c: true },
+        { t: 'Mostly protected you against someone reaching your device over the internet' },
+      ],
+      why: 'There are only two ways to lose Bitcoin: you cannot get to it, or someone else can. Almost every defence against one of those makes the other worse. A passphrase genuinely stops someone who finds your words, and it adds a second secret you can forget, mistype, or fail to pass on. Spreading a backup across three cities survives a fire and makes reassembly harder for you too. That trade is why there is no single "just do this" answer, and why a setup is worth choosing deliberately rather than piling on protections.',
+    },
+  ],
+
   // ── Rule 02 · /learn/not-your-keys ───────────────────────────────────────
   'not-your-keys': [
     {
@@ -69,6 +91,116 @@ export const checks = {
     },
   ],
 
+  // ── Rule 03 · /learn/ladder ──────────────────────────────────────────────
+  'simplest-setup': [
+    {
+      q: 'You are about to build a setup for savings you would genuinely miss. Which question should decide it?',
+      options: [
+        { t: '"What is the most secure setup I can build?" — then build that one' },
+        { t: '"What is the simplest setup that covers the risks I can actually name?" — with a floor under it', c: true },
+        { t: '"What does the maker of my hardware wallet recommend?" — they know their own device best' },
+      ],
+      why: 'Ask for the simplest setup that adequately covers risks you can name out loud, not the most impressive one. Complexity you do not fully control is itself a threat, and adopting more of it than you can manage is the most repeated cause of lost Bitcoin there is. But simplicity has a floor: one seed, one device, one maker and nothing else that also has to be true is a single point of failure, and for money whose loss would genuinely hurt you should not stop there. For Bitcoin you are learning with, one key kept properly is genuinely fine.',
+    },
+    {
+      q: 'Which of these is a real reason to move up a rung?',
+      options: [
+        { t: 'Your holdings have multiplied, and thinking about them on a single key now makes you uneasy', c: true },
+        { t: 'You have read about a more advanced setup and want to try it out' },
+        { t: 'A year has passed since you built the setup you are on' },
+      ],
+      why: 'The clearest reason to climb is that the amount you are securing has outgrown the rung you are on — that unease is the signal, and it counts. Curiosity and the calendar are not reasons. Every rung solves a real problem and introduces new ways to fail, so climbing without a reason you can name buys you complexity and nothing else. When a real reason does arrive, move up one rung deliberately and test the new setup as carefully as you tested the first.',
+    },
+  ],
+
+  // ── Rule 04 · /learn/hot-and-cold ────────────────────────────────────────
+  'savings-offline': [
+    {
+      q: 'A friend keeps their savings in a phone wallet where they hold the keys themselves — no company can touch the coins. Is that cold storage?',
+      options: [
+        { t: 'Yes — they hold their own keys, so the wallet is genuinely theirs' },
+        { t: 'No — holding your own keys and keeping them offline are two different questions', c: true },
+        { t: 'Yes, as long as the phone is locked with a fingerprint and the app encrypts the keys' },
+      ],
+      why: 'Non-custodial is about who holds the keys, and a phone wallet passes that test — the keys really are theirs. Hot and cold is about what can reach those keys, and there it fails: the phone goes online, so the keys are reachable by whatever reaches any online device. Both things are true at once, and it is easy to answer the wrong one. A fingerprint and encryption protect the device against whoever is holding it; they do not take it offline. Spending money can be hot. Savings are cold, and they stay cold.',
+    },
+    {
+      q: 'You decide to keep everything — spending money and savings alike — in one hardware wallet that stays offline. What is the objection?',
+      options: [
+        { t: 'There is none; one cold wallet for everything is the safest arrangement available' },
+        { t: 'A wallet you are reluctant to touch is a wallet you stop rehearsing', c: true },
+        { t: 'Hardware wallets handle small everyday amounts badly' },
+      ],
+      why: 'One cold wallet for everything is safe, and it quietly stops you using Bitcoin — which matters more than it sounds, because a wallet you avoid touching is a wallet whose backup never gets tested. The opposite arrangement fails differently: keep everything hot and the balance climbs a little at a time, with no day on which it obviously becomes savings. Nobody decides to keep their savings on a phone; they just never move them off it. Run a small hot balance for spending, sweep the rest to cold, and let the two stay separate.',
+    },
+  ],
+
+  // ── Rule 05 · /learn/choose-a-wallet ─────────────────────────────────────
+  'buy-direct': [
+    {
+      q: 'Your new hardware wallet arrives with a card in the box listing its 24 seed words, so you do not have to copy them down yourself. What is that?',
+      options: [
+        { t: 'A convenience some makers offer — check the card against what the device shows' },
+        { t: 'A compromised device, because somebody else has already seen those words', c: true },
+        { t: 'A spare backup, worth storing somewhere separate from your handwritten copy' },
+      ],
+      why: 'A trustworthy device generates brand-new seed words in front of you the first time you power it on — that is the entire point of it. Words that arrive already printed, or a device that shows you a seed phrase the moment you switch it on, mean somebody else has seen them and can spend anything you ever send there. There is nothing to check and no way to make it safe. Do not use it; return it.',
+    },
+    {
+      q: 'Where should you buy the device?',
+      options: [
+        { t: 'A large online marketplace, for the buyer protection and easy returns' },
+        { t: 'Direct from the manufacturer’s own website', c: true },
+        { t: 'Any reputable reseller, as long as the box is still sealed when it arrives' },
+      ],
+      why: 'Order from the maker’s own website. A marketplace listing or a reseller can put a tampered unit in your hands — one already loaded with somebody else’s keys — and you would not find out until your coins left. The tamper-evident packaging is worth a 30-second look when it arrives, but a seal is a check rather than a proof; resealing a box is not hard. Buying direct also avoids creating a public record tying "owns a hardware wallet" to your name and address.',
+    },
+  ],
+
+  // ── Rule 06 · /learn/back-up-your-seed ───────────────────────────────────
+  'never-digital': [
+    {
+      q: 'Which of these counts as keeping your seed phrase off anything digital?',
+      options: [
+        { t: 'Storing it in a password manager that encrypts everything on your own device' },
+        { t: 'Photographing the words on a phone that has its internet connection turned off' },
+        { t: 'Writing them by hand, then stamping them into metal', c: true },
+      ],
+      why: 'Your seed should only ever exist in two places: written by hand on a physical object, and — for a moment during setup — on the wallet’s own screen. A password manager swaps a secret you must protect for a password you must never forget or leak, and leaves an encrypted copy sitting permanently in somebody else’s backup history. A phone with the internet switched off is still a phone: they get backed up, updated, handed in for repair, upgraded and sold, and the photo outlives the intention every time. Paper for the moment of setup, then metal for the long haul.',
+    },
+    {
+      q: 'You split your 24 words so that 12 live at home and 12 at your sister’s house — neither place holds the whole phrase. Is that a good backup?',
+      options: [
+        { t: 'Yes — neither half is enough to steal, so it halves your risk' },
+        { t: 'No — it doubles the ways to lose everything, and half a phrase is a large head start', c: true },
+        { t: 'Yes, provided both halves are stamped into metal rather than left on paper' },
+      ],
+      why: 'It sounds like it halves your risk and it does the opposite: now both halves have to survive, so you have doubled the ways to lose the lot — and someone who finds one half holds a very large head start rather than nothing. There is a properly engineered version of this idea, Shamir backup, and a hand-split list is not it. The boring answer keeps winning because a backup has to work decades from now, for a tired version of you or for somebody who has never heard of any of this: at least two complete copies, each in a genuinely separate place.',
+    },
+  ],
+
+  // ── Rule 07 · /learn/test-your-backup ────────────────────────────────────
+  'test-backup': [
+    {
+      q: 'You wrote the words down and read them back against the device twice, carefully. What have you proved?',
+      options: [
+        { t: 'That the backup works — a word-perfect copy is a working backup' },
+        { t: 'That your handwriting is legible, not that those words rebuild your wallet', c: true },
+        { t: 'That the device stored the seed correctly when it generated it' },
+      ],
+      why: 'Reading the words back tests your copy against your copy. A word written down as a different valid word reads perfectly, can pass the wallet’s own built-in check too, and opens somebody else’s empty wallet without a murmur. The only thing that answers the real question is a restore: put a trivial amount in, wipe the device back to factory settings, and rebuild the wallet from your written words alone. Then send the test amount out and back — a balance reappearing proves the words rebuild the right addresses, not that the restored wallet can still sign.',
+    },
+    {
+      q: 'When is the right moment for the first wipe-and-restore rehearsal?',
+      options: [
+        { t: 'Once your savings are in the wallet — that is when getting it right matters' },
+        { t: 'Right after setup, with a tiny test amount, before any real money goes in', c: true },
+        { t: 'Only when something changes — a device update, a house move, a new setup' },
+      ],
+      why: 'The whole value of a rehearsal is that a mistake costs you nothing, and funding the wallet first spends exactly that. Do it once at setup with roughly coffee money in the wallet, so any failure surfaces at the cheapest possible moment — while the written copy you checked against the device is still intact and can be re-read word by word. Then keep it verified: a full wipe-and-restore every year or two, and after any device update, move, or change to your setup. Passing once does not mean passing forever.',
+    },
+  ],
+
   // ── Rule 08 · /learn/send-bitcoin-safely ─────────────────────────────────
   'verify-address': [
     {
@@ -88,6 +220,97 @@ export const checks = {
         { t: 'Split it into several equal payments so no single mistake loses everything' },
       ],
       why: 'A test send proves the address, the network, and your receiving wallet all work, for the price of a few cents in fees. Splitting the amount into equal chunks feels safer but proves nothing: if the address is wrong, every chunk goes to the same wrong place. Send a little, confirm it arrived and that you can see it in the destination wallet, then send the rest.',
+    },
+  ],
+
+  // ── Rule 09 · /learn/phishing-and-scams ──────────────────────────────────
+  'seed-words-scam': [
+    {
+      q: 'An email from your hardware wallet’s maker warns of a firmware flaw and asks you to enter your recovery words on their site to move to a safe wallet. The sender’s address is correct and the site shows a padlock. What do you do?',
+      options: [
+        { t: 'Check the site’s security certificate, and continue if it is valid' },
+        { t: 'Nothing — being asked for the words is itself the proof that it is an attack', c: true },
+        { t: 'Call the support number in the email to confirm the warning is genuine first' },
+      ],
+      why: 'No legitimate service ever needs your seed words, for any reason — so there is no story to weigh up and no judgement call to make. The demand itself is the answer, whatever else the message got right. The padlock only means the connection is encrypted, not that the site is who it claims to be; a sender address is trivially forged, and lookalike domains are cheap; and a phone number printed inside the message reaches whoever wrote it. The only time those words are typed anywhere is a recovery you started, on a device you chose, at a moment you picked.',
+    },
+    {
+      q: 'Nearly every version of this attack includes a reason it has to happen right now. Why is the urgency there?',
+      options: [
+        { t: 'Because the attacker’s fake site is usually taken offline within hours' },
+        { t: 'Because it stops you checking through a channel the attacker does not control', c: true },
+        { t: 'Because a hurried payment pays a higher fee and confirms before anyone notices' },
+      ],
+      why: 'Urgency is not decoration; it is the working part. The attack borrows credibility you already extend to a company you trust, then needs you to act before you do the one thing that defeats it — contacting them yourself, at an address you already had. So the defence is simply to wait. Nothing about your Bitcoin is ever so urgent that it cannot wait an hour, and the same rule covers more than scams: never operate your wallet while tired, stressed, upset or being rushed. A hurried owner is the most common cause of loss there is.',
+    },
+  ],
+
+  // ── Rule 10 · /learn/privacy ─────────────────────────────────────────────
+  'never-talk': [
+    {
+      q: 'Physical attacks on Bitcoin holders are almost never random. What typically starts one?',
+      options: [
+        { t: 'Someone watching the public ledger for unusually large balances' },
+        { t: 'A leaked customer list, cross-referenced with what you have said publicly', c: true },
+        { t: 'A visitor noticing a hardware wallet or a metal plate in your home' },
+      ],
+      why: 'The pipeline runs leak, then list, then your door. An ID check at an exchange records your name, home address and the fact that you hold Bitcoin in one file, and those files get out — through breaches, court orders, and data sold on. You cannot un-leak one. What you still control is the second half: the public clues. A post under your real name, a talk you gave, a balance screenshot, a branded hat — each is harmless on its own, and combined with a leaked home address they turn a maybe into a yes. The single most effective thing you can do is not talk about Bitcoin using your real name or face.',
+    },
+    {
+      q: 'You tell your brother-in-law roughly what you hold. He would never rob you. Where is the risk?',
+      options: [
+        { t: 'There is none — the rule is about strangers online, not people you trust' },
+        { t: 'He may mention it at work, and by the third telling it has reached someone you have never met', c: true },
+        { t: 'He could be pressured into revealing it if he is ever targeted himself' },
+      ],
+      why: 'The instinct is that this rule is about strangers on the internet. It is not: almost everyone who gets targeted was known to hold Bitcoin by somebody who told somebody else. He mentions it at work, the colleague repeats it at a bar, and by the third telling it has reached a stranger — still attached to your name and the town you live in. You control the first telling and nothing after it. None of this requires lying: "I own some Bitcoin" is a perfectly good answer to a friend, and "I would rather not get into numbers" is a complete sentence. What you cannot do is un-say a figure.',
+    },
+  ],
+
+  // ── Rule 11 · /learn/privacy ─────────────────────────────────────────────
+  'fresh-address': [
+    {
+      q: 'Your wallet offers a new receiving address each time, but reusing the old one is easier. What does reusing it cost you?',
+      options: [
+        { t: 'Nothing on its own — an address is a nickname, and yours is not your name' },
+        { t: 'A permanent, public diary of your money, all of it obviously one recipient', c: true },
+        { t: 'Nothing now, but the wallet slows down as one address accumulates history' },
+      ],
+      why: 'Address reuse is the single most damaging privacy habit there is. The ledger is public and permanent, so every payment to a reused address is obviously the same recipient — no clever guessing required. Reuse one for years and you have handed an analyst every coin in, every coin out and everyone you dealt with, already grouped and waiting for a real name to be attached. The habit costs nothing to fix: your wallet usually offers a fresh address by default, so let it, and never post a fixed public address on a website or profile.',
+    },
+    {
+      q: 'Does taking a fresh address every time mean a new backup each time?',
+      options: [
+        { t: 'Yes — each address has its own key, so each one has to be recorded' },
+        { t: 'No — every address comes from the single backup you already made', c: true },
+        { t: 'Only once you are past a few dozen addresses' },
+      ],
+      why: 'Your wallet generates an endless supply of addresses from your one backup, at no cost, including ones it has not handed out yet. That is exactly what makes the habit free — there is nothing extra to write down and nothing extra to lose. One related habit is worth knowing: your wallet holds separate chunks of coin from past payments, and when you spend it may pull several of them into one payment, which quietly tells an analyst they all belong to the same person. Wallets that offer coin control let you choose which chunks to spend, and keeping coins from different sources apart protects what fresh addresses buy you.',
+    },
+  ],
+
+  // ── Rule 12 · /learn/inheritance (and /learn/recovery-kit, via `also`) ────
+  // Both lessons carry this band, so the check renders on both — every question
+  // has to be answerable from the FIRST of the two, which is where a reader meets
+  // it. Nothing here depends on the Kit lesson's own material.
+  'leave-a-plan': [
+    {
+      q: 'Your heirs find a metal plate with your seed words on it and load them into a wallet app. It shows an empty wallet. What is the most likely explanation?',
+      options: [
+        { t: 'A word was copied down wrong, so the phrase rebuilds nothing' },
+        { t: 'The real funds sit behind a passphrase nobody told them about', c: true },
+        { t: 'The coins were moved elsewhere before death, so there is nothing to find' },
+      ],
+      why: 'This is the most common way Bitcoin is lost to death, and it is why the passphrase deserves its own line in your plan. A passphrase opens a separate, hidden wallet; the seed words on their own open a different one, which looks entirely normal while being empty. The family concludes there was nothing there and stops looking. If you use one, it has to be backed up and inheritable, stored somewhere the seed is not, and your instructions must state plainly that it exists — the fact of it, never the passphrase itself. "It is only in my head" is not a plan.',
+    },
+    {
+      q: 'Your multisig is solid: three keys, three locations, and your heirs know exactly where each one is. What is still missing?',
+      options: [
+        { t: 'Nothing — two of the three keys is everything a wallet needs' },
+        { t: 'The descriptor, the file describing how those keys form one wallet', c: true },
+        { t: 'A wallet app that supports multisig — a modern one finds the coins from the keys alone' },
+      ],
+      why: 'For multisig the keys are not enough. Your heirs also need the descriptor: a short configuration file saying which keys make up the wallet and the technical settings that go with them. Without it, even somebody holding every key can struggle to rebuild the wallet, because no software can work out from keys alone what wallet they belong to. It holds no private keys and cannot spend anything, so it is safe to include in your written instructions — and it has to be. The wider point: for inheritance the problem is almost never security, it is findability. A rock-solid wallet with no instructions is worse than a simple wallet with good ones.',
     },
   ],
 };

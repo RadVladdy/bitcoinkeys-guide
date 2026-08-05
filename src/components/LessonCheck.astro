@@ -15,10 +15,15 @@ import { rulesFor } from '../data/rules.js';
 import { checksFor } from '../data/checks.js';
 
 const { href } = Astro.props;
-const mine = rulesFor(href ?? Astro.url.pathname)
-  .map((r) => ({ rule: r, qs: checksFor(r.key) }))
-  .filter((x) => x.qs);
-const total = mine.reduce((n, x) => n + x.qs.length, 0);
+// FLATTENED ACROSS RULES, not grouped by them. A lesson owning two rules carries
+// two sets, and numbering each set from 1 printed "1 2 1 2" under a heading saying
+// "4 questions" — the reader meets one check, not two. /learn/privacy (rules 10 and
+// 11) is the only lesson that can show it, and it could not until both sets existed.
+const questions = rulesFor(href ?? Astro.url.pathname)
+  .map((r) => checksFor(r.key))
+  .filter(Boolean)
+  .flat();
+const total = questions.length;
 ---
 {total > 0 && (
   <section class="lcheck" data-total={total}>
@@ -30,7 +35,7 @@ const total = mine.reduce((n, x) => n + x.qs.length, 0);
       </p>
     </div>
 
-    {mine.map(({ rule, qs }) => qs.map((c, i) => (
+    {questions.map((c, i) => (
       <div class="lc-q" data-q>
         <p class="lc-qt"><span class="lc-n mono">{i + 1}</span> {c.q}</p>
         <div class="lc-opts">
@@ -40,7 +45,7 @@ const total = mine.reduce((n, x) => n + x.qs.length, 0);
         </div>
         <p class="lc-why" hidden>{c.why}</p>
       </div>
-    )))}
+    ))}
 
     <div class="lc-foot">
       <p class="lc-score mono" data-score hidden></p>
