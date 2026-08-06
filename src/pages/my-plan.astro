@@ -74,11 +74,19 @@ import WhereAmI from '../components/WhereAmI.astro';
     disqualified: { cls: 'v-bad',  label: '⚠ doesn’t clear our bar' },
     unrated:      { cls: 'v-un',   label: '· not rated by us' },
   };
+  // A SECOND CHIP, NOT A DIFFERENT VERDICT. The tier chip above answers "does
+  // this clear the published bar" and for a withdrawn device the answer is still
+  // yes — overwriting it would tell an owner their device was downgraded, which
+  // is false and is the opposite of keeping faith with them. So the flag is an
+  // extra chip beside it, and it links to the reasoning rather than to /standard,
+  // because the reasoning is not in the standard and that is the entire point.
   function verdictChip(slug) {
     const d = assessDevices([slug])[0];
     if (!d) return '';
     const v = VERDICT[d.verdict];
-    return `<a class="ps-verdict ${v.cls}" href="/standard" title="${esc(d.why)}">${v.label}</a>`;
+    const tier = `<a class="ps-verdict ${v.cls}" href="/standard" title="${esc(d.why)}">${v.label}</a>`;
+    if (!d.notRecommended) return tier;
+    return tier + `<a class="ps-verdict v-nr" href="${d.notRecommended.anchor}" title="${esc(d.notRecommended.short)}">⚑ we’d not buy this today</a>`;
   }
 
   // The top "Save to Nostr" action reflects login state: signed in → your avatar +
@@ -170,7 +178,12 @@ import WhereAmI from '../components/WhereAmI.astro';
           <div class="ps-owned-chips">${owned.map((s) => {
             const a = assessDevices([s])[0];
             const v = a ? VERDICT[a.verdict] : null;
-            return `<span class="ps-owned-chip">${esc(ownedName(s))}${v ? `<a class="ps-verdict ${v.cls}" href="/standard" title="${esc(a.why)}">${v.label}</a>` : ''}</span>`;
+            // The owned inventory gets the same pair as the plan slots. This is
+            // the reader's own kit, so the flag is informational and phrased
+            // that way — nothing here tells them to replace anything today.
+            const nr = a && a.notRecommended
+              ? `<a class="ps-verdict v-nr" href="${a.notRecommended.anchor}" title="${esc(a.notRecommended.short)}">⚑ we’d not buy this today</a>` : '';
+            return `<span class="ps-owned-chip">${esc(ownedName(s))}${v ? `<a class="ps-verdict ${v.cls}" href="/standard" title="${esc(a.why)}">${v.label}</a>` : ''}${nr}</span>`;
           }).join('')}</div>
           <button class="ps-edit-own" id="ps-edit-own" type="button">✎ add or edit</button>
         </div>`;
@@ -393,6 +406,7 @@ import WhereAmI from '../components/WhereAmI.astro';
           custAdviceHtml = `<p class="ps-recs"><span class="ps-recs-k mono">★ Devices for your ${esc(cust.name)} keys</span>
             <span class="ps-recs-note">${esc(cust.name)} works with ${esc(supList)}${dqNote}.</span>
             ${recNames.length ? `<span class="ps-recs-note">Of those, we'd recommend ${recNames.map((n) => `<a class="ps-rec-chip" href="/wallets">${esc(n)}</a>`).join(' ')} for your keys.</span>` : ''}
+            ${cust.recommendsStranded ? `<span class="ps-recs-note">Of those, there is currently <strong>nothing we would put forward</strong>, and you should know that before you commit to this service. The devices it supports are either ones that don't clear <a href="/standard">our standard</a> or ones we've <a href="/advisory/coldcard-seed-entropy#not-recommended">stopped recommending for purchase</a>. If you already own a supported device this is a non-issue; if you are buying from scratch, a service with a wider device list is the easier path.</span>` : ''}
             <span class="ps-recs-note"><a href="/collaborative">See ${esc(cust.name)}’s device support →</a></span></p>`;
         }
       }
@@ -1011,6 +1025,10 @@ import WhereAmI from '../components/WhereAmI.astro';
   #plan .ps-verdict.v-warn { color: var(--warn);   border-color: color-mix(in srgb, var(--warn) 45%, var(--line));   background: var(--warn-dim); }
   #plan .ps-verdict.v-bad  { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, var(--line)); background: var(--danger-dim); font-weight: 700; }
   #plan .ps-verdict.v-un   { color: var(--faint); }
+  /* Deliberately the SAME amber as v-warn rather than a colour of its own: it is
+     a caution, not a failure, and a fourth colour on a row that can already show
+     three would read as a fourth tier. */
+  #plan .ps-verdict.v-nr   { color: var(--warn);   border-color: color-mix(in srgb, var(--warn) 45%, var(--line));   background: var(--warn-dim); }
   #plan .ps-verdict:hover  { filter: brightness(1.1); }
   #plan .ps-edit-own { background: none; border: none; color: var(--accent); font-family: var(--sans); font-size: 0.83rem; cursor: pointer; padding: 0.2rem 0; text-decoration: underline; }
   #plan .ps-edit-own:hover { opacity: 0.85; }

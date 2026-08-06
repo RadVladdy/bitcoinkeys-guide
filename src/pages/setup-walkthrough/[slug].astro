@@ -65,6 +65,25 @@ const toc = [
       places this device is not like the others called out where they land. It has {d.ui.controls},
       so you say yes with {d.ui.saysYes} and type {d.ui.types}.
     </p>
+    {/* BOTH AUDIENCES, ON THE PAGE THAT MOST NEEDS THEM SEPARATED. Someone
+        arriving here has either already bought the device or is about to, and
+        the same paragraph has to be useful to both without alarming the first.
+        It sits above the walkthrough rather than at the foot because a reader
+        who is about to buy needs it before the instructions, and a reader who
+        already owns one needs to be told in the first breath that this is not
+        an emergency. */}
+    {d.notRecommended && (
+      <div class="wt-nr">
+        <p class="wt-nr-k mono">{d.notRecommended.flag} — as of {d.notRecommended.since}</p>
+        <p><strong>If you already own this device, this walkthrough is for you and nothing here has changed.</strong> It
+        keeps its cold-storage rating, we have kept the page, and setting it up properly is still the right thing to be
+        doing this evening. What your exposure actually depends on is your seed rather than the device — the
+        {' '}<a href="/advisory/coldcard-seed-entropy#is-your-seed-affected">security advisory</a> is where to check that.</p>
+        <p style="margin-bottom:0"><strong>If you have not bought it yet, read this first.</strong> We have stopped
+        recommending this device for purchase — not because it fails our standard, which it does not, but because of
+        where the maker is right now. {' '}<a href={d.notRecommended.anchor}>The whole of our reasoning →</a></p>
+      </div>
+    )}
   </section>
 
   <section>
@@ -180,6 +199,13 @@ const toc = [
   .glance dt { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.12em;
     text-transform: uppercase; color: var(--accent); margin-bottom: 0.35rem; }
   .glance dd { margin: 0; color: var(--text); }
+  /* --warn, not --danger. On a page whose job is to walk someone calmly through
+     setting up hardware they are holding, a red block above the instructions
+     would say "stop" when the copy says "carry on". */
+  .wt-nr { border: 1px solid var(--warn); border-radius: var(--radius); background: var(--warn-dim);
+           padding: 1rem 1.2rem; margin: 1.4rem 0 0; }
+  .wt-nr p { margin: 0 0 .7rem; font-size: .93rem; line-height: 1.65; }
+  .wt-nr-k { color: var(--warn); text-transform: uppercase; letter-spacing: .05em; font-size: .72rem !important; }
   @media (min-width: 720px) { .glance { grid-template-columns: repeat(3, 1fr); } }
 
   .diverges { list-style: none; padding: 0; margin: 0 0 1.4rem; display: flex;

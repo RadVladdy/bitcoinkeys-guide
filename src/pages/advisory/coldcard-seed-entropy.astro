@@ -2,18 +2,27 @@
 // Security advisory — the Coldcard seed-generation flaw exploited 2026-07-30.
 //
 // This page exists because the guide RATES the affected device in its top tier
-// and recommends it in the setup finder. A guide that sends readers to a device
-// and then goes quiet when that device's seeds turn out to be guessable is not
-// worth reading. Everything factual here derives from advisories.js so the
-// banner, the device cards and this page cannot drift apart.
+// and, until 2026-08-06, recommended it in the setup finder. A guide that sends
+// readers to a device and then goes quiet when that device's seeds turn out to
+// be guessable is not worth reading. Everything factual here derives from
+// advisories.js so the banner, the device cards and this page cannot drift.
 //
 // TONE: calm and specific. The vendor's own guidance is that panicked migration
 // causes its own losses, and that matches everything this guide teaches. The
 // page answers two DIFFERENT questions in two different places — "is my seed at
 // risk" and "is this device still worth buying" — because a worried reader will
 // otherwise collapse them into one and get both wrong.
+//
+// THREE SECTIONS NOW ANSWER THE SECOND QUESTION AND THEY ARE NOT INTERCHANGEABLE:
+// the rating review (does it still clear the published standard — yes, unchanged)
+// then the withdrawn recommendation (would we tell you to buy one — no, since
+// 08-06) then the owner guidance inside it. A reader scrolling past the first and
+// stopping at the second gets a coherent answer; one who stops at the first gets
+// a stale one, which is why the review carries a forward note and the withdrawal
+// carries a backward one. Both directions, deliberately.
 import Base from '../../layouts/Base.astro';
 import { advisories } from '../../data/advisories.js';
+import { walkthroughHref } from '../../data/walkthrough.js';
 const a = advisories.find((x) => x.id === 'coldcard-seed-entropy-2026');
 const fmt = (iso) => new Date(iso + 'T12:00:00Z').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 ---
@@ -33,13 +42,23 @@ const fmt = (iso) => new Date(iso + 'T12:00:00Z').toLocaleDateString('en-US', { 
 
     <p class="lead">{a.summary}</p>
 
+    {a.notRecommended && (
+      <p class="adv-split">
+        <strong>Two questions, two answers, and they are further apart than you would expect.</strong>
+        If you <strong>own</strong> one of these devices, the section below is the one to read: your exposure
+        depends on your seed, not on the news. If you are <strong>deciding whether to buy</strong> one,
+        skip to <a href="#not-recommended">why we no longer recommend it</a> — a decision we took on
+        {' '}{fmt(a.notRecommended.since)}, and which did not change the device's rating.
+      </p>
+    )}
+
     <div class="adv-box adv-urgent">
       <p class="adv-k mono">The thing most people get wrong</p>
       <p class="adv-claim">“{a.keyMisunderstanding.claim}”</p>
       <p>{a.keyMisunderstanding.truth}</p>
     </div>
 
-    <h2>Is your seed affected?</h2>
+    <h2 id="is-your-seed-affected">Is your seed affected?</h2>
     <p>
       This depends on <strong>which device you generated the seed on</strong> and <strong>roughly when</strong> —
       not on the firmware you are running today.
@@ -98,6 +117,47 @@ const fmt = (iso) => new Date(iso + 'T12:00:00Z').toLocaleDateString('en-US', { 
         <p>{a.ratingReview.whyNoNewGate}</p>
         <p>{a.ratingReview.instead}</p>
         <p><a href={a.ratingReview.insteadHref}>{a.ratingReview.insteadLabel} →</a></p>
+        {a.ratingReview.supersededNote && (
+          <p class="adv-super"><strong>Since this was published:</strong> {a.ratingReview.supersededNote} <a href="#not-recommended">Read it →</a></p>
+        )}
+      </div>
+    )}
+
+    {a.notRecommended && (
+      <div class="adv-nr">
+        <h2 id="not-recommended">{a.notRecommended.headline}</h2>
+        <p class="adv-detail">Our recommendation, decided {fmt(a.notRecommended.since)} — and it is a different thing from the rating above, which has not moved.</p>
+
+        <div class="adv-box adv-urgent">
+          <p class="adv-k mono">The position, in one paragraph</p>
+          <p>{a.notRecommended.short}</p>
+        </div>
+
+        <h3>Why</h3>
+        {a.notRecommended.why.map((p) => <p>{p}</p>)}
+
+        <h3>What is documented, and by whom</h3>
+        <p class="adv-detail">{a.notRecommended.documented.intro}</p>
+        {a.notRecommended.documented.items.map((d) => (
+          <div class="adv-band">
+            <p class="adv-k mono">{d.label}</p>
+            <p class="adv-detail">{d.body}</p>
+          </div>
+        ))}
+        <ul class="adv-fw">
+          {a.notRecommended.sources.map((s) => (
+            <li><a href={s.url} rel="noopener noreferrer" target="_blank">{s.label} ↗</a></li>
+          ))}
+        </ul>
+
+        <div class="adv-box is-owner">
+          <p class="adv-k mono">{a.notRecommended.ifYouOwnOne.headline}</p>
+          {a.notRecommended.ifYouOwnOne.body.map((p) => <p>{p}</p>)}
+          <p style="margin-bottom:0"><a href="#is-your-seed-affected">Check whether your seed is in scope ↑</a> · <a href={walkthroughHref}>Setup walkthroughs, including both Coldcards →</a></p>
+        </div>
+
+        <h3>When we would change our minds</h3>
+        <p>{a.notRecommended.revisit}</p>
       </div>
     )}
 
@@ -141,4 +201,20 @@ const fmt = (iso) => new Date(iso + 'T12:00:00Z').toLocaleDateString('en-US', { 
   .adv-gates li { border-left: 3px solid var(--safe); padding: .2rem 0 .2rem 1rem; margin: 1rem 0; }
   .adv-gate-k { display: block; font-size: .72rem; letter-spacing: .06em; text-transform: uppercase; color: var(--safe); margin-bottom: .15rem; }
   .adv-gate-n { display: block; color: var(--muted); margin-top: .25rem; }
+
+  /* The two-audiences signpost, directly under the lead. It is the first thing a
+     reader meets who arrived from a device card, and it exists because the same
+     page has to send a buyer and an owner to different places. */
+  .adv-split { border: 1px dashed var(--line); border-radius: var(--radius); padding: .9rem 1.1rem; background: var(--accent-soft); }
+
+  /* Forward pointer FROM the rating review TO the withdrawal. The review is
+     unamended by design, so without this a reader who stops there leaves with a
+     conclusion we have since qualified. */
+  .adv-super { border-left: 3px solid var(--danger); padding: .2rem 0 .2rem 1rem; color: var(--muted); margin-top: 1.4rem; }
+
+  .adv-nr { border-top: 1px solid var(--line); margin-top: 2.4rem; padding-top: .4rem; }
+  /* The owner box is the one deliberately CALM block in a red section — a reader
+     who owns the device has just read three paragraphs about why we would not
+     buy it, and the next thing they see should not look like another alarm. */
+  .adv-box.is-owner { border: 1px solid var(--safe); background: var(--safe-dim); }
 </style>

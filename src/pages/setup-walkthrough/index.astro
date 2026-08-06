@@ -153,6 +153,13 @@ const finder = navWhere('/find-your-setup');
                 <span class="c-body">
                   <span class="c-name">{d.name}</span>
                   <span class="c-sub">{d.vendor}</span>
+                  {/* The roster is the surface where a reader picks a device to
+                      read about, so an unflagged tile here is the site quietly
+                      offering nine equal choices while two of its other pages
+                      say otherwise. The tile is not removed: the walkthrough
+                      still exists for owners, and hiding it would answer the
+                      endorsement objection by abandoning the people it serves. */}
+                  {d.notRecommended && <span class="c-nr">{d.notRecommended.flag}</span>}
                 </span>
                 <span class="arw">→</span>
               </a>
@@ -210,6 +217,8 @@ const finder = navWhere('/find-your-setup');
   .c-body { display: flex; flex-direction: column; flex: 1 1 auto; }
   .c-name { font-weight: 700; color: var(--text); }
   .c-sub { font-size: 0.8rem; color: var(--faint); }
+  .c-nr { display: block; margin-top: .2rem; font-size: 0.68rem; letter-spacing: .05em;
+          text-transform: uppercase; color: var(--warn); }
   .arw { color: var(--accent); transition: margin-left 0.15s ease; }
   .card:hover .arw { margin-left: 0.25rem; }
 </style>

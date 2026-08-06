@@ -13,6 +13,12 @@
 // still moving, and separate "am I at risk" from "is this device still worth
 // buying". Those are different questions with different answers, and a reader
 // in a panic will conflate them unless the page refuses to.
+//
+// AND A SECOND THING LIVES HERE NOW: `notRecommended`, our own purchase
+// recommendation, held DELIBERATELY APART from the tier. The tier is /standard
+// applied and it is not ours to move on a feeling; the recommendation is ours
+// and always was. Keeping them in one file with two fields is what lets a page
+// say both at once without either one quietly becoming the other.
 
 export const advisories = [
   {
@@ -122,8 +128,16 @@ export const advisories = [
     ],
 
     // Our own position, kept separate from the reporting above.
+    //
+    // This paragraph opened "We rate the Coldcard in our cold-storage tier and
+    // recommend it in the setup finder" until 2026-08-06. The first half is
+    // still true and the second is not: the device came off our recommended
+    // list that day. Rewritten rather than annotated, because a "Where we
+    // stand" section stating a position we have since reversed is the house
+    // bug — two surfaces about one subject, each internally consistent — on the
+    // one page a reader arrives at to find out where we stand.
     ourTake:
-      'We rate the Coldcard in our cold-storage tier and recommend it in the setup finder, so this lands on our own recommendation and we are not going to be quiet about it. Two things are true at once, and conflating them helps nobody. A device bought today, running fixed firmware, generates a proper seed — the defect is in seeds already created, not in every Coldcard forever. But a five-year-old flaw in open-source firmware that nobody caught, in the single most security-critical function a signing device performs, is a serious mark against a maker. We said we would re-read it against our published standard rather than assume our rating still held, and that whatever we concluded would be published rather than quietly applied. That review is below.',
+      'We rate the Coldcard in our cold-storage tier, and until 6 August 2026 we recommended it in the setup finder, so this lands squarely on our own recommendation and we are not going to be quiet about it. Two things are true at once, and conflating them helps nobody. A device bought today, running fixed firmware, generates a proper seed — the defect is in seeds already created, not in every Coldcard forever. But a five-year-old flaw in open-source firmware that nobody caught, in the single most security-critical function a signing device performs, is a serious mark against a maker. We said we would re-read it against our published standard rather than assume our rating still held, and that whatever we concluded would be published rather than quietly applied. That review is below — and so is what we decided afterwards, which is a different decision and went the other way.',
 
     // ── THE PROMISED REVIEW, DISCHARGED ─────────────────────────────────────
     // The advisory promised in writing that the cold-tier rating was being
@@ -163,6 +177,100 @@ export const advisories = [
         'What we changed is what we tell you to do about it. The people whose coins survived this were the ones who had not left the randomness entirely to the device — their own dice, a passphrase the device never saw, or a key from a different maker. So we have published a full procedure for generating a seed from your own dice rolls, on the devices we rate, checked against each maker\'s own current documentation. That is a thing you can act on today, and unlike a new gate it would have helped against this failure and against ones we have not imagined.',
       insteadHref: '/roll-your-own-seed',
       insteadLabel: 'Roll your own seed with dice',
+      // Added 2026-08-06. The review above is the record of a decision about the
+      // RATING and it still stands unamended — that is the point of having
+      // published it. What changed five days later is the RECOMMENDATION, which
+      // the review never claimed to settle. Without this line the two sections
+      // read as a contradiction to anyone scrolling, which is exactly the
+      // failure mode a page like this has to refuse.
+      supersededNote:
+        'This review still stands and has not been rewritten. It answered one question — does the Coldcard still clear our published standard — and the answer is still yes. On 6 August 2026 we answered a different question, about whether we would tell you to buy one, and that answer changed. The section below is that decision.',
+    },
+
+    // ── OUR RECOMMENDATION, WHICH IS NOT OUR RATING ─────────────────────────
+    //
+    // Sourced from here rather than from standardGates ON PURPOSE. A rating is a
+    // published standard applied, never a preference, and a criterion added
+    // after an incident to fit the incident stops being a standard — so the
+    // rubric does not move and this sits beside it, disclosed, as ours.
+    //
+    // `devices` is stated rather than reusing affectsDevices. They hold the same
+    // two names today and they are not the same list: affectsDevices is who the
+    // INCIDENT touches, this is who our POSITION touches, and a future advisory
+    // will separate them the first time we keep recommending an affected device.
+    notRecommended: {
+      since: '2026-08-06',
+      devices: ['Coldcard Q', 'Coldcard Mk5'],
+      // The short form, rendered on device cards and comparison rows. Kept to
+      // the position and the pointer — the reasoning is a click away and does
+      // not fit beside a price.
+      flag: 'Not recommended for purchase',
+      short:
+        'The rating below is unchanged and this device still clears our published standard. We are nonetheless telling you not to buy one right now — that is our own call, on the maker rather than the hardware, and here is the whole of the reasoning.',
+      anchor: '/advisory/coldcard-seed-entropy#not-recommended',
+
+      headline: 'We no longer recommend buying a Coldcard',
+
+      // WHY, in our own voice. This is the part that is explicitly a judgement
+      // and it says so, because dressing a judgement as a finding is how a
+      // rating gets bent to an event.
+      why: [
+        'The defect is fixed and a Coldcard bought today generates a proper seed. We are not telling you otherwise, and if the hardware were the whole question we would not be writing this. What we cannot get past is everything around it. A build-configuration error sat in the seed generator — the single function a signing device exists to perform — for five years, in source anyone could read, at a company whose entire pitch is that you do not have to trust it. It was not found by an audit, or by the reproducible builds, or by us. It was found by an attacker, and the first anyone knew was money leaving.',
+        'What follows from that is not a technical claim, and we are not going to pretend it is one. It is a judgement about a company under conditions we cannot see the end of: losses still being counted, legal exposure publicly threatened, and no way for anyone outside Coinkite to know what the next twelve months hold for it. On a device whose whole job is to still be trustworthy in ten years, that uncertainty is itself the problem. We would rather point a first-time buyer somewhere with fewer open questions and be wrong about a good device than be right about the odds and wrong about someone\'s savings.',
+        'And there is a plainer reason underneath both, which is ours and which we would rather state than have inferred. We are an independent guide with no affiliate money and no house brand, so the only thing we have is a recommendation that means something. A recommendation you would hesitate to give a friend today is not one to leave standing on a page because the rubric technically permits it.',
+      ],
+
+      // WHAT IS DOCUMENTED — attributed, ranged, and dated, because every one of
+      // these figures has moved in the week this was written and the honest
+      // rendering of a moving number is a range with a name on it.
+      documented: {
+        intro:
+          'Everything in this section is somebody else\'s reporting and is attributed to them. It was re-read against the sources on 6 August 2026 and the numbers were still moving that day.',
+        items: [
+          {
+            label: 'The mechanism',
+            body: 'A 2021 build migration routed seed generation through a guard, MICROPY_HW_ENABLE_RNG, that checked only whether the setting was defined and not whether it was non-zero. Coinkite had defined it as zero, so the guard never fired and the firmware silently linked MicroPython\'s deterministic software fallback instead of the hardware generator. Both had the same function signature, so the build raised nothing. Coinkite\'s own advisory and Block\'s same-day analysis agree on this.',
+          },
+          {
+            label: 'The losses — a range, not a number',
+            body: 'TRM Labs puts the opening sweep at roughly 594 BTC, about $38 million, out of some 500 wallets in twenty-five minutes on 30 July. Further waves followed, and Galaxy Research\'s running tally is reported at around 1,816 BTC — close to $116 million — across more than 5,200 addresses. Other outlets have reported totals between $100 and $130 million and Galaxy\'s assessment that at least fifteen distinct attackers were involved. Every tracker publishing a figure calls it preliminary, and this advisory was originally written around the 594 BTC number, which turned out to be the first hour rather than the total.',
+          },
+          {
+            label: 'The legal position',
+            body: 'A class action against Coinkite has been publicly threatened and plaintiff firms are soliciting claimants. As of 6 August 2026 we are not aware of a filed case.',
+          },
+          {
+            label: 'What we are NOT claiming',
+            body: 'We have found no evidence that any government, regulator or law-enforcement body is investigating Coinkite, and we are not going to imply one by leaving the sentence vague. The investigating that has happened is technical — Block, Galaxy Research, TRM Labs and independent researchers — and the legal exposure is threatened rather than active. Claims circulating that an AI tool found this bug before disclosure trace back to a single anonymous post made after the flaw was already public, and we are not repeating them.',
+          },
+        ],
+      },
+
+      // THE OTHER AUDIENCE. This is half the page's job and it is written to
+      // someone who already owns the device and has just read the section above.
+      ifYouOwnOne: {
+        headline: 'If you already own one, read this instead',
+        body: [
+          'Nothing above says your device is unsafe to use today. It says we would not tell someone to buy a new one. Those are different sentences and the difference matters, because the worst thing you could do with this page is panic-migrate a working setup and lose coins to a fumbled transfer — which happens far more often than exploits do.',
+          'What actually decides your exposure is the seed, not the device: when and where it was first generated, and whether you rolled your own dice or set a passphrase. That is what the bands above are for, and they are the part of this page to act on. If your seed is in scope, migrate deliberately using the steps above. If it is not, you own a capable signer and there is no emergency.',
+          'We are keeping everything that serves you. The setup walkthrough for your device stays, the dice procedures stay — including the two that only Coinkite hardware can perform — and your device keeps its cold-storage rating on the comparison table, because it earned it. When you next replace or add hardware, that is the moment to weigh what is above. Not tonight.',
+        ],
+      },
+
+      // WHEN WE WOULD CHANGE OUR MINDS. Stated because a position with no exit
+      // condition is a grudge, and because writing it down is what stops this
+      // becoming permanent by inattention.
+      revisit:
+        'This is a position about uncertainty, so it should end when the uncertainty does. We will re-read it when the loss accounting settles, when the legal position resolves one way or the other, and when there is a track record of the maker\'s process changes on the other side of it. If those land well, the recommendation comes back and we will say so as plainly as we said this. It is reviewed on a fixed schedule rather than when we happen to think of it.',
+
+      // Separate from the advisory's own `sources`, which cover the FLAW. These
+      // cover the figures and the legal position — the claims added on 08-06 —
+      // so a reader can see which source carries which claim rather than being
+      // handed one undifferentiated list.
+      sources: [
+        { label: 'TRM Labs — on-chain analysis and loss tally (5 Aug 2026)', url: 'https://www.trmlabs.com/resources/blog/the-largest-hardware-wallet-exploit-of-2026-inside-the-usd-116-million-coldcard-hack' },
+        { label: 'Bitcoin.com News — class action threatened (2 Aug 2026)', url: 'https://news.bitcoin.com/regulation-and-legal/coinkite-faces-class-action-threat-as-bitcoin-wallet-bug-costs-users-over-1300-btc/' },
+      ],
     },
 
     // The wider lesson — this is the part that outlives the incident.
@@ -175,3 +283,28 @@ export const activeAdvisories = advisories.filter((a) => a.status === 'active');
 export const advisoryFor = (deviceName) =>
   activeAdvisories.find((a) => a.affectsDevices.includes(deviceName)) || null;
 export const advisoryCount = activeAdvisories.length;
+
+/**
+ * Our purchase recommendation for a device, where we have withdrawn it.
+ * Returns the advisory's `notRecommended` block plus the advisory it came from,
+ * or null — and null is the answer for every device we have never flagged,
+ * which is all of them but two.
+ *
+ * THE FLAG IS SOURCED HERE AND NOT FROM standardGates, and that is the whole
+ * design. Moving a device's TIER because of an incident would mean the rubric
+ * bends to events, which is the one thing an independent rating cannot do and
+ * still be worth publishing. So the rating stays where the standard puts it and
+ * this rides beside it, in our own name, with the reasoning one click away.
+ */
+export const notRecommendedFor = (deviceName) => {
+  const a = activeAdvisories.find(
+    (x) => x.notRecommended && x.notRecommended.devices.includes(deviceName),
+  );
+  return a ? { ...a.notRecommended, advisoryHref: a.href, advisoryTitle: a.title } : null;
+};
+
+/** Every device name currently carrying a withdrawn recommendation. */
+export const notRecommendedDevices = activeAdvisories.flatMap(
+  (a) => (a.notRecommended ? a.notRecommended.devices : []),
+);
+export const anyNotRecommended = (names = []) => names.some((n) => !!notRecommendedFor(n));

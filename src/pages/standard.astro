@@ -113,6 +113,22 @@ import RuleRef from '../components/RuleRef.astro';
           <li class="caveat">
             <span class="cvname">{w.name}</span>
             <span class="cvtext">{w.barCaveat}</span>
+            {/* THE FLAG ON THE RUBRIC PAGE, and this is the one placement that
+                had to be got right. /standard is the page whose whole authority
+                rests on the rating being a standard applied rather than a
+                preference — so the flag appears here NOT as a rating, but as the
+                proof that we did not quietly move one. A reader who suspects the
+                rubric bends to events should be able to come here and see the
+                device still passing, with our disagreement stated beside it. */}
+            {w.notRecommended && (
+              <span class="cvnr">
+                <strong>Rated here, and not recommended for purchase.</strong> This device passes every
+                criterion above and we are still telling you not to buy one today. That is a judgement of
+                ours about the maker, not a criterion of the standard — we did not add one to fit the
+                event, because a standard that grows a clause after each incident stops being a standard.
+                {' '}<a href={w.notRecommended.anchor}>Why, in full →</a>
+              </span>
+            )}
           </li>
         ))}
       </ul>
@@ -242,6 +258,13 @@ import RuleRef from '../components/RuleRef.astro';
     background: var(--surface); padding: 0.9rem 1.15rem; }
   .cvname { display: block; font-weight: 700; color: var(--text); margin-bottom: 0.2rem; }
   .cvtext { color: var(--muted); font-size: 0.92rem; line-height: 1.6; }
+  /* Sits INSIDE the caveat card, below the caveat, so it reads as one more true
+     thing about the device rather than as a verdict overriding the rating above
+     it. `display:block` and the rule above it do the separating — a colour
+     change alone read as a second caveat in the same voice. */
+  .cvnr { display: block; margin-top: .7rem; padding-top: .7rem; border-top: 1px dashed var(--warn);
+          color: var(--muted); font-size: 0.92rem; line-height: 1.6; }
+  .cvnr strong { color: var(--warn); }
 
   @media (max-width: 560px) {
     .dimg { width: 46px; height: 46px; }

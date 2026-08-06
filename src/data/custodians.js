@@ -31,7 +31,8 @@
 
 // One-way: custodians.js reads the device tiers, wallets.js knows nothing about
 // this file, so this cannot create a cycle.
-import { wallets } from './wallets.js';
+import { wallets, deviceBySlug } from './wallets.js';
+import { notRecommendedFor } from './advisories.js';
 
 // Bumped 2026-08-04: the Bitkey section arrived ~08-01 while this stamp still
 // read 07-20 — a stamp covers the page's newest material, not its oldest.
@@ -183,7 +184,34 @@ const _support = {
   'bitcoin-adviser': { supports: ['coldcard-q', 'coldcard-mk5', 'jade-core', 'jade-plus', 'ledger', 'trezor-safe-3', 'trezor-safe-5', 'trezor-safe-7', 'bitbox02', 'passport-prime'], recommends: ['coldcard-q', 'bitbox02'] },
   bitkey: { supports: [], recommends: [] },
 };
-custodians.forEach((c) => { const s = _support[c.slug]; if (s) { c.supports = s.supports; c.recommends = s.recommends; } });
+// `recommends` IS FILTERED, NOT HAND-EDITED, and the reason is the one stated
+// against AnchorWatch above, generalised. "We never recommend a device that does
+// not clear our standard" had a sibling nobody had needed until 2026-08-06: we
+// never recommend a device whose recommendation we have WITHDRAWN either, even
+// though it clears the standard perfectly. Doing it by deletion would have meant
+// five hand-edits that the next person to add a custodian cannot see; doing it
+// here means the lists move by themselves when a flag is added or lifted.
+//
+// `supports` is deliberately NOT filtered. What a service supports is a fact
+// about that service and ours to report, not to curate — the same reason a
+// disqualified Ledger stays in `supports` and gets flagged by the renderer.
+const _recommendable = (slugs = []) => slugs.filter((s) => {
+  const d = deviceBySlug[s];
+  return d && !notRecommendedFor(d.name);
+});
+custodians.forEach((c) => {
+  const s = _support[c.slug];
+  if (!s) return;
+  c.supports = s.supports;
+  c.recommends = _recommendable(s.recommends);
+  // THE HOLE THIS CREATES, CARRIED RATHER THAN HIDDEN. AnchorWatch supports
+  // exactly two devices — the Coldcard Q and a Ledger — so once the Coldcard is
+  // withdrawn and the Ledger is disqualified, there is NO device we would put
+  // forward for a reader who picks that service. An empty list rendered as
+  // silence would read as "no advice offered" when the truth is "the advice is
+  // uncomfortable", so the flag is computed here and the renderer states it.
+  c.recommendsStranded = s.recommends.length > 0 && c.recommends.length === 0;
+});
 
 // RUNG 4 — the services the finder may recommend as the third key of a savings
 // vault. Everything the ladder's collaborative rung means is in this list.

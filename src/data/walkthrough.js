@@ -495,6 +495,15 @@ export const walkthroughDevices = coldWallets.map((w) => {
     // Derived, not typed: whether the device will take your own dice rolls is
     // dice.js's judgement and is already published on /roll-your-own-seed.
     takesDice: !!dice && (dice.enrich === 'yes' || dice['dice-only'] === 'yes'),
+    // A WALKTHROUGH IS AN ENDORSEMENT IN THE SHAPE OF A DIAGRAM — this file's own
+    // words, and the reason coverage is the cold tier. That argument does not
+    // survive a device staying in the tier while we tell people not to buy it,
+    // so the page has to say so itself: the roster is unchanged, because an
+    // owner mid-setup is exactly who this cluster serves, and the endorsement
+    // reading is closed by printing our position on the page rather than by
+    // removing the page. Carried through here so the template cannot forget it
+    // for one device.
+    notRecommended: w.notRecommended || null,
   };
 });
 

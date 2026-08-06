@@ -649,6 +649,25 @@ export const methods = [
     tradeoff:
       'The most work by a distance, and the most places to slip: a mis-read row, two words swapped, a dropped reroll. Nothing about it is secret, though — the table is public and so is the arithmetic, so every step can be checked.',
     trust: 'Nothing but arithmetic you can verify yourself.',
+    // THE HOUSE RECOMMENDATION, moved here from option 3 on 2026-08-06 — never
+    // rendered as a badge (see the note under `houseDefault` below, which is
+    // unchanged in substance and still governs how this flag may be shown).
+    //
+    // WHY IT MOVED, and it is not a change of mind about the methods. Options 2
+    // and 3 are performable on Coinkite hardware and nothing else — measured,
+    // not assumed: ratedDevicesForMethod() returns exactly the Coldcard Q and
+    // Mk5 for both, and across the whole table below the only other entry is the
+    // Mk3. On 2026-08-06 we withdrew our recommendation to buy those devices, so
+    // the house default sat on a method no device we recommend can perform: a
+    // reader taking our advice on hardware and then our advice on entropy was
+    // being sent somewhere they could not go. This option has six rated devices
+    // behind it, four of them not Coinkite.
+    //
+    // THE COST IS REAL AND STATED RATHER THAN HIDDEN. Option 1 is the most work
+    // here by a distance and has the most places to slip. It is the default
+    // because it is the strongest form that is actually reachable, not because
+    // it became easier.
+    houseDefault: true,
     // `pick` is the CHOOSING line — it renders on the tab, above the fold, so
     // the reader can compare the three without opening each one. It states the
     // differentiator and the cost in one breath, because those are the two
@@ -680,19 +699,26 @@ export const methods = [
     tradeoff:
       'The cheapest real protection here. If the device’s randomness turns out to be broken, your rolls save you; if your rolls are sloppy, its randomness saves you. Coinkite states in its own documentation that this cannot produce worse entropy than letting the device do it alone.',
     trust: 'Either source alone is enough for it to be safe.',
-    pick: 'The cheapest real protection here: a few minutes, no lookup table, and it cannot make the result worse than leaving it to the device.',
-    // THE HOUSE RECOMMENDATION — never rendered as a badge.
+    // The device-availability fact now sits on this tile the way it already sat
+    // on option 2's. It was the one tile of the four that did not carry it, and
+    // it was the tile we were recommending — so the page pitched "the cheapest
+    // real protection here" to every reader without saying that most of them
+    // cannot perform it.
+    pick: 'The cheapest real protection here: a few minutes, no lookup table, and it cannot make the result worse than leaving it to the device — but like option 2, only Coinkite devices can do it.',
+    // THE HOUSE RECOMMENDATION MOVED OFF THIS OPTION on 2026-08-06, to option 1.
+    // The reasoning is on option 1 and it is about REACHABILITY, not about this
+    // method being worse: enrich remains the least error-prone way to get your
+    // own randomness into a seed, and it is still what we tell an owner of a
+    // supporting device to do. It simply cannot be the default on a site that
+    // no longer recommends buying the only hardware that performs it.
     //
-    // A default is the wrong shape for this choice. Which option is right
+    // The original note on why this flag exists at all, which still governs:
+    // a default is the wrong shape for this choice. Which option is right
     // depends on the device the reader owns and how far they want to go, so a
     // rosette on one tile makes the other three read as runners-up before the
-    // reader knows which their own hardware can even perform.
-    //
-    // The STANCE is unchanged: where your device allows it, add your own
-    // throws. This flag is what a tailored recommendation reads to suggest and
-    // order the options. It stays for that reason — remove it and the stance
-    // has no enforcement point in the data at all.
-    houseDefault: true,
+    // reader knows which their own hardware can even perform. The flag is what a
+    // tailored recommendation reads to suggest and order the options — remove it
+    // from the file entirely and the stance has no enforcement point in the data.
   },
   {
     key: 'device',
@@ -885,13 +911,40 @@ for (const key of DICE_METHOD_KEYS) {
 // them to the option their own kit can actually perform instead of to a page
 // listing four, three of which may be impossible for them.
 //
-// Order of preference is the house position: enrich first (cheapest real
-// protection, cannot be worse than letting the device decide), then the
-// sovereign table method, and an honest dead end when the device allows
-// neither. The dead end is the useful case — nowhere else tells them.
+// ORDER OF PREFERENCE FLIPPED 2026-08-06, following the house default from
+// option 3 to option 1. This function is the OTHER audience's surface and the
+// flip had to be done carefully: it reads the hardware a reader already owns, so
+// for the overwhelming majority nothing changes — they own a device that can do
+// exactly one of these and get sent to it either way.
+//
+// The case that does change is a Coldcard owner, who can do both. They now lead
+// with option 1, per the house default — but the reply NAMES option 3 as well,
+// because it is genuinely the easier path and their device is one of the only
+// ones that has it. Withdrawing a purchase recommendation is not a reason to
+// stop telling an existing owner what their hardware can do; that would be
+// punishing them for a decision we are making about a company.
 export function diceAdviceFor(deviceNames = []) {
   const caps = deviceNames.map(diceCapability).filter(Boolean);
   const can = (key) => caps.filter((c) => SUPPORTED.has(c[key]));
+
+  const sovereign = can('sovereign');
+  if (sovereign.length) {
+    const partial = sovereign[0].sovereign === 'partial';
+    // Does the SAME device also take dice directly? Checked per device rather
+    // than across the list, so a reader holding a Jade and a Coldcard is not
+    // told their Jade does something it cannot.
+    const alsoEnrich = SUPPORTED.has(sovereign[0].enrich);
+    const base = partial
+      ? `Your ${sovereign[0].name} will finish a seed you choose yourself, but it picks the last word's remaining randomness with its own generator rather than offering you the options — so it is a weaker version of this than other devices manage.`
+      : `Your ${sovereign[0].name} will let you choose every word yourself from a printed table and calculate only the final one. That is the whole of your randomness, by hand — and it is the method we point people at, because it is the strongest one that most devices can actually perform.`;
+    return {
+      key: 'sovereign',
+      href: '/roll-your-own-seed#sovereign',
+      line: alsoEnrich
+        ? `${base} Your device can also do something most cannot: feed it your rolls and let it mix them with its own. That is quicker and has fewer ways to slip, so if the table method looks like too much of an evening, take it.`
+        : base,
+    };
+  }
 
   const enrich = can('enrich');
   if (enrich.length) {
@@ -899,18 +952,6 @@ export function diceAdviceFor(deviceNames = []) {
       key: 'enrich',
       href: '/roll-your-own-seed#enrich',
       line: `Your ${enrich[0].name} can take your own dice throws alongside its own randomness. It costs a few minutes, it cannot make the result worse, and it removes the one failure you cannot otherwise check.`,
-    };
-  }
-
-  const sovereign = can('sovereign');
-  if (sovereign.length) {
-    const partial = sovereign[0].sovereign === 'partial';
-    return {
-      key: 'sovereign',
-      href: '/roll-your-own-seed#sovereign',
-      line: partial
-        ? `Your ${sovereign[0].name} will finish a seed you choose yourself, but it picks the last word's remaining randomness with its own generator rather than offering you the options — so it is a weaker version of this than other devices manage.`
-        : `Your ${sovereign[0].name} has no dice mode, but it will let you choose every word yourself from a printed table and calculate only the final one. That is the whole of your randomness, by hand.`,
     };
   }
 

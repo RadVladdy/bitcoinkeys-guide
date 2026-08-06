@@ -140,6 +140,17 @@ const fitCountCap = questionCountWordCap;
 
     if (clears.length) {
       parts.push(`<p><span class="ro-k ok mono">Works here</span> ${listNames(clears)} — ${clears.length === 1 ? 'it clears' : 'they clear'} our bar, so ${clears.length === 1 ? 'it can be' : 'they can be'} ${need > 1 ? 'one of your keys' : 'the key'} for this setup. No need to buy ${clears.length === 1 ? 'another' : 'more'} on ${clears.length === 1 ? 'its' : 'their'} account.</p>`);
+      // A CLEARED DEVICE WE HAVE STOPPED RECOMMENDING. Phrased as context and
+      // explicitly not as an action, for two reasons that both matter here.
+      // This is the SELECT page — deciding which setup and nothing else — and a
+      // verdict a reader cannot act on yet is a defect on it even when correct;
+      // the device decisions live one page along, on /my-plan. And the honest
+      // message to an owner is that their kit still works, which is what the
+      // line above already told them and what this must not contradict.
+      const flaggedClears = clears.filter((d) => d.notRecommended);
+      if (flaggedClears.length) {
+        parts.push(`<p><span class="ro-k warn mono">Worth knowing</span> ${listNames(flaggedClears)} — ${flaggedClears.length === 1 ? 'this one still clears our bar and we have stopped recommending it for NEW purchases' : 'these still clear our bar and we have stopped recommending them for NEW purchases'}. That is a call about the maker rather than your hardware, it changes nothing you need to do today, and it is worth reading before you buy your next device. <a href="/advisory/coldcard-seed-entropy#not-recommended">Why →</a></p>`);
+      }
     }
     if (spending.length) {
       parts.push(`<p><span class="ro-k warn mono">Not for this</span> ${listNames(spending)} — we rate ${spending.length === 1 ? 'it' : 'them'} <a href="/standard#built-for-spending">built for spending</a> rather than a long-term vault. Genuinely useful for money you are moving; not what we would put savings behind.</p>`);

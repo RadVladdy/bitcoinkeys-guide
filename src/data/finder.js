@@ -34,6 +34,7 @@
 
 import { savingsCustodians } from './custodians.js';
 import { deviceBySlug } from './wallets.js';
+import { notRecommendedDevices } from './advisories.js';
 import { numberWord } from './numbers.js';
 
 // ── 1 · The four concerns ───────────────────────────────────────────────────
@@ -1133,12 +1134,20 @@ export const collaborativeVendors = savingsCustodians.map((c) => ({
 // here would drift silently the way "~$79" did (invariant #10).
 const price = (slug) => (deviceBySlug[slug] && deviceBySlug[slug].price) || '';
 
+// THE COLDCARD Q CAME OUT OF THIS MAP ON 2026-08-06 and it was in four of the
+// five branches below, so this is not a one-line edit and the copy could not
+// simply lose a name. It was the ONLY cold-tier device strong at every rung —
+// keyboard for a passphrase, air-gap and multisig for the top — which is why
+// three branches pitched it as "buy once, never re-buy as you climb". No device
+// we still recommend can carry that sentence, so the sentence goes rather than
+// being reassigned to a device it is not true of. See the assert below.
 const DEV = {
   safe3:    { name: 'Trezor Safe 3', why: `the cheapest device that clears our bar (${price('trezor-safe-3')}) — buttons and a small screen rather than a touchscreen, but the same secure element and open-source firmware as its pricier siblings` },
   jade:     { name: 'Blockstream Jade', why: 'genuinely good on a budget, simple, Bitcoin-only (connects by USB/Bluetooth — no on-device camera)' },
+  jadeplus: { name: 'Blockstream Jade Plus', why: `Bitcoin-only, fully open-source and reproducible with an air-gap mode (${price('jade-plus')}) — a strong multisig key from a maker independent of the others here` },
   bitbox:   { name: 'BitBox02 (BTC-only)', why: 'Swiss, minimalist, fully open-source — an excellent multisig component' },
-  coldcard: { name: 'Coldcard Q',          why: 'the physical keyboard and clear menus make it the friendliest to operate — and it’s buy-once: the same device covers single-sig, a passphrase, and multisig, so you never re-buy as you climb (Bitcoin-only; premium price)' },
   trezor:   { name: 'Trezor Safe 5',       why: 'colour touchscreen and mainstream UX — easy passphrase entry' },
+  safe7:    { name: 'Trezor Safe 7',       why: `the flagship (${price('trezor-safe-7')}) — dual secure element including the independently auditable TROPIC01, and a touchscreen that makes a long passphrase painless to type` },
   bitkey:   { name: 'Bitkey',              why: 'phone-integrated and beginner-friendly — a 2-of-3 with recovery built in, so there’s no single seed to lose. A great first setup, especially if you live on your phone — note we rate it <a href="/standard#built-for-spending">built for spending</a>: when your stack becomes real savings, move it to a cold-storage-tier device',
     // Bitkey's setup is app-guided and unlike the rest of the ladder (no manual seed
     // to write down), so the result page renders its device pair as a tappable choice.
@@ -1147,6 +1156,30 @@ const DEV = {
     adaptive: true,
   },
 };
+
+// ── THE FINDER MAY NOT RECOMMEND A DEVICE WE HAVE WITHDRAWN ─────────────────
+//
+// The whole point of a disclosed not-recommended flag beside the tier is that
+// the tier does NOT move — which means nothing derived from `tier` can stop the
+// finder recommending the device. Removing a name from the map above is a
+// one-time edit that the next person adding a branch cannot see; this is the
+// part that survives them. Two ways to fail and both are covered: a DEV entry
+// naming a withdrawn device, and a withdrawn device we no longer rate at all
+// (which would silently pass because the name matches nothing).
+{
+  const flagged = new Set(notRecommendedDevices);
+  const offending = Object.entries(DEV)
+    .filter(([, d]) => flagged.has(d.name))
+    .map(([k, d]) => `${k} (${d.name})`);
+  if (offending.length) {
+    throw new Error(
+      `finder.js: the DEV map offers ${offending.join(', ')}, but our recommendation for `
+      + 'that device has been withdrawn in advisories.js. The finder tells a reader what to '
+      + 'BUY — it must not name a device the rest of the site flags as not recommended. '
+      + 'Replace it in every branch of singleSigDevices()/devicesFor(), not just one.',
+    );
+  }
+}
 
 // Ordered device options for the single-sig recommendation — best fit LEADS,
 // and the order shifts with the answers. Bitkey (phone-integrated, recovery
@@ -1174,9 +1207,9 @@ function singleSigDevices(a) {
   // Bigger stakes, budget not the deciding factor → lead with a buy-once device
   // that also carries you up the ladder (passphrase, multisig) without new hardware.
   if (a.tech === 'technical') {
-    return { devices: [DEV.coldcard, DEV.bitbox], note: 'Both are cold-storage-tier and climb the ladder without re-buying. The Coldcard Q’s keyboard makes it the easiest to operate at every rung and stays a lean Bitcoin-only signer; the BitBox02 is the minimalist Swiss alternative — fully open-source, and an excellent multisig key later.' };
+    return { devices: [DEV.bitbox, DEV.jadeplus], note: 'Both are cold-storage-tier, fully open-source, and make excellent multisig keys later — from two independent makers, which is what you want if you ever hold more than one. The BitBox02 is the minimalist Swiss option; the Jade Plus adds an air-gap mode for less money. Neither has a keyboard, so if you expect to add a long passphrase, budget for a touchscreen device rather than planning to type one on buttons.' };
   }
-  return { devices: [DEV.coldcard, DEV.jade], note: 'The Coldcard Q is the friendliest to operate (a real keyboard, simple menus) and buy-once — it climbs to a passphrase or multisig later without new hardware, which is worth the premium if you expect to grow. The Jade is the budget alternative: spend less now, re-buy only if you ever climb.' };
+  return { devices: [DEV.trezor, DEV.jade], note: 'The Trezor Safe 5 is the friendliest to operate — a colour touchscreen, mainstream software, and the easiest passphrase entry of anything we recommend. The Jade is the budget alternative: spend less now, re-buy only if you ever climb.' };
 }
 
 // ── "Your journey" — the recommendation is a DESTINATION; frame it from where
@@ -1315,16 +1348,21 @@ function devicesFor(setup, a) {
   if (setup === 'passphrase') {
     const power = a.tech === 'technical' || a.tech === 'careful';
     return {
-      wallets: power ? [DEV.coldcard, DEV.trezor] : [DEV.trezor, DEV.coldcard],
-      walletNote: 'Both of these make a passphrase easy to live with — the Coldcard Q has a full keyboard, the Trezor Safe 5 a touchscreen. You type a strong passphrase painlessly, with no on-screen fiddling and nothing typed into a computer.',
+      wallets: power ? [DEV.safe7, DEV.trezor] : [DEV.trezor, DEV.safe7],
+      // Both are Trezors, and that is a real narrowing rather than laziness: with
+      // the Coldcard Q withdrawn, the Safe 5 and Safe 7 are the only devices we
+      // recommend with comfortable text entry. On THIS rung one maker twice is
+      // not the problem it is on multisig — you are buying one key, not three —
+      // but the note says so rather than leaving a reader to notice.
+      walletNote: 'Both of these make a passphrase easy to live with: a touchscreen you can type a long phrase on, with no on-screen fiddling and nothing typed into a computer. They are both Trezors because they are the two devices we recommend with comfortable text entry — that is fine here, where you are buying a single key, and it would not be on a multisig. A BitBox02 or a Jade will hold a passphrase perfectly well too; you will just be picking characters with buttons.',
     };
   }
   if (setup === 'multisig') {
     return {
-      wallets: [DEV.coldcard, DEV.bitbox],
+      wallets: [DEV.bitbox, DEV.jadeplus],
       // THREE makers, not two. With two makers across three keys one vendor's
       // flaw reaches two of them, and two keys spend a 2-of-3.
-      walletNote: 'Use a DIFFERENT maker for each key — one brand, one key. With only two makers across three keys, a single vendor’s flaw reaches two of them, and two keys is enough to spend a 2-of-3. These two are strong picks; add a third from another maker on the wallets page. And if you already started single-sig on one of these, it carries over as one of your three.',
+      walletNote: 'Use a DIFFERENT maker for each key — one brand, one key. With only two makers across three keys, a single vendor’s flaw reaches two of them, and two keys is enough to spend a 2-of-3. These two are strong picks from independent makers; add a third from a third maker on the wallets page. And if you already started single-sig on one of these, it carries over as one of your three.',
     };
   }
   return {

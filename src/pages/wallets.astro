@@ -1,7 +1,11 @@
 ---
 import Base from '../layouts/Base.astro';
-import { wallets, compareCriteria, walletsVerified, badgeDefs, chooserFilters, useCaseChips, budgetBuckets, coldWallets, spendingWallets, disqualifiedWallets, tierOf, tierCountWord } from '../data/wallets.js';
+import { wallets, compareCriteria, walletsVerified, badgeDefs, chooserFilters, useCaseChips, budgetBuckets, coldWallets, spendingWallets, disqualifiedWallets, recommendedColdWallets, isNotRecommended, tierOf, tierCountWord } from '../data/wallets.js';
 import { advisoryFor } from '../data/advisories.js';
+
+// Derived, never typed — invariant #10. The day a flag is lifted or added, every
+// sentence on this page that counts recommended devices moves with it.
+const notRecommendedCount = coldWallets.filter(isNotRecommended).length;
 
 // PAGE STRUCTURE: view tabs (filter/browse ⇄ comparison table, revealed by JS as
 // progressive enhancement — the browse view works with none) → the interactive
@@ -42,7 +46,22 @@ const cardWallets = tableGroups.flatMap((g) => g.rows);
         saturated amber box competed with the page's own heading for a reader who had
         not yet seen a single device, so the two are merged.
         Every number still derives. */}
-    <p class="lead">There’s no one “best” hardware wallet — but there is a bar, and not every device clears it. We rate all {wallets.length} against a published, Bitcoin-only standard: <strong class="ti-cold">{coldWallets.length} built for cold storage</strong> (what we’d trust with long-term savings), <strong class="ti-spend">{spendingWallets.length} built for spending</strong> (secure, but suited to daily use or smaller balances), and <strong class="ti-dq">{disqualifiedWallets.length} that {disqualifiedWallets.length === 1 ? 'doesn’t' : 'don’t'} clear our bar</strong>. Every one is covered in full, with the reasoning — and because we sell no device and take no affiliate money, we can say so plainly. <a href="/standard">Read the standard →</a></p>
+    <p class="lead">There’s no one “best” hardware wallet — but there is a bar, and not every device clears it. We rate all {wallets.length} against a published, Bitcoin-only standard: <strong class="ti-cold">{coldWallets.length} built for cold storage</strong> (what the standard says we’d trust with long-term savings), <strong class="ti-spend">{spendingWallets.length} built for spending</strong> (secure, but suited to daily use or smaller balances), and <strong class="ti-dq">{disqualifiedWallets.length} that {disqualifiedWallets.length === 1 ? 'doesn’t' : 'don’t'} clear our bar</strong>. Every one is covered in full, with the reasoning — and because we sell no device and take no affiliate money, we can say so plainly. <a href="/standard">Read the standard →</a></p>
+    {notRecommendedCount > 0 && (
+      /* The rating and the recommendation are two different judgements, and this
+         page publishes both. Stated in the LEAD rather than left to the cards,
+         because a reader who scans the tier counts above and stops has otherwise
+         been told nine devices are ours to trust when we would steer them off
+         two of them. Both figures derive — a typed one would drift the first
+         time a flag moved. */
+      <p class="lead-nr">
+        <strong>A rating is not a recommendation, and right now they come apart.</strong>
+        {' '}{notRecommendedCount} of those {coldWallets.length} cold-storage devices {notRecommendedCount === 1 ? 'still clears' : 'still clear'} the published bar
+        and {notRecommendedCount === 1 ? 'is' : 'are'} nonetheless <strong>not recommended for purchase</strong> — a call of ours, about the maker rather than
+        the hardware, flagged on the {notRecommendedCount === 1 ? 'card' : 'cards'} below with the whole of the reasoning attached.
+        That leaves <strong>{recommendedColdWallets.length}</strong> we would actually point you at today.
+      </p>
+    )}
     {/* "The right mental model" callout removed. It taught what a
         wallet is versus what the device is — 101 material, and /learn/bitcoin-keys now
         teaches it properly after the 7/30 rewrite (the one-way key chain, then the
@@ -143,6 +162,20 @@ const cardWallets = tableGroups.flatMap((g) => g.rows);
           {advisoryFor(w.name) && (
             <p class="wadv"><strong>Security advisory:</strong> {advisoryFor(w.name).bannerText} <a href={advisoryFor(w.name).href}>read it →</a></p>
           )}
+          {/* OUR RECOMMENDATION, WHICH IS NOT THE TIER. The tier ribbon above is
+              the standard applied and stays where it is; this is the editorial
+              position sitting beside it. Rendered as its own block rather than
+              folded into the advisory line because they are separable claims —
+              one is "there is an incident", the other is "we would not buy this"
+              — and the day a device carries one without the other, a merged
+              sentence would be false. */}
+          {w.notRecommended && (
+            <p class="wnr">
+              <strong class="wnr-k">{w.notRecommended.flag}</strong>
+              {w.notRecommended.short}
+              {' '}<a href={w.notRecommended.anchor}>Our reasoning, in full →</a>
+            </p>
+          )}
           {tierOf(w) !== 'cold' && (
             <p class:list={['tier-reason', tierMeta[tierOf(w)].cls]}><strong>{tierMeta[tierOf(w)].label}:</strong> {w.tierNote.summary} <a href={tierMeta[tierOf(w)].anchor}>Full reasoning →</a></p>
           )}
@@ -188,8 +221,20 @@ const cardWallets = tableGroups.flatMap((g) => g.rows);
                 <td colspan={compareCriteria.length + 1}><span class="gl">{grp.title} · {grp.rows.length}</span></td>
               </tr>
               {grp.rows.map((w) => (
-                <tr class:list={[grp.key !== 'cold' && 'offrow']}>
-                  <td class="dev"><span class="dname">{w.name}</span><span class="vendor mono">{w.vendor}</span></td>
+                <tr class:list={[grp.key !== 'cold' && 'offrow', w.notRecommended && 'nrrow']}>
+                  <td class="dev">
+                    <span class="dname">{w.name}</span><span class="vendor mono">{w.vendor}</span>
+                    {/* The table is the surface a buyer scans, and until this row
+                        carried the flag the site said "not recommended" on the
+                        card and nothing at all six inches below it — two
+                        renderings of one judgement, which is this project's
+                        house bug. It is a link, not a badge: a verdict with no
+                        route to the reasoning is the thing /standard exists to
+                        avoid being. */}
+                    {w.notRecommended && (
+                      <a class="nrtag" href={w.notRecommended.anchor}>{w.notRecommended.flag} →</a>
+                    )}
+                  </td>
                   {compareCriteria.map((c) => (
                     <td class="ctr">
                       {c.type === 'text'
@@ -216,8 +261,8 @@ const cardWallets = tableGroups.flatMap((g) => g.rows);
     <ul>
       <li><strong>First device, keep it simple:</strong> BitBox02 (BTC-only) or Trezor Safe 5 for mainstream UX.</li>
       <li><strong>Tight budget:</strong> the Trezor Safe 3 is the cheapest way in; the Blockstream Jade costs a little more and is Bitcoin-only, if you’d rather have that than a secure-element chip.</li>
-      <li><strong>Strict air-gap by design:</strong> Coldcard Q (sign by QR or microSD, never a cable).</li>
-      <li><strong>Using a passphrase:</strong> Coldcard Q (full keyboard) or Trezor Safe 5 (touchscreen) — both make typing a strong passphrase painless.</li>
+      <li><strong>Strict air-gap by design:</strong> the Blockstream Jade Plus has an air-gap mode, and it is the closest thing we can point you at. Being straight about the cost of our own position: the only two devices in this tier that air-gap without qualification are the two Coldcards, and those are the two we have <a href="/advisory/coldcard-seed-entropy#not-recommended">stopped recommending</a>. If a strict air-gap is the thing you care most about, that trade is yours to weigh rather than ours to hide.</li>
+      <li><strong>Using a passphrase:</strong> Trezor Safe 5 or Safe 7 (touchscreens) — both make typing a strong passphrase painless. Everything else we recommend will hold one; you will be picking characters with buttons.</li>
       <li><strong>Non-technical, phone-first, spending money:</strong> Bitkey — <a href="/standard#built-for-spending">built for spending</a>, not a long-term vault. It’s also the cheapest way into a 2-of-3 on our <a href="/collaborative">collaborative-custody comparison</a>, where it’s judged as a service rather than as a signer.</li>
       <li><strong>Already own a Ledger?</strong> It <a href="/standard#doesnt-clear-our-bar">doesn’t clear our bar</a> — closed firmware that has proven it can export your seed. Read why before you rely on it for savings.</li>
     </ul>
@@ -481,6 +526,21 @@ const cardWallets = tableGroups.flatMap((g) => g.rows);
   .tier-reason.spend { border-top: 1px dashed var(--warn); }
   .tier-reason.dq strong, .tier-reason.dq a { color: var(--danger); }
   .tier-reason.spend strong, .tier-reason.spend a { color: var(--warn); }
+
+  /* THE WITHDRAWN RECOMMENDATION. Styled with --warn rather than --danger on
+     purpose: --danger on this page means "fails our security bar", which these
+     devices do not, and borrowing that colour would say with styling what the
+     copy is at pains not to say. The card keeps its cold-tier ribbon; this sits
+     under it as a separate, quieter claim. */
+  .wnr { font-size: 0.9rem; color: var(--text) !important; padding-top: 0.6rem; border-top: 1px dashed var(--warn); }
+  .wnr-k { display: block; color: var(--warn); text-transform: uppercase; letter-spacing: .05em; font-size: .74rem; margin-bottom: .3rem; }
+  .wnr a { color: var(--warn); }
+  /* The comparison row's version. The row is NOT dimmed the way .offrow dims an
+     off-tier device — dimming would read as a downgrade, and the whole point is
+     that the rating is unchanged. */
+  .nrtag { display: block; margin-top: .25rem; font-size: .72rem; letter-spacing: .04em; text-transform: uppercase; color: var(--warn); }
+  .lead-nr { border-left: 3px solid var(--warn); padding: .3rem 0 .3rem 1rem; margin: -0.4rem 0 1.4rem; color: var(--muted); }
+  .lead-nr strong { color: var(--text); }
   .tier-reason a { white-space: nowrap; }
   .wc-top { display: flex; gap: 1.1rem; align-items: flex-start; margin-bottom: 0.85rem; }
   .wc-main { flex: 1 1 auto; min-width: 0; }

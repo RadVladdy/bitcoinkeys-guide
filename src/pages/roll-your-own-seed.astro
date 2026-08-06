@@ -22,6 +22,7 @@ import {
 } from '../data/dice.js';
 import { seedCosts, tableRowCount, DICE_PER_WORD } from '../data/dice-table.js';
 import { shortName } from '../data/wallets.js';
+import { notRecommendedFor } from '../data/advisories.js';
 import { pdfHref, printablePdfs } from '../data/pdf-version.js';
 
 // Option 4 has no procedure, so the tabs are exactly the doing options.
@@ -31,6 +32,17 @@ const procsFor = (key) => deviceProcedures.filter((p) => (p.options || []).inclu
 // on the seed lesson, and nowhere canonical — and check-device-coverage.py has
 // to recognise a device on the built page by the form the page printed.
 const devicesFor = (key) => ratedDevicesForMethod(key).map((d) => shortName(d.name));
+// MEASURED, NOT ASSUMED, and it is the sharpest consequence of the 2026-08-06
+// withdrawal: options 2 and 3 have exactly two rated devices between them and
+// both are Coldcards, so both methods are performable only on hardware we no
+// longer recommend buying. Derived rather than written into the copy, because
+// the day another maker ships on-device dice this page has to stop saying it.
+const strandedMethods = DICE_METHOD_KEYS.filter((k) => {
+  const rated = ratedDevicesForMethod(k);
+  return rated.length > 0 && rated.every((d) => !!notRecommendedFor(d.name));
+});
+const isStranded = (key) => strandedMethods.includes(key);
+const houseMethod = methods.find((m) => m.houseDefault);
 // The two lengths this guide's worksheet covers, by POSITION rather than by a
 // typed word count. Everything the page says about length — the counts, the bit
 // figures, the vendor roll minimums — comes off these, so the copy cannot drift
@@ -82,6 +94,31 @@ const shortCost = seedCosts.find((c) => c.words === 12);
       </p>
     </div>
 
+    {/* THE UNCOMFORTABLE ARITHMETIC, STATED RATHER THAN LEFT TO BE NOTICED.
+        A reader who takes our hardware advice and then arrives here would
+        otherwise find two of the four options greyed out by their own device
+        list, with no explanation for why the guide recommends a mitigation it
+        also recommends away from. Saying it plainly costs us something and
+        leaving it unsaid would cost the reader more. */}
+    {strandedMethods.length > 0 && (
+      <div class="callout warn" role="note">
+        <span class="label">Something awkward, and we would rather say it than have you notice it</span>
+        <p>
+          {strandedMethods.length} of these options — the {strandedMethods.length === 1 ? 'one' : 'ones'} where the device's
+          own randomness plays no part or gets yours mixed in — can only be performed on
+          {' '}<strong>Coinkite hardware</strong>. And on 6 August 2026 we
+          {' '}<a href="/advisory/coldcard-seed-entropy#not-recommended">stopped recommending those devices for purchase</a>.
+          So the strongest on-device forms of this procedure live on the one brand we are steering new buyers away from.
+        </p>
+        <p style="margin-bottom:0">
+          We have not removed them, because a lot of readers own a Coldcard and this is exactly the thing they should be
+          doing with it. What changed is which option we point at by default: <strong>option {houseMethod.n}</strong>,
+          the printed table, where you pick every word yourself. It is the most work here by a distance and we are not
+          pretending otherwise — it is the default because it is the strongest form that most devices can actually do.
+        </p>
+      </div>
+    )}
+
     <div class="callout danger" role="note">
       <span class="label">🛑 This page will never ask what you rolled</span>
       <p style="margin-bottom:0">
@@ -115,6 +152,10 @@ const shortCost = seedCosts.find((c) => c.words === 12);
           <span class="tab-d">
             <span class="tab-dk">Devices</span>
             {devicesFor(m.key).length ? devicesFor(m.key).join(' · ') : 'None of the ones we rate.'}
+            {/* The device list is the tab's most decisive fact, so the flag
+                belongs on it rather than only in the callout above — a reader
+                comparing three tabs is reading these lines, not scrolling back. */}
+            {isStranded(m.key) && <span class="tab-nr">Owners only — not recommended to buy</span>}
           </span>
         </button>
       ))}
@@ -304,6 +345,8 @@ const shortCost = seedCosts.find((c) => c.words === 12);
     font-size: .68rem; line-height: 1.5; color: var(--faint, var(--muted)); }
   .tab-dk { display: block; font-size: .6rem; letter-spacing: .09em; text-transform: uppercase;
     color: var(--muted); margin-bottom: .1rem; }
+  .tab-nr { display: block; margin-top: .25rem; color: var(--warn); font-size: .62rem;
+    letter-spacing: .05em; text-transform: uppercase; }
   .tab[aria-selected='true'] .tab-p { color: var(--text); }
   .p-tag { color: var(--muted); font-style: italic; margin-top: -.4rem; }
   .p-meta { margin: 0 0 .9rem; }

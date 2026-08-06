@@ -202,7 +202,11 @@ export const ladder = [
     keyNote: {
       tone: 'safe',
       label: 'Use keys from three different manufacturers',
-      body: 'If all three keys sit on devices from the same brand, one firmware bug or supply-chain problem could compromise all three at once — defeating the whole point. Mixing brands (say Coldcard + BitBox02 + Blockstream Jade Plus) means a single-vendor failure costs you at most one key. It’s the cheapest meaningful upgrade to any multisig.',
+      // The worked example named a Coldcard until 2026-08-06. An example IS a
+      // recommendation when it is the only concrete list on the page, so it moved
+      // with the rest — to three makers we do still recommend, which the example
+      // needs anyway to make its own point about three independent vendors.
+      body: 'If all three keys sit on devices from the same brand, one firmware bug or supply-chain problem could compromise all three at once — defeating the whole point. Mixing brands (say BitBox02 + Blockstream Jade Plus + Trezor Safe 5) means a single-vendor failure costs you at most one key. It’s the cheapest meaningful upgrade to any multisig.',
     },
     also: {
       label: 'Beyond 2-of-3: the 3-of-5 variant',

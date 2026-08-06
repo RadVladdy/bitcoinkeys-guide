@@ -54,6 +54,13 @@ export const walletsVerified = '2026-07-31';
 
 // rating scale used in the compare table + chooser badges: 'yes' | 'partial' | 'no'
 import { diceCapability, SUPPORTED, DICE_METHOD_KEYS, deviceDice } from './dice.js';
+// OUR RECOMMENDATION IS NOT OUR RATING, and this import is where the two meet
+// without merging. `tier` is the standard applied; `notRecommended` is an
+// editorial position sourced from an advisory. Joining them HERE rather than in
+// each template is what makes the flag reach /my-plan, /checklist and the owned-
+// device assessment without ten hand-edits — assessDevices() below carries it.
+// The edge runs one way (wallets → advisories), so it cannot cycle.
+import { notRecommendedFor, notRecommendedDevices } from './advisories.js';
 
 export const wallets = [
   {
@@ -474,14 +481,51 @@ for (const w of wallets) {
   }
 }
 
+// ── THE WITHDRAWN RECOMMENDATION, JOINED AND ASSERTED ───────────────────────
+//
+// The join key is the device's display NAME, which is how advisories.js already
+// names devices (affectsDevices) — so this asserts the same way the dice join
+// does, and for the same reason. A misspelt name here does not throw and does
+// not warn: the flag simply never renders, and a silent non-render here leaves
+// the site recommending a device whose recommendation has been withdrawn.
+// That is the failure this file has already paid for twice, in both directions.
+{
+  const ours = new Set(wallets.map((w) => w.name));
+  const strays = notRecommendedDevices.filter((n) => !ours.has(n));
+  if (strays.length) {
+    throw new Error(
+      `wallets.js: advisories.js withdraws the recommendation for ${strays.join(', ')}, but this `
+      + 'file does not rate a device by that name — so the flag would never render and the site '
+      + 'would go on recommending it. Fix the name in advisories.js notRecommended.devices.',
+    );
+  }
+}
+for (const w of wallets) {
+  w.notRecommended = notRecommendedFor(w.name);
+}
+
 // Derived groupings — nothing here is hand-maintained.
 export const tierOf = (w) => w.tier || 'cold';
+/**
+ * Would we tell someone to buy this today? Distinct from tierOf() on purpose —
+ * a device can clear the published bar and still be one we are steering people
+ * away from, and the site is required to be able to say both.
+ */
+export const isNotRecommended = (w) => !!w.notRecommended;
 export const gateByKey = Object.fromEntries(standardGates.map((g) => [g.key, g]));
 export const tierByKey = Object.fromEntries(tiers.map((t) => [t.key, t]));
 export const walletsInTier = (key) => wallets.filter((w) => tierOf(w) === key);
 export const coldWallets = walletsInTier('cold');
 export const spendingWallets = walletsInTier('spending');
 export const disqualifiedWallets = walletsInTier('disqualified');
+
+// The cold tier MINUS anything whose recommendation we have withdrawn — the set
+// a page should draw from when it is telling a reader what to BUY, as opposed
+// to what we rate. /wallets and /standard still show the full tier, because
+// hiding a device we rate would break invariant #12 and would also be the
+// dishonest version of this: the reader is meant to see the judgement, not to
+// find the device missing.
+export const recommendedColdWallets = coldWallets.filter((w) => !isNotRecommended(w));
 
 export const compareCriteria = [
   { key: 'price', label: 'Price', type: 'text' },
@@ -819,7 +863,16 @@ export function assessDevices(slugs = []) {
     const verdict = tierOf(w);
     const why = (w.tierNote && w.tierNote.summary)
       || (w.barCaveat ? w.barCaveat : 'Clears our bar for long-term cold storage.');
-    return { slug, name: ownedName(slug), verdict, why, ratedName: w.name };
+    // `notRecommended` rides ALONGSIDE the verdict rather than becoming one.
+    // An owner's device has not changed tier and telling them it has would be
+    // false; what has changed is what we would say to someone buying today.
+    // Every consumer of this function is looking at hardware a reader already
+    // owns or has planned, so the flag has to arrive as "here is our position"
+    // and never as "your device just got downgraded".
+    return {
+      slug, name: ownedName(slug), verdict, why, ratedName: w.name,
+      notRecommended: w.notRecommended || null,
+    };
   });
 }
 
