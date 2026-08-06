@@ -38,7 +38,7 @@ import { DICE_PER_WORD, PREFIX_THROWS, seedCosts } from './dice-table.js';
 // with nothing anywhere disagreeing.
 
 /** ISO floor of the `dice` freshness group. Runner-set — never hand-type this. */
-export const diceVerified = '2026-08-01';
+export const diceVerified = '2026-08-06';
 
 // ── the maths ───────────────────────────────────────────────────────────────
 // All of it derived from two facts: a fair d6 has six faces, and the BIP-39
