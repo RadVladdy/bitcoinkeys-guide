@@ -146,7 +146,7 @@ export const privacyTools = [
 
     statusH: 'Where this stands',
     status: [
-      'Sparrow shipped sending in February 2026 and receiving in May 2026, including to airgapped hardware signers — the first major desktop wallet to carry both halves.',
+      'Sparrow shipped sending in October 2025 and receiving in May 2026 — the first major desktop wallet to carry both halves. The receiving release covers airgapped hardware signers; a separate release in February 2026 had already made sending work from one.',
       'Sparrow’s receiving hands block-scanning to a scanning server by default. Pointing it at your own node instead is a setting.',
       'Cake Wallet has supported sending and receiving since 2024.',
       'It is still a minority of wallets, and that is the real constraint on using it. It is also the thing moving fastest of anything on this page.',
