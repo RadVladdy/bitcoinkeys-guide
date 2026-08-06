@@ -25,7 +25,24 @@
 # LISTED ONE BY ONE, not as /*.pdf — Cloudflare Pages did not match the suffix
 # glob and silently kept serving the four-hour header, which is the same class
 # of failure as the thing it is fixing: a rule that looks applied and is not.
-# Verified against the live response, not against this file.
+#
+# ⚠️ AND THE ONE-BY-ONE LISTING DOES NOT WORK EITHER — measured 2026-08-05
+# against the live response, which is the only thing that settles it. The apex
+# answers `public, max-age=14400, must-revalidate` for every one of these files.
+# So Pages takes the DIRECTIVE we add and OVERRIDES the max-age we ask for, and
+# `must-revalidate` only forbids serving a response that has already gone stale
+# — it does nothing at all for the first four hours, which is the entire window
+# this block was written to close.
+#
+# THE RULES BELOW ARE THEREFORE NOT LOAD-BEARING AND THIS FILE HAS NEVER SAID
+# SO. `?v=<content hash>` on every link (src/data/pdf-version.js) is the whole
+# mechanism: it makes a changed file a different URL, which no cache header can
+# undo. This block is kept because a directive that does land costs nothing and
+# helps once the four hours are up — but do not add a fifth attempt here, and do
+# not read these lines as the reason a reader gets the current PDF.
+# (The note in pdf-version.js said `_headers` is ignored outright; this one said
+# listing files fixed it. Both were half right, on one subject, each internally
+# consistent — and each was written from a different deploy. Corrected together.)
 /dice-word-table.pdf
   Cache-Control: public, max-age=0, must-revalidate
 /bip39-word-table.pdf
@@ -33,4 +50,12 @@
 /roll-12-word-seed.pdf
   Cache-Control: public, max-age=0, must-revalidate
 /roll-24-word-seed.pdf
+  Cache-Control: public, max-age=0, must-revalidate
+/checklist-single-sig.pdf
+  Cache-Control: public, max-age=0, must-revalidate
+/checklist-passphrase.pdf
+  Cache-Control: public, max-age=0, must-revalidate
+/checklist-multisig.pdf
+  Cache-Control: public, max-age=0, must-revalidate
+/checklist-collaborative.pdf
   Cache-Control: public, max-age=0, must-revalidate

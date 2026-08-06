@@ -1,8 +1,29 @@
 ---
 import Base from '../layouts/Base.astro';
-import { checklistGroups, checklistCount, ruleForItem } from '../data/checklist.js';
+import { checklistGroups, checklistCount, ruleForItem, checklistSheets } from '../data/checklist.js';
 import { finderPromiseCap } from '../data/finder-questions.js';
 import { ruleCountWord } from '../data/rules.js';
+import { pdfHref, checklistPdfs } from '../data/pdf-version.js';
+
+// THE PRINTED SHEETS LIVE ON THIS PAGE, print-only, one per rung — and
+// scripts/build-checklist-pdfs.sh renders this page and slices them into the
+// four PDFs the block above offers. That is the same arrangement the dice
+// documents use and for the same reason: a printed artifact assembled from a
+// rendered sheet cannot say something the page does not.
+// Only the LAYOUT differs between screen and paper. Both render from
+// checklistItems through the same itemApplies(), so there is no second filter
+// to drift from the first.
+// The steps a sheet carries are decided in checklist.js (§ the printed sheets),
+// not here, because the build script asserts against that same list.
+
+// A step's own address, printed under it. On paper the "Read the lesson →"
+// affordance is nothing — a printed sheet gets separated from the site it came
+// from, so the destination has to be readable rather than clickable.
+const printAddr = (href) => (href ? `bitcoinkeys.guide${href}` : null);
+const printRule = (it) => {
+  const r = ruleForItem(it);
+  return r ? `Rule ${String(r.n).padStart(2, '0')} · ${r.short}` : null;
+};
 
 // GENERATED CHECKLIST (2026-07-28). Every item is server-rendered, so the page
 // works with no JavaScript and search engines see the whole list. When a saved plan
@@ -32,7 +53,7 @@ const total = checklistCount;
 <Base
   title="Your self-custody checklist · BitcoinKeys.guide"
   description="A plain-English Bitcoin self-custody checklist that adapts to your setup: what to do first, what to do next, and what to review every year. Find your setup and it becomes yours — device-neutral, nothing to sell you."
-  verified="2026-07-31"
+  verified="2026-08-05"
 >
   <section class="prose">
     <p class="eyebrow">Checklist</p>
@@ -110,7 +131,29 @@ const total = checklistCount;
     </section>
   ))}
 
-  <section>
+  <section class="prose clp-offer" id="cl-print">
+    <div class="callout" role="note">
+      <span class="label" id="cl-print-k">Take it with you</span>
+      <p id="cl-print-p">This list is easier to work down on paper, with the device in front of you and the
+        browser shut. <strong>There is a sheet for each setup on the ladder</strong> — every step that setup
+        needs, in order, with the reason under it and a box to tick. Nothing on a sheet talks about a setup
+        that isn’t yours.</p>
+      <p class="clp-links">
+        {checklistPdfs.map((c) => (
+          <a class="btn btn-ghost clp-btn" data-rung={c.slug} href={pdfHref(c.file)} target="_blank" rel="noopener">
+            <span class="clp-name">{c.label}</span>
+            <span class="clp-meta mono">{c.steps} steps{c.pages ? ` · ${c.pages} pages` : ''}</span>
+          </a>
+        ))}
+      </p>
+      <p class="clp-foot">Print the PDF rather than this page: a browser print depends on your own margins and
+        background-graphics setting, and that last one drops the tick boxes. <span id="cl-print-ask">Not sure
+        which is yours?</span> <a href="/find-your-setup">Find your setup</a><span id="cl-print-tail"> — it takes
+        a few minutes and the answer is the sheet.</span></p>
+    </div>
+  </section>
+
+  <section class="sb-sec">
     <div class="savebar" id="savebar">
       <div class="sb-count"><span id="sb-n">0</span> of <span id="sb-total">{total}</span> done <span class="sb-auto mono" id="sb-auto" hidden>· ✓ saved to your plan</span></div>
       <div class="sb-actions">
@@ -120,12 +163,58 @@ const total = checklistCount;
     <p class="sb-status mono" id="sb-status" hidden></p>
   </section>
 
-  <section class="prose">
+  <section class="prose clp-breath">
     <div class="callout safe">
       <span class="label">The whole thing in one breath</span>
       <p>Get it off the exchange onto a device you control · back the seed up on metal in two places · <strong>test the backup before you trust it</strong> · don’t talk about your Bitcoin · and leave a plan your family can follow. Do those five and you’re ahead of almost everyone.</p>
     </div>
   </section>
+
+  {checklistSheets.map((sheet) => (
+    <section class="clp-sheet" data-rung={sheet.slug}>
+      <h2 class="cp-h">Self-custody checklist — {sheet.name}</h2>
+      <p class="cp-lead">
+        Printed from <strong>bitcoinkeys.guide/checklist</strong>. <strong>Work down it in order.</strong> The
+        sequence is the point: your backup exists, and has restored a wallet in a real test, before any real
+        money moves. Each step says what to do and why, and carries the address of the lesson behind it —
+        this sheet is a map, and the site is the detail.
+      </p>
+      <p class="cp-lead cp-lead-2">
+        <strong>This sheet is for {sheet.name.toLowerCase()}</strong>, and every other setup on the ladder has
+        its own — print the one that matches yours. It lists <strong>every step this setup can need</strong>
+        ({sheet.count} of them); the version on the site trims it further once it knows which hardware you own
+        and whether anyone else may one day have to recover your coins.
+      </p>
+      {sheet.groups.map((g) => (
+        <section class="cp-phase">
+          <h3 class="cp-ph"><span class="cp-tag">{g.tag}</span> {g.title}</h3>
+          <p class="cp-intro">{g.intro}</p>
+          <ul class="cp-list">
+            {g.items.map((it) => (
+              <li class="cp-item">
+                <span class="cp-box" aria-hidden="true"></span>
+                <span class="cp-body">
+                  <span class="cp-t">{it.t}</span>
+                  <span class="cp-d">{it.d}</span>
+                  {(printRule(it) || printAddr(it.href)) && (
+                    <span class="cp-m">
+                      {printRule(it)}{printRule(it) && printAddr(it.href) ? ' · ' : ''}{printAddr(it.href)}
+                    </span>
+                  )}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+      <p class="cp-foot">
+        <strong>bitcoinkeys.guide/checklist</strong> — the full course behind every step, and a version of this
+        list that adapts to your own plan. Independent: we sell nothing and take no affiliate money.
+        No analytics, no trackers, no cookies. <strong>Never write your seed words on this sheet</strong>, or
+        anywhere that is not your permanent backup.
+      </p>
+    </section>
+  ))}
 </Base>
 
 <script>
@@ -453,9 +542,53 @@ const total = checklistCount;
     if (box) box.setAttribute('aria-checked', on ? 'true' : 'false');
   }
 
+  // ── The printed sheets: point at the reader's own one ──────────────────────
+  // Keyed on the RUNG and nothing else, so it reads the plan directly rather
+  // than through ctx: ctx is null while a plan is unfinished, but the setup is
+  // decided the moment the finder places you, and the setup is all a sheet is.
+  function chosenRung(p) {
+    const r = (p && p.quiz && p.quiz.rung) || (p && p.ladder && p.ladder.rung) || null;
+    return r && r !== 'pre' ? r : null;
+  }
+  function markPrintSheet() {
+    const rung = chosenRung(plan);
+    if (!rung) return;
+    const btns = Array.from(document.querySelectorAll('.clp-btn'));
+    const mine = btns.find((b) => b.getAttribute('data-rung') === rung);
+    // A rung with no sheet cannot happen — both lists derive from ladder.js —
+    // but if it ever did, offering all four beats offering none.
+    if (!mine) return;
+    btns.forEach((b) => b.classList.toggle('clp-other', b !== mine));
+    mine.classList.add('clp-mine');
+    const k = document.getElementById('cl-print-k');
+    if (k) k.textContent = 'Take your checklist with you';
+    const p = document.getElementById('cl-print-p');
+    // TEXT, not markup — the client never injects markup on this page. The other
+    // three stay on the page rather than being removed: a reader who is about to
+    // change rung should still be able to see what that costs.
+    if (p) {
+      p.textContent = 'Your sheet is the first one below — every step your setup needs, in order, with the '
+        + 'reason under it and a box to tick. Nothing on it talks about a setup that isn’t yours. The other '
+        + 'three are still here if you want to see what a different rung asks of you.';
+    }
+    // "Not sure which is yours?" sitting directly under a sheet we have just
+    // marked as theirs is the block contradicting itself on one screen — the
+    // same shape as a completeness line printed above a warning verdict. The
+    // link still earns its place, for a different question.
+    const ask = document.getElementById('cl-print-ask');
+    const tail = document.getElementById('cl-print-tail');
+    if (ask) ask.textContent = 'Moving to a different setup?';
+    if (tail) tail.textContent = ' again and the sheet above changes with it.';
+    // Ctrl+P on this page should give the reader THEIR sheet, not all four.
+    document.querySelectorAll('.clp-sheet').forEach((s) => {
+      s.hidden = s.getAttribute('data-rung') !== rung;
+    });
+  }
+
   // Order matters: filter first, THEN restore ticks, so counts and "next up" are
   // computed against the visitor's own list rather than the generic one.
   personalize();
+  markPrintSheet();
 
   const saved = (plan && plan.checklist) || {};
   items.forEach((li) => { if (saved[li.getAttribute('data-id')] && !li.hidden) apply(li, true); });
@@ -593,5 +726,90 @@ const total = checklistCount;
   @media (max-width: 560px) {
     .citem { grid-template-columns: 1.6rem 1fr; }
     .ct-next { grid-column: 2; justify-self: start; margin-top: 0.3rem; }
+  }
+
+  /* ── The printable sheets ─────────────────────────────────────────────────
+     Screen furniture for the offer, then the sheets themselves, which exist
+     only on paper. */
+  .clp-links { display: flex; gap: 0.7rem; flex-wrap: wrap; margin: 1rem 0 0.9rem; }
+  .clp-btn { display: inline-flex; flex-direction: column; align-items: flex-start; gap: 0.15rem;
+    text-align: left; line-height: 1.25; }
+  .clp-name { font-weight: 700; }
+  .clp-meta { font-size: 0.74rem; opacity: 0.75; letter-spacing: 0.02em; }
+  /* Set by the client once a plan names a rung — the reader's own sheet leads
+     and the other three stay legible rather than being hidden. */
+  .clp-mine { border-color: var(--accent); color: var(--accent); order: -1; }
+  .clp-other { opacity: 0.62; }
+  .clp-other:hover { opacity: 1; }
+  .clp-foot { font-size: 0.85rem; color: var(--muted); margin: 0; }
+
+  /* NOT `[hidden]` and not a `display:none` the client can beat — the sheets are
+     absent from the screen entirely and appear only in the print media block
+     below, which is the one place they mean anything. */
+  .clp-sheet { display: none; }
+
+  @media print {
+    /* :global() ON EVERYTHING THE LAYOUT OWNS. This block is SCOPED, so a bare
+       `main`, `body`, `:root` or `.verified` compiles to a selector carrying
+       THIS page's cid and matches nothing — those elements are Base.astro's.
+       The same omission cost /dice-word-table a whole extra printed sheet
+       holding one date, silently, for the life of the page. */
+    :global(:root), :global(body), :global(main) { background: #fff !important; }
+    :global(main) { padding: 0 !important; margin: 0 !important; }
+    :global(.adv-banner), :global(header.nav), :global(footer.foot) { display: none !important; }
+    /* A dated "last verified" line on a sheet somebody takes to a desk says
+       nothing useful and costs a line of the page it lands on. */
+    :global(.verified) { display: none !important; }
+
+    /* Everything the screen reader works with is screen furniture: the ticking
+       list itself is interactive, and a printed copy of it would be the full
+       31-item generic list — the exact document these sheets exist instead of. */
+    .prose, .cgroup, .clp-offer, .clp-breath, .sb-sec, .cl-toast { display: none !important; }
+
+    .clp-sheet { display: block; color: #000; font-size: 9.2pt; line-height: 1.4; }
+    /* THE CLIENT HIDES THE THREE THAT ARE NOT YOURS so Ctrl+P gives one sheet
+       rather than four. `display: block` above would beat [hidden]'s user-agent
+       rule outright — the registered author-display-over-[hidden] failure, which
+       shipped an always-visible empty box on two pages once already. */
+    .clp-sheet[hidden] { display: none !important; }
+    /* Each sheet is its own document; the build script slices on these breaks.
+       Not on the LAST one, which would buy a blank trailing page. */
+    .clp-sheet:not(:last-of-type) { break-after: page; }
+
+    .cp-h { font-size: 15pt; margin: 0 0 .45rem; color: #000; line-height: 1.15; }
+    .cp-lead { margin: 0 0 .45rem; font-size: 9pt; }
+    .cp-lead-2 { border: .6pt solid #999; padding: .32rem .5rem; margin-bottom: .7rem; }
+    .cp-phase { break-inside: auto; margin: 0 0 .55rem; }
+    /* A phase heading alone at the foot of a page is a step list with its title
+       on the previous sheet of paper. */
+    .cp-ph { font-size: 11pt; margin: .55rem 0 .12rem; color: #000; break-after: avoid;
+      display: flex; align-items: baseline; gap: .45rem; }
+    .cp-tag { font-size: 7.4pt; text-transform: uppercase; letter-spacing: .08em; font-weight: 700;
+      border: .6pt solid #444; border-radius: 999px; padding: .04rem .35rem; white-space: nowrap; }
+    /* `break-after: avoid` is the weakest half of the fragmentation spec in
+       Chrome and cannot be relied on; the build script MEASURES that no page
+       ends on a phase heading or this intro, which is the part that holds. */
+    .cp-intro { font-size: 8.2pt; color: #444; margin: 0 0 .3rem; break-after: avoid; }
+    .cp-list { list-style: none; margin: 0; padding: 0; }
+    /* A step split across two sheets of paper is a step half-read while holding
+       a device. They are short enough that none has to be. */
+    .cp-item { display: grid; grid-template-columns: 13pt 1fr; gap: .4rem; break-inside: avoid;
+      padding: .22rem 0 .26rem; border-bottom: .4pt solid #e2e2e2; }
+    .cp-item:last-child { border-bottom: none; }
+    /* A real box to tick, drawn rather than shaded — background graphics are the
+       first thing a browser print drops, and a box that only exists as a fill
+       would print as nothing at all. */
+    .cp-box { width: 10pt; height: 10pt; border: .9pt solid #333; border-radius: 1.5pt;
+      margin-top: 1.5pt; }
+    .cp-body { display: block; }
+    .cp-t { display: block; font-weight: 700; font-size: 9.4pt; }
+    .cp-d { display: block; color: #333; margin-top: .06rem; }
+    /* The rule it is, and where the lesson lives — readable, because a printed
+       sheet gets carried away from the browser that could have followed a link. */
+    .cp-m { display: block; font-family: var(--mono); font-size: 7pt; color: #666; margin-top: .1rem; }
+    .cp-foot { font-size: 7.6pt; color: #333; margin: .6rem 0 0; padding-top: .3rem;
+      border-top: .6pt solid #999; break-before: avoid; }
+
+    @page { margin: 11mm; }
   }
 </style>

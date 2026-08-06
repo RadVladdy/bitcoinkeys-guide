@@ -7,11 +7,15 @@
 // way to tell. Rebuilding, redeploying and re-verifying all showed the new file
 // while the reader still saw the old one.
 //
-// `_headers` CANNOT FIX IT. Its rules do reach these files — X-Frame-Options and
-// the rest arrive — but Pages overrides Cache-Control for assets and ignores
-// what you ask for. Verified against the live response after two deploys, one
-// with `/*.pdf` and one listing every file explicitly. Do not try it a third
-// time.
+// `_headers` CANNOT FIX IT, and 2026-08-05 finally measured WHICH half fails.
+// Its rules do reach these files, and a directive we ADD does land: the live
+// apex answers `public, max-age=14400, must-revalidate`, and `must-revalidate`
+// is ours. What Pages overrides is the `max-age` — our `max-age=0` never
+// survives — and `must-revalidate` only forbids serving an ALREADY-STALE
+// response, so it does nothing during the four hours this was meant to close.
+// Tried with `/*.pdf` (matched nothing) and with every file listed explicitly
+// (landed, and changed nothing that matters). Do not try it a third time; the
+// `?v=` below is the entire mechanism.
 //
 // So the LINKS carry the version instead. `?v=<hash of the file>` makes each
 // revision a distinct URL to the browser while the canonical path never moves,
@@ -70,6 +74,34 @@ export const printablePdfs = [
   { file: '/roll-12-word-seed.pdf', label: '12-word seed', note: 'method + worksheet + the table' },
   { file: '/bip39-word-table.pdf', label: 'Just the table', note: 'the word table alone' },
 ].map((p) => ({ ...p, get pages() { return pdfPages(p.file); } }));
+
+/**
+ * THE PRINTED CHECKLISTS — a SECOND list, deliberately not folded into the one
+ * above. `printablePdfs` is the dice pack, and it is offered as a pack: two of
+ * its three documents are the same procedure at two seed lengths and the third
+ * is the reference table they share. These are the self-custody checklist at
+ * four rungs. Merging the lists would put a checklist on /dice-word-table and a
+ * word table on /checklist, which is the opposite of what either reader came
+ * for — the two are alike only in being printable.
+ *
+ * The rung, the slug and the filename all come from `checklistSheets`, which
+ * derives them from ladder.js; only the page count is added here, because only
+ * this file may read the built PDF.
+ *
+ * DIRECTION MATTERS: this file imports checklist.js, never the reverse.
+ * checklist.js is imported inside client <script> blocks on /checklist, and
+ * anything it imports lands in that bundle — `node:fs` and `node:crypto` among
+ * them. Same failure as invariant #5, one import away.
+ */
+import { checklistSheets } from './checklist.js';
+
+export const checklistPdfs = checklistSheets.map((s) => ({
+  slug: s.slug,
+  file: s.file,
+  label: s.name,
+  steps: s.count,
+  get pages() { return pdfPages(s.file); },
+}));
 
 const pageCache = new Map();
 

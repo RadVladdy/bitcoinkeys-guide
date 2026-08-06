@@ -32,6 +32,9 @@ import { assessDevices } from './wallets.js';
 // The passphrase step's word counts come from the same place /learn/ladder's
 // guidance takes them, so the step and the lesson cannot state different floors.
 import { passphraseByKey } from './dice.js';
+// The printed sheets are one per RUNG and take their slugs and names from the
+// ladder itself — see § the printed sheets at the foot of this file.
+import { ladder } from './ladder.js';
 
 export const PHASES = [
   { key: 'setup',  tag: 'Step 1',    title: 'Get set up',        intro: 'The moves that get your Bitcoin out of someone else’s hands and into your own.' },
@@ -308,3 +311,78 @@ export const ruleForItem = (item) => (item && item.rule ? ruleByKey(item.rule) :
 
 /** Total number of checklist items (the full generic list). */
 export const checklistCount = checklistItems.length;
+
+// ── The printed sheets — ONE PER RUNG, never one sheet for everyone ──────────
+// A printed checklist is the same problem the dice method sheet already solved.
+// That sheet was one page saying "twenty-three words, or eleven for a 12-word
+// seed" and was split per length, because a reader holding paper while handling
+// key material should not have to work out which half is theirs. A single
+// printed checklist is worse than that sentence: it tells a single-sig reader to
+// "use a different maker for each of your three keys" when they have one key,
+// with nothing on the page to say the line is not for them. On screen the same
+// list is honest because the callout above it says so and the finder is one
+// click away; on paper both of those are gone.
+//
+// So there are four documents and the rung is on every one of them, derived from
+// ladder.js so a fifth rung would get a sheet rather than be quietly missing.
+//
+// WHAT THE SHEET CANNOT KNOW, and why each unknown resolves the way it does.
+// itemApplies() answers three questions a print run has no reader for:
+//   heirs     — assumed TRUE. `tell-heirs` is "make sure the right person knows
+//               the kit exists"; a reader who will never need it loses one line,
+//               and a reader who does need it and never sees it loses the plan.
+//   custodian — assumed TRUE, which only reaches the collaborative sheet, where
+//               a custodian is what the rung IS.
+//   devices   — deliberately EMPTY, so "get a hardware wallet" stays in. That is
+//               itemApplies()'s own documented answer for a caller that does not
+//               know what you own, and buying the device is not a step to drop
+//               on a guess.
+// Each unknown resolves toward INCLUDING the step, so the sheet is the longest
+// honest list for that rung — and the sheet's own lead says the site can trim it
+// further. A printed step you have already done costs a glance; a missing one
+// costs whatever it was protecting.
+
+/** The context a printed sheet is filtered with. See the note above. */
+export const printSheetContext = (rungSlug) => ({
+  rung: rungSlug,
+  heirs: true,
+  custodian: true,
+  devices: [],
+  owned: [],
+});
+
+/**
+ * The four printable sheets: one per rung, each grouped by phase exactly as the
+ * screen list is, and each filtered with the SAME itemApplies() the page and
+ * /my-plan use. There is no second filter to drift from the first — which is the
+ * whole reason itemApplies() was written pure.
+ *
+ * `items` is the flat list too, because the build script asserts a document's
+ * contents against it (present ⊆ this rung, absent ⊇ every other rung's).
+ */
+export const checklistSheets = ladder.map((rung) => {
+  const ctx = printSheetContext(rung.slug);
+  const items = checklistItems.filter((it) => itemApplies(it, ctx));
+  return {
+    slug: rung.slug,
+    name: rung.name,
+    file: `/checklist-${rung.slug}.pdf`,
+    items,
+    count: items.length,
+    groups: PHASES.map((p) => ({
+      tag: p.tag,
+      title: p.title,
+      intro: p.intro,
+      items: items.filter((it) => it.phase === p.key),
+    })).filter((g) => g.items.length),
+  };
+});
+
+// A sheet with no steps in it is not a sheet, and an empty phase heading on
+// paper reads as a step somebody forgot to print. Both are build failures.
+for (const s of checklistSheets) {
+  if (!s.count) throw new Error(`checklist.js: the printed sheet for rung "${s.slug}" has no steps`);
+  for (const g of s.groups) {
+    if (!g.items.length) throw new Error(`checklist.js: sheet "${s.slug}" kept an empty phase "${g.title}"`);
+  }
+}
