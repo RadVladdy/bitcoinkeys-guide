@@ -50,7 +50,8 @@ const pctPoor = Math.round((metalOutcome.poor / metalOutcome.reviewed) * 100);
   <h2>The good news first</h2>
   <p class="m-lead">
     Most of these products are fine. Of the {metalOutcome.reviewed} devices tested, <strong>{metalOutcome.topGrade} came
-    through every test with nothing lost</strong>, and only {metalOutcome.poor} — about {pctPoor}% — did badly.
+    through every test with nothing lost</strong>, another {metalOutcome.nearTop} were marked down in one test
+    only, and just {metalOutcome.poor} — about {pctPoor}% — did badly.
     So this is not a minefield, and you do not need to agonise. You need to avoid a
     <a href="#metal-failures">short list of specific traps</a>, and then pick on the things the stress tests
     don't measure. That second part is what the rest of this page is for.

@@ -208,7 +208,7 @@ export const deviceProcedures = [
       'Each roll changes the running SHA-256 on screen, so you can watch your own entropy accumulate. With zero rolls entered the display always reads e3b0c4…8b855, which is SHA-256 of the empty string — the vendor points this out so you can confirm the device is hashing exactly what you gave it and nothing else.',
     verify:
       'Coinkite publishes rolls.py and rolls12.py so you can reproduce the whole calculation from your sequence and confirm the words match. Their own instruction is to do that on an offline machine — an amnesic live system with no network and no disk — and never on your everyday computer.',
-    source: { label: 'Coinkite — Master Seed', url: 'https://coldcard.com/docs/import#dice-rolls-only' },
+    source: { label: 'Coinkite — Master Seed', url: 'https://coldcard.com/docs/master-seed/#dice-rolls-only' },
     source2: { label: 'Coinkite — Verifying Dice Roll Math', url: 'https://coldcard.com/docs/verifying-dice-roll-math/' },
   },
   {
@@ -249,7 +249,7 @@ export const deviceProcedures = [
     covers: ['Blockstream Jade', 'Blockstream Jade Plus', 'Blockstream Jade Core'],
     family: 'final-word',
     dice: 'Two 16-sided dice and one 8-sided die — not a d6.',
-    path: ['Set Up Jade', 'Advanced Setup', 'Restore Wallet', '12/24 Words', 'Calculate'],
+    path: ['Setup Jade', 'Advanced Setup', 'Restore Wallet', '12/24 Words', 'Calculate'],
     pathNote:
       'Options → Temporary Signer → 12/24 Words reaches the same screen without committing the device. Choose Calculate, not Existing: Existing is for when you already know your final word.',
     rolls:

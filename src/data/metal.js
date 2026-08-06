@@ -51,10 +51,18 @@ export const metalTests = [
 /**
  * The distribution, which is the finding most people get backwards.
  * Recomputed from the source's grade column on the metalVerified date.
+ *
+ * ⚠️ COUNT THE GRADE, NOT THE LETTER. `topGrade` was 56 until 2026-08-06, which is
+ * grade A PLUS grade A- — and the sentence it renders into says "came through every
+ * test with nothing lost", which A- does not mean. Every one of the 11 A- devices
+ * carries a B in exactly one of the three tests, and the source's own review text
+ * explains one of those Bs as a deduction for potential data loss on read-back. The
+ * number and its own gloss disagreed. Straight A in heat, corrosion AND crush is 45.
  */
 export const metalOutcome = {
   reviewed: 75,
-  topGrade: 56,   // grade A overall — no data loss in any test
+  topGrade: 45,   // grade A overall — straight A in all three tests
+  nearTop: 11,    // grade A- — marked down in exactly one of the three
   poor: 10,       // grade D or F overall
 };
 
@@ -66,7 +74,7 @@ export const metalCriteria = [
   },
   {
     t: 'A single solid plate, not loose tiles',
-    d: 'Tile systems ask you to slot dozens of little letter pieces into a frame. They work, but a crush or a drop can scatter them, and reassembling a seed from loose tiles is not something you want to discover under pressure. One plate has nothing to come apart. The worst failure in the whole test set is a tile design whose rivets dissolved, dropping every letter out.',
+    d: 'Tile systems ask you to slot dozens of little letter pieces into a frame. They work, but a crush or a drop can scatter them, and reassembling a seed from loose tiles is not something you want to discover under pressure. One plate has nothing to come apart. One tile design in the test set had its rivets dissolve, dropping every letter out — the tester’s own words for the result are catastrophic data loss.',
   },
   {
     t: 'Stainless steel is enough; titanium is optional',
