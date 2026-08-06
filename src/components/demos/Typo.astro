@@ -3,12 +3,12 @@
 // and inline in /learn/generate-your-seed, which teaches the checksum three
 // times and is where a reader meets the claim this makes concrete.
 //
-// IT CARRIES ITS OWN HONESTY, and that is the whole reason it was safe to
-// inline. Until 2026-08-04 this demo said a wallet "refuses the whole phrase"
-// on a miscopied word, full stop — while the lesson said a small fraction pass
-// silently into a different empty wallet. The caveat block inside the demo is
-// now part of the component, so the correction cannot be left behind by whoever
-// embeds this next, exactly like the safety callout above it.
+// THE CAVEAT BLOCK IS LOAD-BEARING, NOT DECORATION — do not strip it when
+// embedding. Alone, the demo implies a wallet always "refuses the whole phrase"
+// on a miscopied word; in fact a small fraction of miscopies still carry a valid
+// checksum and open a different, empty wallet. The caveat says so, and it lives
+// INSIDE the component precisely so no embed can render the claim without it —
+// the same reason the safety callout above it is inline rather than page-side.
 //
 // ⚠️ THE className TRAP IS LIVE IN HERE. paint() assigns `v.className` wholesale
 // to set the ok/no state. That was safe while `verdict` was an id; as a CLASS
