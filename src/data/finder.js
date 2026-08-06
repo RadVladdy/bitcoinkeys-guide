@@ -899,6 +899,33 @@ const PASSPHRASE_STANDING = {
   text: 'One thing to take on with it: a passphrase adds a way to lose everything that no backup can undo. Forget it and the seed alone opens only the decoy — there is no reset and nobody to ask. Back the passphrase up as carefully as the seed itself, keep it somewhere the seed is not, and say plainly in your recovery notes that it exists.',
 };
 
+// THE SECOND STANDING WARNING, added 2026-08-06 with the philosophy change, and
+// it exists because of a hole with exactly the same shape as the one above.
+//
+// The site's position is that nothing should depend on one thing being fine.
+// Bare single-sig is the one recommendation this engine still produces that does
+// — and it produces it ONLY below learning stakes, which is deliberate and
+// stays: the scaling rule says the less you are protecting, the less it takes,
+// so a blanket floor would contradict the rule it is meant to serve.
+//
+// THE HOLE IS THAT THE DISCLOSURE WAS TIED TO THE WRONG TRIGGER. The `stakes`
+// caveat already says this setup "rests on a single device and a single backup",
+// but the caveat machinery only speaks when a reader rates that concern
+// ELEVATED — which, at learning stakes, is by definition never. So the single
+// reader who receives a single point of failure was the single reader never told
+// it was one. That is the same defect PASSPHRASE_STANDING was written to fix:
+// the one card recommending the thing shipped with no warning about it.
+//
+// Grades, not gates. Nothing is refused; the reader is told plainly what they
+// have been handed and what would change it, and decides. Asserted in
+// verify-finder.mjs so it cannot go quiet again.
+const SINGLE_POINT_STANDING = {
+  concern: 'stakes',
+  standing: true,
+  label: 'What this setup is, plainly',
+  text: 'This is one device and one backup, and it is the honest answer for money whose loss would not change your life — it asks the least of you and there is least to get wrong. Be clear about what you are holding, though: everything rests on that one seed being fine. One bad backup, one flaw in one device, one fire, and there is nothing else holding the line. The cheapest thing that changes it is a passphrase your device never sees — and the moment this stops being money you are learning with is the moment to come back and add one.',
+};
+
 const REASON_TEXT = {
   custodial: {
     single: 'Your company-failure concern is {word} — and this setup answers it completely, on day one. The moment the keys are yours, no exchange can freeze your account, lose your coins, or take them down with it.',
@@ -1636,6 +1663,15 @@ export function recommendV2(answers = {}) {
   // not double up.
   if (family === 'passphrase' && !holdbacks.some((h) => h.concern === 'self-loss')) {
     holdbacks.push({ ...PASSPHRASE_STANDING });
+  }
+  // The single-point-of-failure disclosure rides ALWAYS on a bare single-sig
+  // primary, for the same reason: the computed `stakes` caveat cannot fire for
+  // the reader who most needs to hear it, because it is gated on rating stakes
+  // elevated and this recommendation only exists below that line. If the
+  // computed caveat DID fire it says the same thing in the reader's own terms,
+  // so this does not double up.
+  if (family === 'single' && !holdbacks.some((h) => h.concern === 'stakes')) {
+    holdbacks.push({ ...SINGLE_POINT_STANDING });
   }
   // Worst gap first — if a result carries several caveats, the reader should
   // meet the biggest trade before the smaller ones. A STANDING warning always

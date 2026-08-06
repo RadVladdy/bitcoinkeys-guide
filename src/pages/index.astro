@@ -164,21 +164,29 @@ const optional = levels.filter((lv) => lv.optional);
           hardware brand of our own — not now, not later. It is the one thing the best-funded guides in
           this space structurally cannot say, and it is why you can take the device ratings at face value.
         </li>
+        {/* ORDER IS THE ARGUMENT, and it was the other way round until 2026-08-06.
+            The simplicity item led and this one opened "But for money that would
+            really hurt…", which made the floor read as an exception to simplicity.
+            The position is the reverse: where they collide, the floor wins. A list
+            states its ranking by its order, so the order moved with the position. */}
+        <li>
+          <strong>Nothing you own should depend on one thing being fine.</strong> One wallet, one seed,
+          one maker — everything resting on that staying fine. When a firmware flaw made
+          <a href="/advisory/coldcard-seed-entropy">weak Coldcard seeds</a> guessable, every wallet
+          drained was exactly that, and the holders who came through untouched had combined something:
+          a passphrase, their own dice throws, or a second maker’s key. <strong>It is about combining
+          independent things, not about multisig</strong> — one wallet with a passphrase the device never
+          saw already clears it, and three keys from one manufacturer do not. If losing your Bitcoin
+          genuinely wouldn’t change your life, one wallet kept properly is still an honest answer and we
+          say so plainly when we recommend it. Everywhere above that,
+          <a href="/learn/ladder">levelling up</a> is the recommendation.
+        </li>
         <li>
           <strong>{simplest.rule}</strong> Not the most impressive setup, and not the one a vendor is
           selling. More keys and more clever schemes are the single biggest cause of lost Bitcoin, so
           complexity you don’t fully control is itself a threat. Climb a rung when your situation
           genuinely outgrows the one you’re on — not because the next one sounds more serious.
-        </li>
-        <li>
-          <strong>But for money that would really hurt to lose, we won’t leave you on a single point of
-          failure.</strong> One wallet, one seed, no passphrase — everything you have resting on one thing
-          staying fine. When a firmware flaw made <a href="/advisory/coldcard-seed-entropy">weak Coldcard
-          seeds</a> guessable, every wallet drained was exactly that, and the holders who came through it
-          untouched were the ones with a passphrase, their own dice throws, or a second maker’s key. If
-          losing your Bitcoin genuinely wouldn’t change your life, one wallet kept properly is still an
-          honest answer and we’ll say so. Everywhere above that, <a href="/learn/ladder">levelling up</a>
-          is the recommendation.
+          <strong>Where this and the point above collide, the point above wins.</strong>
         </li>
         <li>
           <strong>Every choice trades one risk for another.</strong> What makes it harder for a thief to

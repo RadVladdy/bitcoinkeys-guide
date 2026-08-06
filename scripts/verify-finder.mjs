@@ -551,6 +551,33 @@ for (const selfScore of [0, 20, 52, 80]) {
 }
 console.log(`  C10 passphrase warning — ${c10n} passphrase primaries, all carry the lockout warning`);
 
+// ── C10b · BARE SINGLE-SIG ALWAYS DISCLOSES THAT IT IS A SINGLE POINT ────────
+// The mirror of C10, and it closes the same hole from the other side. C11 below
+// proves no reader ABOVE learning stakes is handed a bare single-sig. This
+// proves the readers who ARE handed one are told what it is.
+//
+// It has to be a standing warning rather than a computed caveat for a reason
+// that is easy to miss: the `stakes` caveat says exactly the right words, and it
+// fires only when a reader rates stakes elevated — which cannot happen on the
+// one path that produces this recommendation. The disclosure was therefore
+// unreachable for precisely its audience. Same defect as C10, one rung down.
+let c10bn = 0;
+for (const stakes of STAKES) for (const tech of TECH) for (const sovereignty of SOV)
+for (const selfScore of [0, 20, 52, 80]) {
+  const scores = { ...defaultsFor(stakes, sovereignty), 'self-loss': selfScore };
+  const res = recommendV2({ ...baseAnswers, stakes, tech, sovereignty, scores });
+  if (res.primary.rungSlug !== 'single-sig' || res.primary.fork) continue;
+  c10bn++;
+  const where = `C10b single-sig self=${selfScore} ${stakes}/${tech}/${sovereignty}`;
+  if (!res.holdbacks.some((h) => h.concern === 'stakes')) {
+    fail(`${where}: recommends a bare single-sig with NO single-point-of-failure disclosure`);
+  }
+  if (!/single|one seed|one device|one backup/i.test(res.primary.holdback || '')) {
+    fail(`${where}: the card's own holdback line never says this rests on one thing`);
+  }
+}
+console.log(`  C10b single-point disclosure — ${c10bn} bare single-sig primaries, all disclose it`);
+
 // ── C11 · NO SINGLE POINT OF FAILURE ABOVE LEARNING STAKES ───────────────────
 // THE HOUSE STANCE, AND THE ONE THE SITE STATES ON ITS FRONT PAGE. One hardware
 // wallet with no passphrase is a single point of failure: one seed, one maker,

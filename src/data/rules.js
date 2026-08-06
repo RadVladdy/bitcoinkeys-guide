@@ -94,7 +94,11 @@ export const rules = [
     // states the PRINCIPLE (every choice is a trade), the second the DIRECTIVE that
     // follows from it. Run together they were 187 words against a 96-word longest,
     // a wall on the one page whose whole job is twelve scannable lines.
-    body2: 'Which is why climbing higher is never free: more keys, more devices and more clever schemes are the single biggest cause of lost Bitcoin, so complexity you don’t fully control is itself a threat. But <strong>“covers you” changes as your situation does</strong>: when the amount you’re securing has outgrown the rung you’re on — when thinking about it starts to make you uneasy — that is a real reason to move up. Climb for that. Don’t climb for the sake of it.',
+    // The floor was added to this paragraph on 2026-08-06 rather than left to
+    // /about, because this is the rule a reader meets on the flat list of twelve
+    // — the one surface that deliberately cannot link out. A reader who never
+    // runs the finder was getting the simplicity half and nothing else.
+    body2: 'Which is why climbing higher is never free: more keys, more devices and more clever schemes are the single biggest cause of lost Bitcoin, so complexity you don’t fully control is itself a threat. But <strong>“covers you” changes as your situation does</strong>: when the amount you’re securing has outgrown the rung you’re on — when thinking about it starts to make you uneasy — that is a real reason to move up. Climb for that. Don’t climb for the sake of it. <strong>And “simplest” has a floor: it never means leaving one thing whose failure takes everything.</strong> Combining two independent things — a seed plus a passphrase the device never saw, or keys from two different makers — is what clears that, and where the two ideas collide, the floor wins.',
     href: '/learn/ladder',
     level: '102',
     lesson: 'The wallet configuration ladder',

@@ -89,8 +89,23 @@ TOPICS = {
                r'we.d trust|would not|wouldn.t|best|recommend)\b',
     ),
     'complexity': dict(
-        why='The site\'s stance is that complexity is the top cause of loss. Any page '
-            'implying more keys = more secure is arguing against rule 03.',
+        # REWRITTEN 2026-08-06 (item 30). This read "the site's stance is that
+        # complexity is the top cause of loss; any page implying more keys =
+        # more secure is arguing against rule 03" — which stopped being true the
+        # day the ranking changed. Above learning stakes, a page arguing that
+        # combining independent things is safer is now stating the house
+        # position, and a topic description that calls it a violation would send
+        # the next reader to "fix" correct copy. Same defect as the retired-
+        # vocabulary topic in backlog 27: a check's first job is to agree with
+        # the thing it checks.
+        why='TWO TRUE STANCES THAT NOW HAVE A RANKING, so read for the ORDER, not for '
+            'either one alone. (1) Complexity you do not control is a top cause of loss '
+            '(rule 03). (2) Nothing should rest on one thing whose failure is total, and '
+            'where the two collide (2) WINS. What to flag: a page presenting simplicity as '
+            'the overriding value, introducing the floor as an exception to it ("the one '
+            'thing that rule does not excuse", "but for money that would hurt"), or reading '
+            'the floor as an argument for multisig specifically — it is about COMBINING '
+            'INDEPENDENT things, and single-sig with a passphrase satisfies it.',
         subject=r'\b(multisig|multi-signature|passphrase|more keys|complexity|rung)\b',
         stance=r'\b(more secure|safer|better|stronger|upgrade|should climb|advanced)\b',
     ),
