@@ -60,6 +60,14 @@ EXEMPT = {
         'correctly absent. Safe because each list is ratedDevicesForMethod() and '
         "dice.js asserts every rated device lands in exactly one of its three "
         'states, so one cannot fall out of all of them the way Bitkey did',
+    '/setup-walkthrough':
+        'covers the COLD TIER only, and that exclusion is the editorial position — a '
+        'walkthrough is an endorsement in the shape of a diagram, so the two spending '
+        'devices and the one below our bar are deliberately absent and the page says '
+        'so. Safe because the roster is coldWallets, derived from the same tier field '
+        'the ratings use, and walkthrough.js fails the build if a cold device has no '
+        'walkthrough OR a non-cold device has one — so a device cannot go missing here '
+        'without the build refusing, which is the question this exemption has to answer',
 }
 
 # A page naming this share of the roster is enumerating it, whatever it calls

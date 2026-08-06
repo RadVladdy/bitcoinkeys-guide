@@ -63,6 +63,13 @@ export const navGroups = [
       // reader checking whether their own device is affected should not have to
       // find it through a banner they may have already scrolled past.
       { href: '/advisory/coldcard-seed-entropy', label: 'Security advisory — Coldcard' },
+      // ADDED 2026-08-05. It belongs in THIS group and the test is the group's own:
+      // every page here sends the reader out to a maker, and each walkthrough links
+      // the maker's own setup guide because we deliberately do not hold a copy of
+      // their menus. It also sits where the reader is standing — directly after
+      // choosing a device and before rating theory, which is the order the question
+      // arrives in.
+      { href: '/setup-walkthrough', label: 'Setting one up' },
       { href: '/standard', label: 'How we rate them' },
       { href: '/metal-backups', label: 'Metal backups' },
       { href: '/collaborative', label: 'Collaborative custody' },

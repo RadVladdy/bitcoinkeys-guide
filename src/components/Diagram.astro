@@ -8,10 +8,75 @@
 // diagram, and these are the most-reused components on the site. Each <svg>
 // carries a role="img" aria-label describing what it depicts, which is the
 // documentation that SHOULD ship; anything further belongs up here.
+//
+// THE `screens-*` FAMILY IS GENERATED, and the rest of this file is not.
+// Every other diagram here is one drawing of one idea, written once. The device-screen
+// storyboards are the opposite: one layout, seven times, differing only in the
+// controls drawn under each panel — so writing them by hand would be seven copies
+// of a grid, and copies of a grid drift exactly the way four copies of a table of
+// contents already did here. The words on the panels are shared because they are
+// shared in reality: these are BIP-39 devices and they all show the same four
+// moments. What differs is how you press the thing, which is the one part keyed to
+// hardware rather than to firmware.
+import { interfaceByKey, screenPanels } from '../data/walkthrough.js';
+
 export interface Props { name: string; caption?: string; }
 const { name, caption } = Astro.props;
+
+// Storyboard geometry. Two columns, two rows; each panel is a screen rect with a
+// name above it and the device's own controls below it. The row spacing is not
+// arbitrary — a row's control caption and the NEXT row's panel label are the two
+// pieces of free-floating text closest to each other in the whole drawing, and the
+// gap between them is what stops either being read as belonging to the other's box.
+const PW = 225;
+const PH = 118;
+const COLS = [10, 245];
+const ROWS = [32, 190];
+// The controls are drawn ONCE, under everything, rather than under each panel.
+// Four copies of one two-button glyph and its caption is the drawing repeating
+// itself four times to say something it only has to say once — and the caption
+// carries the device's controls in words anyway.
+const GLYPH_Y = 322;
+const GLYPH_X = 127.5;
+const STORY_H = 356;
+const story = name.startsWith('screens-') ? interfaceByKey[name.slice('screens-'.length)] : null;
+// Labelled by name and NOT numbered — makers disagree about when the PIN is set,
+// so a number here would be the artwork asserting a sequence the data file
+// deliberately refuses to assert.
+const cells = story
+  ? screenPanels.map((p, i) => ({ p, x: COLS[i % 2], y: ROWS[Math.floor(i / 2)] }))
+  : [];
 ---
 <figure class="diagram" data-diagram={name}>
+  {story && (
+    <svg viewBox={`0 0 480 ${STORY_H}`} role="img"
+      aria-label={`The four screens a hardware wallet shows you during setup — a PIN, your words, a check that you wrote them down, and a receiving address to compare — on a device driven by ${story.controls}`}>
+      {cells.map((c) => (
+        <>
+          <text x={c.x + 2} y={c.y - 10} fill="var(--accent)" font-family="var(--mono)" font-size="9.5">{c.p.tag}</text>
+          <rect x={c.x} y={c.y} width={PW} height={PH} rx="10" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="2"/>
+          {c.p.lines.map((ln, j) => (
+            <text x={c.x + PW / 2} y={c.y + 34 + j * 28} text-anchor="middle"
+              fill={j === 0 ? 'var(--text)' : 'var(--muted)'} font-family="var(--mono)" font-size="11">{ln}</text>
+          ))}
+        </>
+      ))}
+      {story.glyph.map((s) => (
+        s.t === 'rect' ? (
+          <rect x={GLYPH_X + s.x} y={GLYPH_Y + s.y} width={s.w} height={s.h} rx={s.rx ?? 1.5}
+            fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.2"/>
+        ) : s.t === 'circle' ? (
+          <circle cx={GLYPH_X + s.x} cy={GLYPH_Y + s.y} r={s.r} fill="none" stroke="var(--accent)" stroke-width="1.5"/>
+        ) : s.t === 'path' ? (
+          <path d={s.d} fill="var(--accent)" transform={`translate(${GLYPH_X} ${GLYPH_Y})`}/>
+        ) : (
+          <text x={GLYPH_X + s.x} y={GLYPH_Y + s.y} text-anchor="middle"
+            fill="var(--faint)" font-family="var(--mono)" font-size={s.size ?? 8}>{s.s}</text>
+        )
+      ))}
+    </svg>
+  )}
+
   {name === 'keys-mailbox' && (
     <svg viewBox="0 0 460 240" role="img" aria-label="Public key is a mail slot anyone can use; only the private key opens the box">
       <rect x="140" y="74" width="150" height="138" rx="12" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="2.5"/>

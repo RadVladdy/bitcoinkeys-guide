@@ -63,6 +63,21 @@ const PAGES = [
   '/privacy-tools/payjoin/',
   '/privacy-tools/silent-payments/',
   '/privacy-tools/coinjoin/',
+  // The setup walkthroughs. NINE device pages carry SEVEN distinct storyboards —
+  // two pairs share an interface class and the dedup below measures each drawing
+  // once — but every page is listed anyway, because the thing this list protects
+  // against is a page whose diagram nobody is looking at, and "it renders the same
+  // one as its sibling" is a fact about today's data rather than about the list.
+  '/setup-walkthrough/',
+  '/setup-walkthrough/coldcard-q/',
+  '/setup-walkthrough/coldcard-mk5/',
+  '/setup-walkthrough/trezor-safe-3/',
+  '/setup-walkthrough/trezor-safe-5/',
+  '/setup-walkthrough/trezor-safe-7/',
+  '/setup-walkthrough/bitbox02/',
+  '/setup-walkthrough/jade-core/',
+  '/setup-walkthrough/jade-core-2026/',
+  '/setup-walkthrough/jade-plus/',
 ];
 const BASE = process.argv[2] || 'http://localhost:4399';
 const PAD = 3;    // a glyph this close to a stroke reads as touching it

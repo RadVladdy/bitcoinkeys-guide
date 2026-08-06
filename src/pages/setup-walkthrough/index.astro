@@ -1,0 +1,215 @@
+---
+// The walkthrough hub, and the teaching surface of the cluster.
+//
+// THE THREE LAYERS LIVE HERE, NOT ON NINE PAGES. The device pages are procedures
+// in the same sense /checklist is a procedure: they render an ordered list of
+// steps and they teach nothing a lesson does not already own. Writing "how a
+// hardware wallet setup actually works" nine times would be nine copies of one
+// argument, and this project has already paid for four copies of a table of
+// contents and two copies of a rung pitch. So the mechanism, the alternatives —
+// including the ones we advise against — and the recommendation are stated once,
+// on the door, and the nine pages inherit them.
+//
+// THE `signing` DIAGRAM IS REUSED RATHER THAN REDRAWN. It already says the exact
+// thing this page opens on: the key stays inside, and what comes out is a
+// signature. A second drawing of that would be a second rendering of one subject.
+import Base from '../../layouts/Base.astro';
+import Diagram from '../../components/Diagram.astro';
+import RuleRef from '../../components/RuleRef.astro';
+import { navWhere } from '../../data/nav.js';
+import {
+  walkthroughGroups, walkthroughDevices, walkthroughVerified, walkthroughFor, drawnNotCaptured,
+} from '../../data/walkthrough.js';
+
+const wallets = navWhere('/wallets');
+const finder = navWhere('/find-your-setup');
+---
+<Base
+  title="What setting up a hardware wallet actually looks like · BitcoinKeys.guide"
+  description="Drawn, step-by-step walkthroughs of the four screens every cold-storage hardware wallet shows you during setup — the PIN, your words, the check, and the address — with a page for each device we rate for cold storage. No affiliate links."
+  verified={walkthroughVerified}
+>
+  <section class="prose">
+    <p class="eyebrow">Before you take it out of the box</p>
+    <h1>What setting one up <span class="accent">actually looks like</span></h1>
+    <p class="lead">
+      Almost everything written about hardware wallets stops at which one to buy. The part that
+      decides whether your Bitcoin survives happens twenty minutes later, on a screen the size of a
+      postage stamp, in a room on your own. These pages are that twenty minutes, drawn — one for
+      each device we rate for cold storage.
+    </p>
+    <div class="callout">
+      <span class="label">These are drawings, and we would rather say so</span>
+      <p style="margin:0">{drawnNotCaptured}</p>
+    </div>
+  </section>
+
+  <section class="prose">
+    <h2 id="how-it-works">Why the device has a screen at all</h2>
+    <p>
+      A hardware wallet is not a safe with your Bitcoin inside it. Your coins are on the Bitcoin
+      network and always were; what the device holds is the one secret that can move them, and its
+      entire job is to hold that secret somewhere your computer cannot reach — and then to
+      <em>show you</em> what it is about to do, on a display your computer does not control.
+    </p>
+    <Diagram
+      name="signing"
+      caption="The device never hands over the key. Your computer asks it to approve something; the device shows you what that something is, you press the button, and only a signature comes back."
+    />
+    <p>
+      That second half is the one people miss, and it is what makes the setup steps below matter
+      rather than merely exist. Your computer can be lying to you — about the address you are
+      sending to, about the wallet you are looking at, about which words you just typed. The little
+      screen is the one surface in the whole arrangement that an attacker on your laptop cannot
+      repaint. <strong>Every screen in these walkthroughs is a moment where the device is telling
+      you something your computer is not allowed to tell you, and your only job is to actually read
+      it.</strong>
+    </p>
+    <p>
+      The keys themselves come from randomness the device generates when you first set it up, and
+      the words it shows you are that randomness written in a form a human can copy down. Which is
+      why the words <em>are</em> the wallet: the device is a convenient way to use them, and it is
+      replaceable. The words are not.
+    </p>
+
+    <h2 id="what-else">The other ways people do this — including the two we would talk you out of</h2>
+    <p>
+      You have almost certainly already thought of one of these, so here they are with what each one
+      actually costs you.
+    </p>
+    <p>
+      <strong>Follow the maker’s own guide instead.</strong> Genuinely a good idea, and every page
+      here links to it. Their guide is the authority on which menu item is called what this month,
+      and it is kept current in a way nothing on this site could be. What it will not do is tell you
+      which of its own defaults to refuse, because it is not in the business of arguing with itself
+      — and on more than one device here the default is not what we would choose.
+    </p>
+    <p>
+      <strong>Follow a video.</strong> Fine for seeing the physical device handled. The trouble with
+      video is that it is undated in practice — a walkthrough filmed two firmware versions ago looks
+      exactly as authoritative as one filmed last week, and the comments never say which. If you
+      watch one, check its date against the maker’s guide before you copy anything.
+    </p>
+    <p>
+      <strong>Have somebody set it up for you.</strong> This is the one we would talk you out of, and
+      not because of trust. Whoever does the setup sees the words. Even where that person is
+      completely trustworthy, you end up holding coins whose recovery you have never once performed —
+      and the first time you do it will be under pressure, on the day something has already gone
+      wrong. <RuleRef key="self-inflicted" /> is not about villains.
+    </p>
+    <p>
+      <strong>Buy a device that arrives ready to go.</strong> This is the other one, and here it
+      really is about trust: a device that shows you a seed phrase it has already generated is a
+      device someone else has the words to.
+      <RuleRef key="buy-direct" label="Buy it new and direct" /> exists because that scam is cheap,
+      common, and completely invisible until the coins leave.
+    </p>
+    <p>
+      <strong>Set it up, and skip the restore test.</strong> Most people do this, including people
+      who have held Bitcoin for years. It is the reason this walkthrough has a step almost no
+      published guide has: the backup you have not restored from is a piece of paper you
+      <em>believe in</em>. <RuleRef key="test-backup" /> is the whole difference between the two.
+    </p>
+
+    <h2 id="what-we-do">What we would do</h2>
+    <p>
+      <strong>Set aside an hour, alone, with the door shut and the phone in another room.</strong>
+      Not because the setup takes an hour — it does not — but because the two failure modes here are
+      being rushed and being watched, and neither is fixable afterwards.
+    </p>
+    <p>
+      <strong>Do the steps in the order on your device’s page, and do not skip ahead to funding
+      it.</strong> That order is not ours to shuffle: it is the same order your checklist runs in,
+      and the build refuses to publish a walkthrough that reorders it. The single most expensive
+      mistake available to you in that hour is moving real money in before the restore has been
+      proven, because everything looks completely fine either way.
+    </p>
+    <p>
+      <strong>Keep the maker’s guide open beside ours.</strong> Theirs has the exact wording and the
+      exact menu; ours has what to refuse and why. They answer different questions and you want both
+      open at once.
+    </p>
+    <p>
+      <strong>And if the device does something these pages did not lead you to expect, stop and find
+      out why before you continue.</strong> That is not a counsel of paranoia. It is the one moment
+      in the life of this setup when stopping costs you nothing at all.
+    </p>
+  </section>
+
+  <section>
+    <h2 id="devices">Pick your device</h2>
+    <p class="note">
+      Grouped by how you actually drive the thing, because that is what changes what you see —
+      two devices from one maker can be further apart here than two devices from different ones.
+    </p>
+    {walkthroughGroups.map((g) => (
+      <div class="grp">
+        <p class="grp-h"><span class="mono">{g.ui.controls}</span></p>
+        <ul class="cards">
+          {g.devices.map((d) => (
+            <li>
+              <a class="card" href={walkthroughFor(d.slug)}>
+                {d.image && <img src={d.image} alt="" width="64" height="64" loading="lazy" />}
+                <span class="c-body">
+                  <span class="c-name">{d.name}</span>
+                  <span class="c-sub">{d.vendor}</span>
+                </span>
+                <span class="arw">→</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    ))}
+  </section>
+
+  <section class="prose">
+    <h2 id="why-these">Why these devices and not every device</h2>
+    <p>
+      This cluster covers the devices we rate <strong>built for cold storage</strong>, and it stops
+      there on purpose. A step-by-step walkthrough is an endorsement wearing a diagram’s clothes: it
+      makes a device easier to follow onto, and doing that for hardware our own published standard
+      says we would not put a decade of savings on would be arguing with ourselves in a format
+      nobody reads as an argument. The two devices we rate for spending and the one that does not
+      clear our bar are covered in full on <a href="/wallets">{wallets.label}</a>, with the reasoning
+      attached — they are simply not walked through here.
+    </p>
+    <p>
+      The list above is not typed anywhere. It is the cold tier, read from the same file that
+      decides the ratings, so a device cannot quietly appear here without clearing the bar or
+      disappear from here while still clearing it.
+    </p>
+    <p class="note">
+      Not sure which device yet? <a href="/find-your-setup">{finder.label}</a> settles what kind of
+      setup you need first, which is the question that decides how many devices you are buying at
+      all. There are {walkthroughDevices.length === 1 ? 'one walkthrough' : `${walkthroughDevices.length} walkthroughs`} here
+      and you only need the one.
+    </p>
+  </section>
+</Base>
+
+<style>
+  .prose :global(ul) { padding-left: 1.3rem; }
+  .prose :global(li) { margin: 0.5rem 0; }
+  .prose :global(li::marker) { color: var(--accent); }
+
+  .note { color: var(--muted); font-size: 0.95rem; }
+
+  .grp { margin: 0 0 1.6rem; }
+  .grp-h { margin: 0 0 0.6rem; color: var(--faint); font-size: 0.74rem; letter-spacing: 0.08em;
+    text-transform: uppercase; }
+
+  .cards { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.7rem; }
+  @media (min-width: 720px) { .cards { grid-template-columns: repeat(2, 1fr); } }
+
+  .card { display: flex; align-items: center; gap: 0.9rem; border: 1px solid var(--line);
+    border-radius: var(--radius); background: var(--surface); padding: 0.85rem 1.1rem;
+    text-decoration: none; color: inherit; transition: border-color 0.15s ease, transform 0.15s ease; }
+  .card:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .card img { width: 48px; height: 48px; object-fit: contain; flex: none; }
+  .c-body { display: flex; flex-direction: column; flex: 1 1 auto; }
+  .c-name { font-weight: 700; color: var(--text); }
+  .c-sub { font-size: 0.8rem; color: var(--faint); }
+  .arw { color: var(--accent); transition: margin-left 0.15s ease; }
+  .card:hover .arw { margin-left: 0.25rem; }
+</style>

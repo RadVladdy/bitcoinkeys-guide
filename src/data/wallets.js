@@ -29,6 +29,13 @@
 //   on it and the slug no longer derives from the image basename alone.
 // 2026-08-04: Jade Core device art SHIPPED, so all 12 devices carry a portrait again. The optional-image
 //   mechanics stay — they are what let a device ship ahead of its art, and the next one will too.
+// 2026-08-05: Jade CONTROLS corrected against Blockstream's own firmware repo, which publishes its build
+//   targets by board revision: the original Jade has a selection wheel (v1) / rocker jog-wheel (v1.1), and
+//   Jade Plus and Jade Core have LEFT/RIGHT SELECTION BUTTONS instead of a wheel or rocker. Both Jade
+//   entries said "joystick", which is neither — and the $79 Jade's own bestFor said "one button + screen"
+//   while its ladderReach note said "joystick", so one device entry disagreed with itself. Found by
+//   deriving the setup walkthroughs' interface classes from these fields: a claim sourced to someone else
+//   was re-read against THEIR data, and ours was the rendering that had rotted.
 // Rule of the guide: every device is rated in three tiers against the published
 // standard (standardGates/tiers below, rendered at /standard). Within a tier,
 // fit decides — there is still no single "best" device, but there IS a bar.
@@ -220,7 +227,7 @@ export const wallets = [
     name: 'Blockstream Jade',
     barCaveat: 'Clears the bar — Bitcoin-only, fully open-source and reproducible. Its one trade-off is deliberate: no dedicated secure-element chip. That is fine for its threat model (and a blind-oracle mode hardens it), but a determined attacker with physical possession of the device is more of a concern than on a secure-element signer.',
     image: '/devices/jade-core.webp',
-    ladderReach: { s: 'strong', p: 'ok', m: 'ok', note: 'Covers the ladder cheaply; the joystick makes passphrase and multisig fiddlier. Great to start.' },
+    ladderReach: { s: 'strong', p: 'ok', m: 'ok', note: 'Covers the ladder cheaply; the jog wheel makes passphrase and multisig fiddlier. Great to start.' },
     vendor: 'Blockstream',
     price: '$79',
     priceNum: 79,
@@ -232,7 +239,7 @@ export const wallets = [
     reproducible: 'yes',
     recoverability: 'yes',
     useCases: ['first', 'budget'],
-    bestFor: 'Genuinely good on a budget — the original $79 Blockstream device (plug-and-play, plastic body, one button + screen). Solid single-sig, workable multisig, and Unchained integration.',
+    bestFor: 'Genuinely good on a budget — the original $79 Blockstream device (plug-and-play, plastic body, jog wheel + one button beside the screen). Solid single-sig, workable multisig, and Unchained integration.',
     watch: 'No dedicated secure element (a "blind oracle" model), and no on-device camera — so it connects by USB or Bluetooth rather than air-gapped QR (the Jade Plus adds a camera + battery for that). Some multisig quirks.',
     notes: {
       reproducible: 'Open-source with documented reproducible builds.',
@@ -273,7 +280,7 @@ export const wallets = [
     name: 'Blockstream Jade Plus',
     barCaveat: 'Clears the bar — Bitcoin-only, fully open-source and reproducible, with an air-gap mode. Same deliberate trade-off as the original Jade: no dedicated secure-element chip, so physical-extraction resistance leans on its blind-oracle design rather than a hardened chip.',
     image: '/devices/jade-plus.webp',
-    ladderReach: { s: 'strong', p: 'ok', m: 'ok', note: 'Covers the ladder; the joystick makes passphrase and multisig fiddlier, but the camera + battery make it a nicer air-gap unit than the standard Jade.' },
+    ladderReach: { s: 'strong', p: 'ok', m: 'ok', note: 'Covers the ladder; left/right selection buttons make passphrase and multisig fiddlier, but the camera + battery make it a nicer air-gap unit than the standard Jade.' },
     vendor: 'Blockstream',
     price: '$149',
     priceNum: 149,

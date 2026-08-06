@@ -29,6 +29,12 @@ WHAT IS ALLOWED, and the distinction is the whole rule:
     A page that ever starts linking out to a wallet vendor stops qualifying and
     belongs in ACTION_PREFIXES instead.
   · /demos/<name> — limited, self-contained, and they hand the reader back
+
+Deliberately NOT allowed, and it is the near miss worth naming: /setup-walkthrough
+is in ACTION_PREFIXES above. It reads like reference and it is not — every page in
+it links out to a maker's own guide, which is precisely the test that makes the
+Hardware & services shelf a shelf. A lesson wanting to send a reader there names
+the menu group in words, like every other take-action surface.
   · the security advisory — a safety warning, not an action surface, and it is
     linked site-wide from the banner on every page anyway. Removing it from a
     lesson about seed generation would cost a reader a safety path to satisfy a
@@ -51,6 +57,7 @@ ACTION_PREFIXES = (
     '/my-plan',
     '/checklist',
     '/wallets',
+    '/setup-walkthrough',
     '/standard',
     '/collaborative',
     '/metal-backups',

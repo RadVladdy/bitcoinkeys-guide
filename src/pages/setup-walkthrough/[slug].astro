@@ -1,0 +1,202 @@
+---
+// One walkthrough per cold-storage device, rendered from src/data/walkthrough.js.
+//
+// A DYNAMIC ROUTE FOR THE SAME REASON THE LESSONS ARE ONE. Nine pages of identical
+// furniture is nine copies of a step order, and a step order that exists in nine
+// places is a step order that will disagree with itself. Here the order is the
+// safety property: the data file refuses to build if these steps stop tracking
+// /checklist's own sequence, which is what stops a walkthrough telling somebody to
+// fund a wallet before the restore has been proven.
+//
+// WHAT IS PER-DEVICE AND WHAT IS NOT. The steps and the screens are shared,
+// because they are shared in reality — these are all BIP-39 devices showing the
+// same four moments. What each page adds is its own controls (hardware, so it does
+// not rot), the two or three places this device's setup diverges in a way that
+// changes what a reader should DO, and a link to the maker's own guide, which is
+// the authority on the wording and the menu path that this page deliberately does
+// not hold a copy of.
+import Base from '../../layouts/Base.astro';
+import Diagram from '../../components/Diagram.astro';
+import LessonToc from '../../components/LessonToc.astro';
+import RuleRef from '../../components/RuleRef.astro';
+import { navWhere } from '../../data/nav.js';
+import {
+  walkthroughDevices, walkthroughSteps, walkthroughVerified, walkthroughHref, drawnNotCaptured,
+} from '../../data/walkthrough.js';
+
+export function getStaticPaths() {
+  return walkthroughDevices.map((d) => ({ params: { slug: d.slug }, props: { d } }));
+}
+
+const { d } = Astro.props;
+const checklist = navWhere('/checklist');
+const wallets = navWhere('/wallets');
+const dice = navWhere('/roll-your-own-seed');
+// Same slug idiom as the lessons, the glossary and the privacy tools: the rail's
+// anchors and the headings are both computed from the heading text, so they can
+// never come apart.
+const sid = (s) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+// Overrides are flagged in BOTH directions, and that is not belt-and-braces. A
+// reader arriving at a step from the rail never saw the divergence section, and
+// the BitBox02's shared step says "the device shows the words once" while its
+// divergence says the standard setup never shows them — two statements on one
+// page, each internally consistent, which is precisely the bug this site keeps
+// finding in its own material. One pointer down, one pointer back up.
+const overriddenSteps = new Set(d.diverges.map((x) => x.step).filter(Boolean));
+const toc = [
+  { id: 'screens', label: 'The screens you will see' },
+  { id: 'diverges', label: `What is different about the ${d.short}` },
+  ...walkthroughSteps.map((s) => ({ id: sid(s.title), label: s.title })),
+];
+---
+<Base
+  title={`Setting up a ${d.name} — what you will see · BitcoinKeys.guide`}
+  description={`A drawn, step-by-step walkthrough of setting up a ${d.name} for cold storage: the four screens it shows you, what each one is really for, what is different about this device, and the one step almost every guide leaves out.`}
+  verified={walkthroughVerified}
+>
+  <div class="lgrid">
+  <div class="lmain">
+
+  <section class="prose">
+    <p class="eyebrow"><a href={walkthroughHref}>Setup walkthroughs</a></p>
+    <h1>Setting up a {d.name}</h1>
+    <p class="lead">
+      What the {d.short} actually shows you during setup, with the parts that matter marked and the
+      places this device is not like the others called out where they land. It has {d.ui.controls},
+      so you say yes with {d.ui.saysYes} and type {d.ui.types}.
+    </p>
+  </section>
+
+  <section>
+    <dl class="glance">
+      <div><dt>Made by</dt><dd>{d.vendor}</dd></div>
+      <div><dt>You drive it with</dt><dd>{d.ui.controls}</dd></div>
+      <div><dt>Your own dice</dt><dd>{d.takesDice
+        ? 'This device will take them'
+        : 'Not on the device itself'}</dd></div>
+    </dl>
+  </section>
+
+  <section class="prose">
+    <h2 id="screens">The screens you will see</h2>
+    <p>{drawnNotCaptured}</p>
+    <Diagram
+      name={`screens-${d.ui.key}`}
+      caption={`The four moments during setup when the ${d.short}'s own screen is the thing you trust rather than your computer, drawn in the controls this device actually has: ${d.ui.controls}.`}
+    />
+    <p>
+      There are more screens than these. These are the four where the display in your hand is
+      telling you something your computer is not allowed to tell you, and where reading it carefully
+      is the entire security of the arrangement. The rest is menus.
+    </p>
+
+    <h2 id="diverges">What is different about the {d.short}</h2>
+    <p>
+      The steps further down are the same on every device we rate for cold storage. These are the
+      places this one is not — each changes something you should actually do, and where one of them
+      overrides a step, it says which.
+    </p>
+    <ul class="diverges">
+      {d.diverges.map((x) => {
+        const st = x.step && walkthroughSteps.find((s2) => s2.id === x.step);
+        return (
+          <li>
+            {st && <a class="ovr" href={`#${sid(st.title)}`}>Overrides “{st.title}” below</a>}
+            <span set:html={x.body}></span>
+          </li>
+        );
+      })}
+    </ul>
+    {d.takesDice && (
+      <p class="note">
+        This device will also fold your own dice rolls into the randomness it uses, if you want it
+        to. That is optional, it is covered under <a href="/roll-your-own-seed">{dice.label}</a>,
+        and skipping it costs you nothing — the device’s own randomness is not the weak part of
+        anybody’s setup.
+      </p>
+    )}
+  </section>
+
+  <section class="prose">
+    <h2 id="steps">The setup, in order</h2>
+    <p class="note">
+      The same order as <a href="/checklist">{checklist.label}</a>, because it is generated against
+      it — if the two ever disagreed, this page would not build. Where the {d.short} does something
+      different, it is called out above rather than quietly rewritten here.
+    </p>
+    <ol class="steps">
+      {walkthroughSteps.map((s, i) => (
+        <li>
+          <h3 id={sid(s.title)}><span class="n mono">{String(i + 1).padStart(2, '0')}</span> {s.title}</h3>
+          {overriddenSteps.has(s.id) && (
+            <p class="ovr-back"><a href="#diverges">Different on the {d.short} — read the override above before you follow this step.</a></p>
+          )}
+          <div set:html={s.body}></div>
+          {s.rule && <p class="rl">The rule behind it: <RuleRef key={s.rule} /></p>}
+        </li>
+      ))}
+    </ol>
+
+    <div class="callout">
+      <span class="label">Where this page stops, and whose page starts</span>
+      <p style="margin:0">
+        We do not hold a copy of {d.vendor}’s menus, and we would be wrong about them within a
+        release if we did. For the exact wording, the exact button and the current firmware steps,
+        read <a href={d.docs} rel="noopener">{d.docsLabel}</a> alongside this — theirs is the
+        authority on <em>what it says</em>, and this one is about <em>what to do when it says it.</em>
+        Their guide will not tell you which of their own defaults to refuse; that is the part above.
+      </p>
+    </div>
+
+    <p>
+      Once the restore has worked and the money has moved, you are done and you should feel slightly
+      anticlimactic about it — that is what a correct setup feels like. What is left is the
+      once-a-year part, which is on <a href="/checklist">{checklist.label}</a>, and choosing
+      <em>not</em> to add anything else for a while. If you are still deciding between devices,
+      <a href="/wallets"> {wallets.label}</a> compares them properly.
+    </p>
+  </section>
+
+  </div>
+  <LessonToc items={toc} />
+  </div>
+</Base>
+
+<style>
+  .prose :global(ul), .prose :global(ol) { padding-left: 1.3rem; }
+  .prose :global(li) { margin: 0.5rem 0; }
+  .prose :global(li::marker) { color: var(--accent); }
+  .prose :global(code) { font-family: var(--mono); font-size: 0.92em; background: var(--surface-2);
+    border: 1px solid var(--line); border-radius: 4px; padding: 0.05em 0.35em; }
+
+  .eyebrow :global(a) { color: inherit; text-decoration: none; border-bottom: 1px solid var(--line); }
+  .eyebrow :global(a:hover) { color: var(--accent); }
+
+  .note { color: var(--muted); font-size: 0.95rem; }
+
+  .glance { display: grid; gap: 1px; background: var(--line); border: 1px solid var(--line);
+    border-radius: var(--radius); overflow: hidden; margin: 0; }
+  .glance > div { background: var(--surface); padding: 0.95rem 1.2rem; }
+  .glance dt { font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 0.35rem; }
+  .glance dd { margin: 0; color: var(--text); }
+  @media (min-width: 720px) { .glance { grid-template-columns: repeat(3, 1fr); } }
+
+  .diverges { list-style: none; padding: 0; margin: 0 0 1.4rem; display: flex;
+    flex-direction: column; gap: 0.8rem; }
+  .diverges :global(li) { position: relative; padding-left: 1.5rem; color: var(--muted); margin: 0; }
+  .diverges :global(li)::before { content: "▸"; position: absolute; left: 0.25rem; top: 0;
+    color: var(--accent); }
+  .ovr { display: block; font-family: var(--mono); font-size: 0.68rem; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--accent); text-decoration: none; margin-bottom: 0.3rem; }
+  .ovr:hover { text-decoration: underline; }
+  .ovr-back { margin: 0 0 0.55rem; font-size: 0.9rem; }
+  .ovr-back :global(a) { color: var(--danger); font-weight: 600; text-decoration: none;
+    border-bottom: 1px solid var(--danger); }
+
+  .steps { list-style: none; padding: 0; margin: 0 0 1.6rem; }
+  .steps :global(li) { margin: 0 0 1.7rem; }
+  .steps h3 { margin: 0 0 0.5rem; font-size: 1.08rem; }
+  .n { color: var(--accent); font-size: 0.86em; }
+  .rl { margin: 0.5rem 0 0; font-size: 0.88rem; color: var(--faint); }
+</style>
