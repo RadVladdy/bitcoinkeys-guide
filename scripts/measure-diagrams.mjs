@@ -30,6 +30,23 @@
 // and hot-and-cold's emoji sit on a 10px gradient bar that was never a container.
 // Both rules below carry that history; a green run means nothing until it has been
 // shown to go red.
+//
+// ⚠️ WHERE A CLEAN RUN STOPS LOOKING — read this before trusting one.
+//   · A LABEL THAT OVERLAPS NO RECT AT ALL IS CHECKED AGAINST NOTHING but the
+//     viewBox. That is usually correct — plenty of labels are free-floating
+//     captions with no box to be outside of, and the SVG never says which rect a
+//     given <text> is *supposed* to belong to. But it means a caption that has
+//     drifted clean off its box passes, and only leaving the canvas entirely would
+//     report it. Closing this needs an authored association (a data- attribute
+//     pairing a label to its box), not a smarter geometric guess.
+//   · IT MEASURES GEOMETRY, NEVER MEANING. The passphrase diagram's real fault was
+//     that it drew something untrue; what this caught was a line ending in mid-air.
+//     A perfectly-joined diagram can still teach the wrong thing.
+//   · IT ONLY SEES THE PAGES IN `PAGES`, which is hand-kept — see the note there.
+//
+// *(The centre-containment hole this header used to have to declare — a label whose
+// middle cleared its box being compared against no box at all — was CLOSED
+// 2026-08-05; see the overlap rule below.)*
 import { chromium } from 'playwright';
 
 // EVERY PAGE THAT RENDERS A DIAGRAM MUST BE LISTED HERE. This is a hand-kept list
@@ -123,13 +140,21 @@ for (const d of report) {
     const tl = t.x, tr = t.x + t.w, tt = t.y, tb = t.y + t.h;
     if (tl < d.vb.x || tr > d.vb.x + d.vb.w || tt < d.vb.y || tb > d.vb.y + d.vb.h)
       problems.push(`OUT OF VIEWBOX  "${t.s}"  x ${tl.toFixed(1)}–${tr.toFixed(1)} (vb 0–${d.vb.w})`);
-    const cx = (tl + tr) / 2, cy = (tt + tb) / 2;
     for (const r of d.rects) {
       // A rect shorter than the glyphs was never a container — the hot/cold gradient
       // bar has emoji sitting ON it inside their own circles, and reading that as an
       // overflow is the checker being wrong, not the diagram.
       if (r.h < t.h) continue;
-      if (!(cx > r.x && cx < r.x + r.w && cy > r.y && cy < r.y + r.h)) continue;
+      // OVERLAP, NOT CONTAINMENT — and the difference is the whole point of the rule.
+      // This asked whether the text's CENTRE fell inside the rect, which meant a
+      // label pushed far enough out that its middle cleared the box was compared
+      // against no box at all and passed: the worse the overflow, the likelier it
+      // went unreported. Found by negative-controlling this script on new artwork,
+      // recorded as a known hole, then closed 2026-08-05 — proven by shifting
+      // keys-mailbox's "↑ your public address" from x=215 to x=300, which the old
+      // rule called clean and this one reports as overflowing right by 73.1.
+      // Overlap costs nothing here: all 10 shipped diagrams stay clean under it.
+      if (!(tr > r.x && tl < r.x + r.w && tb > r.y && tt < r.y + r.h)) continue;
       const over = [];
       if (tl < r.x + PAD) over.push(`left by ${(r.x - tl).toFixed(1)}`);
       if (tr > r.x + r.w - PAD) over.push(`right by ${(tr - (r.x + r.w)).toFixed(1)}`);
