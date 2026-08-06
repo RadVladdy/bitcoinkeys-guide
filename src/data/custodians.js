@@ -36,7 +36,7 @@ import { notRecommendedFor } from './advisories.js';
 
 // Bumped 2026-08-04: the Bitkey section arrived ~08-01 while this stamp still
 // read 07-20 — a stamp covers the page's newest material, not its oldest.
-export const custodiansVerified = '2026-08-01';
+export const custodiansVerified = '2026-08-06';
 
 export const custodians = [
   {
@@ -142,7 +142,16 @@ export const custodians = [
     noKyc: 'no',
     openRecovery: 'yes',
     insured: 'yes',
-    fee: 'Custody from $100/mo (uninsured) · insured premium ~0.55%–2%/yr',
+    // CORRECTED 2026-08-06 against anchorwatch.com/custody/pricing, which now
+    // publishes a flat tier LADDER rather than the single entry price we quoted.
+    // "From $100/mo" stayed literally true and read as the whole story: a reader
+    // holding $2.5M pays $375/mo, and the ceiling ($1,000/mo for individuals and
+    // small businesses, whatever you hold) is the genuinely reassuring number we
+    // were leaving out. The old "~0.55%–2%/yr" premium band was the half that had
+    // gone wrong — their published floor is $4,000 per $1M of coverage per year
+    // (0.4%), and their own calculator estimates 0.6% Flagship / 0.8% MIC, so
+    // nothing on their site supports a 2% top end any more.
+    fee: 'Custody $100–$1,000/mo by vault value · insured premium from ~0.4%/yr',
     minimum: 'Insurance from $250k of coverage (the high-minimum option)',
     subscription: 'Ongoing (premium + monthly fee)',
     devices: 'Coldcard Mk4 / Q, Ledger Nano S Plus (Trezor not supported)',
