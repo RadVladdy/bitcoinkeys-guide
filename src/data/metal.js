@@ -17,13 +17,23 @@
 // the reader more anxious than the evidence warrants. The useful advice is not "tread
 // carefully, it is a minefield"; it is "avoid a short list of specific traps."
 //
-// PRICES ARE BANDS, NOT FIGURES. Wallet prices are watched by the freshness runner
-// (~/dev/bkeys-freshness) and carry a verified date; these are not, so a precise
-// number would be a claim we cannot keep. But a band still has to be RIGHT on the day
-// it is stamped: three of the five were wrong against Lopp's own published price
-// column, which is the source sitting one click away. Check each band against that
-// column whenever this file is touched.
+// PRICES ARE BANDS, NOT FIGURES, and that is a choice about shelf life rather than
+// about precision. A band still has to be RIGHT on the day it is stamped: three of the
+// five were wrong against Lopp's own published price column, which is the source
+// sitting one click away. Check each band against that column whenever this file is
+// touched.
+//
+// EVERYTHING THIS FILE PUBLISHES IS SOMEBODY ELSE'S LIVING DATA, so the verified date
+// below is derived, never typed. Until 2026-08-06 it was typed, and the only registry
+// entry touching this source was a LINK CHECK — which asks whether the URL loads and
+// nothing about whether the numbers moved, while the page carried a verified date over
+// three of his figures and five of his prices. The group is now `subtype: metal` in
+// ~/dev/bkeys-freshness: the source link, the five purchase links, a judge on the
+// outcome distribution and a judge on the price bands. The runner sets the constant
+// from that group's floor and `scripts/check-freshness-stamps.py` fails the push if it
+// ever runs ahead of it.
 
+/** ISO floor of the `metal` freshness group. Runner-set — never hand-type this. */
 export const metalVerified = '2026-07-31';
 export const metalSource = {
   name: 'Jameson Lopp\u2019s metal seed storage stress tests',

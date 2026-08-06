@@ -22,9 +22,11 @@ WHAT IT CHECKS.
     that did not happen.
   · REPORT — a constant OLDER than its floor. Honest (it under-claims), and the next runner
     pass moves it forward on its own. Not a failure.
-  · REPORT — a published stamp with NO stamp-sync rule behind it at all. `metalVerified` and
-    `diceVerified` are hand-typed and nothing watches their subject; that is backlog item 26,
-    and naming them on every push is better than leaving them in a note nobody re-reads.
+  · REPORT — a published stamp with NO stamp-sync rule behind it at all. This arm is what
+    named `metalVerified` and `diceVerified` on every push until 2026-08-06, when both were
+    given a group and a rule; ALL SIX published stamps now derive from a floor. The arm stays
+    because the next stamp somebody adds will arrive hand-typed, and a note nobody re-reads is
+    how the first two lasted as long as they did.
 
 ⚠️ THE GROUP SELECTOR IS `OR`, NOT `AND`, and this is the one thing to get right when editing
 this file. `registries.json` gives each rule `kinds` and `subtypes`, and reading that config

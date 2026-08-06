@@ -27,7 +27,17 @@ import { numberWord } from './numbers.js';
 // worksheet comes from the same two constants.
 import { DICE_PER_WORD, PREFIX_THROWS, seedCosts } from './dice-table.js';
 
-/** ISO date every vendor page and purchase link below was last loaded and re-read. */
+// AND THAT IS WHY THIS PAGE'S VERIFIED DATE IS DERIVED RATHER THAN TYPED. A menu path
+// is a product decision, not hardware — it can be renamed in one firmware release, and
+// nothing on our side changes when it is. That is the same test the setup-walkthrough
+// watchers were seeded on: could this change without new hardware and without us
+// noticing? Until 2026-08-06 the answer here was yes and nothing watched it. The group
+// is now `subtype: dice` in ~/dev/bkeys-freshness — every vendor URL below as a link
+// check, a judge per vendor over the menu routes we print verbatim, and one judge over
+// the devices we say have NO dice path, because a negative claim is the one that rots
+// with nothing anywhere disagreeing.
+
+/** ISO floor of the `dice` freshness group. Runner-set — never hand-type this. */
 export const diceVerified = '2026-08-01';
 
 // ── the maths ───────────────────────────────────────────────────────────────
