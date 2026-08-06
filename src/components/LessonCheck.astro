@@ -12,17 +12,22 @@
 // Self-locates from the URL exactly like RuleBand / LessonEyebrow / LessonNav.
 // `href` is accepted explicitly so the dynamic [slug] route can pass its own path.
 import { rulesFor } from '../data/rules.js';
-import { checksFor } from '../data/checks.js';
+import { checksFor, lessonChecksFor } from '../data/checks.js';
 
 const { href } = Astro.props;
+const path = href ?? Astro.url.pathname;
 // FLATTENED ACROSS RULES, not grouped by them. A lesson owning two rules carries
 // two sets, and numbering each set from 1 printed "1 2 1 2" under a heading saying
 // "4 questions" — the reader meets one check, not two. /learn/privacy (rules 10 and
-// 11) is the only lesson that can show it, and it could not until both sets existed.
-const questions = rulesFor(href ?? Astro.url.pathname)
-  .map((r) => checksFor(r.key))
-  .filter(Boolean)
-  .flat();
+// 11) and /learn/ladder (4 and 5) are the lessons that show it.
+//
+// The lesson-keyed tail is the ONE declared exception (see checks.js). It cannot
+// double up with the rule-derived half: checks.js refuses a lessonChecks key that
+// already owns a rule, so exactly one of these two is ever non-empty.
+const questions = [
+  ...rulesFor(path).map((r) => checksFor(r.key)).filter(Boolean).flat(),
+  ...(lessonChecksFor(path) ?? []),
+];
 const total = questions.length;
 ---
 {total > 0 && (

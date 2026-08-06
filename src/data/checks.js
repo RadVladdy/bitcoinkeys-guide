@@ -48,6 +48,12 @@
 // own, without assuming the reader goes back and re-reads.
 
 import { rules } from './rules.js';
+// curriculum.js imports rules.js and nothing imports THIS file back, so there is no
+// cycle. It is imported for one job: proving a declared lesson-keyed exception
+// names a real lesson (see lessonChecks at the bottom).
+import { levels } from './curriculum.js';
+
+const norm = (p) => (p || '').replace(/\/+$/, '') || '/';
 
 /** @type {Record<string, { q: string, options: { t: string, c?: true }[], why: string }[]>} */
 export const checks = {
@@ -239,13 +245,10 @@ export const checks = {
     },
   ],
 
-  // /learn/send-bitcoin-safely HAS NO CHECK, since 2026-08-06. Verifying the
-  // address on the device stopped being one of the twelve that day — it is about
-  // spending and this site is about holding — and checks hang off rules, so its
-  // two questions went with it. The lesson still teaches the habit in full. This
-  // is the cost of that decision written down rather than discovered later: it is
-  // the only lesson to have LOST a check, as opposed to never having had one.
-  // Recorded in _Decisions 2026-08-06.
+  // /learn/send-bitcoin-safely's two questions did not move here — they moved to
+  // `lessonChecks` at the bottom of this file, the one declared exception to the
+  // rule-keyed scheme. See the note there for why the exception exists and why it
+  // is a list of one.
 
   // ── Rule 09 · /learn/phishing-and-scams ──────────────────────────────────
   'seed-words-scam': [
@@ -355,8 +358,86 @@ for (const key of Object.keys(checks)) {
   }
 }
 
+// ── THE ONE DECLARED EXCEPTION: A CHECK KEYED TO A LESSON ───────────────────
+//
+// ADDED 2026-08-06, immediately after the rules restructure that made it
+// necessary, and DECLARED rather than left to a pattern — the same shape as
+// check-lesson-exits.py's and check-device-coverage.py's exemptions, for the same
+// reason: an exception nobody can see is indistinguishable from a rule that never
+// applied.
+//
+// WHY IT EXISTS. Checks hang off rules, so when verifying the address on the
+// device stopped being one of the twelve that day, /learn/send-bitcoin-safely lost
+// its two questions with it — the only lesson ever to LOSE a check rather than
+// never having had one. The call was to demote the topic from THE RULES, not from
+// importance; the lesson still teaches the habit in full, and address-swapping
+// malware is the top real-world attack this course names. A safety-critical lesson
+// with no way for a reader to discover they misunderstood it is a worse outcome
+// than an exception with a reason attached.
+//
+// WHY IT IS NOT THE NEW DEFAULT. Keying on the rule is what makes re-homing a rule
+// MOVE its check automatically; a slug map strands checks on old lessons, which is
+// invariant #11's failure mode. So this stays a short, asserted list, and the
+// assertion below refuses two things outright:
+//   · a lesson that ALREADY owns a rule (it would then have two sources for one
+//     check — this project's house bug, two surfaces about one subject);
+//   · a path that is not a lesson at all.
+// If this list ever grows past a couple of entries, the scheme is wrong and the
+// argument should be reopened, not the list extended.
+export const lessonChecks = {
+  '/learn/send-bitcoin-safely': [
+    {
+      q: 'You copy an address, paste it into your wallet software, and it looks right on your computer screen. Is that enough to approve the payment?',
+      options: [
+        { t: 'Yes — you checked it against what you copied' },
+        { t: 'No — the computer is the thing that might be lying to you', c: true },
+        { t: 'Only if you are on your own network rather than public Wi-Fi' },
+      ],
+      why: 'Address-swapping malware watches your clipboard and quietly substitutes an attacker’s address — and it can show you the address you expected while doing it. Checking on the computer therefore proves nothing, because the computer is the compromised part. The hardware wallet’s own small screen cannot be faked that way: read the address there, confirm it matches where you meant to send, and only then approve. Every single time, not just for large amounts.',
+    },
+    {
+      q: 'You are moving a meaningful amount to a wallet you have never sent to before. What do you do first?',
+      options: [
+        { t: 'Send a small test amount, confirm it arrives, then send the rest', c: true },
+        { t: 'Send the whole amount at once — extra transactions only cost extra fees' },
+        { t: 'Split it into several equal payments so no single mistake loses everything' },
+      ],
+      why: 'A test send proves the address, the network, and your receiving wallet all work, for the price of a few cents in fees. Splitting the amount into equal chunks feels safer but proves nothing: if the address is wrong, every chunk goes to the same wrong place. Send a little, confirm it arrived and that you can see it in the destination wallet, then send the rest.',
+    },
+  ],
+};
+
+// Validate the exception list at import, same as the rule-keyed map above.
+{
+  const owned = new Set(rules.flatMap((r) => [norm(r.href), norm(r.also || '')]));
+  const lessonPaths = new Set(levels.flatMap((lv) => lv.lessons.map((l) => norm(l.href))));
+  for (const path of Object.keys(lessonChecks)) {
+    const p = norm(path);
+    if (!lessonPaths.has(p)) {
+      throw new Error(`checks.js: lessonChecks key "${path}" is not a lesson in curriculum.js`);
+    }
+    if (owned.has(p)) {
+      throw new Error(
+        `checks.js: lessonChecks key "${path}" already owns a rule, so it would carry two sources for one check — key it to the rule instead.`,
+      );
+    }
+    for (const [i, c] of lessonChecks[path].entries()) {
+      const correct = c.options.filter((o) => o.c).length;
+      if (correct !== 1) {
+        throw new Error(`checks.js: lessonChecks "${path}" question ${i + 1} has ${correct} correct options, expected exactly 1`);
+      }
+    }
+  }
+}
+
 /** The checks for a given rule key, or null. */
 export const checksFor = (key) => checks[key] || null;
 
+/** The declared lesson-keyed checks for a path, or null. Almost always null. */
+export const lessonChecksFor = (pathname) => lessonChecks[norm(pathname)] || null;
+
 /** How many rules currently have a check — derived, never typed (invariant #10). */
 export const checkedRuleCount = Object.keys(checks).length;
+
+/** How many lessons carry a declared exception. Expected to stay tiny. */
+export const lessonCheckCount = Object.keys(lessonChecks).length;
