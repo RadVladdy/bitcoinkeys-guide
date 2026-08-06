@@ -37,9 +37,13 @@ import { finderPromise } from '../../../data/finder-questions.js';
 // stopover on /demos/* was undone the same week — see that file's header); the
 // demos themselves stay under /demos.
 //
-// One rule lives on this page (03 simplest-setup). Rule 04 savings-offline moved
-// to /learn/hot-and-cold when that page came back 07-30 — RuleBand renders
-// whatever rules.js assigns here; don't assume a count either way.
+// TWO rules live on this page since 2026-08-06: `more-at-stake` (the more you're
+// protecting, the more it takes) and `simplest-setup`. It is one of only two
+// lessons carrying a pair — /learn/privacy is the other — and the pair is
+// deliberate: this is where "which rung" becomes a decision, and both halves of
+// that decision belong at the moment it is made. `savings-offline` moved to
+// /learn/hot-and-cold when that page came back 07-30. RuleBand renders whatever
+// rules.js assigns here; don't assume a count either way, and don't type one.
 const rungs = ladder;
 ---
 <Base

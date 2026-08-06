@@ -100,8 +100,10 @@ TOPICS = {
         # the thing it checks.
         why='TWO TRUE STANCES THAT NOW HAVE A RANKING, so read for the ORDER, not for '
             'either one alone. (1) Complexity you do not control is a top cause of loss '
-            '(rule 03). (2) Nothing should rest on one thing whose failure is total, and '
-            'where the two collide (2) WINS. What to flag: a page presenting simplicity as '
+            '(the "simplest setup that covers you" rule). (2) Nothing should rest on one '
+            'thing whose failure is total (the "two independent things" rule), and '
+            'where the two collide (2) WINS — the rules list states that ranking by its '
+            'order, floor near the top and simplicity below it. What to flag: a page presenting simplicity as '
             'the overriding value, introducing the floor as an exception to it ("the one '
             'thing that rule does not excuse", "but for money that would hurt"), or reading '
             'the floor as an argument for multisig specifically — it is about COMBINING '

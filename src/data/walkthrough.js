@@ -275,7 +275,8 @@ export const walkthroughSteps = [
       + 'for an attacker’s is ordinary, cheap and invisible on a screen the malware controls — '
       + 'and the little display in your hand is the one surface it cannot reach. This is the habit the '
       + 'whole device exists to make possible.',
-    rule: 'verify-address',
+    // No `rule:` since 2026-08-06 — see checklist.js's matching step. The screen
+    // habit is still taught here in full; it is simply no longer one of the twelve.
   },
   {
     id: 'testfund',

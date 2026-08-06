@@ -52,6 +52,52 @@
 //     narrow a trap to sit among twelve rules that carry the whole guide. Dropped
 //     as a rule; the material stays on the sending lesson.
 //
+// ── RESTRUCTURED 2026-08-06 (backlog item 29) ───────────────────────────────
+//
+// Still twelve, re-ordered, with two of them new. This followed item 30, which
+// moved the PHILOSOPHY: no single point of failure and consequence-scaling now
+// outrank simplicity. The rules are an expression of that philosophy, so once it
+// moved they had to. Doing it in the other order would have written them twice.
+//
+// It is a change of RANKING, not a reversal. Simplicity is still true and still
+// the target; it stops winning the argument where it would leave one thing
+// holding everything. THE LIST STATES THE RANKING BY ITS ORDER — the floor sits
+// at 02 and simplicity at 05, and that gap is the position, written down.
+//
+//   · 02 IS NEW — the floor. It is about COMBINING INDEPENDENT THINGS and it is
+//     NOT an argument against single-signature: a seed plus a passphrase the
+//     device never saw satisfies it, and three keys from one manufacturer do
+//     not. An earlier draft read "never let one thing hold everything" and was
+//     rejected for exactly that misreading. If a future rewording could be heard
+//     as "single-sig is the problem", it is the wrong wording.
+//     It is homed on /learn/how-bitcoin-is-lost rather than on the ladder
+//     because that lesson's subject IS how people lose Bitcoin, and because the
+//     ladder already carries two.
+//   · 04 IS NEW — consequence-scaling, the other half of the same philosophy.
+//     Homed on the ladder, which is where "which rung" becomes a decision.
+//   · 05 IS A MERGE of the old 01 ("you are the main risk") and the old 03
+//     ("the simplest setup that covers you"). They were one parent idea told
+//     twice: the old 03's second paragraph already argued the old 01 in so many
+//     words. The merged rule keeps the `simplest-setup` key — citations by key
+//     therefore survive — and carries the self-inflicted-loss material as its
+//     justification, which is what it always was.
+//   · 02 (old) NOT YOUR KEYS IS NOW 01, because it is the whole idea. Everything
+//     else on this list assumes you did it.
+//   · THE OLD 08 (verify the address on the device) IS NO LONGER A RULE. It is
+//     about spending, and this site is about holding. The material stays in full
+//     on /learn/send-bitcoin-safely, which now owns no rule — legitimate, five
+//     lessons already own none, but it is a decision rather than a side effect,
+//     and it cost that lesson its knowledge check (checks are keyed by rule).
+//     Logged in _Decisions as such.
+//
+// TWO LESSONS NOW CARRY TWO RULES: /learn/ladder (04, 05) and /learn/privacy
+// (10, 11). _Spine-Sync's rules-chain assertion names both — it asserted ONLY
+// privacy before today, so it would have failed on the ladder as a surprise.
+//
+// Numbers cost nothing to move: `ruleCount`/`ruleCountWord` derive, prose cites
+// by stable key via <RuleRef>, and no page types a rule number (check-rule-
+// citations.py enforces it). Placement is the expensive part, not arithmetic.
+//
 // ONE SOURCE for: the /learn/rules page, the rule band at the top of each lesson,
 // and every count of "the N rules" across the site.
 //
@@ -64,16 +110,6 @@ export const rules = [
   // ---- 101 · Foundations ----
   {
     n: 1,
-    key: 'self-inflicted',
-    short: 'You are the main risk',
-    rule: 'You’re more likely to lose access to your Bitcoin than have it stolen.',
-    body: 'The mental picture is a hacker. The reality is a house fire, a single backup nobody copied, a word miscopied and never checked, or an owner who died without leaving instructions. Of all the Bitcoin ever lost, far more went that way than was ever taken. Thieves are real and worth defending against — but they are not the main thing standing between you and your Bitcoin. You are.',
-    href: '/learn/how-bitcoin-is-lost',
-    level: '101',
-    lesson: 'How people lose Bitcoin',
-  },
-  {
-    n: 2,
     key: 'not-your-keys',
     short: 'Not your keys, not your coins',
     rule: 'Not your keys, not your coins.',
@@ -82,29 +118,24 @@ export const rules = [
     level: '101',
     lesson: 'Not your keys, not your coins',
   },
+  {
+    // THE FLOOR. Read the 2026-08-06 note above before rewording this one: the
+    // test any wording has to pass is that single-sig plus a strong passphrase
+    // SATISFIES it and three keys from one maker do NOT. Anything that reads as
+    // "single-sig is the problem" has failed.
+    n: 2,
+    key: 'independent-things',
+    short: 'Two independent things, not one',
+    rule: 'Protect your Bitcoin with at least two independent things, so no single one of them failing can lose it.',
+    body: 'One seed, in one drawer, is one thing: a fire, a flood, a burglary or a single miscopied word takes all of it, and nothing else has to go wrong first. The floor is <strong>two independent things</strong> — a seed plus a passphrase the device never saw, keys from two different makers, two complete backups that can’t burn together. <em>Independent</em> is the word doing the work: three keys from one manufacturer, made the same way in the same batch, are one thing bought three times. Count what has to fail, not how many pieces you own.',
+    href: '/learn/how-bitcoin-is-lost',
+    level: '101',
+    lesson: 'How people lose Bitcoin',
+  },
 
   // ---- 102 · Wallet configuration ----
   {
     n: 3,
-    key: 'simplest-setup',
-    short: 'Simplest setup that covers you',
-    rule: 'Choose the simplest setup that covers you.',
-    body: 'Not the most impressive one, and not the one a vendor is selling — the simplest one that defends against risks you can name out loud. <strong>No setup is simply “right”: every choice here trades one risk for another.</strong> What makes it harder for a thief to reach your Bitcoin usually makes it easier for you to lock yourself out, and what makes recovery easy for you makes it easier for someone else too. There is no arrangement without a downside — only the one whose downsides you chose on purpose.',
-    // Rule 03 is the only rule with a second paragraph, and it earns it: the first
-    // states the PRINCIPLE (every choice is a trade), the second the DIRECTIVE that
-    // follows from it. Run together they were 187 words against a 96-word longest,
-    // a wall on the one page whose whole job is twelve scannable lines.
-    // The floor was added to this paragraph on 2026-08-06 rather than left to
-    // /about, because this is the rule a reader meets on the flat list of twelve
-    // — the one surface that deliberately cannot link out. A reader who never
-    // runs the finder was getting the simplicity half and nothing else.
-    body2: 'Which is why climbing higher is never free: more keys, more devices and more clever schemes are the single biggest cause of lost Bitcoin, so complexity you don’t fully control is itself a threat. But <strong>“covers you” changes as your situation does</strong>: when the amount you’re securing has outgrown the rung you’re on — when thinking about it starts to make you uneasy — that is a real reason to move up. Climb for that. Don’t climb for the sake of it. <strong>And “simplest” has a floor: it never means leaving one thing whose failure takes everything.</strong> Combining two independent things — a seed plus a passphrase the device never saw, or keys from two different makers — is what clears that, and where the two ideas collide, the floor wins.',
-    href: '/learn/ladder',
-    level: '102',
-    lesson: 'The wallet configuration ladder',
-  },
-  {
-    n: 4,
     key: 'savings-offline',
     short: 'Savings never go online',
     rule: 'Never keep long-term savings on an internet-connected device.',
@@ -114,7 +145,41 @@ export const rules = [
     lesson: 'Hot and cold — where savings belong',
   },
   {
+    // CONSEQUENCE-SCALING. Deliberately ahead of simplicity, and deliberately
+    // about consequence rather than amount — nothing on this site asks what a
+    // reader holds, and this rule must not become the first thing that does.
+    n: 4,
+    key: 'more-at-stake',
+    short: 'More at stake, more it takes',
+    rule: 'The more you’re protecting, the more it takes to protect it.',
+    body: 'A setup isn’t secure or insecure in the abstract — it’s secure <em>enough</em>, or not, for what it’s holding. What is entirely sensible for money you’re learning with stops being sensible once the same arrangement is carrying years of savings, and the arrangement will not notice; you have to. So the question is never “is this secure?” but “is this secure enough for what it holds now?” We ask what losing it would actually do to you, never how much you have — because consequence is what should set the shape of a setup.',
+    href: '/learn/ladder',
+    level: '102',
+    lesson: 'The wallet configuration ladder',
+  },
+  {
     n: 5,
+    key: 'simplest-setup',
+    short: 'Simplest setup that covers you',
+    rule: 'Choose the simplest setup that covers you.',
+    body: 'Not the most impressive one, and not the one a vendor is selling — the simplest one that defends against risks you can name out loud. <strong>No setup is simply “right”: every choice here trades one risk for another.</strong> What makes it harder for a thief to reach your Bitcoin usually makes it easier for you to lock yourself out, and what makes recovery easy for you makes it easier for someone else too. There is no arrangement without a downside — only the one whose downsides you chose on purpose.',
+    // This rule is the only one with a second paragraph, and it earns it: the first
+    // states the PRINCIPLE (every choice is a trade), the second the JUSTIFICATION
+    // (you are the thing most likely to lose it). Run together they were 187 words
+    // against a 96-word longest, a wall on the one page whose whole job is twelve
+    // scannable lines.
+    //
+    // The second paragraph is where the merged-in old rule 01 lives (2026-08-06).
+    // It ends on the floor deliberately: this page cannot link out, so a reader
+    // who meets simplicity here has to be told, in place, that it has a bottom —
+    // even though the rule three places above already says so.
+    body2: 'And the thing you are mostly defending against is yourself. The mental picture is a hacker; the reality is a house fire, a single backup nobody copied, a word miscopied and never checked, or an owner who died leaving no instructions. Far more Bitcoin has gone that way than was ever taken — which is why complexity you don’t fully control is itself a threat, and why every extra key, device and clever scheme is one more thing you have to keep right for years, on your worst day. <strong>Simplicity is still the target. It just never means leaving one thing whose failure takes everything.</strong>',
+    href: '/learn/ladder',
+    level: '102',
+    lesson: 'The wallet configuration ladder',
+  },
+  {
+    n: 6,
     key: 'buy-direct',
     short: 'Buy it new and direct',
     rule: 'Buy your hardware wallet new, direct from the maker, and set it up yourself.',
@@ -126,7 +191,7 @@ export const rules = [
 
   // ---- 103 · Private key creation ----
   {
-    n: 6,
+    n: 7,
     key: 'never-digital',
     short: 'Never digital',
     rule: 'Never let your seed words touch anything digital.',
@@ -136,7 +201,7 @@ export const rules = [
     lesson: 'Backing up a seed phrase',
   },
   {
-    n: 7,
+    n: 8,
     key: 'test-backup',
     short: 'Test before you fund',
     rule: 'Fully test your backup before you send any significant Bitcoin to your wallet.',
@@ -144,16 +209,6 @@ export const rules = [
     href: '/learn/test-your-backup',
     level: '103',
     lesson: 'Testing a backup',
-  },
-  {
-    n: 8,
-    key: 'verify-address',
-    short: 'Verify on the hardware wallet',
-    rule: 'When sending Bitcoin, verify the address on the hardware wallet’s own screen.',
-    body: 'Malware exists that silently swaps the address you copied for an attacker’s, and your computer will show you the swap without blinking. The hardware wallet’s own little screen cannot be faked that way. Read the address there, confirm it matches where you meant to send, and only then approve. Every single time.',
-    href: '/learn/send-bitcoin-safely',
-    level: '103',
-    lesson: 'Sending Bitcoin safely',
   },
 
   // ---- 104 · The long haul ----
@@ -194,7 +249,7 @@ export const rules = [
     rule: 'Leave your family a plan they can actually follow.',
     body: 'Most Bitcoin that vanishes forever wasn’t stolen — it was left behind with no instructions. Your family finds a metal plate and a strange gadget, has no idea what either is, and bins them. Write down what you have, where it is, and how to reach it, in language a grieving non-technical person can follow. Then rehearse it with them while you still can.',
     href: '/learn/inheritance',
-    // Rule 12 is the one rule taught across TWO lessons: why it goes wrong, then
+    // This is the one rule taught across TWO lessons: why it goes wrong, then
     // how to build the fix. `also` lets the second lesson carry the same band
     // (several concept lessons legitimately carry none — see RuleBand.astro).
     also: '/learn/recovery-kit',

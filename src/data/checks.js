@@ -12,7 +12,11 @@
 //   · A lesson that owns no rule (the rules page itself, plus the concept lessons
 //     — bitcoin-keys, beyond-the-ladder, generate-your-seed) gets no check and
 //     renders nothing, rather than inventing one.
-//   · /learn/privacy owns rules 10 and 11, so it can carry two checks.
+//   · TWO lessons own two rules each and so carry two checks each: /learn/ladder
+//     (since 2026-08-06) and /learn/privacy. The ladder's pair are deliberately
+//     different questions about different rules — one asks WHEN to climb
+//     (consequence-scaling), one asks HOW SIMPLE to build — and if they ever
+//     start reading as the same question, the rules have drifted back together.
 //   · Re-homing a rule to a different lesson MOVES ITS CHECK AUTOMATICALLY. That
 //     is the whole reason for keying on the rule: a slug map would have silently
 //     stranded the check on the old lesson, which is invariant #11's failure mode.
@@ -47,29 +51,7 @@ import { rules } from './rules.js';
 
 /** @type {Record<string, { q: string, options: { t: string, c?: true }[], why: string }[]>} */
 export const checks = {
-  // ── Rule 01 · /learn/how-bitcoin-is-lost ─────────────────────────────────
-  'self-inflicted': [
-    {
-      q: 'Of all the Bitcoin that has been lost so far, what accounts for the largest share?',
-      options: [
-        { t: 'Hackers breaking into wallets and exchanges over the internet' },
-        { t: 'Owners losing access to it themselves, with no thief involved', c: true },
-        { t: 'Exchange bankruptcies and government seizures' },
-      ],
-      why: 'Most Bitcoin that has been lost was never stolen. It went to a backup nobody copied, a single copy that burned, a word miscopied and never checked, or an owner who died leaving no instructions. Even among the losses people do call theft, over 80% turn out to be a scam or a simple slip rather than anyone breaking security. Thieves are real and worth defending against — they are just not the main thing standing between you and your Bitcoin.',
-    },
-    {
-      q: 'You add a secret passphrase so that a burglar who finds your written words still cannot spend the coins. What has that done to your overall risk?',
-      options: [
-        { t: 'Lowered it with no downside — the seed backup is exactly as safe as it was' },
-        { t: 'Defended against theft and created a fresh way to lock yourself out', c: true },
-        { t: 'Mostly protected you against someone reaching your device over the internet' },
-      ],
-      why: 'There are only two ways to lose Bitcoin: you cannot get to it, or someone else can. Almost every defence against one of those makes the other worse. A passphrase genuinely stops someone who finds your words, and it adds a second secret you can forget, mistype, or fail to pass on. Spreading a backup across three cities survives a fire and makes reassembly harder for you too. That trade is why there is no single "just do this" answer, and why a setup is worth choosing deliberately rather than piling on protections.',
-    },
-  ],
-
-  // ── Rule 02 · /learn/not-your-keys ───────────────────────────────────────
+  // ── Rule 01 · /learn/not-your-keys ───────────────────────────────────────
   'not-your-keys': [
     {
       q: 'You buy Bitcoin on an exchange and leave it sitting there. What do you actually hold?',
@@ -91,29 +73,34 @@ export const checks = {
     },
   ],
 
-  // ── Rule 03 · /learn/ladder ──────────────────────────────────────────────
-  'simplest-setup': [
+  // ── Rule 02 · /learn/how-bitcoin-is-lost ─────────────────────────────────
+  // ADDED 2026-08-06 with the rule itself. The second question is the one this
+  // lesson has always asked — it moved here from the merged-away `self-inflicted`
+  // key without changing a word of the question, because the LESSON did not move
+  // and its headline fact is still the thing worth testing. Only its `why` gained
+  // a closing line, to land on the rule this check now hangs from.
+  'independent-things': [
     {
-      q: 'You are about to build a setup for savings you would genuinely miss. Which question should decide it?',
+      q: 'Which of these leaves no single failure able to take everything?',
       options: [
-        { t: '"What is the most secure setup I can build?" — then build that one' },
-        { t: '"What is the simplest setup that covers the risks I can actually name?" — with a floor under it', c: true },
-        { t: '"What does the maker of my hardware wallet recommend?" — they know their own device best' },
+        { t: 'Three hardware wallets from the same maker, each held in a different room' },
+        { t: 'One seed phrase, plus a passphrase that device has never seen, backed up separately', c: true },
+        { t: 'One hardware wallet with a long PIN, kept in a good safe' },
       ],
-      why: 'Ask for the simplest setup that adequately covers risks you can name out loud, not the most impressive one. Complexity you do not fully control is itself a threat, and adopting more of it than you can manage is the most repeated cause of lost Bitcoin there is. But simplicity has a floor: one seed, one device, one maker and nothing else that also has to be true is a single point of failure, and for money whose loss would genuinely hurt you should not stop there. For Bitcoin you are learning with, one key kept properly is genuinely fine.',
+      why: 'This rule is about independence, not about how many pieces you own — and it is not an argument against single-signature wallets. One seed plus a passphrase the device never saw is two genuinely independent things: whoever finds the words still cannot spend, and a flaw in the device does not reach the passphrase. Three keys from one manufacturer look like three things and behave like one, because the same firmware defect, the same bad batch or the same company reaches all of them at once. A PIN protects the hardware, not the wallet — anyone holding your words is never asked for it. Count what has to fail.',
     },
     {
-      q: 'Which of these is a real reason to move up a rung?',
+      q: 'Of all the Bitcoin that has been lost so far, what accounts for the largest share?',
       options: [
-        { t: 'Your holdings have multiplied, and thinking about them on a single key now makes you uneasy', c: true },
-        { t: 'You have read about a more advanced setup and want to try it out' },
-        { t: 'A year has passed since you built the setup you are on' },
+        { t: 'Hackers breaking into wallets and exchanges over the internet' },
+        { t: 'Owners losing access to it themselves, with no thief involved', c: true },
+        { t: 'Exchange bankruptcies and government seizures' },
       ],
-      why: 'The clearest reason to climb is that the amount you are securing has outgrown the rung you are on — that unease is the signal, and it counts. Curiosity and the calendar are not reasons. Every rung solves a real problem and introduces new ways to fail, so climbing without a reason you can name buys you complexity and nothing else. When a real reason does arrive, move up one rung deliberately and test the new setup as carefully as you tested the first.',
+      why: 'Most Bitcoin that has been lost was never stolen. It went to a backup nobody copied, a single copy that burned, a word miscopied and never checked, or an owner who died leaving no instructions. Even among the losses people do call theft, over 80% turn out to be a scam or a simple slip rather than anyone breaking security. Thieves are real and worth defending against — they are just not the main thing standing between you and your Bitcoin. Notice the shape of nearly every one of those: one thing failed, and there was nothing behind it.',
     },
   ],
 
-  // ── Rule 04 · /learn/hot-and-cold ────────────────────────────────────────
+  // ── Rule 03 · /learn/hot-and-cold ────────────────────────────────────────
   'savings-offline': [
     {
       q: 'A friend keeps their savings in a phone wallet where they hold the keys themselves — no company can touch the coins. Is that cold storage?',
@@ -135,7 +122,58 @@ export const checks = {
     },
   ],
 
-  // ── Rule 05 · /learn/choose-a-wallet ─────────────────────────────────────
+  // ── Rule 04 · /learn/ladder ──────────────────────────────────────────────
+  // ADDED 2026-08-06. The first question moved here intact from `simplest-setup`,
+  // where it had always been the odd one out: "when do I climb?" tests scaling,
+  // not simplicity. It now sits on the rule it was actually asking about.
+  'more-at-stake': [
+    {
+      q: 'Which of these is a real reason to move up a rung?',
+      options: [
+        { t: 'Your holdings have multiplied, and thinking about them on a single key now makes you uneasy', c: true },
+        { t: 'You have read about a more advanced setup and want to try it out' },
+        { t: 'A year has passed since you built the setup you are on' },
+      ],
+      why: 'The clearest reason to climb is that what you are securing has outgrown the rung you are on — that unease is the signal, and it counts. Curiosity and the calendar are not reasons. Every rung solves a real problem and introduces new ways to fail, so climbing without a reason you can name buys you complexity and nothing else. When a real reason does arrive, move up one rung deliberately and test the new setup as carefully as you tested the first.',
+    },
+    {
+      q: 'You built your setup two years ago for a small amount you were learning with. Nothing about it has changed, and what it holds has grown twenty-fold. What has happened to your security?',
+      options: [
+        { t: 'Nothing — the setup is exactly as strong as it was the day you built it' },
+        { t: 'It has fallen behind, because security is only ever measured against what it is holding', c: true },
+        { t: 'It has improved — two years without an incident is evidence the setup works' },
+      ],
+      why: 'The setup is unchanged and that is the problem: it is doing the same job against a much larger consequence. Security is not a property an arrangement has on its own, it is a relationship between the arrangement and what it protects — so the same wallet can be entirely adequate in one year and thin in the next without anybody touching it. Nothing warns you, because nothing about it changed. And years without an incident say nothing either: a setup with a single point of failure looks identical to a sound one right up until the day it does not. Re-ask the question when what you hold moves, not when the calendar does.',
+    },
+  ],
+
+  // ── Rule 05 · /learn/ladder ──────────────────────────────────────────────
+  // MERGED 2026-08-06 — this rule absorbed the old rule 01 ("you are the main
+  // risk"), so its second question is that rule's, kept intact. It is the better
+  // test of the merged idea than anything written fresh would be: the trade it
+  // describes is exactly why the simplest adequate setup wins.
+  'simplest-setup': [
+    {
+      q: 'You are about to build a setup for savings you would genuinely miss. Which question should decide it?',
+      options: [
+        { t: '"What is the most secure setup I can build?" — then build that one' },
+        { t: '"What is the simplest setup that covers the risks I can actually name?" — with a floor under it', c: true },
+        { t: '"What does the maker of my hardware wallet recommend?" — they know their own device best' },
+      ],
+      why: 'Ask for the simplest setup that adequately covers risks you can name out loud, not the most impressive one. Complexity you do not fully control is itself a threat, and adopting more of it than you can manage is the most repeated cause of lost Bitcoin there is. The maker knows their device and not your situation, and the most secure setup available is almost never the one you can still operate correctly in ten years. But "simplest" has a bottom: it never means leaving one thing whose failure takes the lot, and where those two ideas collide the floor is what wins.',
+    },
+    {
+      q: 'You add a secret passphrase so that a burglar who finds your written words still cannot spend the coins. What has that done to your overall risk?',
+      options: [
+        { t: 'Lowered it with no downside — the seed backup is exactly as safe as it was' },
+        { t: 'Defended against theft and created a fresh way to lock yourself out', c: true },
+        { t: 'Mostly protected you against someone reaching your device over the internet' },
+      ],
+      why: 'There are only two ways to lose Bitcoin: you cannot get to it, or someone else can. Almost every defence against one of those makes the other worse. A passphrase genuinely stops someone who finds your words, and it adds a second secret you can forget, mistype, or fail to pass on. Spreading a backup across three cities survives a fire and makes reassembly harder for you too. That trade is why there is no single "just do this" answer, and why a setup is worth choosing deliberately rather than piling on protections.',
+    },
+  ],
+
+  // ── Rule 06 · /learn/choose-a-wallet ─────────────────────────────────────
   'buy-direct': [
     {
       q: 'Your new hardware wallet arrives with a card in the box listing its 24 seed words, so you do not have to copy them down yourself. What is that?',
@@ -157,7 +195,7 @@ export const checks = {
     },
   ],
 
-  // ── Rule 06 · /learn/back-up-your-seed ───────────────────────────────────
+  // ── Rule 07 · /learn/back-up-your-seed ───────────────────────────────────
   'never-digital': [
     {
       q: 'Which of these counts as keeping your seed phrase off anything digital?',
@@ -179,7 +217,7 @@ export const checks = {
     },
   ],
 
-  // ── Rule 07 · /learn/test-your-backup ────────────────────────────────────
+  // ── Rule 08 · /learn/test-your-backup ────────────────────────────────────
   'test-backup': [
     {
       q: 'You wrote the words down and read them back against the device twice, carefully. What have you proved?',
@@ -201,27 +239,13 @@ export const checks = {
     },
   ],
 
-  // ── Rule 08 · /learn/send-bitcoin-safely ─────────────────────────────────
-  'verify-address': [
-    {
-      q: 'You copy an address, paste it into your wallet software, and it looks right on your computer screen. Is that enough to approve the payment?',
-      options: [
-        { t: 'Yes — you checked it against what you copied' },
-        { t: 'No — the computer is the thing that might be lying to you', c: true },
-        { t: 'Only if you are on your own network rather than public Wi-Fi' },
-      ],
-      why: 'Address-swapping malware watches your clipboard and quietly substitutes an attacker’s address — and it can show you the address you expected while doing it. Checking on the computer therefore proves nothing, because the computer is the compromised part. The hardware wallet’s own small screen cannot be faked that way: read the address there, confirm it matches where you meant to send, and only then approve. Every single time, not just for large amounts.',
-    },
-    {
-      q: 'You are moving a meaningful amount to a wallet you have never sent to before. What do you do first?',
-      options: [
-        { t: 'Send a small test amount, confirm it arrives, then send the rest', c: true },
-        { t: 'Send the whole amount at once — extra transactions only cost extra fees' },
-        { t: 'Split it into several equal payments so no single mistake loses everything' },
-      ],
-      why: 'A test send proves the address, the network, and your receiving wallet all work, for the price of a few cents in fees. Splitting the amount into equal chunks feels safer but proves nothing: if the address is wrong, every chunk goes to the same wrong place. Send a little, confirm it arrived and that you can see it in the destination wallet, then send the rest.',
-    },
-  ],
+  // /learn/send-bitcoin-safely HAS NO CHECK, since 2026-08-06. Verifying the
+  // address on the device stopped being one of the twelve that day — it is about
+  // spending and this site is about holding — and checks hang off rules, so its
+  // two questions went with it. The lesson still teaches the habit in full. This
+  // is the cost of that decision written down rather than discovered later: it is
+  // the only lesson to have LOST a check, as opposed to never having had one.
+  // Recorded in _Decisions 2026-08-06.
 
   // ── Rule 09 · /learn/phishing-and-scams ──────────────────────────────────
   'seed-words-scam': [

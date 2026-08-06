@@ -3,9 +3,12 @@ import Base from '../layouts/Base.astro';
 import RuleRef from '../components/RuleRef.astro';
 import { ruleByKey, ruleCountWord } from '../data/rules.js';
 import { lessonCount, levels } from '../data/curriculum.js';
-// The guiding principle quoted below IS rule 03 — pulled from rules.js rather than
-// restated, so a reworded rule can never leave /about arguing for the old one.
+// Both rules quoted below are PULLED from rules.js rather than restated, so a
+// reworded rule can never leave /about arguing for the old one. Cited by key and
+// never by number — the numbers moved on 2026-08-06 and this page did not notice,
+// which is the whole point of keys.
 const simplest = ruleByKey('simplest-setup');
+const floor = ruleByKey('independent-things');
 ---
 <Base
   title="About — how this guide works · BitcoinKeys.guide"
@@ -62,7 +65,7 @@ const simplest = ruleByKey('simplest-setup');
     <p><strong>So the test we apply to any recommendation is not <em>is this safe now</em>.</strong> It is: <em>is this still standing in ten years, operated by a real person having a bad week?</em></p>
 
     <h3>Where the rules come in</h3>
-    <p>The <a href="/learn/rules">{ruleCountWord} rules</a> are how all of the above turns into something you can actually follow. They are the first thing the course teaches, they take two minutes to read, and every lesson after that exists to explain one of them in full. <strong>They are an expression of the philosophy above rather than a substitute for it</strong> — and the one that shapes the day-to-day advice most is still <RuleRef key="simplest-setup" />: <strong>{simplest.rule}</strong> Read alongside the floor under it, that is the whole of our position.</p>
+    <p>The <a href="/learn/rules">{ruleCountWord} rules</a> are how all of the above turns into something you can actually follow. They are the first thing the course teaches, they take two minutes to read, and every lesson after that exists to explain one of them in full. <strong>They are an expression of the philosophy above rather than a substitute for it</strong> — and the order of that list is itself the ranking. <RuleRef key="independent-things" /> is the floor: <strong>{floor.rule}</strong> <RuleRef key="simplest-setup" /> is the target: <strong>{simplest.rule}</strong> Where the two collide, the floor wins — which is why one sits near the top of the list and the other does not.</p>
     <p>We’re confidently pro-self-custody. Holding your own keys is a skill worth learning, and the risks are manageable once you can name them. But this is your money and your responsibility — nothing here is financial or legal advice, and you should never act on a step you don’t understand. When something is safety-critical, we say so loudly.</p>
 
     <h2>Who’s behind it</h2>

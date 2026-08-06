@@ -111,7 +111,10 @@ export const checklistItems = [
     // Shortened 2026-08-04 — this used to restate rule 08's body nearly verbatim,
     // and the rule chip beside the item already carries the rule.
     d: 'The device’s screen is the one display malware can’t rewrite — your computer will show a swapped address without blinking. Read the address on the device, confirm it, then approve — every single time.',
-    href: '/learn/send-bitcoin-safely', rule: 'verify-address' },
+    // No `rule:` since 2026-08-06 — verifying the address stopped being one of the
+    // twelve (it is about spending; this site is about holding). The step keeps its
+    // place and its link and simply shows no rule chip. The habit did not change.
+    href: '/learn/send-bitcoin-safely' },
   // SPLIT 2026-07-31 (safety-critical ordering). One item used to say "send a test
   // amount… then move the rest" HERE — before the backup existed (Step 2) or had been
   // tested (Step 3), and Step 3 then tells you to wipe the device. The test amount
