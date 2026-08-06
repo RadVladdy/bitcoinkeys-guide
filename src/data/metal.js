@@ -34,7 +34,7 @@
 // ever runs ahead of it.
 
 /** ISO floor of the `metal` freshness group. Runner-set — never hand-type this. */
-export const metalVerified = '2026-07-31';
+export const metalVerified = '2026-08-06';
 export const metalSource = {
   name: 'Jameson Lopp\u2019s metal seed storage stress tests',
   url: 'https://jlopp.github.io/metal-bitcoin-storage-reviews/',
