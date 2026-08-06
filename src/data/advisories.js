@@ -30,7 +30,7 @@ export const advisories = [
     // The one-line version, used by the banner. Keep it to the ACTION.
     bannerText: 'Coldcard seeds generated between March 2021 and 31 July 2026 may be weak. Coins have been stolen. Check if yours is affected —',
     published: '2026-08-01',
-    lastUpdated: '2026-08-01',
+    lastUpdated: '2026-08-06',
 
     // ── what is CONFIRMED ───────────────────────────────────────────────────
     summary:
@@ -92,7 +92,11 @@ export const advisories = [
     // Both release tracks, because Edge numbers are HIGHER than standard ones
     // and a reader comparing version numbers alone reaches the wrong answer.
     fixedFirmware: [
-      { model: 'Mk3', version: '4.2.0 or later' },
+      // Mk2 AND Mk3 — the `who` line above scopes the risk to both, and Coinkite's
+      // own advisory lists them as one row. Naming only the Mk3 here left an Mk2
+      // holder reading the fix table for a model that was not in it, on the one page
+      // where the reader is looking up their own device to decide whether to act.
+      { model: 'Mk2 and Mk3', version: '4.2.0 or later' },
       { model: 'Mk4 and Mk5 (standard track)', version: '5.6.0 or later' },
       { model: 'Mk4 and Mk5 (Edge track)', version: '6.6.0X or later' },
       { model: 'Q (standard track)', version: '1.5.0Q or later' },
@@ -119,7 +123,7 @@ export const advisories = [
 
     // Our own position, kept separate from the reporting above.
     ourTake:
-      'We rate the Coldcard in our cold-storage tier and recommend it in the setup finder, so this lands on our own recommendation and we are not going to be quiet about it. Two things are true at once, and conflating them helps nobody. A device bought today, running fixed firmware, generates a proper seed — the defect is in seeds already created, not in every Coldcard forever. But a five-year-old flaw in open-source firmware that nobody caught, in the single most security-critical function a signing device performs, is a serious mark against a maker, We said we would re-read it against our published standard rather than assume our rating still held, and that whatever we concluded would be published rather than quietly applied. That review is below.',
+      'We rate the Coldcard in our cold-storage tier and recommend it in the setup finder, so this lands on our own recommendation and we are not going to be quiet about it. Two things are true at once, and conflating them helps nobody. A device bought today, running fixed firmware, generates a proper seed — the defect is in seeds already created, not in every Coldcard forever. But a five-year-old flaw in open-source firmware that nobody caught, in the single most security-critical function a signing device performs, is a serious mark against a maker. We said we would re-read it against our published standard rather than assume our rating still held, and that whatever we concluded would be published rather than quietly applied. That review is below.',
 
     // ── THE PROMISED REVIEW, DISCHARGED ─────────────────────────────────────
     // The advisory promised in writing that the cold-tier rating was being

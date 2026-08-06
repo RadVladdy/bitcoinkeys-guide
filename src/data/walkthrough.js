@@ -410,11 +410,17 @@ export const deviceWalkthroughs = {
     docs: 'https://support.bitbox.swiss/en_US/basics/bitbox02-setup-microsd-backup',
     docsLabel: 'BitBox’s own BitBox02 setup guide',
     diverges: [
+      // NO EXCLUSIVITY CLAIM HERE. This said "the one default on any device in this
+      // tier that we would tell you to change" while the three Trezor Safe pages refuse
+      // a second one (the backup type), and the registry carries a watcher for each —
+      // so the sentence was false against this project's own data, and false in the way
+      // that is hardest to see: each page read correctly on its own. A claim about the
+      // OTHER devices in the tier cannot be made from inside one device's divergence.
       { step: 'words', body: '<strong>Its standard setup never shows you the words at all.</strong> The bundled microSD card '
       + 'takes the backup instead, as a file, and the setup finishes without you having written '
-      + 'anything down. That is a digital copy of your keys sitting on a card, and it is the one '
-      + 'default on any device in this tier that we would tell you to change: BitBox publishes a '
-      + 'separate no-microSD path, and that is the one to follow. If you have already set one up the '
+      + 'anything down. That is a digital copy of your keys sitting on a card — the one thing every '
+      + 'backup rule here exists to prevent — so treat it as a default to refuse rather than accept: '
+      + 'BitBox publishes a separate no-microSD path, and that is the one to follow. If you have already set one up the '
       + 'standard way, the device will show you the words from its settings — do that today rather '
       + 'than starting over. Keep the card as well if you like it. Not instead.' },
       'There are no buttons. The password and every confirmation are a finger slid along two touch '

@@ -9,6 +9,12 @@
 // Entry types: 'price' | 'device' | 'spec' | 'security' | 'feature' | 'content'
 export const changelog = [
   {
+    date: '2026-08-06',
+    type: 'security',
+    title: 'Corrections: the Coldcard advisory left the Mk2 out of its own fix list, and a walkthrough claimed to be the only one of its kind',
+    detail: 'Two things we published were wrong, and both were wrong in the way that is hardest to catch — each page read perfectly well on its own. THE ADVISORY. Our Coldcard seed-generation advisory scopes the highest-risk group to seeds made on an Mk2 or an Mk3, which is right and matches Coinkite. The table below it, the one telling you which firmware version fixes your device, said only Mk3. So an Mk2 owner could read the paragraph that describes exactly their situation, look down for the version that fixes it, and not find their model on the list. Coinkite publishes those two as one row — Mk2/Mk3, version 4.2.0 or later — and now so do we. Nothing about the risk changed and no version number moved; what changed is that the fix list now names everyone the risk list names. We re-read the whole advisory against Coinkite\'s own page while fixing it, including the update they posted on 1 August, and everything else on ours matches: the affected ranges, both release tracks, the dice and passphrase exceptions. THE WALKTHROUGH. The BitBox02 setup page said its microSD backup default was "the one default on any device in this tier that we would tell you to change." It is not. The Trezor Safe pages tell you to change one too — the backup format, which by default is one only Trezor software can read. The BitBox02 default is still the more serious of the two, because it finishes setup without you having written anything down at all, and the page still says so as plainly as it did. What it no longer does is claim to be alone. We caught this by checking our own pages against each other rather than reading them one at a time, which is the only way a contradiction spread across two pages ever shows up.',
+  },
+  {
     date: '2026-08-05',
     type: 'feature',
     title: 'You can now see what setting the thing up actually looks like — a walkthrough for every device we rate for cold storage',
