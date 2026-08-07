@@ -225,10 +225,15 @@ export function clearPlanSelection() {
 // ── per-tool save helpers (merge one slice into the shared plan) ────────────
 // Each starts from whatever is already saved, so tools compose into one plan.
 
-// The ONE planned setup the user has chosen — from the quiz (primary OR
-// secondary) or from browsing a ladder rung page. There is only ever one at a
+// The ONE planned setup the user has chosen. /find-your-setup is the only caller
+// — the result card's primary or secondary pick. There is only ever one at a
 // time; saving a new setup REPLACES the current one (the UI confirms first when
-// it differs). Stored under `quiz` for backward-compatibility with earlier plans.
+// it differs). Stored under `quiz`, with `source` values still spelled
+// `quiz-primary` / `quiz-secondary`, for backward-compatibility with plans saved
+// before the finder replaced that engine — the key is the wire format, not a
+// live route. (This read "or from browsing a ladder rung page" until 2026-08-06:
+// rungs are sections of /learn/ladder and have not been pages for a restructure,
+// and no such caller exists.)
 export function savePlannedSetup({ rung, label, tier, device, source, answers, keysNeeded, owned, ownPrivate, recommendedDevices }) {
   const cur = loadLocal() || emptyPlan();
   const prev = cur.quiz || {};

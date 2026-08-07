@@ -27,6 +27,7 @@ were invisible in source (component props, generated data, client-injected copy)
 
 Usage:  python3 scripts/claim-sweep.py            # every topic
         python3 scripts/claim-sweep.py sharing    # one topic
+        python3 scripts/claim-sweep.py --show-excluded   # + the live-sense exclusions
 Exit code is always 0. It reports; it does not judge.
 """
 import re
@@ -133,10 +134,36 @@ TOPICS = {
                r'best|simplest|step up|elevated|typical|low|high|holdback|caveat|trade)\b',
     ),
     'retired-vocabulary': dict(
+        # NARROWED 2026-08-06 (backlog 27). This topic had drifted into reporting the
+        # site's own CURRENT words, and every one of its hits was a false positive.
+        #
+        # "walkthrough" is OFF the list. It was retired on 2026-07-30 in the sense of
+        # walkthrough = a lesson (the /how-to/* era) — and then 2026-08-05 named a
+        # FEATURE that: /setup-walkthrough, a nav entry, ten pages. A feature name is
+        # current vocabulary by definition, and no pattern separates the two senses,
+        # because the live pages say "this walkthrough" about themselves in exactly
+        # the shape the retired sense did. Un-retired, not un-watched: what guards the
+        # feature now is walkthrough.js's own build asserts, not a vocabulary grep.
+        #
+        # The other five stay, because they ARE still retired — but three of them have
+        # a live sense that is not ours, so those are excluded BY PATTERN below rather
+        # than by dropping the term. Same lesson as the `complexity` topic above and as
+        # check-rule-citations.py's own header: a check that cries wolf gets skipped,
+        # and a check's first job is to agree with the thing it checks.
         why='Terms the site has retired. Each one shipped as current copy at some point '
-            'and survived at least one pass.',
-        subject=r'\b(how-?tos?|principles?|chapters?|rung page|walkthrough|take the quiz)\b',
+            'and survived at least one pass. Zero hits is the expected result — this is a '
+            'tripwire for a retired term coming back, not a survey.',
+        subject=r'\b(how-?tos?|principles?|chapters?|rung page|take the quiz)\b',
         stance=r'',   # any occurrence is worth a look
+        # LIVE senses of a retired term. Each pattern below suppresses a real hit that
+        # is on the site TODAY and is correct — verified by running with and without.
+        # The count is always printed, and --show-excluded prints the sentences: a
+        # filter nobody can see is how a state table came to suppress a finding.
+        exclude=(
+            r'\bin principle\b'              # idiom, /learn/run-a-node — not the retired label
+            r'|\bhow-?to guides?\b'          # a third party's own words for THEIR material
+            r'|↗[^↗]*\bchapters?\b'          # a cited book's chapters; ↗ marks the outbound card
+        ),
     ),
 }
 
@@ -158,7 +185,9 @@ SENTENCE = re.compile(r'[^.!?]*[.!?]')
 # It has already cost something: "walkthrough" was retired vocabulary and this
 # sweep found one instance, on a lesson. Two more sat in the finder's result
 # markup — reader-visible, and structurally unreadable from here. Found by
-# grepping src/ by hand on 2026-08-04.
+# grepping src/ by hand on 2026-08-04. (That term has since been un-retired — it
+# names a feature now — but the limit it exposed is the reason this footer exists,
+# and it applies to every topic below.)
 #
 # The threshold is the excess over the site-wide baseline bundle (the nav's, on
 # every page). Listing all 48 pages would make this noise, and a warning that
@@ -202,10 +231,15 @@ def pages():
         yield url, re.sub(r'\s+', ' ', text)
 
 
-def sweep(name, spec):
+def sweep(name, spec, show_excluded=False):
     subj = re.compile(spec['subject'], re.I)
     stance = re.compile(spec['stance'], re.I) if spec['stance'] else None
-    hits = []
+    # A topic may declare LIVE senses of its own subject words — a phrase that matches
+    # the pattern and is correct copy. They are dropped from the reading list and
+    # COUNTED IN THE HEADER, never silently: an invisible filter is indistinguishable
+    # from a clean sweep, which is the failure this whole file exists to prevent.
+    excl = re.compile(spec['exclude'], re.I) if spec.get('exclude') else None
+    hits, dropped = [], []
     for url, text in pages():
         # /changelog is a dated period record and is never reconciled — skip it, or
         # every historical entry reports forever.
@@ -216,25 +250,40 @@ def sweep(name, spec):
             if len(s) < 25:
                 continue
             if subj.search(s) and (stance is None or stance.search(s)):
+                if excl is not None and excl.search(s):
+                    dropped.append((url, s))
+                    continue
                 hits.append((url, s))
-    print(f'\n{"═" * 78}\n▸ {name.upper()}  ({len(hits)} sentences)\n  {spec["why"]}\n{"═" * 78}')
+    count = f'{len(hits)} sentences'
+    if excl is not None:
+        count += f', {len(dropped)} excluded as live senses'
+    print(f'\n{"═" * 78}\n▸ {name.upper()}  ({count})\n  {spec["why"]}\n{"═" * 78}')
     last = None
     for url, s in hits:
         if url != last:
             print(f'\n  {url}')
             last = url
         print(f'    · {s[:210]}')
+    if dropped:
+        if show_excluded:
+            print('\n  — excluded by this topic\'s live-sense patterns —')
+            for url, s in dropped:
+                print(f'    {url}\n      · {s[:210]}')
+        else:
+            print('\n  (run with --show-excluded to read the excluded sentences)')
     return len(hits)
 
 
 if __name__ == '__main__':
-    want = sys.argv[1:] or list(TOPICS)
+    argv = sys.argv[1:]
+    show_excluded = '--show-excluded' in argv
+    want = [a for a in argv if not a.startswith('-')] or list(TOPICS)
     total = 0
     for name in want:
         if name not in TOPICS:
             print(f'unknown topic {name!r} — have: {", ".join(TOPICS)}')
             continue
-        total += sweep(name, TOPICS[name])
+        total += sweep(name, TOPICS[name], show_excluded)
     print(f'\n{"─" * 78}\n{total} sentences across {len(want)} topic(s). '
           f'This is a reading list, not a verdict — invariant #11.')
     unread = unread_pages()

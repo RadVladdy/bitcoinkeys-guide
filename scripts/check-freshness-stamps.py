@@ -155,6 +155,41 @@ def main():
         else:
             notes.append(f"{var}: {pub} — matches its group floor across {len(group)} item(s)")
 
+    # THE REGISTRY'S OWN DESCRIPTION OF WHAT IT WATCHES, checked in the one direction a
+    # machine can check it. `meta.site_data` named `quiz.js` and `howtos.js` for two days
+    # and five days after each was deleted, and omitted every file that replaced them —
+    # so the registry described a site that no longer existed, and the next person to ask
+    # "what does this watch" would have been told to read two absent files.
+    #
+    # ⚠️ ONLY HALF OF THIS IS CHECKABLE, and saying so is the point. A named file that is
+    # gone is a fact; a file that BELONGS here and is missing is a judgement about what the
+    # entries claim about, and no script can make it. That half stays a review step — add
+    # the file name in the same pass as the entry, the same way a new page owes a watcher.
+    # EVERY prose row of meta is scanned, not just `site_data` — because `notes` was rotten
+    # in exactly the same way and in the same file, and a check aimed at one row would have
+    # walked past it. A key ending in `_history` is EXEMPT and holds the record: the first
+    # draft of this arm failed the push on its own explanation, since the note recording the
+    # fix named the two files it had just removed. Current pointers are checked; history is
+    # allowed to name the dead.
+    meta = reg.get("meta") or {}
+    named, scanned = {}, 0
+    for key, val in meta.items():
+        if not isinstance(val, str) or key.endswith("_history"):
+            continue
+        scanned += 1
+        for js in re.findall(r"\b[\w.-]+\.js\b", val):
+            named.setdefault(js, key)   # first row that names it — the one the failure cites
+    missing = sorted(js for js in named if not (SRC / js).exists())
+    for js in missing:
+        failures.append(f"registry meta.{named[js]} names src/data/{js}, which does not exist — "
+                        f"the registry is describing a site that has moved on. (If this is a "
+                        f"file name kept as history, move it to a meta key ending in "
+                        f"`_history`, which is not scanned.)")
+    if named and not missing:
+        notes.append(f"meta: {len(named)} distinct src/data file(s) named across {scanned} "
+                     f"scanned row(s), all present (the reverse — a file that belongs and is "
+                     f"missing — is a review step, not a check)")
+
     for var, (pub, where) in sorted(stamps.items()):
         if var not in ruled:
             notes.append(f"{var} ({where}): publishes {pub} with NO stamp_sync rule behind it — "
@@ -166,7 +201,8 @@ def main():
         print()
         for f in failures:
             print(f"!! {f}")
-        print(f"\n!! {len(failures)} published freshness stamp(s) claim more than the registry backs.")
+        print(f"\n!! {len(failures)} place(s) where the site and the freshness registry "
+              f"disagree about what is verified.")
         return 1
     print(f"clean — every stamp with a watcher matches its group floor "
           f"({len(ruled)} watched, {len(stamps) - len(ruled)} hand-typed and reported above)")
