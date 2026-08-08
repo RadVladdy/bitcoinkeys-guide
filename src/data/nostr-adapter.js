@@ -46,14 +46,14 @@ export function planDTag(pubkey) {
   return bytesToHex(sha256(new TextEncoder().encode(`${pubkey}|bitcoinkeys.guide/plan|v1`)));
 }
 
-// Plain, widely-federated relays. (Per hard-won hub lessons: avoid
-// relay.getalby.com/v1 — its auth/path has silently blocked clients.)
-export const DEFAULT_RELAYS = [
-  'wss://relay.damus.io',
-  'wss://nos.lol',
-  'wss://relay.primal.net',
-  'wss://relay.nostr.band',
-];
+// Relays are GENERATED from the Nostr registry (nostr-publisher), gated by
+// scripts/check-nostr-registry.py. Reader plans are strangers writing their
+// own events, so the set is the free-to-write healthy relays, degraded last —
+// the old hand list here still pinned degraded relay.nostr.band. (Standing
+// hub lesson kept: avoid relay.getalby.com/v1 — its auth/path has silently
+// blocked clients; the registry never lists it.)
+import { DEFAULT_RELAYS } from './nostr-relays.generated.js';
+export { DEFAULT_RELAYS };
 
 let sharedPool = null;
 function pool() {
