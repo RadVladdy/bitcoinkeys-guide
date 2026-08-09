@@ -2,5 +2,13 @@
   "names": {
     "keys": "11fae27ba4113778eda0bfc7f95915ae9559131bc70af9e195139a1ae63e0744",
     "_": "11fae27ba4113778eda0bfc7f95915ae9559131bc70af9e195139a1ae63e0744"
+  },
+  "relays": {
+    "11fae27ba4113778eda0bfc7f95915ae9559131bc70af9e195139a1ae63e0744": [
+      "wss://nos.lol",
+      "wss://relay.primal.net",
+      "wss://nostr.bitcoiner.social",
+      "wss://relay.damus.io"
+    ]
   }
 }

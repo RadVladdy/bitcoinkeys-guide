@@ -31,7 +31,7 @@ CONFIG = {
     "nip05": {
         "path": "public/.well-known/nostr.json",
         "names": {"keys": "bkeys", "_": "bkeys"},
-        "relay_accounts": [],
+        "relay_accounts": ["bkeys"],
     },
 }
 # -----------------------------------------------------------------------------
