@@ -2,7 +2,7 @@
 // Regenerate: node gen-registry-copies.mjs --write   (in ~/dev/nostr-publisher)
 // Verified by the consuming repo's scripts/check-nostr-registry.py on every push.
 // Reader plans are STRANGERS writing their own events — free-to-write, healthy relays only.
-// Registry version 1, generated from data updated 2026-08-08.
+// Registry version 2, generated from data updated 2026-08-10.
 export const DEFAULT_RELAYS = [
   "wss://nos.lol",
   "wss://relay.primal.net",
