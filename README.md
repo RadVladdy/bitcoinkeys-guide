@@ -54,3 +54,13 @@ npx wrangler pages deploy dist --project-name=bitcoinkeys-guide --branch=main
 
 The GitHub remote is source-of-record/backup, not a deploy trigger (deploys are
 direct upload). Deploy credentials are kept out of the repo.
+
+## Licence
+
+**Code: [MIT](LICENSE). Content: [CC BY 4.0](LICENSE-CONTENT).**
+
+The lessons, rules, comparison data and diagrams are yours to copy, translate,
+remix or feed to a model — just credit RadVladdy and link back to the source
+page. The attribution link matters here for a specific reason: this is
+self-custody advice, and a copy that has gone stale is the one way it becomes
+dangerous. The link is how a reader finds the version that is still checked.
