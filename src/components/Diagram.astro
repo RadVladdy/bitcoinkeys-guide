@@ -9,6 +9,30 @@
 // carries a role="img" aria-label describing what it depicts, which is the
 // documentation that SHOULD ship; anything further belongs up here.
 //
+// `data-box` / `data-in` / `data-near` — THE ONE THING THE MEASURER CANNOT INFER.
+// scripts/measure-diagrams.mjs reads geometry, and geometry never says which rect
+// a given <text> is *supposed* to belong to. So it could only ever check a label
+// against the boxes it happens to overlap — and a caption that had drifted clean
+// off its box overlapped nothing, was compared against nothing but the viewBox,
+// and passed. The worse the drift, the likelier it went unreported.
+//   · `data-box="key"` names a rect.
+//   · `data-in="key"`   — this label BELONGS INSIDE that rect. Must overlap it and
+//                         fit within it.
+//   · `data-near="key"` — this label is a caption sitting OUTSIDE that rect (above
+//                         it, under it). Must stay within NEAR px of its edge.
+// Either may sit on a <g> and applies to every <text> beneath it. A key that names
+// no rect fails the run rather than silently checking nothing — a mistyped pairing
+// is exactly the blind check this closes. These are the only extra bytes shipped
+// into the SVGs and they are the price of the check being able to see anything at
+// all: an association a human wrote is the only kind there is.
+//
+// NOT every label is authored, and that is deliberate rather than unfinished.
+// Titles, summary lines and the captions belonging to a circle or a glyph have no
+// box to be inside or beside; authoring one would be inventing a constraint the
+// drawing does not have. They keep the old treatment — checked against any rect
+// they overlap, and against the viewBox. hot-cold has no authored pair at all:
+// every one of its labels belongs to a circle or to the picture as a whole.
+//
 // THE `screens-*` FAMILY IS GENERATED, and the rest of this file is not.
 // Every other diagram here is one drawing of one idea, written once. The device-screen
 // storyboards are the opposite: one layout, seven times, differing only in the
@@ -44,7 +68,7 @@ const story = name.startsWith('screens-') ? interfaceByKey[name.slice('screens-'
 // so a number here would be the artwork asserting a sequence the data file
 // deliberately refuses to assert.
 const cells = story
-  ? screenPanels.map((p, i) => ({ p, x: COLS[i % 2], y: ROWS[Math.floor(i / 2)] }))
+  ? screenPanels.map((p, i) => ({ p, k: `panel-${i}`, x: COLS[i % 2], y: ROWS[Math.floor(i / 2)] }))
   : [];
 ---
 <figure class="diagram" data-diagram={name}>
@@ -53,10 +77,10 @@ const cells = story
       aria-label={`The four screens a hardware wallet shows you during setup — a PIN, your words, a check that you wrote them down, and a receiving address to compare — on a device driven by ${story.controls}`}>
       {cells.map((c) => (
         <>
-          <text x={c.x + 2} y={c.y - 10} fill="var(--accent)" font-family="var(--mono)" font-size="9.5">{c.p.tag}</text>
-          <rect x={c.x} y={c.y} width={PW} height={PH} rx="10" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="2"/>
+          <text x={c.x + 2} y={c.y - 10} data-near={c.k} fill="var(--accent)" font-family="var(--mono)" font-size="9.5">{c.p.tag}</text>
+          <rect x={c.x} y={c.y} width={PW} height={PH} rx="10" data-box={c.k} fill="var(--surface-2)" stroke="var(--accent)" stroke-width="2"/>
           {c.p.lines.map((ln, j) => (
-            <text x={c.x + PW / 2} y={c.y + 34 + j * 28} text-anchor="middle"
+            <text x={c.x + PW / 2} y={c.y + 34 + j * 28} data-in={c.k} text-anchor="middle"
               fill={j === 0 ? 'var(--text)' : 'var(--muted)'} font-family="var(--mono)" font-size="11">{ln}</text>
           ))}
         </>
@@ -79,9 +103,9 @@ const cells = story
 
   {name === 'keys-mailbox' && (
     <svg viewBox="0 0 460 240" role="img" aria-label="Public key is a mail slot anyone can use; only the private key opens the box">
-      <rect x="140" y="74" width="150" height="138" rx="12" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="2.5"/>
+      <rect x="140" y="74" width="150" height="138" rx="12" data-box="mailbox" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="2.5"/>
       <rect x="160" y="66" width="110" height="15" rx="4" fill="var(--bg)" stroke="var(--accent)" stroke-width="2"/>
-      <text x="215" y="104" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="10">↑ your public address</text>
+      <text x="215" y="104" data-in="mailbox" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="10">↑ your public address</text>
       <circle cx="215" cy="140" r="12" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
       <path d="M210 148 L220 148 L217 166 L213 166 Z" fill="var(--accent)"/>
       <text x="215" y="28" text-anchor="middle" fill="var(--muted)" font-family="var(--mono)" font-size="12">Anyone can drop coins in</text>
@@ -104,11 +128,11 @@ const cells = story
       <text x="12" y="95" fill="var(--muted)" font-family="var(--mono)" font-size="12">Payment</text>
       <text x="12" y="112" fill="var(--muted)" font-family="var(--mono)" font-size="12">to approve</text>
       <path d="M95 100 L165 100" stroke="var(--text)" stroke-width="2"/><path d="M171 100 l-9 -6 l0 12 z" fill="var(--text)"/>
-      <rect x="175" y="45" width="130" height="120" rx="12" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="2.5"/>
-      <text x="240" y="70" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="9">HARDWARE DEVICE</text>
+      <rect x="175" y="45" width="130" height="120" rx="12" data-box="device" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="2.5"/>
+      <text x="240" y="70" data-in="device" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="9">HARDWARE DEVICE</text>
       <circle cx="240" cy="112" r="20" fill="none" stroke="var(--accent)" stroke-width="2"/>
       <text x="240" y="118" text-anchor="middle" font-size="18">🔑</text>
-      <text x="240" y="152" text-anchor="middle" fill="var(--muted)" font-family="var(--mono)" font-size="8">key never leaves</text>
+      <text x="240" y="152" data-in="device" text-anchor="middle" fill="var(--muted)" font-family="var(--mono)" font-size="8">key never leaves</text>
       <path d="M305 100 L375 100" stroke="var(--safe)" stroke-width="2"/><path d="M381 100 l-9 -6 l0 12 z" fill="var(--safe)"/>
       <text x="392" y="95" fill="var(--safe)" font-family="var(--mono)" font-size="12">Signature</text>
       <text x="392" y="112" fill="var(--faint)" font-family="var(--mono)" font-size="11">= proof</text>
@@ -117,19 +141,19 @@ const cells = story
 
   {name === 'seed-to-words' && (
     <svg viewBox="0 0 480 180" role="img" aria-label="A key is a huge number, turned into readable words">
-      <rect x="14" y="45" width="150" height="90" rx="10" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
-      <text x="89" y="35" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="10">YOUR KEY (a number)</text>
-      <text x="89" y="85" text-anchor="middle" fill="var(--muted)" font-family="var(--mono)" font-size="11">1101001011…</text>
-      <text x="89" y="105" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="9">enormous + random</text>
+      <rect x="14" y="45" width="150" height="90" rx="10" data-box="number" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
+      <text x="89" y="35" data-near="number" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="10">YOUR KEY (a number)</text>
+      <text x="89" y="85" data-in="number" text-anchor="middle" fill="var(--muted)" font-family="var(--mono)" font-size="11">1101001011…</text>
+      <text x="89" y="105" data-in="number" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="9">enormous + random</text>
       <path d="M172 90 L212 90" stroke="var(--accent)" stroke-width="2"/><path d="M218 90 l-9 -6 l0 12 z" fill="var(--accent)"/>
-      <rect x="226" y="35" width="240" height="124" rx="10" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
-      <text x="346" y="30" text-anchor="middle" fill="var(--accent)" font-family="var(--mono)" font-size="10">SAME KEY, AS 12–24 WORDS</text>
-      <g fill="var(--text)" font-family="var(--mono)" font-size="11">
+      <rect x="226" y="35" width="240" height="124" rx="10" data-box="words" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+      <text x="346" y="30" data-near="words" text-anchor="middle" fill="var(--accent)" font-family="var(--mono)" font-size="10">SAME KEY, AS 12–24 WORDS</text>
+      <g data-in="words" fill="var(--text)" font-family="var(--mono)" font-size="11">
         <text x="240" y="62">1 army</text><text x="322" y="62">2 velvet</text><text x="404" y="62">3 ocean</text>
         <text x="240" y="88">4 pupil</text><text x="322" y="88">5 canyon</text><text x="404" y="88">6 ripple</text>
         <text x="240" y="114">7 spark</text><text x="322" y="114">8 modest</text><text x="404" y="114">9 …</text>
       </g>
-      <text x="346" y="147" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="9">write these down — they ARE your Bitcoin</text>
+      <text x="346" y="147" data-in="words" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="9">write these down — they ARE your Bitcoin</text>
     </svg>
   )}
 
@@ -147,46 +171,46 @@ const cells = story
       <path d="M70 120 C70 180 92 180 150 180" fill="none" stroke="var(--accent)" stroke-width="2"/>
       <path d="M230 120 L230 162" fill="none" stroke="var(--accent)" stroke-width="2"/>
       <path d="M390 120 C390 180 368 180 310 180" fill="none" stroke="var(--line)" stroke-width="2" stroke-dasharray="4 4"/>
-      <rect x="150" y="162" width="160" height="36" rx="18" fill="var(--accent-soft)" stroke="var(--accent)"/>
-      <text x="230" y="185" text-anchor="middle" fill="var(--accent)" font-family="var(--mono)" font-size="12" font-weight="700">ANY 2 OF 3 SIGN</text>
+      <rect x="150" y="162" width="160" height="36" rx="18" data-box="quorum" fill="var(--accent-soft)" stroke="var(--accent)"/>
+      <text x="230" y="185" data-in="quorum" text-anchor="middle" fill="var(--accent)" font-family="var(--mono)" font-size="12" font-weight="700">ANY 2 OF 3 SIGN</text>
       <path d="M230 198 L230 226" stroke="var(--text)" stroke-width="2"/><path d="M230 232 l-6 -9 l12 0 z" fill="var(--text)"/>
-      <rect x="130" y="240" width="200" height="44" rx="10" fill="none" stroke="var(--safe)" stroke-width="2"/>
-      <text x="230" y="267" text-anchor="middle" fill="var(--safe)" font-size="14" font-weight="700">✓ Payment approved</text>
+      <rect x="130" y="240" width="200" height="44" rx="10" data-box="approved" fill="none" stroke="var(--safe)" stroke-width="2"/>
+      <text x="230" y="267" data-in="approved" text-anchor="middle" fill="var(--safe)" font-size="14" font-weight="700">✓ Payment approved</text>
     </svg>
   )}
 
   {name === 'passphrase' && (
     <svg viewBox="0 0 400 200" role="img" aria-label="One set of seed words forks: the words alone open a small decoy wallet, and the same words plus your passphrase open the hidden real one">
-      <rect x="12" y="74" width="128" height="52" rx="8" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
-      <text x="76" y="64" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="10">SEED WORDS</text>
-      <text x="76" y="106" text-anchor="middle" fill="var(--muted)" font-family="var(--mono)" font-size="11">the 12–24 words</text>
+      <rect x="12" y="74" width="128" height="52" rx="8" data-box="seed" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
+      <text x="76" y="64" data-near="seed" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="10">SEED WORDS</text>
+      <text x="76" y="106" data-in="seed" text-anchor="middle" fill="var(--muted)" font-family="var(--mono)" font-size="11">the 12–24 words</text>
       <path d="M140 92 C176 92 182 48 216 48" fill="none" stroke="var(--muted)" stroke-width="2"/>
       <path d="M222 48 l-9 -6 l0 12 z" fill="var(--muted)"/>
-      <rect x="230" y="20" width="152" height="56" rx="8" fill="none" stroke="var(--muted)" stroke-width="1.5"/>
-      <text x="306" y="44" text-anchor="middle" fill="var(--muted)" font-size="12">Decoy wallet</text>
-      <text x="306" y="62" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="10">small · looks real</text>
+      <rect x="230" y="20" width="152" height="56" rx="8" data-box="decoy" fill="none" stroke="var(--muted)" stroke-width="1.5"/>
+      <text x="306" y="44" data-in="decoy" text-anchor="middle" fill="var(--muted)" font-size="12">Decoy wallet</text>
+      <text x="306" y="62" data-in="decoy" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="10">small · looks real</text>
       <path d="M140 110 C176 110 182 154 216 154" fill="none" stroke="var(--accent)" stroke-width="2"/>
       <path d="M222 154 l-9 -6 l0 12 z" fill="var(--accent)"/>
       <text x="178" y="186" text-anchor="middle" fill="var(--accent)" font-family="var(--mono)" font-size="11">+ passphrase</text>
-      <rect x="230" y="126" width="152" height="56" rx="8" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
-      <text x="306" y="150" text-anchor="middle" fill="var(--accent)" font-size="12" font-weight="700">Real wallet</text>
-      <text x="306" y="168" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="10">hidden · your savings</text>
+      <rect x="230" y="126" width="152" height="56" rx="8" data-box="real" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="2"/>
+      <text x="306" y="150" data-in="real" text-anchor="middle" fill="var(--accent)" font-size="12" font-weight="700">Real wallet</text>
+      <text x="306" y="168" data-in="real" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="10">hidden · your savings</text>
     </svg>
   )}
 
   {name === 'shamir' && (
     <svg viewBox="0 0 470 172" role="img" aria-label="Shamir splits one seed into shares">
-      <rect x="185" y="14" width="100" height="44" rx="8" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="2"/>
-      <text x="235" y="41" text-anchor="middle" fill="var(--accent)" font-family="var(--mono)" font-size="12">one seed</text>
+      <rect x="185" y="14" width="100" height="44" rx="8" data-box="seed" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="2"/>
+      <text x="235" y="41" data-in="seed" text-anchor="middle" fill="var(--accent)" font-family="var(--mono)" font-size="12">one seed</text>
       <g stroke="var(--muted)" stroke-width="1.5" fill="none">
         <path d="M235 58 L60 110"/><path d="M235 58 L147 110"/><path d="M235 58 L235 110"/><path d="M235 58 L323 110"/><path d="M235 58 L410 110"/>
       </g>
       <g font-family="var(--mono)" font-size="11">
-        <rect x="27" y="112" width="66" height="46" rx="6" fill="none" stroke="var(--accent)" stroke-width="1.5"/><text x="60" y="140" text-anchor="middle" fill="var(--text)">share 1</text>
-        <rect x="114" y="112" width="66" height="46" rx="6" fill="none" stroke="var(--accent)" stroke-width="1.5"/><text x="147" y="140" text-anchor="middle" fill="var(--text)">share 2</text>
-        <rect x="202" y="112" width="66" height="46" rx="6" fill="none" stroke="var(--accent)" stroke-width="1.5"/><text x="235" y="140" text-anchor="middle" fill="var(--text)">share 3</text>
-        <rect x="290" y="112" width="66" height="46" rx="6" fill="none" stroke="var(--line)" stroke-width="1.5" stroke-dasharray="4 4"/><text x="323" y="140" text-anchor="middle" fill="var(--faint)">share 4</text>
-        <rect x="377" y="112" width="66" height="46" rx="6" fill="none" stroke="var(--line)" stroke-width="1.5" stroke-dasharray="4 4"/><text x="410" y="140" text-anchor="middle" fill="var(--faint)">share 5</text>
+        <rect x="27" y="112" width="66" height="46" rx="6" data-box="share-1" fill="none" stroke="var(--accent)" stroke-width="1.5"/><text x="60" y="140" data-in="share-1" text-anchor="middle" fill="var(--text)">share 1</text>
+        <rect x="114" y="112" width="66" height="46" rx="6" data-box="share-2" fill="none" stroke="var(--accent)" stroke-width="1.5"/><text x="147" y="140" data-in="share-2" text-anchor="middle" fill="var(--text)">share 2</text>
+        <rect x="202" y="112" width="66" height="46" rx="6" data-box="share-3" fill="none" stroke="var(--accent)" stroke-width="1.5"/><text x="235" y="140" data-in="share-3" text-anchor="middle" fill="var(--text)">share 3</text>
+        <rect x="290" y="112" width="66" height="46" rx="6" data-box="share-4" fill="none" stroke="var(--line)" stroke-width="1.5" stroke-dasharray="4 4"/><text x="323" y="140" data-in="share-4" text-anchor="middle" fill="var(--faint)">share 4</text>
+        <rect x="377" y="112" width="66" height="46" rx="6" data-box="share-5" fill="none" stroke="var(--line)" stroke-width="1.5" stroke-dasharray="4 4"/><text x="410" y="140" data-in="share-5" text-anchor="middle" fill="var(--faint)">share 5</text>
       </g>
     </svg>
   )}
@@ -210,41 +234,41 @@ const cells = story
   {name === 'payjoin' && (
     <svg viewBox="0 0 480 196" role="img" aria-label="A PayJoin payment: the seller adds one of their own coins as an input, so the two inputs are not both the buyer's">
       <text x="240" y="16" text-anchor="middle" fill="var(--muted)" font-family="var(--mono)" font-size="11">Chain analysis reads both of these as yours</text>
-      <rect x="8" y="34" width="104" height="42" rx="8" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
-      <text x="60" y="60" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="11">your coin</text>
-      <rect x="8" y="118" width="104" height="42" rx="8" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="2.5"/>
-      <text x="60" y="144" text-anchor="middle" fill="var(--accent)" font-family="var(--mono)" font-size="11">their coin</text>
-      <text x="60" y="178" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="9.5">added by the seller</text>
+      <rect x="8" y="34" width="104" height="42" rx="8" data-box="in-yours" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
+      <text x="60" y="60" data-in="in-yours" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="11">your coin</text>
+      <rect x="8" y="118" width="104" height="42" rx="8" data-box="in-theirs" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="2.5"/>
+      <text x="60" y="144" data-in="in-theirs" text-anchor="middle" fill="var(--accent)" font-family="var(--mono)" font-size="11">their coin</text>
+      <text x="60" y="178" data-near="in-theirs" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="9.5">added by the seller</text>
       <path d="M118 55 L164 55" stroke="var(--text)" stroke-width="2" fill="none"/><path d="M173 55 l-9 -6 l0 12 z" fill="var(--text)"/>
       <path d="M118 139 L164 139" stroke="var(--accent)" stroke-width="2" fill="none"/><path d="M173 139 l-9 -6 l0 12 z" fill="var(--accent)"/>
-      <rect x="180" y="40" width="120" height="114" rx="10" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="2"/>
-      <text x="240" y="92" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="11">one ordinary</text>
-      <text x="240" y="110" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="11">payment</text>
+      <rect x="180" y="40" width="120" height="114" rx="10" data-box="tx" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="2"/>
+      <text x="240" y="92" data-in="tx" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="11">one ordinary</text>
+      <text x="240" y="110" data-in="tx" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="11">payment</text>
       <path d="M306 55 L352 55" stroke="var(--text)" stroke-width="2" fill="none"/><path d="M361 55 l-9 -6 l0 12 z" fill="var(--text)"/>
       <path d="M306 139 L352 139" stroke="var(--text)" stroke-width="2" fill="none"/><path d="M361 139 l-9 -6 l0 12 z" fill="var(--text)"/>
-      <rect x="368" y="34" width="104" height="42" rx="8" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
-      <text x="420" y="60" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="11">to the seller</text>
-      <rect x="368" y="118" width="104" height="42" rx="8" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
-      <text x="420" y="144" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="11">change to you</text>
+      <rect x="368" y="34" width="104" height="42" rx="8" data-box="out-seller" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
+      <text x="420" y="60" data-in="out-seller" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="11">to the seller</text>
+      <rect x="368" y="118" width="104" height="42" rx="8" data-box="out-change" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
+      <text x="420" y="144" data-in="out-change" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="11">change to you</text>
     </svg>
   )}
 
   {name === 'silent-payments' && (
     <svg viewBox="0 0 480 214" role="img" aria-label="One published silent payment code, from which every sender derives a different fresh address">
-      <rect x="8" y="60" width="136" height="60" rx="10" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="2.5"/>
-      <text x="76" y="86" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="11">your one code</text>
-      <text x="76" y="106" text-anchor="middle" fill="var(--accent)" font-family="var(--mono)" font-size="11">sp1…</text>
-      <text x="76" y="42" text-anchor="middle" fill="var(--muted)" font-family="var(--mono)" font-size="10.5">published anywhere</text>
+      <rect x="8" y="60" width="136" height="60" rx="10" data-box="code" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="2.5"/>
+      <text x="76" y="86" data-in="code" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="11">your one code</text>
+      <text x="76" y="106" data-in="code" text-anchor="middle" fill="var(--accent)" font-family="var(--mono)" font-size="11">sp1…</text>
+      <text x="76" y="42" data-near="code" text-anchor="middle" fill="var(--muted)" font-family="var(--mono)" font-size="10.5">published anywhere</text>
       <g stroke="var(--muted)" stroke-width="1.5" fill="none">
         <path d="M144 90 L322 42"/><path d="M144 90 L322 106"/><path d="M144 90 L322 170"/>
       </g>
       <g font-family="var(--mono)" font-size="11">
-        <rect x="330" y="22" width="142" height="40" rx="8" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
-        <text x="401" y="47" text-anchor="middle" fill="var(--text)">a fresh address</text>
-        <rect x="330" y="86" width="142" height="40" rx="8" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
-        <text x="401" y="111" text-anchor="middle" fill="var(--text)">a fresh address</text>
-        <rect x="330" y="150" width="142" height="40" rx="8" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
-        <text x="401" y="175" text-anchor="middle" fill="var(--text)">a fresh address</text>
+        <rect x="330" y="22" width="142" height="40" rx="8" data-box="addr-1" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="401" y="47" data-in="addr-1" text-anchor="middle" fill="var(--text)">a fresh address</text>
+        <rect x="330" y="86" width="142" height="40" rx="8" data-box="addr-2" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="401" y="111" data-in="addr-2" text-anchor="middle" fill="var(--text)">a fresh address</text>
+        <rect x="330" y="150" width="142" height="40" rx="8" data-box="addr-3" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="401" y="175" data-in="addr-3" text-anchor="middle" fill="var(--text)">a fresh address</text>
       </g>
       <text x="240" y="208" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="9.5">nothing on the chain ties them together</text>
     </svg>
@@ -253,28 +277,28 @@ const cells = story
   {name === 'coinjoin' && (
     <svg viewBox="0 0 480 200" role="img" aria-label="A CoinJoin: several people's coins enter one transaction and equal-sized amounts come back out">
       <g font-family="var(--mono)" font-size="11">
-        <rect x="8" y="20" width="96" height="38" rx="8" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="2.5"/>
-        <text x="56" y="44" text-anchor="middle" fill="var(--accent)">you</text>
-        <rect x="8" y="76" width="96" height="38" rx="8" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
-        <text x="56" y="100" text-anchor="middle" fill="var(--muted)">someone</text>
-        <rect x="8" y="132" width="96" height="38" rx="8" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
-        <text x="56" y="156" text-anchor="middle" fill="var(--muted)">someone</text>
+        <rect x="8" y="20" width="96" height="38" rx="8" data-box="in-1" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="2.5"/>
+        <text x="56" y="44" data-in="in-1" text-anchor="middle" fill="var(--accent)">you</text>
+        <rect x="8" y="76" width="96" height="38" rx="8" data-box="in-2" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="56" y="100" data-in="in-2" text-anchor="middle" fill="var(--muted)">someone</text>
+        <rect x="8" y="132" width="96" height="38" rx="8" data-box="in-3" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="56" y="156" data-in="in-3" text-anchor="middle" fill="var(--muted)">someone</text>
       </g>
       <g stroke="var(--muted)" stroke-width="1.5" fill="none">
         <path d="M110 39 L164 39"/><path d="M110 95 L164 95"/><path d="M110 151 L164 151"/>
       </g>
-      <rect x="170" y="20" width="124" height="150" rx="10" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="2"/>
-      <text x="232" y="99" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="11">one transaction</text>
+      <rect x="170" y="20" width="124" height="150" rx="10" data-box="tx" fill="var(--surface-2)" stroke="var(--accent)" stroke-width="2"/>
+      <text x="232" y="99" data-in="tx" text-anchor="middle" fill="var(--text)" font-family="var(--mono)" font-size="11">one transaction</text>
       <g stroke="var(--muted)" stroke-width="1.5" fill="none">
         <path d="M300 39 L354 39"/><path d="M300 95 L354 95"/><path d="M300 151 L354 151"/>
       </g>
       <g font-family="var(--mono)" font-size="11">
-        <rect x="360" y="20" width="112" height="38" rx="8" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
-        <text x="416" y="44" text-anchor="middle" fill="var(--text)">same amount</text>
-        <rect x="360" y="76" width="112" height="38" rx="8" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
-        <text x="416" y="100" text-anchor="middle" fill="var(--text)">same amount</text>
-        <rect x="360" y="132" width="112" height="38" rx="8" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
-        <text x="416" y="156" text-anchor="middle" fill="var(--text)">same amount</text>
+        <rect x="360" y="20" width="112" height="38" rx="8" data-box="out-1" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="416" y="44" data-in="out-1" text-anchor="middle" fill="var(--text)">same amount</text>
+        <rect x="360" y="76" width="112" height="38" rx="8" data-box="out-2" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="416" y="100" data-in="out-2" text-anchor="middle" fill="var(--text)">same amount</text>
+        <rect x="360" y="132" width="112" height="38" rx="8" data-box="out-3" fill="var(--surface-2)" stroke="var(--line)" stroke-width="1.5"/>
+        <text x="416" y="156" data-in="out-3" text-anchor="middle" fill="var(--text)">same amount</text>
       </g>
       <text x="240" y="192" text-anchor="middle" fill="var(--faint)" font-family="var(--mono)" font-size="9.5">nothing marks which one came back to you</text>
     </svg>
