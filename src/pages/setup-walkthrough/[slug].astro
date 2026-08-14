@@ -22,7 +22,9 @@ import RuleRef from '../../components/RuleRef.astro';
 import { navWhere } from '../../data/nav.js';
 import {
   walkthroughDevices, walkthroughSteps, walkthroughVerified, walkthroughHref, drawnNotCaptured,
+  screenPanels,
 } from '../../data/walkthrough.js';
+import { numberWord } from '../../data/numbers.js';
 
 export function getStaticPaths() {
   return walkthroughDevices.map((d) => ({ params: { slug: d.slug }, props: { d } }));
@@ -51,7 +53,7 @@ const toc = [
 ---
 <Base
   title={`Setting up a ${d.name} — what you will see · BitcoinKeys.guide`}
-  description={`A drawn, step-by-step walkthrough of setting up a ${d.name} for cold storage: the four screens it shows you, what each one is really for, what is different about this device, and the one step almost every guide leaves out.`}
+  description={`A drawn, step-by-step walkthrough of setting up a ${d.name} for cold storage: the ${numberWord(screenPanels.length)} screens it shows you, what each one is really for, what is different about this device, and the one step almost every guide leaves out.`}
   verified={walkthroughVerified}
 >
   <div class="lgrid">
@@ -101,10 +103,10 @@ const toc = [
     <p>{drawnNotCaptured}</p>
     <Diagram
       name={`screens-${d.ui.key}`}
-      caption={`The four moments during setup when the ${d.short}'s own screen is the thing you trust rather than your computer, drawn in the controls this device actually has: ${d.ui.controls}.`}
+      caption={`The ${numberWord(screenPanels.length)} moments during setup when the ${d.short}'s own screen is the thing you trust rather than your computer, drawn in the controls this device actually has: ${d.ui.controls}.`}
     />
     <p>
-      There are more screens than these. These are the four where the display in your hand is
+      There are more screens than these. These are the {numberWord(screenPanels.length)} where the display in your hand is
       telling you something your computer is not allowed to tell you, and where reading it carefully
       is the entire security of the arrangement. The rest is menus.
     </p>

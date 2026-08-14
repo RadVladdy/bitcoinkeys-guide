@@ -5,6 +5,7 @@ import LessonEyebrow from '../../../components/LessonEyebrow.astro';
 import Diagram from '../../../components/Diagram.astro';
 import RuleBand from '../../../components/RuleBand.astro';
 import { ladder } from '../../../data/ladder.js';
+import { numberWord } from '../../../data/numbers.js';
 import LessonClose from '../../../components/LessonClose.astro';
 import LessonCheck from '../../../components/LessonCheck.astro';
 import LessonCrumb from '../../../components/LessonCrumb.astro';
@@ -72,7 +73,7 @@ const rungs = ladder;
 
 
   <section class="prose">
-    <h2>The four rungs at a glance</h2>
+    <h2>The {numberWord(ladder.length)} rungs at a glance</h2>
     <p class="sub">Read down the last two columns. Every rung buys you the third and charges you the fourth — that trade is the whole ladder.</p>
   </section>
   <section>

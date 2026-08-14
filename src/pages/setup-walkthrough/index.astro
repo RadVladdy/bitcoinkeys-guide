@@ -19,14 +19,16 @@ import RuleRef from '../../components/RuleRef.astro';
 import { navWhere } from '../../data/nav.js';
 import {
   walkthroughGroups, walkthroughDevices, walkthroughVerified, walkthroughFor, drawnNotCaptured,
+  screenPanels,
 } from '../../data/walkthrough.js';
+import { numberWord } from '../../data/numbers.js';
 
 const wallets = navWhere('/wallets');
 const finder = navWhere('/find-your-setup');
 ---
 <Base
   title="What setting up a hardware wallet actually looks like · BitcoinKeys.guide"
-  description="Drawn, step-by-step walkthroughs of the four screens every cold-storage hardware wallet shows you during setup — the PIN, your words, the check, and the address — with a page for each device we rate for cold storage. No affiliate links."
+  description={`Drawn, step-by-step walkthroughs of the ${numberWord(screenPanels.length)} screens every cold-storage hardware wallet shows you during setup — the PIN, your words, the check, and the address — with a page for each device we rate for cold storage. No affiliate links.`}
   verified={walkthroughVerified}
 >
   <section class="prose">

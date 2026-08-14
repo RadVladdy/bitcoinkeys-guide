@@ -24,6 +24,7 @@ import { seedCosts, tableRowCount, DICE_PER_WORD } from '../data/dice-table.js';
 import { shortName } from '../data/wallets.js';
 import { notRecommendedFor } from '../data/advisories.js';
 import { pdfHref, printablePdfs } from '../data/pdf-version.js';
+import { numberWord } from '../data/numbers.js';
 
 // Option 4 has no procedure, so the tabs are exactly the doing options.
 const tabs = methods.filter((m) => DICE_METHOD_KEYS.includes(m.key));
@@ -83,7 +84,7 @@ const shortCost = seedCosts.find((c) => c.words === 12);
         option now opens by choosing its own length, with the numbers that
         method actually costs. */}
     <div class="callout" role="note">
-      <span class="label">First, pick a method — the three below</span>
+      <span class="label">First, pick a method — the {numberWord(tabs.length)} below</span>
       <p style="margin-bottom:0">
         They differ in how much of the randomness is yours and how much work that takes, and
         <strong>which of them your own hardware can do at all</strong> — each tab says so before you open it.

@@ -12,6 +12,7 @@
 import Base from '../layouts/Base.astro';
 import { metalCriteria, metalPicks, metalBands, metalFailed, metalSource, metalVerified,
          metalTests, metalOutcome } from '../data/metal.js';
+import { numberWord, numberWordCap } from '../data/numbers.js';
 const band = Object.fromEntries(metalBands.map((b) => [b.key, b.label]));
 const badge = { value: 'best value', titanium: 'if you want titanium' };
 // Derived, never typed — see invariant #10. The percentage is computed so it cannot
@@ -19,16 +20,16 @@ const badge = { value: 'best value', titanium: 'if you want titanium' };
 const pctPoor = Math.round((metalOutcome.poor / metalOutcome.reviewed) * 100);
 ---
 <Base
-  title="Which metal seed backup to buy \u00b7 BitcoinKeys.guide"
-  description={`Which metal backup should hold your Bitcoin seed phrase? Independent stress-test results on ${metalOutcome.reviewed} plates \u2014 fire, acid and a 20-ton press \u2014 plus the ${metalCriteria.length} criteria that decide the rest, and the ones to avoid. No affiliate links.`}
+  title="Which metal seed backup to buy · BitcoinKeys.guide"
+  description={`Which metal backup should hold your Bitcoin seed phrase? Independent stress-test results on ${metalOutcome.reviewed} plates — fire, acid and a 20-ton press — plus the ${metalCriteria.length} criteria that decide the rest, and the ones to avoid. No affiliate links.`}
   verified={metalVerified}
 >
   <section class="prose">
     <p class="eyebrow">Back up your seed</p>
     <h1>Which metal backup should hold <span class="accent">your seed</span>?</h1>
     <p class="lead">
-      \u201cMove it to metal\u201d is easy to say and oddly hard to act on \u2014 there are dozens of these things and they are
-      not equally good. Here is how to choose one, which five we\u2019d point you at, and which to avoid. We sell
+      “Move it to metal” is easy to say and oddly hard to act on — there are dozens of these things and they are
+      not equally good. Here is how to choose one, which {numberWord(metalPicks.length)} we’d point you at, and which to avoid. We sell
       nothing and take no affiliate money, so nothing below is bought placement. New to this?
       <a href="/learn/back-up-your-seed">The lesson on backing up your seed</a> covers why metal at all, and how
       to copy the words without making a mistake.
@@ -69,10 +70,10 @@ const pctPoor = Math.round((metalOutcome.poor / metalOutcome.reviewed) * 100);
     ))}
   </ol>
 
-  <h2>Five that meet all five</h2>
+  <h2>{numberWordCap(metalPicks.length)} that meet all {numberWord(metalCriteria.length)}</h2>
   <p class="m-sub">
     Every one of these scored top marks in all {metalTests.length} of Lopp’s stress tests <em>and</em> meets the
-    {' '}{metalCriteria.length} criteria above, which he doesn’t test for. Far more than five would qualify on
+    {' '}{metalCriteria.length} criteria above, which he doesn’t test for. Far more than {numberWord(metalPicks.length)} would qualify on
     durability alone — this is our shortlist, not a ranking, and deliberately not exhaustive.
   </p>
   <ul class="m-picks">

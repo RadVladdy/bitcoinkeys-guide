@@ -16,6 +16,7 @@ import Base from '../../layouts/Base.astro';
 import {
   privacyTools, privacyToolsVerified, privacyToolHref, privacyPremise,
 } from '../../data/privacy-tools.js';
+import { numberWord } from '../../data/numbers.js';
 ---
 <Base
   title="The optional privacy tools · BitcoinKeys.guide"
@@ -39,7 +40,7 @@ import {
         The two things that do most of the work are {privacyPremise.doesMost}. They are free, they
         need no software, and together they defeat more than anything on this page.
         <a href="/learn/privacy">The privacy lesson</a> teaches both, and it is the page to read
-        first — nothing here is an upgrade on it, and one of the three below is a fix for a case
+        first — nothing here is an upgrade on it, and one of the {numberWord(privacyTools.length)} below is a fix for a case
         where the habit simply cannot be applied.
       </p>
     </div>
@@ -78,7 +79,7 @@ import {
   <section class="prose">
     <h2>What none of them fix</h2>
     <p>
-      Worth having in front of you before you spend anything on this layer, because all three are
+      Worth having in front of you before you spend anything on this layer, because all {numberWord(privacyTools.length)} are
       sometimes sold as if they did:
     </p>
     <ul class="cannot">
