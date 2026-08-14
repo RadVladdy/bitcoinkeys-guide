@@ -48,9 +48,26 @@ local-only and this repo is public. On a machine without them the check SKIPS an
 prints why. A skip is not a pass, and the wording says so — same convention as
 check-freshness-stamps.py, for the same reason.
 
+⚠️ IT READS SCRIPT POSITION TOO, AND THAT ARM EXISTS BECAUSE THE FIRST VERSION WAS
+BLIND TO SEVENTEEN LIVE LINKS. Written to read `href` only, it reported clean over a
+site where `/roll-your-own-seed` and `/collaborative` build their outbound links in
+the browser: the per-device dice `source`/`source2` URLs in `dice.js` and every
+custodian's site in `custodians.js` are rendered client-side, so not one of them is
+an `href` in any built page. All seventeen turned out to be watched already — by the
+dice and custodian clusters, seeded for other reasons — so the first run's green was
+TRUE and it was not EVIDENCE. A clean exit from a check that cannot see a surface is
+indistinguishable from coverage of it, which is this project's most-paid-for lesson
+arriving inside the check written to close a coverage gap. It was found by the spine
+recipe's external-host census naming `storage.googleapis.com`, a host this check had
+never seen — the census reads every file, this read one kind.
+
+A URL built at runtime from variables is skipped: `https://${s}/.well-known/…` in the
+Nostr adapter has no fixed host, so there is nothing a watcher could point at.
+
 DECLARED LIMITS, so a clean run is not read as more than it is:
-  · It reads `href` only. A URL printed as plain text is not a link a reader clicks,
-    and no page here does that; if one ever does, this check is blind to it.
+  · It reads quoted absolute URLs — `href` in markup, string literals in script. A
+    URL printed as bare text in prose is neither, and no page here does that; if one
+    ever does, this check is blind to it.
   · It reads `dist/`, so it is only as current as the last build. The hook's other
     checks share that dependency — build first.
   · A BARE-DOMAIN link counts as covered when any deeper path on the same host is
@@ -73,6 +90,10 @@ DIST = REPO / "dist"
 MANIFEST = pathlib.Path(os.path.expanduser("~/dev/freshness/registries.json"))
 
 HREF = re.compile(r'href="(https?://[^"]+)"', re.I)
+INLINE_SCRIPT = re.compile(r"<script\b[^>]*>(.*?)</script>", re.S | re.I)
+# A quoted absolute URL in JavaScript. The site's client-rendered outbound links —
+# the per-device dice sources and every custodian's website — only ever exist here.
+JS_URL = re.compile(r"""["'`](https?://[^"'`\s]+)["'`]""")
 
 # Our own sites. Their liveness is a deploy fact we control, not a source that can
 # move under us — and the sister-project footer means every page links the other two.
@@ -131,14 +152,31 @@ def main() -> int:
 
     external = defaultdict(set)
     own_seen = set()
+
+    def record(url: str, where: str) -> None:
+        if "${" in url or "{{" in url:
+            return          # built at runtime — no fixed host for a watcher to point at
+        host, _ = norm(url)
+        if not host:
+            return
+        if host in OWN_HOSTS or any(host.endswith("." + o) for o in OWN_HOSTS):
+            own_seen.add(host)
+            return
+        external[url.split("#")[0]].add(where)
+
     for page in pages:
         where = page.parent.relative_to(DIST).as_posix() or "/"
-        for url in HREF.findall(page.read_text(errors="replace")):
-            host, _ = norm(url)
-            if host in OWN_HOSTS or any(host.endswith("." + o) for o in OWN_HOSTS):
-                own_seen.add(host)
-                continue
-            external[url.split("#")[0]].add(where)
+        text = page.read_text(errors="replace")
+        for url in HREF.findall(text):
+            record(url, where)
+        for body in INLINE_SCRIPT.findall(text):
+            for url in JS_URL.findall(body):
+                record(url, f"{where} (inline script)")
+
+    # The bundles. A link rendered in the browser is a link a reader clicks.
+    for bundle in sorted(DIST.rglob("*.js")):
+        for url in JS_URL.findall(bundle.read_text(errors="replace")):
+            record(url, f"{bundle.name} (script)")
 
     if not external:
         # Every substantive page on this site cites something. Zero external links
