@@ -1,5 +1,6 @@
 ---
 import Base from '../layouts/Base.astro';
+import RuleRef from '../components/RuleRef.astro';
 // TWO SECTIONS, NOT ONE LIST (2026-08-01). `savingsCustodians` is rung 4 of the
 // ladder — a service holding the third key of a long-term vault. Bitkey is a
 // collaborative-custody product too, and a good one, but it answers a different
@@ -15,13 +16,13 @@ const mark = { yes: '✓', partial: '~', no: '✗' };
 const markCls = { yes: 'y', partial: 'p', no: 'n' };
 ---
 <Base
-  title="Compare collaborative custody services · BitcoinKeys.guide"
-  description="An honest, independent comparison of Bitcoin-only collaborative-custody services — Unchained, Nunchuk, Swan Vault, AnchorWatch, Bitkey, The Bitcoin Adviser. You keep 2 of 3 keys; a service holds one for recovery help. No affiliate links. Compare by KYC, open-source recovery, insurance, and fees."
+  title="Bitcoin collaborative custody, compared · BitcoinKeys.guide"
+  description="An honest, independent comparison of Bitcoin collaborative custody services — Unchained, Nunchuk, Swan Vault, AnchorWatch, Bitkey, The Bitcoin Adviser. You keep 2 of 3 keys; a service holds one for recovery help. Includes how collaborative custody differs from multi-institution custody. No affiliate links. Compare by KYC, open-source recovery, insurance, and fees."
   verified={custodiansVerified}
 >
   <section class="prose">
     <p class="eyebrow">Choose a partner</p>
-    <h1>Collaborative custody, compared <span class="accent">honestly</span></h1>
+    <h1>Bitcoin collaborative custody, compared <span class="accent">honestly</span></h1>
     <p class="lead">In collaborative custody you still hold <strong>two of three keys</strong> — a Bitcoin service holds the third as a safety net for recovery and inheritance. They <strong>can never move your coins alone.</strong> What you outsource is complexity, not custody. Because we take no affiliate money, this page can compare them plainly.</p>
     <div class="callout">
       <span class="label">The one test that matters most</span>
@@ -137,6 +138,47 @@ const markCls = { yes: 'y', partial: 'p', no: 'n' };
   )}
 
   <section class="prose">
+    <h2 id="vs-multi-institution">Collaborative custody vs multi-institution custody</h2>
+    <p>
+      These sound alike and they are not the same arrangement. The difference is one question:
+      <strong>whose hands are the keys in?</strong>
+    </p>
+    <p>
+      In <strong>collaborative custody</strong> — everything compared above — <strong>you hold two of the three
+      keys.</strong> You can move your Bitcoin without asking anyone. The service holds one key, can never move
+      your coins with it, and if the company disappears your two keys plus the
+      <a href="/glossary#wallet-descriptor">wallet descriptor</a> rebuild the wallet in open tools.
+    </p>
+    <p>
+      In <strong>multi-institution custody</strong>, the keys are distributed across several independent
+      companies and <strong>you hold none of them.</strong> You authorise a transaction; institutions sign it.
+      AnchorWatch — compared above for its <em>Flagship</em> vaults, where you do hold your own keys — also sells
+      a Multi-Institution Custody vault: a 2-of-3 split across AnchorWatch, BitGo and CoinCorner, with no
+      hardware wallet for you to set up or look after.
+    </p>
+    <p>
+      <strong>What that genuinely buys is real, and it is worth naming plainly:</strong> no single company can
+      move your coins, so the failure that takes down an ordinary custodian — one firm collapsing, freezing
+      withdrawals or being compromised — does not take your Bitcoin with it. Three independent institutions
+      failing together is a much smaller risk than one failing alone. There is also no seed phrase you can lose,
+      no device to keep safe, and nothing to hand your heirs but instructions.
+    </p>
+    <p>
+      <strong>What it costs is the thing this site exists to teach.</strong> Spreading counterparty risk across
+      three companies is not the same as not having any — <RuleRef key="not-your-keys" /> still
+      applies, because you cannot sign. Every path to your Bitcoin runs through someone else's willingness and
+      ability to act, which is the dependency collaborative custody is arranged to remove.
+      <RuleRef key="independent-things" label="The independence rule" /> asks for two <em>independent</em> things, and three regulated
+      custodians sharing an industry, a jurisdiction and a legal climate are less independent than they look on
+      a diagram.
+    </p>
+    <p class="sub">
+      Which is to say: multi-institution custody is a considered answer to a real problem, and it is a different
+      answer from the one on this page. If what you want is fewer things to manage, it delivers that. If what
+      you want is to be able to move your own Bitcoin without permission, it does not — and no amount of
+      institutional quality changes that, because it isn't a quality question.
+    </p>
+
     <div class="callout safe">
       <span class="label">Collaborative isn’t the only way up</span>
       <p>Running your own <a href="/learn/ladder#rung-3">multisig (rung 3)</a> keeps every key in your hands — no company, no KYC, maximum privacy. Collaborative custody trades a little of that sovereignty for far less to manage and built-in recovery. Neither is “more correct” — it’s a real trade-off. Not sure which fits? <a href="/find-your-setup">Find your setup →</a></p>
