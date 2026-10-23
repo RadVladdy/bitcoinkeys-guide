@@ -36,8 +36,7 @@ const show = items.length >= min;
       {items.map((t) => (
         <li>
           <a href={`#${t.id}`}>
-            {t.n != null && <span class="toc-n mono">{t.n}</span>}
-            {t.label}
+            {t.n != null && <span class="toc-n mono">{t.n}</span>}{t.label}
           </a>
         </li>
       ))}

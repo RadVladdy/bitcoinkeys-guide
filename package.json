@@ -3,7 +3,7 @@
   "type": "module",
   "version": "0.1.0",
   "private": true,
-  "description": "BitcoinKeys.guide \u2014 a plain-English, independent, Bitcoin-only self-custody guide.",
+  "description": "BitcoinKeys.guide — a plain-English, independent, Bitcoin-only self-custody guide.",
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
@@ -13,11 +13,11 @@
     "prepare": "git config core.hooksPath .githooks"
   },
   "dependencies": {
-    "@astrojs/sitemap": "^3.2.1",
+    "@astrojs/sitemap": "^3.7.4",
     "@scure/bip32": "^2.2.0",
     "@scure/bip39": "^2.2.0",
     "@scure/btc-signer": "^2.2.0",
-    "astro": "^4.16.18",
+    "astro": "^7.4.1",
     "nostr-tools": "^2.23.12"
   }
 }

@@ -42,7 +42,7 @@ const total = questions.length;
 
     {questions.map((c, i) => (
       <div class="lc-q" data-q>
-        <p class="lc-qt"><span class="lc-n mono">{i + 1}</span> {c.q}</p>
+        <p class="lc-qt"><span class="lc-n mono">{i + 1}</span>{c.q}</p>
         <div class="lc-opts">
           {c.options.map((o) => (
             <button class="lc-opt" type="button" data-c={o.c ? '1' : null}>{o.t}</button>

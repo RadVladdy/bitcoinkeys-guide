@@ -35,8 +35,7 @@ const mine = rulesFor(href ?? Astro.url.pathname);
     {mine.map((r) => (
       <div class="rb-row">
         <p class="rb-k mono">
-          Rule <span class="rb-n">{String(r.n).padStart(2, '0')}</span>
-          {r.isPartTwo && <span class="rb-part"> · part two</span>}
+          Rule <span class="rb-n">{String(r.n).padStart(2, '0')}</span>{r.isPartTwo && <span class="rb-part"> · part two</span>}
         </p>
         <p class="rb-t">{r.rule}</p>
       </div>

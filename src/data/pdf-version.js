@@ -24,6 +24,15 @@
 // PDF and every link to it changes with it, automatically.
 import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+// Resolved from the project root (the build's working directory, which is how
+// Astro finds the root too), NEVER from `import.meta.url`. Astro 7 bundles this
+// module into dist/ before running it, so `../../public` relative to the module
+// pointed nowhere — and because both readers below fall back silently, every
+// PDF link lost its `?v=` and its page count with the build still green. Found
+// by the old-vs-new text diff of the 2026-10 Astro 4 → 7 upgrade.
+const publicFile = (path) => join(process.cwd(), 'public', path);
 
 const cache = new Map();
 
@@ -37,7 +46,7 @@ export function pdfHref(path) {
   if (cache.has(path)) return cache.get(path);
   let href = path;
   try {
-    const buf = readFileSync(new URL(`../../public${path}`, import.meta.url));
+    const buf = readFileSync(publicFile(path));
     href = `${path}?v=${createHash('sha256').update(buf).digest('hex').slice(0, 8)}`;
   } catch {
     // left bare on purpose — see above
@@ -126,7 +135,7 @@ export function pdfPages(path) {
   if (pageCache.has(path)) return pageCache.get(path);
   let n = null;
   try {
-    const s = readFileSync(new URL(`../../public${path}`, import.meta.url)).toString('latin1');
+    const s = readFileSync(publicFile(path)).toString('latin1');
     const counts = [...s.matchAll(/\/Count\s+(\d+)/g)].map((m) => Number(m[1]));
     const pages = (s.match(/\/Type\s*\/Page[^s]/g) || []).length;
     // The page tree's root /Count is the answer; agreeing with a direct count of
