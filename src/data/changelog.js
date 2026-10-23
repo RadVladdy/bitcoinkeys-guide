@@ -9,6 +9,18 @@
 // Entry types: 'price' | 'device' | 'spec' | 'security' | 'feature' | 'content'
 export const changelog = [
   {
+    date: '2026-10-23',
+    type: 'price',
+    title: 'Coldcard Q now $319, Coldcard Mk5 $219, BitBox02 $167; Jade’s sale doesn’t change our list price',
+    detail: 'A re-check of the devices our freshness checks flagged, against each maker’s own store. Coinkite has raised both Coldcards: the Q from $249 to $319 and the Mk5 from $170 to $219. The BitBox02 (Bitcoin-only) is now $167 in the US, up from $137, with taxes and tariffs included; it no longer shows up under the “Under $150” filter. Blockstream is selling the Jade at $67 against its regular $79. As with the Trezor sale in July, the guide keeps showing the regular price, because sale prices come and go. If you’re buying while it lasts, enjoy the discount. One note on our own process: our automated check flagged the Mk5’s rise in early September, and a later misreading of the same page quietly cancelled that flag. We found the real price by hand today, and we are fixing the check so a later reading can’t cancel an earlier one without anyone looking.',
+  },
+  {
+    date: '2026-10-23',
+    type: 'content',
+    title: 'PayJoin: Bull Bitcoin shipped the new version in 2024, not 2026, and BTCPay’s support is still in testing',
+    detail: 'Two corrections to “Where this stands” on the PayJoin page. We had written that Bull Bitcoin’s mobile wallet shipped the first commercial send-and-receive version of the new, serverless PayJoin (BIP-77) in 2026. It shipped in late 2024, and Cake Wallet followed in 2025. We have also added a clause on BTCPay Server, where most PayJoin-capable sellers come from. BTCPay itself still supports only the older version. Support for the new one exists as an early third-party plugin, and its author says not to use it for real payments yet. Neither change alters the advice on the page.',
+  },
+  {
     date: '2026-08-06',
     type: 'spec',
     title: 'The last two "last verified" dates now have machines behind them — and building those machines found a number of ours that was wrong',

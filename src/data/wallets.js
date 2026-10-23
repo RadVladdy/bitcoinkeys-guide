@@ -42,6 +42,12 @@
 
 import { numberWord } from './numbers.js';
 
+// 2026-10-23: proposals from the 10-06/10-16 runs applied after checking each vendor store by hand.
+//   Coinkite raised the Coldcard Q $249 → $319 and the Mk5 $170 → $219 (store shows a struck 'old price' on
+//   every product as a standing layout — June read ~~$289~~ $249 for the Q — so current-price is the price).
+//   The Mk5 rise was flagged 09-04 and wrongly superseded by a later misread; found by hand here.
+//   BitBox02 $137 → $167 (US price, taxes and tariffs included). Jade NOT changed: Blockstream shows
+//   regular $79 with a 'Sale $67' — list-price rule of 2026-07-31.
 export const walletsVerified = '2026-07-31';
 
 // `barCaveat` is the cold tier's honesty layer, and it must AGREE WITH THE BADGES.
@@ -69,8 +75,8 @@ export const wallets = [
     image: '/devices/coldcard-q.webp',
     ladderReach: { s: 'strong', p: 'strong', m: 'strong', note: 'Full ladder, all first-class — buy-once, no new hardware as you climb.' },
     vendor: 'Coinkite',
-    price: '$249',
-    priceNum: 249,
+    price: '$319',
+    priceNum: 319,
     airgap: 'yes',      // QR / MicroSD air-gap mode
     btcOnly: 'yes',
     openSource: 'partial', // source-available (non-OSI)
@@ -92,8 +98,8 @@ export const wallets = [
     image: '/devices/coldcard-mk5.webp',
     ladderReach: { s: 'strong', p: 'ok', m: 'strong', note: 'Full ladder; the numeric keypad makes passphrase entry more of a chore than the Q, but single-sig and multisig sign well.' },
     vendor: 'Coinkite',
-    price: '$170',
-    priceNum: 170,
+    price: '$219',
+    priceNum: 219,
     airgap: 'yes',      // MicroSD air-gap; also USB-C / NFC
     btcOnly: 'yes',
     openSource: 'partial', // source-available (non-OSI)
@@ -101,7 +107,7 @@ export const wallets = [
     secureElement: 'yes',  // dual secure elements
     reproducible: 'yes',
     recoverability: 'yes',
-    // NOT 'budget': at $170 it sits above every budget bucket the chooser offers
+    // NOT 'budget': at $219 it sits above every budget bucket the chooser offers
     // ($150 / $100), so the chip surfaced it to readers who had asked for cheap.
     useCases: ['multisig'],
     bestFor: 'The pocket-sized, lower-cost Coldcard — the same dual secure element, air-gapped MicroSD signing, and Bitcoin-only open-source firmware as the Q, in a credit-card form factor. An excellent affordable multisig signer or travel key; USB-C + NFC for tap-to-sign.',
@@ -213,8 +219,8 @@ export const wallets = [
     image: '/devices/bitbox02.webp',
     ladderReach: { s: 'strong', p: 'ok', m: 'strong', note: 'An excellent multisig component; passphrase on the touch-slider is the fiddly part.' },
     vendor: 'BitBox',
-    price: '$137',
-    priceNum: 137,
+    price: '$167',
+    priceNum: 167,
     airgap: 'no',       // USB, functionally cold
     btcOnly: 'yes',
     openSource: 'yes',
