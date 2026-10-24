@@ -1170,7 +1170,7 @@ const price = (slug) => (deviceBySlug[slug] && deviceBySlug[slug].price) || '';
 // being reassigned to a device it is not true of. See the assert below.
 const DEV = {
   safe3:    { name: 'Trezor Safe 3', why: `the cheapest device that clears our bar (${price('trezor-safe-3')}) — buttons and a small screen rather than a touchscreen, but the same secure element and open-source firmware as its pricier siblings` },
-  jade:     { name: 'Blockstream Jade', why: 'genuinely good on a budget, simple, Bitcoin-only (connects by USB/Bluetooth — no on-device camera)' },
+  jade:     { name: 'Blockstream Jade', why: 'genuinely good on a budget, simple, Bitcoin-only, with a camera for air-gapped QR signing' },
   jadeplus: { name: 'Blockstream Jade Plus', why: `Bitcoin-only, fully open-source and reproducible with an air-gap mode (${price('jade-plus')}) — a strong multisig key from a maker independent of the others here` },
   bitbox:   { name: 'BitBox02 (BTC-only)', why: 'Swiss, minimalist, fully open-source — an excellent multisig component' },
   trezor:   { name: 'Trezor Safe 5',       why: 'colour touchscreen and mainstream UX — easy passphrase entry' },

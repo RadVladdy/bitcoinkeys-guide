@@ -439,7 +439,8 @@ export const deviceWalkthroughs = {
       + 'that never learns the PIN or your keys. That is a deliberate design rather than a corner cut '
       + '— <strong>but it means the device needs to reach the internet to unlock</strong>, which '
       + 'is a dependency the other devices here do not have. Read that before you choose it, not after.',
-      'No camera. It connects by cable or Bluetooth, so the computer and the device do speak directly.',
+      'It has a camera, so it can be driven by QR codes without ever being plugged into a computer. '
+      + 'It also connects by cable or Bluetooth — pick the way you will use it at setup rather than later.',
     ],
   },
   'jade-core-2026': {
@@ -461,8 +462,8 @@ export const deviceWalkthroughs = {
     docsLabel: 'Blockstream’s own Jade quickstart guide',
     diverges: [
       'It has a camera, so it can be driven by QR codes without ever being plugged into a computer. '
-      + 'That is the reason to pick this one over the cheaper Jade, and it is worth choosing at setup '
-      + 'rather than later.',
+      + 'So does the cheaper original Jade; the Plus gives you a larger screen to do it on. Either way, '
+      + 'it is worth choosing at setup rather than later.',
       'Same server-checked PIN as the rest of the Jade line, and the same consequence: '
       + '<strong>unlocking needs a connection.</strong> A camera does not remove that.',
     ],

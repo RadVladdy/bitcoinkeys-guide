@@ -9,6 +9,12 @@
 // Entry types: 'price' | 'device' | 'spec' | 'security' | 'feature' | 'content'
 export const changelog = [
   {
+    date: '2026-10-24',
+    type: 'spec',
+    title: 'The original Blockstream Jade has a camera — we said it didn’t',
+    detail: 'Since July we have told you the $79 Blockstream Jade has no camera, connects only by USB or Bluetooth, and that you need the Jade Plus for air-gapped QR signing. That was wrong. The original Jade has had a camera from the start, and Blockstream shipped fully air-gapped QR signing for it in November 2022, well before the Jade Plus existed; its own store listing today says “Fully Air-Gapped QR functionality”. It has a battery too, which we had also credited only to the Plus. WHAT CHANGED HERE. The Jade’s card now rates air-gap the same as the Jade Plus: partial, because a camera gives it a QR mode while USB and Bluetooth are still there. The setup finder, the quick picks on the hardware page and the setup walkthroughs now say the same, and the walkthrough no longer tells you the camera is the reason to pay more for the Plus — the honest difference is the larger screen. Nothing about the Jade’s rating changes: it was already in the cold-storage tier. WHAT DID NOT CHANGE. The price stays at $79. Blockstream is showing it on sale at $67 right now; as with every device here, we list the regular price because sales come and go. The Jade Core ($99) still has no camera, and the Jade Plus still does. HOW THIS HAPPENED. When we sorted out the three Jades in July we wrote down that the cheapest one had no camera, and every later check compared our pages to that note rather than to Blockstream. A reader-facing store page caught it. The fix is the one this site keeps relearning: read the maker’s own page, not our own summary of it.',
+  },
+  {
     date: '2026-10-23',
     type: 'price',
     title: 'Coldcard Q now $319, Coldcard Mk5 $219, BitBox02 $167; Jade’s sale doesn’t change our list price',

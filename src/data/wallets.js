@@ -48,6 +48,10 @@ import { numberWord } from './numbers.js';
 //   The Mk5 rise was flagged 09-04 and wrongly superseded by a later misread; found by hand here.
 //   BitBox02 $137 → $167 (US price, taxes and tariffs included). Jade NOT changed: Blockstream shows
 //   regular $79 with a 'Sale $67' — list-price rule of 2026-07-31.
+// 2026-10-24: the original Jade DOES have a camera — and a battery. The 07-18 note above ("no camera →
+//   airgap 'no'") was wrong: Blockstream's store lists "Fully Air-Gapped QR functionality" for it, and its
+//   QR Scan launch post (Nov 2022) predates the Jade Plus. airgap 'no' → 'partial', the same profile as
+//   the Plus (camera for QR, but USB + Bluetooth also present). Price still $79 list ('Sale $67').
 export const walletsVerified = '2026-07-31';
 
 // `barCaveat` is the cold tier's honesty layer, and it must AGREE WITH THE BADGES.
@@ -240,11 +244,11 @@ export const wallets = [
     name: 'Blockstream Jade',
     barCaveat: 'Clears the bar — Bitcoin-only, fully open-source and reproducible. Its one trade-off is deliberate: no dedicated secure-element chip. That is fine for its threat model (and a blind-oracle mode hardens it), but a determined attacker with physical possession of the device is more of a concern than on a secure-element signer.',
     image: '/devices/jade-core.webp',
-    ladderReach: { s: 'strong', p: 'ok', m: 'ok', note: 'Covers the ladder cheaply; the jog wheel makes passphrase and multisig fiddlier. Great to start.' },
+    ladderReach: { s: 'strong', p: 'ok', m: 'ok', note: 'Covers the ladder cheaply, air-gap included; the jog wheel makes passphrase and multisig fiddlier. Great to start.' },
     vendor: 'Blockstream',
     price: '$79',
     priceNum: 79,
-    airgap: 'no',       // no on-device camera — connects by USB or Bluetooth
+    airgap: 'partial',  // on-device camera for QR air-gap, but also USB/Bluetooth
     btcOnly: 'yes',
     openSource: 'yes',
     multisig: 'partial',
@@ -252,8 +256,8 @@ export const wallets = [
     reproducible: 'yes',
     recoverability: 'yes',
     useCases: ['first', 'budget'],
-    bestFor: 'Genuinely good on a budget — the original $79 Blockstream device (plug-and-play, plastic body, jog wheel + one button beside the screen). Solid single-sig, workable multisig, and Unchained integration.',
-    watch: 'No dedicated secure element (a "blind oracle" model), and no on-device camera — so it connects by USB or Bluetooth rather than air-gapped QR (the Jade Plus adds a camera + battery for that). Some multisig quirks.',
+    bestFor: 'Genuinely good on a budget — the original $79 Blockstream device (plastic body, jog wheel + one button beside the screen, built-in camera and battery). Air-gapped QR signing at the lowest price we can point you at, solid single-sig, workable multisig, and Unchained integration.',
+    watch: 'No dedicated secure element (a "blind oracle" model). The camera gives it an air-gapped QR mode, but USB and Bluetooth are there too, so the air-gap is a way of using it rather than the only way. Some multisig quirks.',
     notes: {
       reproducible: 'Open-source with documented reproducible builds.',
       recoverability: 'Standard BIP-39 seed — interoperable both ways with Coldcard, Trezor, Ledger and others.',
@@ -283,7 +287,7 @@ export const wallets = [
     recoverability: 'yes',
     useCases: ['first', 'budget'],
     bestFor: 'Blockstream’s beginner-focused device (launched April 2026) — guided setup through the Blockstream app, USB-C or Bluetooth, a Genuine Check authenticity test at setup, and the same fully open-source blind-oracle security as the rest of the Jade line.',
-    watch: 'No camera, so no air-gapped QR signing (the Jade Plus adds that), and Bluetooth is present. No dedicated secure element (the blind-oracle model). New hardware — its track record is months, not years.',
+    watch: 'No camera, so no air-gapped QR signing (the original Jade and the Jade Plus both have one), and Bluetooth is present. No dedicated secure element (the blind-oracle model). New hardware — its track record is months, not years.',
     notes: {
       reproducible: 'Same open-source firmware family as the other Jades, with documented reproducible builds.',
       recoverability: 'Standard BIP-39 seed — restorable in any BIP-39 wallet.',
@@ -293,7 +297,7 @@ export const wallets = [
     name: 'Blockstream Jade Plus',
     barCaveat: 'Clears the bar — Bitcoin-only, fully open-source and reproducible, with an air-gap mode. Same deliberate trade-off as the original Jade: no dedicated secure-element chip, so physical-extraction resistance leans on its blind-oracle design rather than a hardened chip.',
     image: '/devices/jade-plus.webp',
-    ladderReach: { s: 'strong', p: 'ok', m: 'ok', note: 'Covers the ladder; left/right selection buttons make passphrase and multisig fiddlier, but the camera + battery make it a nicer air-gap unit than the standard Jade.' },
+    ladderReach: { s: 'strong', p: 'ok', m: 'ok', note: 'Covers the ladder; left/right selection buttons make passphrase and multisig fiddlier, and the larger screen makes it a nicer air-gap unit than the standard Jade.' },
     vendor: 'Blockstream',
     price: '$149',
     priceNum: 149,
