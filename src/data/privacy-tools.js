@@ -26,7 +26,7 @@
 // premise is that the picture changed inside one year, so it will change again.
 
 /** ISO date every claim on the cluster was last checked against its own source. */
-export const privacyToolsVerified = '2026-08-05';
+export const privacyToolsVerified = '2026-10-23';
 
 // The framing the hub states once and the three pages inherit. It is here rather
 // than repeated because "this layer is optional and the free habits do more" is a
