@@ -52,7 +52,7 @@ import { numberWord } from './numbers.js';
 //   airgap 'no'") was wrong: Blockstream's store lists "Fully Air-Gapped QR functionality" for it, and its
 //   QR Scan launch post (Nov 2022) predates the Jade Plus. airgap 'no' → 'partial', the same profile as
 //   the Plus (camera for QR, but USB + Bluetooth also present). Price still $79 list ('Sale $67').
-export const walletsVerified = '2026-07-31';
+export const walletsVerified = '2026-10-16';
 
 // `barCaveat` is the cold tier's honesty layer, and it must AGREE WITH THE BADGES.
 // Until 2026-07-30 the Trezor Safe 3 and Safe 5 carried none, so /standard called
